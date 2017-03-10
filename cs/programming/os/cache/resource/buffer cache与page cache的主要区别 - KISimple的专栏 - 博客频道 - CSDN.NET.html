@@ -1,0 +1,1094 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+
+    <script type="text/javascript" src="http://c.csdnimg.cn/pubfooter/js/tracking.js" charset="utf-8"></script>  
+
+    <script type="text/javascript">
+        var protocol = window.location.protocol;
+        document.write('<script type="text/javascript" src="' + protocol + '//csdnimg.cn/pubfooter/js/repoAddr2.js?v=' + Math.random() + '"></' + 'script>');
+    </script>
+
+  
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <title>buffer cache与page cache的主要区别 - KISimple的专栏
+        - 博客频道 - CSDN.NET</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="Prior to Linux kernel version 2.4, the two caches were distinct: Files were in the page cache, disk blocks were in the buffer cache. Given that most files are represented by a filesystem on a disk, data was represented twice, once in each of the caches. Ma" />
+    <script src="http://static.blog.csdn.net/scripts/jquery.js" type="text/javascript"></script>
+      <script type="text/javascript" src="http://static.blog.csdn.net/scripts/jquery-version.js"></script>
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/ad.js?v=1.1"></script>
+        <!--new top-->
+               <link rel="stylesheet" href="http://c.csdnimg.cn/public/common/toolbar/css/index.css">        <!--new top-->
+    
+      <!-- ad begin -->
+         <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/tracking.js"></script>
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/kisimple/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?6bcd52f51e9b3dce32bec4a3997715ac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+</head>
+<body>
+
+
+    <!-- 广告位开始 -->
+        <ins data-revive-zoneid="149" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/kisimple">KISimple的专栏</a></h2>
+            <h3>-XX:+HeapDumpOnOutOfMemoryError</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/kisimple?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/kisimple?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/kisimple/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "kisimple";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/kisimple";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/60960431">
+<font color=red> CSDN日报20170309——《程序员，杂草和大树，你选哪个》</font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a href="http://blog.csdn.net/turingbooks/article/details/58072986">
+<font color=blue>程序员2月书讯
+</font></a>
+
+&nbsp;&nbsp;&nbsp;
+
+<a href="http://edu.csdn.net/huiyiCourse/detail/284?ref=blog&loc=r3">
+<font color=red>【直播】用面向协议的思想简化网络请求
+</font></a>
+&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/60961185">
+<font color=blue>博客一键搬家活动开始啦
+</font></a>
+
+</div>                        </div>
+                        
+
+
+
+  
+<link href="http://static.blog.csdn.net/css/comment1.css" type="text/css" rel="stylesheet" />
+<link href="http://static.blog.csdn.net/css/style1.css" type="text/css" rel="stylesheet" />
+<script language='JavaScript' type='text/javascript' src='http://download.csdn.net/js/jquery.cookie.js'></script>
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/search-service/main.js"></script>
+<link rel="stylesheet" href="http://static.blog.csdn.net/public/res-min/markdown_views.css?v=1.0" />
+<link rel="stylesheet" href="http://static.blog.csdn.net/css/category.css?v=1.0" />
+<script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/web-storage-cache.min.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/replace.min.js"></script>
+
+
+
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+           
+            var isBole = false;
+            
+      
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=buffer+cache%e4%b8%8epage+cache%e7%9a%84%e4%b8%bb%e8%a6%81%e5%8c%ba%e5%88%ab&u=http://blog.csdn.net/kisimple/article/details/42559779"
+
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Translated"></span>
+
+
+    <h1>
+        <span class="link_title"><a href="/kisimple/article/details/42559779">
+        buffer cache与page cache的主要区别            
+        </a></span>
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/buffercache' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">buffercache</a><a href='http://www.csdn.net/tag/pagecache' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">pagecache</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2015-01-09 20:05</span>
+            <span class="link_view" title="阅读次数">548人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(1)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('buffer+cache%e4%b8%8epage+cache%e7%9a%84%e4%b8%bb%e8%a6%81%e5%8c%ba%e5%88%ab','42559779');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(42559779,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>
+    <div class="embody"  style="display:none" id="embody">
+        <span class="embody_t">本文章已收录于：</span>
+        <div class="embody_c" id="lib" value="{&quot;err&quot;:0,&quot;msg&quot;:&quot;ok&quot;,&quot;data&quot;:[]}"></div>
+    </div>
+    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('2444243','kisimple','top','42559779');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">操作系统<em>（6）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2444243"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2444243">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('6246320','kisimple','top','42559779');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">$文档翻译<em>（5）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/6246320"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_6246320">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+    <script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>  
+
+  
+
+  
+  
+     
+
+<div id="article_content" class="article_content">
+
+<p>最近碰到个问题，弄不清楚Linux中buffer cache和page cache的概念，然后在Quora找到了<a target="_blank" target="_blank" href="http://book.douban.com/subject/3291901/">Linux Kernel Development</a>的作者Robert Love的两个answer，顿时茅厕顿开，决定翻译一下，记录一下。有些感觉翻译不到位的在/**/中给出原文。</p>
+<p>第一个问题，<a target="_blank" target="_blank" href="http://www.quora.com/Linux-Kernel/What-is-the-major-difference-between-the-buffer-cache-and-the-page-cache">Linux Kernel: What is the major difference between the buffer cache and the page cache?</a></p>
+<h3>buffer cache与page cache的主要区别是什么？</h3>
+<p>为什么在早期的内核中他们是分开的？为什么后来又合并了？</p>
+<p><a target="_blank" target="_blank" href="http://www.quora.com/Robert-Love-1">Robert Love</a>：</p>
+<p>page cache缓存了文件页/*pages of file*/，这是为了优化文件I/O。而buffer cache缓存了磁盘块，则是为了优化块I/O。</p>
+<p>在Linux内核2.4版本之前，这两个cache是不一样的：文件在page cache，而磁盘块在buffer cache。考虑到大部分文件都是由文件系统表示，并存储在磁盘上，文件数据将会被缓存两份，每一个cache中一份。许多的Unix系统也是采用同样的方式。</p>
+<p>这样的方式实现起来简单，但是很明显，不优雅也不高效。从Linux内核2.4版本开始，这两个cache的内容被统一了。VM子系统现在可以驱动I/O，不仅是在page cache/*it does so out of the page cache*/。&nbsp;如果被缓存的数据即是文件数据又是块数据—大部分数据都是这样—buffer cache只需要指向page cache即可；这样数据就只需要在内存中缓存一份。当你在考虑磁盘缓存的时候，其实就是page cache了：它缓存了磁盘文件数据，这样可以让后续的I/O操作更加快速。</p>
+<p>buffer cache仍然存在，因为内核仍然需要执行块I/O。因为大多数块都是用来存储文件数据，所以大部分buffer cache都指向了page cache。但还是有一小部分块并不是文件数据，例如metadata和raw block I/O，因此还是需要单独用buffer cache来缓存。</p>
+<p><a target="_blank" target="_blank" href="http://www.quora.com/Jeff-Darcy">Jeff Darcy</a>：</p>
+<p>很高兴Robert Love给出了一个很优秀的答案。我不打算再用相同的视角来回答这个问题，我将试着回到更早之前，那时甚至都还没有Linux。我知道那看起来是一个奇怪的问题，但Linux开发者也会跟人谈起，因此历史上的事件，围绕其他系统的情况，我觉得还是有必要提一下的/*but Linux developers do talk to others and so on matters of history the context around other systems is IMO still relevant*/。</p>
+<p>一开始只有buffer cache。它是一个非常简单的概念：操作它就像操作磁盘，只是最后不会有真正的磁盘请求或者传输。这是一个非常强大的想法，几乎每一个点/*workload*/（除了CPU密集型的，当时还不会碰到网络密集型的问题）上面都能极大的提升性能。谁还会要求更多呢？</p>
+<p>后来，有些人觉得将这个cache移到更高的层次会更好。当你只需要维护一个简单的文件加位移的哈希表时，为什么还要在复杂的文件系统代码上面浪费时间呢？而且在文件系统上面实现一个cache意味着可以更紧密的和内存管理子系统结合起来，内存管理子系统的开发在当时也是比较活跃的。因此，你的第一个问题的答案，他们之所以是分开的是因为他们是在不同时期为了满足不同需要而开发的，并且一开始也没有人想要把buffer cache搞乱。</p>
+<p>再后来，大家意识到可以将两个cache统一以避免Robert提到的缓存两份的问题。我希望可以找到一个文档的链接让你看下Solaris7和8是怎样来处理这个问题的，因为他们增加的复杂度实在是有点可笑。让buffer cache指向page cache，而不是反过来，原因有两方面：</p>
+<p></p>
+<ul>
+<li>并不是所有文件系统都是挂载在磁盘上面。有一些是在内存，有一些则是通过网络操作。将page cache拆解成buffer cache和本地处理的并不那么优雅/*Having the page cache split between stuff that points into the buffer cache and stuff that's handled natively is a bit inelegant*/。</li><li>page cache被寄予厚望，它的寻址方法和其他语义如果成为首选会更加有意义。</li></ul>
+<div>buffer cache仍然存在，因为不是只有文件，但它也只是过去辉煌的一个阴影了。如今一个系统没有了buffer cache只是会变慢，这与没有了page cache会造成的严重后果是无法比拟的。</div>
+<p></p>
+<p><br>
+</p>
+<p>第二个问题，<a target="_blank" target="_blank" href="http://www.quora.com/What-is-the-difference-between-Buffers-and-Cached-columns-in-proc-meminfo-output">What is the difference between Buffers and Cached columns in /proc/meminfo output?</a></p>
+<h3>/proc/meminfo输出的Buffers与Cached这两列有什么区别？</h3>
+<pre name="code" class="plain">cat /proc/meminfo
+MemTotal:      8162388 kB
+MemFree:         86004 kB
+Buffers:         56432 kB
+Cached:        1141924 kB
+SwapCached:     800992 kB
+Active:        6090024 kB
+Inactive:      1857208 kB
+HighTotal:           0 kB
+HighFree:            0 kB
+LowTotal:      8162388 kB
+LowFree:         86004 kB
+SwapTotal:     2096472 kB
+SwapFree:      1048264 kB
+...</pre>
+<p><a target="_blank" target="_blank" href="http://www.quora.com/Robert-Love-1">Robert Love</a>：</p>
+<p>长话短说，Cached是page cache的大小，Buffers是内存中/*in-memory*/块I/O缓冲区的大小。Cached很重要，Buffers无关紧要。</p>
+<p>短话长说，Cached等于Linux page cache的大小减去swap cache的大小，swap cache的大小是SwapCached那一列（因此全部page cache的大小就等于Cached&#43;SwapCached）。Linux通过page cache执行所有的I/O操作。写的实现很简单，只要将page cache中相应的页标记为脏页即可；负责刷盘的线程会周期性的将脏页写回磁盘。读就是直接读取page cache的数据，如果数据还没被缓存，就先读进来。在现代的Linux系统中，Cached很容易就会达到几个G，当内存有压力时它才会缩小。只要需要系统就会清理page
+ cache并将数据swap到磁盘以获取更多可用的内存。</p>
+<p>Buffers是内存中块I/O的缓冲区。相对来说，它们是比较短暂的。在Linux内核2.4版本之前，page cache跟buffer cache是分开的。从2.4开始，page cache跟buffer cache统一了。Buffers就只缓存raw disk block了，这一部分不在page cache—也就是非文件数据。Buffers这个指标也就不那么重要了。大部分系统中，Buffers经常也就几十M。</p>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_detail.css" />
+
+    
+<!--172.16.140.12-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+ 
+
+
+        <div id="digg" ArticleId="42559779" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>0</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='/kisimple/article/details/42507589';">上一篇</span><a href="/kisimple/article/details/42507589" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">SYSCALL_DEFINE小记</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='/kisimple/article/details/42618051';">下一篇</span><a href="/kisimple/article/details/42618051" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">Lombok浅析#1</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+        <div class="similar_article"  style="display:none">
+                <h4>我的同类文章</h4>
+                <div class="similar_c"style="margin:20px 0px 0px 0px">
+                    <div class="similar_c_t">
+                                <label class="similar_cur">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2444243','kisimple','foot','42559779');">操作系统<em>（6）</em></span>
+                                </label>
+                                <label class="">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('6246320','kisimple','foot','42559779');">$文档翻译<em>（5）</em></span>
+                                </label>
+                    </div>
+                   
+                    <div class="similar_wrap tracking-ad" data-mod="popu_141"  style="max-height:195px;">
+                        <a href="http://blog.csdn.net" style="display:none">http://blog.csdn.net</a>
+                        <ul class="similar_list fl">                          
+                        </ul>
+
+                        <ul class="similar_list fr">                           
+                        </ul>
+                    </div>
+                </div>
+            </div>    
+    <script  type="text/javascript">
+        $(function () {
+            GetCategoryArticles('2444243', 'kisimple','foot','42559779');
+        });
+    </script>
+      
+</div>
+
+    <div>
+            <ins data-revive-zoneid="205" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins> 
+     </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/kisimple/svc/GetSuggestContent/42559779",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+
+<style>
+.blog-ass-articl dd {
+color: #369;
+width: 99%; /*修改行*/
+float: left;
+overflow: hidden;
+font: normal normal 12px/23px "SimSun";
+height: 23px;
+margin: 0;
+padding: 0 0 0 10px;
+margin-right: 30px;
+background: url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;
+}
+</style>
+
+ <link rel="stylesheet" href="http://static.blog.csdn.net/css/replace.css"/>
+<div id="relate" data-mod="popu_218"  class="tracking-ad">
+        <div class="relate_t">
+            <h3><span>参考知识库</span></h3>
+        </div>
+        <div class="relate_c">
+        </div>
+</div>
+ 
+
+<dl class="blog-ass-articl" id="res-relatived" > 
+    <div class="embody embody_b" id="libkeyparent"  style="display:none">
+            <span class="embody_t">更多资料请参考：</span>
+            <div class="embody_c" id="libkey"></div>
+    </div>
+
+
+     <dt><span>猜你在找</span></dt>    
+
+
+   
+
+
+    <div id="adCollege" style="width: 42%;float: left;"> 
+        <script src="http://csdnimg.cn/jobreco/job_reco.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            csdn.position.showEdu({
+                sourceType: "blog",
+                searchType: "detail",
+                searchKey: "42559779",
+                username: "yonka",
+                recordcount: "5",
+                containerId: "adCollege" //容器DIV的id。 
+            });
+            
+            setEduLoc();
+
+            function setEduLoc() {               
+                var edus = $("#adCollege div dd a");
+                if (edus.length == 0) {
+                    setTimeout(function () {
+                        setEduLoc();
+                    }, 500);
+                }
+                else {
+                    var eduLoc = "?ref=blog&loc=0";
+                    $.each(edus, function (index,item) {
+                        var href = $(this).attr("href") + eduLoc;
+                        $(this).attr("href", href);
+                    });
+                }
+            }
+
+        </script> 
+    </div>  
+
+    
+     <div id="res"  data-mod="popu_36"  class="tracking-ad" style="width: 42%;float: left;margin-right: 30px;"></div>
+   
+</dl>
+
+
+<script type="text/javascript">
+    $(function () {
+        setTimeout(function () {
+            var searchtitletags = 'buffer cache与page cache的主要区别' + ',' + $("#tags").html();
+            searchService({
+                index: 'blog',
+                query: searchtitletags,
+                from: 5,
+                size: 5,
+                appendTo: '#res',
+                url: 'recommend',
+                his: 2,
+                client: "blog_cf_enhance",
+                tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+            });
+        }, 500);
+    });    
+
+ </script>  
+
+
+    <div id="ad_cen">        
+<ins data-revive-zoneid="71" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>    </div>  
+
+    <!-- 广告位开始 -->
+    <ins data-revive-zoneid="72" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>
+    <!-- 广告位结束 -->
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '42559779';
+    var commentscount = 1;
+    var islock = false
+</script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/comment.js"></script>
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+<div class="tag_list" style="display:none"></div>
+  <script  language="javascript" type='text/javascript'>     
+      $(function(){
+              setTimeout(function(){
+                  $.get("/kisimple/svc/GetTagContent",function(data){
+                      $(".tag_list").html(data).show();
+                  });     
+              });
+          },500);                       
+ </script> 
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+</script>
+ <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>      
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/kisimple" target="_blank">
+    <img src="http://avatar.csdn.net/9/C/F/1_kisimple.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/kisimple" class="user_name" target="_blank">kisimple</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=kisimple','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="2" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>67823次</span></li>
+    <li>积分：<span>1314</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog4.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：1314 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>65篇</span></li>
+    <li>转载：<span>1篇</span></li>
+    <li>译文：<span>6篇</span></li>
+    <li>评论：<span>15条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/kisimple/article/category/2523467" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JavaVM</a><span>(25)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2523465" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java语言</a><span>(30)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444245" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">编程语言</a><span>(18)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2452217" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">并发编程</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444243" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2451799" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机网络</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2457183" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机硬件</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467787" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算理论</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2471973" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据结构</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467709" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">算法</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6118903" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据库</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444247" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2491967" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">开源软件</a><span>(24)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2507851" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">经典论文</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2794191" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$RTFSC</a><span>(27)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246592" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Hacking</a><span>(20)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6714912" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Note</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246320" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档翻译</a><span>(6)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2894847" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档索引</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/kisimple/article/month/2017/02">2017年02月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/06">2016年06月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/05">2016年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2016/04">2016年04月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/12">2015年12月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/07">2015年07月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/06">2015年06月</a><span>(4)</span></li><li><a href="/kisimple/article/month/2015/05">2015年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/04">2015年04月</a><span>(7)</span></li><li><a href="/kisimple/article/month/2015/03">2015年03月</a><span>(17)</span></li><li><a href="/kisimple/article/month/2015/02">2015年02月</a><span>(10)</span></li><li><a href="/kisimple/article/month/2015/01">2015年01月</a><span>(12)</span></li><li><a href="/kisimple/article/month/2014/12">2014年12月</a><span>(6)</span></li><li><a href="/kisimple/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2014/08">2014年08月</a><span>(3)</span></li><li><a href="/kisimple/article/month/2014/07">2014年07月</a><span>(2)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/kisimple/article/details/42747197" title="Kafka#4：存储设计">Kafka#4：存储设计</a><span>(4255)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42396153" title="Kafka#2：消息队列">Kafka#2：消息队列</a><span>(3287)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42747097" title="Kafka#3：分布式设计">Kafka#3：分布式设计</a><span>(2062)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44019989" title="Spring Bean注册方式小结">Spring Bean注册方式小结</a><span>(1779)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43773899" title="Java之道系列：BigDecimal如何解决浮点数精度问题">Java之道系列：BigDecimal如何解决浮点数精度问题</a><span>(1740)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44116519" title="ZooKeeper#2：分布式存储">ZooKeeper#2：分布式存储</a><span>(1568)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43355209" title="JPDA#1：使用JDI写一个调试器">JPDA#1：使用JDI写一个调试器</a><span>(1458)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44632443" title="HotSpotVM 对象机制实现浅析#1">HotSpotVM 对象机制实现浅析#1</a><span>(1435)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44109597" title="Java官方文档索引">Java官方文档索引</a><span>(1258)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43709505" title="Java之道系列：Annotation实现浅析">Java之道系列：Annotation实现浅析</a><span>(1251)</span>
+</li>
+</ul>
+</div>
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/kisimple/article/details/42747197#comments">Kafka#4：存储设计</a>
+    <p style="margin:0px;"><a href="/hisweetgirl" class="user_name">hisweetgirl</a>:
+数据量过大的话 index 文件来不及建立，会抛java.io.FileNotFoundExcept...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/42127799#comments">Diamond#2：源码</a>
+    <p style="margin:0px;"><a href="/zhupanlinch" class="user_name">zhupanlinch</a>:
+请问获取源代码的SVN账号和密码是什么啊？我想获取diamond的源代码！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44632443#comments">HotSpotVM 对象机制实现浅析#1</a>
+    <p style="margin:0px;"><a href="/u011039332" class="user_name">u011039332</a>:
+学习了虽然OOP, Klass大部分的数据结构都不太熟悉, 但是至少学习了SA的使用
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/45182773#comments">OSGi#1：Equinox 初探</a>
+    <p style="margin:0px;"><a href="/xo9ab" class="user_name">xo9ab</a>:
+OSGi学习，不得不读的经典开源开发平台JXADF，官网 http://osgia.com 有惊喜。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/38706729#comments">我所理解的SkipList#1：随机算法</a>
+    <p style="margin:0px;"><a href="/Novoland_L" class="user_name">Novoland_L</a>:
+写的很不错，good~！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43355209#comments">JPDA#1：使用JDI写一个调试器</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@qiubailv:hahaha
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@chenfanglincfl:官方文档跟源码吧，一手资料。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+目前也学习研究 lz有没有推荐的资料
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44109597#comments">Java官方文档索引</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+惠民贴啊
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43192863#comments">HotSpotVM 构建与调试小结</a>
+    <p style="margin:0px;"><a href="/lvzq2006" class="user_name">lvzq2006</a>:
+哥我错了，NetBeans8.0.2确实不行，换成NetBeans7.0.1恩，OK了
+    </p>
+    </li>
+</ul>
+</div>
+
+
+<div id="custom_column_36560875" class="panel">
+<ul class="panel_head"><span>友情链接</span></ul>
+<ul class="panel_body">
+
+<a href="http://blog.csdn.net/jasonblog" target="_blank">JasonLee的专栏</a>
+
+</ul>
+</div>    </div>
+    <div class="clear">
+    </div>
+
+
+                   <!-- 广告位开始 --> 
+                    <ins data-revive-zoneid="190" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins> 
+                    <!-- 广告位结束 -->
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/cnick/cnick.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/newblog.min.js"></script>
+
+
+<script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=4262639"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/JavaScript1.js"></script>
+
+<script type="text/javascript">document.write("<img src=http://counter.csdn.net/pv.aspx?id=24 border=0 width=0 height=0>");</script>
+<script type="text/javascript" src="http://www.csdn.net/ui/scripts/Csdn/counter.js"></script>
+<script type="text/javascript" src="http://ad.csdn.net/scripts/ad-blog.js"></script>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+    <script id="csdn-toolbar-id" btnId="header_notice_num" wrapId="note1" count="5" subCount="5" type="text/javascript" src="http://c.csdnimg.cn/public/common/toolbar/js/toolbar.js"></script>     <!--new top-->
+   
+    <link href="http://c.csdnimg.cn/comm_ask/css/ask_float_block.css" type="text/css" rel="stylesheet" />
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/wmd.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/showdown.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/prettify.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/apps/ask_float_block.js'></script>
+   
+
+   
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_code.css" />
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/saveToCode.js"></script>
+      <script type="text/javascript" src="//csdnimg.cn/rabbit/tracking-ad/main.js?75eacd8"></script>
+
+     <link rel="stylesheet" href="http://static.blog.csdn.net/css/fa.css" />
+
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" />
+    </div>
+</body>
+</html>   
+ 

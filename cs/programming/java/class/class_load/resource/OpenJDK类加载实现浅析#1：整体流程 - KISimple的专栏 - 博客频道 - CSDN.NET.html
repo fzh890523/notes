@@ -1,0 +1,2201 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+
+    <script type="text/javascript" src="http://c.csdnimg.cn/pubfooter/js/tracking.js" charset="utf-8"></script>  
+
+    <script type="text/javascript">
+        var protocol = window.location.protocol;
+        document.write('<script type="text/javascript" src="' + protocol + '//csdnimg.cn/pubfooter/js/repoAddr2.js?v=' + Math.random() + '"></' + 'script>');
+    </script>
+
+  
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <title>OpenJDK类加载实现浅析#1：整体流程 - KISimple的专栏
+        - 博客频道 - CSDN.NET</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="1. loadClass 用于实现类加载的代理机制；2. findClass 用于找到类的二进制表示；3. defineClass 用于将类的二进制表示转化成`Class`对象，这一步由虚拟机来完成；" />
+    <script src="http://static.blog.csdn.net/scripts/jquery.js" type="text/javascript"></script>
+      <script type="text/javascript" src="http://static.blog.csdn.net/scripts/jquery-version.js"></script>
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/ad.js?v=1.1"></script>
+        <!--new top-->
+               <link rel="stylesheet" href="http://c.csdnimg.cn/public/common/toolbar/css/index.css">        <!--new top-->
+    
+      <!-- ad begin -->
+         <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/tracking.js"></script>
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/kisimple/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?6bcd52f51e9b3dce32bec4a3997715ac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+</head>
+<body>
+
+
+    <!-- 广告位开始 -->
+        <ins data-revive-zoneid="149" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/kisimple">KISimple的专栏</a></h2>
+            <h3>-XX:+HeapDumpOnOutOfMemoryError</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/kisimple?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/kisimple?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/kisimple/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "kisimple";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/kisimple";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/60960431">
+<font color=red> CSDN日报20170309——《程序员，杂草和大树，你选哪个》</font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a href="http://blog.csdn.net/turingbooks/article/details/58072986">
+<font color=blue>程序员2月书讯
+</font></a>
+
+&nbsp;&nbsp;&nbsp;
+
+<a href="http://edu.csdn.net/huiyiCourse/detail/284?ref=blog&loc=r3">
+<font color=red>【直播】用面向协议的思想简化网络请求
+</font></a>
+&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/60961185">
+<font color=blue>博客一键搬家活动开始啦
+</font></a>
+
+</div>                        </div>
+                        
+
+
+
+  
+<link href="http://static.blog.csdn.net/css/comment1.css" type="text/css" rel="stylesheet" />
+<link href="http://static.blog.csdn.net/css/style1.css" type="text/css" rel="stylesheet" />
+<script language='JavaScript' type='text/javascript' src='http://download.csdn.net/js/jquery.cookie.js'></script>
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/search-service/main.js"></script>
+<link rel="stylesheet" href="http://static.blog.csdn.net/public/res-min/markdown_views.css?v=1.0" />
+<link rel="stylesheet" href="http://static.blog.csdn.net/css/category.css?v=1.0" />
+<script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/web-storage-cache.min.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/replace.min.js"></script>
+
+
+
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+           
+            var isBole = false;
+            
+      
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=OpenJDK%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%ae%9e%e7%8e%b0%e6%b5%85%e6%9e%90%231%ef%bc%9a%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b&u=http://blog.csdn.net/kisimple/article/details/44727147"
+
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+
+    <h1>
+        <span class="link_title"><a href="/kisimple/article/details/44727147">
+        OpenJDK类加载实现浅析#1：整体流程            
+        </a></span>
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/openjdk' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">openjdk</a><a href='http://www.csdn.net/tag/classloader' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">classloader</a><a href='http://www.csdn.net/tag/findclass' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">findclass</a><a href='http://www.csdn.net/tag/readdir' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">readdir</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2015-03-29 14:47</span>
+            <span class="link_view" title="阅读次数">856人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(0)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('OpenJDK%e7%b1%bb%e5%8a%a0%e8%bd%bd%e5%ae%9e%e7%8e%b0%e6%b5%85%e6%9e%90%231%ef%bc%9a%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b','44727147');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(44727147,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>
+    <div class="embody"  style="display:none" id="embody">
+        <span class="embody_t">本文章已收录于：</span>
+        <div class="embody_c" id="lib" value="{&quot;err&quot;:0,&quot;msg&quot;:&quot;ok&quot;,&quot;data&quot;:[]}"></div>
+    </div>
+    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('2523467','kisimple','top','44727147');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JavaVM<em>（24）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2523467"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2523467">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('2794191','kisimple','top','44727147');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">$RTFSC<em>（26）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2794191"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2794191">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('2444243','kisimple','top','44727147');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">操作系统<em>（6）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2444243"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2444243">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+    <script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>  
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+<div id="article_content" class="article_content">
+        <div class="markdown_views"><p>今天来粗略看下Java中的类加载是如何实现的。为啥标题用的是<code>OpenJDK</code>呢？看下<a href="http://openjdk.java.net/groups/hotspot/docs/RuntimeOverview.html">官网文档</a>的一段描述，</p>
+
+<blockquote>
+  <p>The VM and Java SE class loading libraries share the responsibility for class loading. The VM performs constant pool resolution, linking and initialization for classes and interfaces. The loading phase is a cooperative effort between the VM and specific class loaders (java.lang.classLoader).</p>
+</blockquote>
+
+<p>也就是说，类加载机制的实现，需要虚拟机与Java的类库来一同完成。Java的类库主要完成loading阶段的工作。</p>
+
+
+
+<h2 id="代理机制">代理机制</h2>
+
+<p>类加载的代理机制相信大家也都很清楚了，这边再引用下<a href="https://docs.oracle.com/javase/tutorial/ext/basics/load.html">官网文档</a>的描述，</p>
+
+<blockquote>
+  <p>When the runtime environment needs to load a new class for an application, it looks for the class in the following locations, in order:</p>
+  
+  <ol>
+  <li>Bootstrap classes: the runtime classes in rt.jar, internationalization classes in i18n.jar, and others.</li>
+  <li>Installed extensions: classes in JAR files in the lib/ext directory of the JRE, and in the system-wide, platform-specific extension directory.</li>
+  <li>The class path: classes, including classes in JAR files, on paths specified by the system property java.class.path. If a JAR file on the class path has a manifest with the Class-Path attribute, JAR files specified by the Class-Path attribute will be searched also.</li>
+  </ol>
+</blockquote>
+
+<p>相应的，也就有了三种类加载器，</p>
+
+<blockquote>
+  <p>The Java SE class loader hierarchy searches the bootstrap class loader, the extension class loader and the system class loader in that order. The system class loader is the default application class loader, which runs “main” and loads classes from the classpath.</p>
+</blockquote>
+
+<p>alright，那下面我们就来看看这三种类加载器分别在哪定义了。直接看个简单的栗子，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span>(String[] args) <span class="hljs-keyword">throws</span> Exception {  
+        Main m = <span class="hljs-keyword">new</span> Main();  
+        System.out.println(m.getClass().getClassLoader());  
+        System.out.println(m.getClass().getClassLoader().getParent());  
+        System.out.println(m.getClass().getClassLoader().getParent().getParent());  
+    }  </code></pre>
+
+<p>根据文档的描述，<code>Main</code>的类加载器就是SystemClassLoader（scl），而scl的parent应该是ExtClassLoader（ecl），and so forth。那么我们来看下输出结果，</p>
+
+
+
+<pre class="prettyprint"><code class="language-out hljs avrasm">sun<span class="hljs-preprocessor">.misc</span><span class="hljs-preprocessor">.Launcher</span>$AppClassLoader@e6f7d2
+sun<span class="hljs-preprocessor">.misc</span><span class="hljs-preprocessor">.Launcher</span>$ExtClassLoader<span class="hljs-localvars">@19836</span>ed
+null</code></pre>
+
+<p>也就是说，<code>Launcher$AppClassLoader</code>就是scl，<code>Launcher$ExtClassLoader</code>就是ecl了，二者都是在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/Launcher.java"><code>sun.misc.Launcher</code></a>中定义。奇怪的是ecl的parent居然是个<code>null</code>，那BootstrapClassLoader（bcl）跑哪去了呢？由于bcl需要在虚拟机启动的时候去加载Bootstrap Classes，所以bcl只能由虚拟机来实现了。HotSpot的bcl实现在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/classfile/classLoader.cpp">classLoader.cpp</a>。</p>
+
+
+
+<h2 id="vm初始化">VM初始化</h2>
+
+<p>现在我们对scl，ecl算是知其然了，接下来就是要知其所以然。既然虚拟机初始化的时候会使用scl来加载<code>Main-Class</code>，那我们以此为切入点，坑进HotSpot的源码中看看具体是怎么走到<code>Launcher$AppClassLoader</code>来的。</p>
+
+<p>关于虚拟机的初始化可参考笔者翻译的<a href="http://blog.csdn.net/kisimple/article/details/44558693">这篇文章</a>，下面直接分享下我读代码的一些相关的结果。虚拟机初始化时会走到下面的逻辑，代码在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/prims/jni.cpp#l483">jni.cpp</a>中，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">    <span class="hljs-comment">// We call ClassLoader.getSystemClassLoader to obtain the system class loader.</span>
+    loader = Handle(THREAD, SystemDictionary::java_system_loader());</code></pre>
+
+<p>也就是说会调用<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html#getSystemClassLoader%28%29"><code>ClassLoader#getSystemClassLoader</code></a>来拿到scl。OK，scl找到了，继续下去看看会调用scl的哪个方法，逻辑在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/classfile/systemDictionary.cpp#l1276">systemDictionary.cpp</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">    <span class="hljs-comment">// Call public unsynchronized loadClass(String) directly for all class loaders</span>
+    <span class="hljs-comment">// for parallelCapable class loaders. JDK &gt;=7, loadClass(String, boolean) will</span>
+    <span class="hljs-comment">// acquire a class-name based lock rather than the class loader object lock.</span>
+    <span class="hljs-comment">// JDK &lt; 7 already acquire the class loader lock in loadClass(String, boolean),</span>
+    <span class="hljs-comment">// so the call to loadClassInternal() was not required.</span>
+    <span class="hljs-comment">//</span>
+    <span class="hljs-comment">// UnsyncloadClass flag means both call loadClass(String) and do</span>
+    <span class="hljs-comment">// not acquire the class loader lock even for class loaders that are</span>
+    <span class="hljs-comment">// not parallelCapable. This was a risky transitional</span>
+    <span class="hljs-comment">// flag for diagnostic purposes only. It is risky to call</span>
+    <span class="hljs-comment">// custom class loaders without synchronization.</span>
+    <span class="hljs-comment">// WARNING If a custom class loader does NOT synchronizer findClass, or callers of</span>
+    <span class="hljs-comment">// findClass, the UnsyncloadClass flag risks unexpected timing bugs in the field.</span>
+    <span class="hljs-comment">// Do NOT assume this will be supported in future releases.</span>
+    <span class="hljs-comment">//</span>
+    <span class="hljs-comment">// Added MustCallLoadClassInternal in case we discover in the field</span>
+    <span class="hljs-comment">// a customer that counts on this call</span>
+    <span class="hljs-keyword">if</span> (MustCallLoadClassInternal &amp;&amp; has_loadClassInternal()) {
+      JavaCalls::call_special(&amp;result,
+                              class_loader,
+                              spec_klass,
+                              vmSymbols::loadClassInternal_name(),
+                              vmSymbols::string_class_signature(),
+                              <span class="hljs-built_in">string</span>,
+                              CHECK_(nh));
+    } <span class="hljs-keyword">else</span> {
+      JavaCalls::call_virtual(&amp;result,
+                              class_loader,
+                              spec_klass,
+                              vmSymbols::loadClass_name(),
+                              vmSymbols::string_class_signature(),
+                              <span class="hljs-built_in">string</span>,
+                              CHECK_(nh));
+    }</code></pre>
+
+<p>所以就是说会调用<code>ClassLoader.getSystemClassLoader.loadClass(String)</code>来加载<code>Main-Class</code>了。</p>
+
+
+
+<h2 id="getsystemclassloader">getSystemClassLoader</h2>
+
+<p>接下来让我们坑进<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/lang/ClassLoader.java">ClassLoader</a>的源码来看看scl与ecl是怎么来的。</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Returns the system class loader for delegation.  This is the default
+     * delegation parent for new &lt;tt&gt;ClassLoader&lt;/tt&gt; instances, and is
+     * typically the class loader used to start the application.
+     *
+     * &lt;p&gt; This method is first invoked early in the runtime's startup
+     * sequence, at which point it creates the system class loader and sets it
+     * as the context class loader of the invoking &lt;tt&gt;Thread&lt;/tt&gt;.
+     *
+     * &lt;p&gt; The default system class loader is an implementation-dependent
+     * instance of this class.
+     *
+     * &lt;p&gt; If the system property "&lt;tt&gt;java.system.class.loader&lt;/tt&gt;" is defined
+     * when this method is first invoked then the value of that property is
+     * taken to be the name of a class that will be returned as the system
+     * class loader.  The class is loaded using the default system class loader
+     * and must define a public constructor that takes a single parameter of
+     * type &lt;tt&gt;ClassLoader&lt;/tt&gt; which is used as the delegation parent.  An
+     * instance is then created using this constructor with the default system
+     * class loader as the parameter.  The resulting class loader is defined
+     * to be the system class loader.
+     *
+     * &lt;p&gt; If a security manager is present, and the invoker's class loader is
+     * not &lt;tt&gt;null&lt;/tt&gt; and the invoker's class loader is not the same as or
+     * an ancestor of the system class loader, then this method invokes the
+     * security manager's {@link
+     * SecurityManager#checkPermission(java.security.Permission)
+     * &lt;tt&gt;checkPermission&lt;/tt&gt;} method with a {@link
+     * RuntimePermission#RuntimePermission(String)
+     * &lt;tt&gt;RuntimePermission("getClassLoader")&lt;/tt&gt;} permission to verify
+     * access to the system class loader.  If not, a
+     * &lt;tt&gt;SecurityException&lt;/tt&gt; will be thrown.  &lt;/p&gt;
+     *
+     *<span class="hljs-javadoctag"> @return</span>  The system &lt;tt&gt;ClassLoader&lt;/tt&gt; for delegation, or
+     *          &lt;tt&gt;null&lt;/tt&gt; if none
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  SecurityException
+     *          If a security manager exists and its &lt;tt&gt;checkPermission&lt;/tt&gt;
+     *          method doesn't allow access to the system class loader.
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  IllegalStateException
+     *          If invoked recursively during the construction of the class
+     *          loader specified by the "&lt;tt&gt;java.system.class.loader&lt;/tt&gt;"
+     *          property.
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  Error
+     *          If the system property "&lt;tt&gt;java.system.class.loader&lt;/tt&gt;"
+     *          is defined but the named class could not be loaded, the
+     *          provider class does not define the required constructor, or an
+     *          exception is thrown by that constructor when it is invoked. The
+     *          underlying cause of the error can be retrieved via the
+     *          {@link Throwable#getCause()} method.
+     *
+     *<span class="hljs-javadoctag"> @revised</span>  1.4
+     */</span>
+    <span class="hljs-annotation">@CallerSensitive</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ClassLoader <span class="hljs-title">getSystemClassLoader</span>() {
+        initSystemClassLoader();
+        <span class="hljs-keyword">if</span> (scl == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+        SecurityManager sm = System.getSecurityManager();
+        <span class="hljs-keyword">if</span> (sm != <span class="hljs-keyword">null</span>) {
+            checkClassLoaderPermission(scl, Reflection.getCallerClass());
+        }
+        <span class="hljs-keyword">return</span> scl;
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initSystemClassLoader</span>() {
+        <span class="hljs-keyword">if</span> (!sclSet) {
+            <span class="hljs-keyword">if</span> (scl != <span class="hljs-keyword">null</span>)
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">"recursive invocation"</span>);
+            sun.misc.Launcher l = sun.misc.Launcher.getLauncher();
+            <span class="hljs-keyword">if</span> (l != <span class="hljs-keyword">null</span>) {
+                Throwable oops = <span class="hljs-keyword">null</span>;
+                scl = l.getClassLoader();
+                <span class="hljs-keyword">try</span> {
+                    scl = AccessController.doPrivileged(
+                        <span class="hljs-keyword">new</span> SystemClassLoaderAction(scl));
+                } <span class="hljs-keyword">catch</span> (PrivilegedActionException pae) {
+                    oops = pae.getCause();
+                    <span class="hljs-keyword">if</span> (oops <span class="hljs-keyword">instanceof</span> InvocationTargetException) {
+                        oops = oops.getCause();
+                    }
+                }
+                <span class="hljs-keyword">if</span> (oops != <span class="hljs-keyword">null</span>) {
+                    <span class="hljs-keyword">if</span> (oops <span class="hljs-keyword">instanceof</span> Error) {
+                        <span class="hljs-keyword">throw</span> (Error) oops;
+                    } <span class="hljs-keyword">else</span> {
+                        <span class="hljs-comment">// wrap the exception</span>
+                        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(oops);
+                    }
+                }
+            }
+            sclSet = <span class="hljs-keyword">true</span>;
+        }
+    }</code></pre>
+
+<p>也就是说<code>sun.misc.Launcher.getClassLoader()</code>就是scl，那么看下<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/Launcher.java#l67"><code>sun.misc.Launcher</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">public</span> <span class="hljs-title">Launcher</span>() {
+        <span class="hljs-comment">// Create the extension class loader</span>
+        ClassLoader extcl;
+        <span class="hljs-keyword">try</span> {
+            extcl = ExtClassLoader.getExtClassLoader();
+        } <span class="hljs-keyword">catch</span> (IOException e) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InternalError(
+                <span class="hljs-string">"Could not create extension class loader"</span>);
+        }
+
+        <span class="hljs-comment">// Now create the class loader to use to launch the application</span>
+        <span class="hljs-keyword">try</span> {
+            loader = AppClassLoader.getAppClassLoader(extcl);
+        } <span class="hljs-keyword">catch</span> (IOException e) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InternalError(
+                <span class="hljs-string">"Could not create application class loader"</span>);
+        }
+
+        <span class="hljs-comment">// Also set the context class loader for the primordial thread.</span>
+        Thread.currentThread().setContextClassLoader(loader);
+
+        <span class="hljs-comment">// Finally, install a security manager if requested</span>
+        String s = System.getProperty(<span class="hljs-string">"java.security.manager"</span>);
+        <span class="hljs-keyword">if</span> (s != <span class="hljs-keyword">null</span>) {
+            SecurityManager sm = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">if</span> (<span class="hljs-string">""</span>.equals(s) || <span class="hljs-string">"default"</span>.equals(s)) {
+                sm = <span class="hljs-keyword">new</span> java.lang.SecurityManager();
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">try</span> {
+                    sm = (SecurityManager)loader.loadClass(s).newInstance();
+                } <span class="hljs-keyword">catch</span> (IllegalAccessException e) {
+                } <span class="hljs-keyword">catch</span> (InstantiationException e) {
+                } <span class="hljs-keyword">catch</span> (ClassNotFoundException e) {
+                } <span class="hljs-keyword">catch</span> (ClassCastException e) {
+                }
+            }
+            <span class="hljs-keyword">if</span> (sm != <span class="hljs-keyword">null</span>) {
+                System.setSecurityManager(sm);
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InternalError(
+                    <span class="hljs-string">"Could not create SecurityManager: "</span> + s);
+            }
+        }
+    }</code></pre>
+
+<p>alright，到这里已经很清晰了，<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/Launcher.java#l122"><code>Launcher.ExtClassLoader</code></a>和<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/Launcher.java#l259"><code>Launcher.AppClassLoader</code></a>的初始化都找到了。</p>
+
+
+
+<h2 id="loadclass">loadClass</h2>
+
+<p>scl找到了，接下来看看<code>loadClass</code>是怎么工作的。<code>Launcher.AppClassLoader</code>和<code>Launcher.ExtClassLoader</code>都继承了<a href="http://docs.oracle.com/javase/7/docs/api/java/net/URLClassLoader.html"><code>URLClassLoader</code></a>，<code>loadClass</code>方法没有被重写，所以还是在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/lang/ClassLoader.java#l357"><code>ClassLoader#loadClass</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Loads the class with the specified &lt;a href="#name"&gt;binary name&lt;/a&gt;.
+     * This method searches for classes in the same manner as the {@link
+     * #loadClass(String, boolean)} method.  It is invoked by the Java virtual
+     * machine to resolve class references.  Invoking this method is equivalent
+     * to invoking {@link #loadClass(String, boolean) &lt;tt&gt;loadClass(name,
+     * false)&lt;/tt&gt;}.  &lt;/p&gt;
+     *
+     *<span class="hljs-javadoctag"> @param</span>  name
+     *         The &lt;a href="#name"&gt;binary name&lt;/a&gt; of the class
+     *
+     *<span class="hljs-javadoctag"> @return</span>  The resulting &lt;tt&gt;Class&lt;/tt&gt; object
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  ClassNotFoundException
+     *          If the class was not found
+     */</span>
+    <span class="hljs-keyword">public</span> Class&lt;?&gt; <span class="hljs-title">loadClass</span>(String name) <span class="hljs-keyword">throws</span> ClassNotFoundException {
+        <span class="hljs-keyword">return</span> loadClass(name, <span class="hljs-keyword">false</span>);
+    }</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Loads the class with the specified &lt;a href="#name"&gt;binary name&lt;/a&gt;.  The
+     * default implementation of this method searches for classes in the
+     * following order:
+     *
+     * &lt;p&gt;&lt;ol&gt;
+     *
+     *   &lt;li&gt;&lt;p&gt; Invoke {@link #findLoadedClass(String)} to check if the class
+     *   has already been loaded.  &lt;/p&gt;&lt;/li&gt;
+     *
+     *   &lt;li&gt;&lt;p&gt; Invoke the {@link #loadClass(String) &lt;tt&gt;loadClass&lt;/tt&gt;} method
+     *   on the parent class loader.  If the parent is &lt;tt&gt;null&lt;/tt&gt; the class
+     *   loader built-in to the virtual machine is used, instead.  &lt;/p&gt;&lt;/li&gt;
+     *
+     *   &lt;li&gt;&lt;p&gt; Invoke the {@link #findClass(String)} method to find the
+     *   class.  &lt;/p&gt;&lt;/li&gt;
+     *
+     * &lt;/ol&gt;
+     *
+     * &lt;p&gt; If the class was found using the above steps, and the
+     * &lt;tt&gt;resolve&lt;/tt&gt; flag is true, this method will then invoke the {@link
+     * #resolveClass(Class)} method on the resulting &lt;tt&gt;Class&lt;/tt&gt; object.
+     *
+     * &lt;p&gt; Subclasses of &lt;tt&gt;ClassLoader&lt;/tt&gt; are encouraged to override {@link
+     * #findClass(String)}, rather than this method.  &lt;/p&gt;
+     *
+     * &lt;p&gt; Unless overridden, this method synchronizes on the result of
+     * {@link #getClassLoadingLock &lt;tt&gt;getClassLoadingLock&lt;/tt&gt;} method
+     * during the entire class loading process.
+     *
+     *<span class="hljs-javadoctag"> @param</span>  name
+     *         The &lt;a href="#name"&gt;binary name&lt;/a&gt; of the class
+     *
+     *<span class="hljs-javadoctag"> @param</span>  resolve
+     *         If &lt;tt&gt;true&lt;/tt&gt; then resolve the class
+     *
+     *<span class="hljs-javadoctag"> @return</span>  The resulting &lt;tt&gt;Class&lt;/tt&gt; object
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  ClassNotFoundException
+     *          If the class could not be found
+     */</span>
+    <span class="hljs-keyword">protected</span> Class&lt;?&gt; <span class="hljs-title">loadClass</span>(String name, <span class="hljs-keyword">boolean</span> resolve)
+        <span class="hljs-keyword">throws</span> ClassNotFoundException
+    {
+        <span class="hljs-keyword">synchronized</span> (getClassLoadingLock(name)) {
+            <span class="hljs-comment">// First, check if the class has already been loaded</span>
+            Class c = findLoadedClass(name);
+            <span class="hljs-keyword">if</span> (c == <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">long</span> t0 = System.nanoTime();
+                <span class="hljs-keyword">try</span> {
+                    <span class="hljs-keyword">if</span> (parent != <span class="hljs-keyword">null</span>) {
+                        c = parent.loadClass(name, <span class="hljs-keyword">false</span>);
+                    } <span class="hljs-keyword">else</span> {
+                        <span class="hljs-comment">// 只有ExtClassLoader的parent才是null</span>
+                        <span class="hljs-comment">// 所以也就只有ExtClassLoader才能代理给BootstrapClassLoader</span>
+                        c = findBootstrapClassOrNull(name);
+                    }
+                } <span class="hljs-keyword">catch</span> (ClassNotFoundException e) {
+                    <span class="hljs-comment">// ClassNotFoundException thrown if class not found</span>
+                    <span class="hljs-comment">// from the non-null parent class loader</span>
+                }
+
+                <span class="hljs-keyword">if</span> (c == <span class="hljs-keyword">null</span>) {
+                    <span class="hljs-comment">// If still not found, then invoke findClass in order</span>
+                    <span class="hljs-comment">// to find the class.</span>
+                    <span class="hljs-keyword">long</span> t1 = System.nanoTime();
+                    c = findClass(name);
+
+                    <span class="hljs-comment">// this is the defining class loader; record the stats</span>
+                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                    sun.misc.PerfCounter.getFindClasses().increment();
+                }
+            }
+            <span class="hljs-keyword">if</span> (resolve) {
+                resolveClass(c);
+            }
+            <span class="hljs-keyword">return</span> c;
+        }
+    }</code></pre>
+
+<p>scl加载<code>Main-Class</code>的时候向上委托是找不到的，所以就会自己调用<code>findClass</code>了，逻辑在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/net/URLClassLoader.java#l350"><code>URLClassLoader#findClass</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">protected</span> Class&lt;?&gt; <span class="hljs-title">findClass</span>(<span class="hljs-keyword">final</span> String name)
+         <span class="hljs-keyword">throws</span> ClassNotFoundException
+    {
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-keyword">return</span> AccessController.doPrivileged(
+                <span class="hljs-keyword">new</span> PrivilegedExceptionAction&lt;Class&gt;() {
+                    <span class="hljs-keyword">public</span> Class <span class="hljs-title">run</span>() <span class="hljs-keyword">throws</span> ClassNotFoundException {
+                        String path = name.replace(<span class="hljs-string">'.'</span>, <span class="hljs-string">'/'</span>).concat(<span class="hljs-string">".class"</span>);
+                        Resource res = ucp.getResource(path, <span class="hljs-keyword">false</span>);
+                        <span class="hljs-keyword">if</span> (res != <span class="hljs-keyword">null</span>) {
+                            <span class="hljs-keyword">try</span> {
+                                <span class="hljs-keyword">return</span> defineClass(name, res);
+                            } <span class="hljs-keyword">catch</span> (IOException e) {
+                                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ClassNotFoundException(name, e);
+                            }
+                        } <span class="hljs-keyword">else</span> {
+                            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ClassNotFoundException(name);
+                        }
+                    }
+                }, acc);
+        } <span class="hljs-keyword">catch</span> (java.security.PrivilegedActionException pae) {
+            <span class="hljs-keyword">throw</span> (ClassNotFoundException) pae.getException();
+        }
+    }</code></pre>
+
+<p><code>ucp</code>就是我们定义的<code>classpath</code>，在调用<code>getAppClassLoader</code>方法时初始化，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">        <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ClassLoader <span class="hljs-title">getAppClassLoader</span>(<span class="hljs-keyword">final</span> ClassLoader extcl)
+            <span class="hljs-keyword">throws</span> IOException
+        {
+            <span class="hljs-keyword">final</span> String s = System.getProperty(<span class="hljs-string">"java.class.path"</span>);
+            <span class="hljs-keyword">final</span> File[] path = (s == <span class="hljs-keyword">null</span>) ? <span class="hljs-keyword">new</span> File[<span class="hljs-number">0</span>] : getClassPath(s);
+
+            <span class="hljs-comment">// Note: on bugid 4256530</span>
+            <span class="hljs-comment">// Prior implementations of this doPrivileged() block supplied</span>
+            <span class="hljs-comment">// a rather restrictive ACC via a call to the private method</span>
+            <span class="hljs-comment">// AppClassLoader.getContext(). This proved overly restrictive</span>
+            <span class="hljs-comment">// when loading  classes. Specifically it prevent</span>
+            <span class="hljs-comment">// accessClassInPackage.sun.* grants from being honored.</span>
+            <span class="hljs-comment">//</span>
+            <span class="hljs-keyword">return</span> AccessController.doPrivileged(
+                <span class="hljs-keyword">new</span> PrivilegedAction&lt;AppClassLoader&gt;() {
+                    <span class="hljs-keyword">public</span> AppClassLoader <span class="hljs-title">run</span>() {
+                    URL[] urls =
+                        (s == <span class="hljs-keyword">null</span>) ? <span class="hljs-keyword">new</span> URL[<span class="hljs-number">0</span>] : pathToURLs(path);
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> AppClassLoader(urls, extcl);
+                }
+            });
+        }
+
+        <span class="hljs-comment">/*
+         * Creates a new AppClassLoader
+         */</span>
+        AppClassLoader(URL[] urls, ClassLoader parent) {
+            <span class="hljs-keyword">super</span>(urls, parent, factory);
+        }</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">public</span> <span class="hljs-title">URLClassLoader</span>(URL[] urls, ClassLoader parent,
+                          URLStreamHandlerFactory factory) {
+        <span class="hljs-keyword">super</span>(parent);
+        <span class="hljs-comment">// this is to make the stack depth consistent with 1.1</span>
+        SecurityManager security = System.getSecurityManager();
+        <span class="hljs-keyword">if</span> (security != <span class="hljs-keyword">null</span>) {
+            security.checkCreateClassLoader();
+        }
+        ucp = <span class="hljs-keyword">new</span> URLClassPath(urls, factory);
+        acc = AccessController.getContext();
+    }</code></pre>
+
+<p>从classpath找到类文件并读取后，调用<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/net/URLClassLoader.java#l409"><code>defineClass</code></a>方法来完成真正的获得Class对象的操作，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-comment">/*
+     * Defines a Class using the class bytes obtained from the specified
+     * Resource. The resulting Class must be resolved before it can be
+     * used.
+     */</span>
+    <span class="hljs-keyword">private</span> Class <span class="hljs-title">defineClass</span>(String name, Resource res) <span class="hljs-keyword">throws</span> IOException {
+        <span class="hljs-keyword">long</span> t0 = System.nanoTime();
+        <span class="hljs-keyword">int</span> i = name.lastIndexOf(<span class="hljs-string">'.'</span>);
+        URL url = res.getCodeSourceURL();
+        <span class="hljs-keyword">if</span> (i != -<span class="hljs-number">1</span>) {
+            String pkgname = name.substring(<span class="hljs-number">0</span>, i);
+            <span class="hljs-comment">// Check if package already loaded.</span>
+            Manifest man = res.getManifest();
+            <span class="hljs-keyword">if</span> (getAndVerifyPackage(pkgname, man, url) == <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">try</span> {
+                    <span class="hljs-keyword">if</span> (man != <span class="hljs-keyword">null</span>) {
+                        definePackage(pkgname, man, url);
+                    } <span class="hljs-keyword">else</span> {
+                        definePackage(pkgname, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>);
+                    }
+                } <span class="hljs-keyword">catch</span> (IllegalArgumentException iae) {
+                    <span class="hljs-comment">// parallel-capable class loaders: re-verify in case of a</span>
+                    <span class="hljs-comment">// race condition</span>
+                    <span class="hljs-keyword">if</span> (getAndVerifyPackage(pkgname, man, url) == <span class="hljs-keyword">null</span>) {
+                        <span class="hljs-comment">// Should never happen</span>
+                        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> AssertionError(<span class="hljs-string">"Cannot find package "</span> +
+                                                 pkgname);
+                    }
+                }
+            }
+        }
+        <span class="hljs-comment">// Now read the class bytes and define the class</span>
+        java.nio.ByteBuffer bb = res.getByteBuffer();
+        <span class="hljs-keyword">if</span> (bb != <span class="hljs-keyword">null</span>) {
+            <span class="hljs-comment">// Use (direct) ByteBuffer:</span>
+            CodeSigner[] signers = res.getCodeSigners();
+            CodeSource cs = <span class="hljs-keyword">new</span> CodeSource(url, signers);
+            sun.misc.PerfCounter.getReadClassBytesTime().addElapsedTimeFrom(t0);
+            <span class="hljs-keyword">return</span> defineClass(name, bb, cs);
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">byte</span>[] b = res.getBytes();
+            <span class="hljs-comment">// must read certificates AFTER reading bytes.</span>
+            CodeSigner[] signers = res.getCodeSigners();
+            CodeSource cs = <span class="hljs-keyword">new</span> CodeSource(url, signers);
+            sun.misc.PerfCounter.getReadClassBytesTime().addElapsedTimeFrom(t0);
+            <span class="hljs-keyword">return</span> defineClass(name, b, <span class="hljs-number">0</span>, b.length, cs);
+        }
+    }</code></pre>
+
+<p>继续跟下去最后是会来到<code>ClassLoader</code>的两个本地方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">native</span> Class <span class="hljs-title">defineClass1</span>(String name, <span class="hljs-keyword">byte</span>[] b, <span class="hljs-keyword">int</span> off, <span class="hljs-keyword">int</span> len,
+                                      ProtectionDomain pd, String source);
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">native</span> Class <span class="hljs-title">defineClass2</span>(String name, java.nio.ByteBuffer b,
+                                      <span class="hljs-keyword">int</span> off, <span class="hljs-keyword">int</span> len, ProtectionDomain pd,
+                                      String source);</code></pre>
+
+<p>在继续深挖本地方法之前，我们来先做个总结，之前几个<code>xxxClass</code>方法总是看不清楚，现在算是理清了，</p>
+
+<ol>
+<li><code>loadClass</code>用于实现类加载的代理机制；</li>
+<li><code>findClass</code>用于找到类的二进制表示；</li>
+<li><code>defineClass</code>用于将类的二进制表示转化成<code>Class</code>对象，这一步由虚拟机来完成；</li>
+</ol>
+
+<p>还有一个<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/lang/ClassLoader.java#l1018"><code>resolveClass</code></a>，是用来手动进行Linking的，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Links the specified class.  This (misleadingly named) method may be
+     * used by a class loader to link a class.  If the class &lt;tt&gt;c&lt;/tt&gt; has
+     * already been linked, then this method simply returns. Otherwise, the
+     * class is linked as described in the "Execution" chapter of
+     * &lt;cite&gt;The Java&amp;trade; Language Specification&lt;/cite&gt;.
+     * &lt;/p&gt;
+     *
+     *<span class="hljs-javadoctag"> @param</span>  c
+     *         The class to link
+     *
+     *<span class="hljs-javadoctag"> @throws</span>  NullPointerException
+     *          If &lt;tt&gt;c&lt;/tt&gt; is &lt;tt&gt;null&lt;/tt&gt;.
+     *
+     *<span class="hljs-javadoctag"> @see</span>  #defineClass(String, byte[], int, int)
+     */</span>
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">resolveClass</span>(Class&lt;?&gt; c) {
+        resolveClass0(c);
+    }</code></pre>
+
+
+
+<h2 id="jvmdefineclasswithsource">JVM_DefineClassWithSource</h2>
+
+<p>两个<code>defineClass</code>方法的本地实现在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/native/java/lang/ClassLoader.c">ClassLoader.c</a>中（如何找到本地方法实现，可参考<a href="http://blog.csdn.net/kisimple/article/details/44204201">这篇文章</a>），而两个本地实现最后都会调用<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/javavm/export/jvm.h#l426"><code>JVM_DefineClassWithSource</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">/* Define a class with a source (added in JDK1.5) */</span>
+JNIEXPORT jclass JNICALL
+JVM_DefineClassWithSource(JNIEnv *env, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *name, jobject loader,
+                          <span class="hljs-keyword">const</span> jbyte *buf, jsize len, jobject pd,
+                          <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *source);</code></pre>
+
+<p>这个方法定义在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/javavm/export/jvm.h"><code>jvm.h</code></a>，这里面的接口是对JNI接口（<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/javavm/export/jni.h"><code>jni.h</code></a>）的补充。</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">/*
+ * This file contains additional functions exported from the VM.
+ * These functions are complementary to the standard JNI support.
+ * There are three parts to this file:
+ *
+ * First, this file contains the VM-related functions needed by native
+ * libraries in the standard Java API. For example, the java.lang.Object
+ * class needs VM-level functions that wait for and notify monitors.
+ *
+ * Second, this file contains the functions and constant definitions
+ * needed by the byte code verifier and class file format checker.
+ * These functions allow the verifier and format checker to be written
+ * in a VM-independent way.
+ *
+ * Third, this file contains various I/O and nerwork operations needed
+ * by the standard Java I/O and network APIs.
+ */</span></code></pre>
+
+<p>具体的实现是在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/prims/jvm.cpp#l968"><code>jvm.cpp</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">JVM_ENTRY(jclass, JVM_DefineClassWithSource(JNIEnv *env, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *name, jobject loader, <span class="hljs-keyword">const</span> jbyte *buf, jsize len, jobject pd, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *source))
+  JVMWrapper2(<span class="hljs-string">"JVM_DefineClassWithSource %s"</span>, name);
+
+  <span class="hljs-keyword">return</span> jvm_define_class_common(env, name, loader, buf, len, pd, source, <span class="hljs-keyword">true</span>, THREAD);
+JVM_END</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// common code for JVM_DefineClass() and JVM_DefineClassWithSource()</span>
+<span class="hljs-comment">// and JVM_DefineClassWithSourceCond()</span>
+<span class="hljs-keyword">static</span> jclass jvm_define_class_common(JNIEnv *env, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *name,
+                                      jobject loader, <span class="hljs-keyword">const</span> jbyte *buf,
+                                      jsize len, jobject pd, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *source,
+                                      jboolean verify, TRAPS) {
+  <span class="hljs-keyword">if</span> (source == NULL)  source = <span class="hljs-string">"__JVM_DefineClass__"</span>;
+
+  assert(THREAD-&gt;is_Java_thread(), <span class="hljs-string">"must be a JavaThread"</span>);
+  JavaThread* jt = (JavaThread*) THREAD;
+
+  PerfClassTraceTime vmtimer(ClassLoader::perf_define_appclass_time(),
+                             ClassLoader::perf_define_appclass_selftime(),
+                             ClassLoader::perf_define_appclasses(),
+                             jt-&gt;get_thread_stat()-&gt;perf_recursion_counts_addr(),
+                             jt-&gt;get_thread_stat()-&gt;perf_timers_addr(),
+                             PerfClassTraceTime::DEFINE_CLASS);
+
+  <span class="hljs-keyword">if</span> (UsePerfData) {
+    ClassLoader::perf_app_classfile_bytes_read()-&gt;inc(len);
+  }
+
+  <span class="hljs-comment">// Since exceptions can be thrown, class initialization can take place</span>
+  <span class="hljs-comment">// if name is NULL no check for class name in .class stream has to be made.</span>
+  TempNewSymbol class_name = NULL;
+  <span class="hljs-keyword">if</span> (name != NULL) {
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span> str_len = (<span class="hljs-keyword">int</span>)<span class="hljs-built_in">strlen</span>(name);
+    <span class="hljs-keyword">if</span> (str_len &gt; Symbol::max_length()) {
+      <span class="hljs-comment">// It's impossible to create this class;  the name cannot fit</span>
+      <span class="hljs-comment">// into the constant pool.</span>
+      THROW_MSG_0(vmSymbols::java_lang_NoClassDefFoundError(), name);
+    }
+    class_name = SymbolTable::new_symbol(name, str_len, CHECK_NULL);
+  }
+
+  ResourceMark rm(THREAD);
+  ClassFileStream st((u1*) buf, len, (<span class="hljs-keyword">char</span> *)source);
+  Handle class_loader (THREAD, JNIHandles::resolve(loader));
+  <span class="hljs-keyword">if</span> (UsePerfData) {
+    is_lock_held_by_thread(class_loader,
+                           ClassLoader::sync_JVMDefineClassLockFreeCounter(),
+                           THREAD);
+  }
+  Handle protection_domain (THREAD, JNIHandles::resolve(pd));
+  klassOop k = SystemDictionary::resolve_from_stream(class_name, class_loader,
+                                                     protection_domain, &amp;st,
+                                                     verify != <span class="hljs-number">0</span>,
+                                                     CHECK_NULL);
+
+  <span class="hljs-keyword">if</span> (TraceClassResolution &amp;&amp; k != NULL) {
+    trace_class_resolution(k);
+  }
+
+  <span class="hljs-keyword">return</span> (jclass) JNIHandles::make_local(env, Klass::cast(k)-&gt;java_mirror());
+}</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/classfile/systemDictionary.cpp#l1020"><code>SystemDictionary::resolve_from_stream</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// Add a klass to the system from a stream (called by jni_DefineClass and</span>
+<span class="hljs-comment">// JVM_DefineClass).</span>
+<span class="hljs-comment">// Note: class_name can be NULL. In that case we do not know the name of</span>
+<span class="hljs-comment">// the class until we have parsed the stream.</span>
+
+klassOop SystemDictionary::resolve_from_stream(Symbol* class_name,
+                                               Handle class_loader,
+                                               Handle protection_domain,
+                                               ClassFileStream* st,
+                                               <span class="hljs-keyword">bool</span> verify,
+                                               TRAPS) {
+  <span class="hljs-comment">// Classloaders that support parallelism, e.g. bootstrap classloader,</span>
+  <span class="hljs-comment">// or all classloaders with UnsyncloadClass do not acquire lock here</span>
+  <span class="hljs-keyword">bool</span> DoObjectLock = <span class="hljs-keyword">true</span>;
+  <span class="hljs-keyword">if</span> (is_parallelCapable(class_loader)) {
+    DoObjectLock = <span class="hljs-keyword">false</span>;
+  }
+
+  <span class="hljs-comment">// Make sure we are synchronized on the class loader before we proceed</span>
+  Handle lockObject = compute_loader_lock_object(class_loader, THREAD);
+  check_loader_lock_contention(lockObject, THREAD);
+  ObjectLocker ol(lockObject, THREAD, DoObjectLock);
+
+  TempNewSymbol parsed_name = NULL;
+
+  <span class="hljs-comment">// Parse the stream. Note that we do this even though this klass might</span>
+  <span class="hljs-comment">// already be present in the SystemDictionary, otherwise we would not</span>
+  <span class="hljs-comment">// throw potential ClassFormatErrors.</span>
+  <span class="hljs-comment">//</span>
+  <span class="hljs-comment">// Note: "name" is updated.</span>
+  <span class="hljs-comment">// Further note:  a placeholder will be added for this class when</span>
+  <span class="hljs-comment">//   super classes are loaded (resolve_super_or_fail). We expect this</span>
+  <span class="hljs-comment">//   to be called for all classes but java.lang.Object; and we preload</span>
+  <span class="hljs-comment">//   java.lang.Object through resolve_or_fail, not this path.</span>
+
+  instanceKlassHandle k = ClassFileParser(st).parseClassFile(class_name,
+                                                             class_loader,
+                                                             protection_domain,
+                                                             parsed_name,
+                                                             verify,
+                                                             THREAD);
+
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* pkg = <span class="hljs-string">"java/"</span>;
+  <span class="hljs-keyword">if</span> (!HAS_PENDING_EXCEPTION &amp;&amp;
+      !class_loader.is_null() &amp;&amp;
+      parsed_name != NULL &amp;&amp;
+      !<span class="hljs-built_in">strncmp</span>((<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>*)parsed_name-&gt;bytes(), pkg, <span class="hljs-built_in">strlen</span>(pkg))) {
+    <span class="hljs-comment">// It is illegal to define classes in the "java." package from</span>
+    <span class="hljs-comment">// JVM_DefineClass or jni_DefineClass unless you're the bootclassloader</span>
+    ResourceMark rm(THREAD);
+    <span class="hljs-keyword">char</span>* name = parsed_name-&gt;as_C_string();
+    <span class="hljs-keyword">char</span>* index = <span class="hljs-built_in">strrchr</span>(name, <span class="hljs-string">'/'</span>);
+    *index = <span class="hljs-string">'\0'</span>; <span class="hljs-comment">// chop to just the package name</span>
+    <span class="hljs-keyword">while</span> ((index = <span class="hljs-built_in">strchr</span>(name, <span class="hljs-string">'/'</span>)) != NULL) {
+      *index = <span class="hljs-string">'.'</span>; <span class="hljs-comment">// replace '/' with '.' in package name</span>
+    }
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* fmt = <span class="hljs-string">"Prohibited package name: %s"</span>;
+    size_t len = <span class="hljs-built_in">strlen</span>(fmt) + <span class="hljs-built_in">strlen</span>(name);
+    <span class="hljs-keyword">char</span>* message = NEW_RESOURCE_ARRAY(<span class="hljs-keyword">char</span>, len);
+    jio_snprintf(message, len, fmt, name);
+    Exceptions::_throw_msg(THREAD_AND_LOCATION,
+      vmSymbols::java_lang_SecurityException(), message);
+  }
+
+  <span class="hljs-keyword">if</span> (!HAS_PENDING_EXCEPTION) {
+    assert(parsed_name != NULL, <span class="hljs-string">"Sanity"</span>);
+    assert(class_name == NULL || class_name == parsed_name, <span class="hljs-string">"name mismatch"</span>);
+    <span class="hljs-comment">// Verification prevents us from creating names with dots in them, this</span>
+    <span class="hljs-comment">// asserts that that's the case.</span>
+    assert(is_internal_format(parsed_name),
+           <span class="hljs-string">"external class name format used internally"</span>);
+
+    <span class="hljs-comment">// Add class just loaded</span>
+    <span class="hljs-comment">// If a class loader supports parallel classloading handle parallel define requests</span>
+    <span class="hljs-comment">// find_or_define_instance_class may return a different instanceKlass</span>
+    <span class="hljs-keyword">if</span> (is_parallelCapable(class_loader)) {
+      k = find_or_define_instance_class(class_name, class_loader, k, THREAD);
+    } <span class="hljs-keyword">else</span> {
+      define_instance_class(k, THREAD);
+    }
+  }
+
+  <span class="hljs-comment">// If parsing the class file or define_instance_class failed, we</span>
+  <span class="hljs-comment">// need to remove the placeholder added on our behalf. But we</span>
+  <span class="hljs-comment">// must make sure parsed_name is valid first (it won't be if we had</span>
+  <span class="hljs-comment">// a format error before the class was parsed far enough to</span>
+  <span class="hljs-comment">// find the name).</span>
+  <span class="hljs-keyword">if</span> (HAS_PENDING_EXCEPTION &amp;&amp; parsed_name != NULL) {
+    <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> p_hash = placeholders()-&gt;compute_hash(parsed_name,
+                                                       class_loader);
+    <span class="hljs-keyword">int</span> p_index = placeholders()-&gt;hash_to_index(p_hash);
+    {
+    MutexLocker mu(SystemDictionary_lock, THREAD);
+    placeholders()-&gt;find_and_remove(p_index, p_hash, parsed_name, class_loader, THREAD);
+    SystemDictionary_lock-&gt;notify_all();
+    }
+    <span class="hljs-keyword">return</span> NULL;
+  }
+
+  <span class="hljs-comment">// Make sure that we didn't leave a place holder in the</span>
+  <span class="hljs-comment">// SystemDictionary; this is only done on success</span>
+  debug_only( {
+    <span class="hljs-keyword">if</span> (!HAS_PENDING_EXCEPTION) {
+      assert(parsed_name != NULL, <span class="hljs-string">"parsed_name is still null?"</span>);
+      Symbol*  h_name    = k-&gt;name();
+      Handle h_loader (THREAD, k-&gt;class_loader());
+
+      MutexLocker mu(SystemDictionary_lock, THREAD);
+
+      klassOop check = find_class(parsed_name, class_loader);
+      assert(check == k(), <span class="hljs-string">"should be present in the dictionary"</span>);
+
+      klassOop check2 = find_class(h_name, h_loader);
+      assert(check == check2, <span class="hljs-string">"name inconsistancy in SystemDictionary"</span>);
+    }
+  } );
+
+  <span class="hljs-keyword">return</span> k();
+}</code></pre>
+
+<p>接下去便是到了<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/classfile/classFileParser.cpp#l2955"><code>ClassFileParser::parseClassFile</code></a>。今天我们暂时先将流程理清楚，更具体的分析且待下回分解：）</p>
+
+<p>接下来让我们来看下<code>findClass</code>这一步中，相应的类二进制表示是怎么被找到的，了解这一步有助于我们解决类似jar包冲突这样的问题。</p>
+
+
+
+<h2 id="findclass">findClass</h2>
+
+<p>在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/java/net/URLClassLoader.java#l350"><code>URLClassLoader#findClass</code></a>中我们可以看到，是通过<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/URLClassPath.java#l192"><code>ucp.getResource(path, false)</code></a>来找到相应的类文件的，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Finds the first Resource on the URL search path which has the specified
+     * name. Returns null if no Resource could be found.
+     *
+     *<span class="hljs-javadoctag"> @param</span> name the name of the Resource
+     *<span class="hljs-javadoctag"> @param</span> check     whether to perform a security check
+     *<span class="hljs-javadoctag"> @return</span> the Resource, or null if not found
+     */</span>
+    <span class="hljs-keyword">public</span> Resource <span class="hljs-title">getResource</span>(String name, <span class="hljs-keyword">boolean</span> check) {
+        <span class="hljs-keyword">if</span> (DEBUG) {
+            System.err.println(<span class="hljs-string">"URLClassPath.getResource(\""</span> + name + <span class="hljs-string">"\")"</span>);
+        }
+
+        Loader loader;
+        <span class="hljs-comment">// 按索引顺序一个一个查找</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; (loader = getLoader(i)) != <span class="hljs-keyword">null</span>; i++) {
+            Resource res = loader.getResource(name, check);
+            <span class="hljs-keyword">if</span> (res != <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">return</span> res;
+            }
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-comment">/*
+     * Returns the Loader at the specified position in the URL search
+     * path. The URLs are opened and expanded as needed. Returns null
+     * if the specified index is out of range.
+     */</span>
+     <span class="hljs-keyword">private</span> <span class="hljs-keyword">synchronized</span> Loader <span class="hljs-title">getLoader</span>(<span class="hljs-keyword">int</span> index) {
+        <span class="hljs-keyword">if</span> (closed) {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+         <span class="hljs-comment">// Expand URL search path until the request can be satisfied</span>
+         <span class="hljs-comment">// or the URL stack is empty.</span>
+        <span class="hljs-keyword">while</span> (loaders.size() &lt; index + <span class="hljs-number">1</span>) {
+            <span class="hljs-comment">// Pop the next URL from the URL stack</span>
+            URL url;
+            <span class="hljs-keyword">synchronized</span> (urls) {
+                <span class="hljs-keyword">if</span> (urls.empty()) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+                } <span class="hljs-keyword">else</span> {
+                    url = urls.pop();
+                }
+            }
+            <span class="hljs-comment">// Skip this URL if it already has a Loader. (Loader</span>
+            <span class="hljs-comment">// may be null in the case where URL has not been opened</span>
+            <span class="hljs-comment">// but is referenced by a JAR index.)</span>
+            String urlNoFragString = URLUtil.urlNoFragString(url);
+            <span class="hljs-keyword">if</span> (lmap.containsKey(urlNoFragString)) {
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// Otherwise, create a new Loader for the URL.</span>
+            Loader loader;
+            <span class="hljs-keyword">try</span> {
+                loader = getLoader(url);
+                <span class="hljs-comment">// If the loader defines a local class path then add the</span>
+                <span class="hljs-comment">// URLs to the list of URLs to be opened.</span>
+                URL[] urls = loader.getClassPath();
+                <span class="hljs-keyword">if</span> (urls != <span class="hljs-keyword">null</span>) {
+                    push(urls);
+                }
+            } <span class="hljs-keyword">catch</span> (IOException e) {
+                <span class="hljs-comment">// Silently ignore for now...</span>
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// Finally, add the Loader to the search path.</span>
+            loaders.add(loader);
+            lmap.put(urlNoFragString, loader);
+        }
+        <span class="hljs-keyword">return</span> loaders.get(index);
+    }</code></pre>
+
+<p><code>urls</code>是一个<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Stack.html">Stack</a>，用来保存classpath。</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">Stack&lt;URL&gt; urls = <span class="hljs-keyword">new</span> Stack&lt;URL&gt;();</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/**
+     * Creates a new URLClassPath for the given URLs. The URLs will be
+     * searched in the order specified for classes and resources. A URL
+     * ending with a '/' is assumed to refer to a directory. Otherwise,
+     * the URL is assumed to refer to a JAR file.
+     *
+     *<span class="hljs-javadoctag"> @param</span> urls the directory and JAR file URLs to search for classes
+     *        and resources
+     *<span class="hljs-javadoctag"> @param</span> factory the URLStreamHandlerFactory to use when creating new URLs
+     */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-title">URLClassPath</span>(URL[] urls, URLStreamHandlerFactory factory) {
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; urls.length; i++) {
+            path.add(urls[i]);
+        }
+        push(urls);
+        <span class="hljs-keyword">if</span> (factory != <span class="hljs-keyword">null</span>) {
+            jarHandler = factory.createURLStreamHandler(<span class="hljs-string">"jar"</span>);
+        }
+    }</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">push</span>(URL[] us) {
+        <span class="hljs-keyword">synchronized</span> (urls) {
+            <span class="hljs-comment">// 这里是从末尾开始push</span>
+            <span class="hljs-comment">// pop的时候就会反过来</span>
+            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = us.length - <span class="hljs-number">1</span>; i &gt;= <span class="hljs-number">0</span>; --i) {
+                urls.push(us[i]);
+            }
+        }
+    }</code></pre>
+
+<p>这里有个问题，为什么用Stack这个数据结构？其实是因为classpath即可以使用目录也可以使用jar包（不同的实现有不同的<code>Loader</code>，<code>JarLoader</code>与<code>FileLoader</code>，见<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/URLClassPath.java#l353"><code>getLoader(final URL url)</code></a>方法），而jar包的处理有一个特别的地方，就是jar包<code>Manifest</code>的<code>Class-Path</code>属性如果指定了其它jar包，需要将它们也加载（参考<a href="https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html">官网文档</a>），也就是在<code>getLoader(int index)</code>看到的，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">                URL[] urls = loader.getClassPath();
+                <span class="hljs-keyword">if</span> (urls != <span class="hljs-keyword">null</span>) {
+                    push(urls);
+                }</code></pre>
+
+<p>看下<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/URLClassPath.java#l973">JarLoader的实现</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">        <span class="hljs-comment">/*
+         * Returns the JAR file local class path, or null if none.
+         */</span>
+        URL[] getClassPath() <span class="hljs-keyword">throws</span> IOException {
+            <span class="hljs-keyword">if</span> (index != <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+            }
+
+            <span class="hljs-keyword">if</span> (metaIndex != <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+            }
+
+            ensureOpen();
+            parseExtensionsDependencies();
+            <span class="hljs-keyword">if</span> (SharedSecrets.javaUtilJarAccess().jarFileHasClassPathAttribute(jar)) { <span class="hljs-comment">// Only get manifest when necessary</span>
+                Manifest man = jar.getManifest();
+                <span class="hljs-keyword">if</span> (man != <span class="hljs-keyword">null</span>) {
+                    Attributes attr = man.getMainAttributes();
+                    <span class="hljs-keyword">if</span> (attr != <span class="hljs-keyword">null</span>) {
+                        String value = attr.getValue(Name.CLASS_PATH);
+                        <span class="hljs-keyword">if</span> (value != <span class="hljs-keyword">null</span>) {
+                            <span class="hljs-keyword">return</span> parseClassPath(csu, value);
+                        }
+                    }
+                }
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }</code></pre>
+
+<p>所以采用Stack就可以实现<font color="red">深度优先遍历</font>了：）</p>
+
+<p>所以其实是通过遍历<code>URLClassPath#loaders</code>这个<code>ArrayList</code>找到<code>Loader</code>，再由<code>Loader</code>来加载类文件，而<code>URLClassPath#loaders</code>的建立可以看到是有一个深度优先遍历代表classpath的URL数组的过程。</p>
+
+<p>那么接下来的关键就是要看看classpath字符串是如何转换成URL数组的。关键方法是在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/jdk/file/70e3553d9d6e/src/share/classes/sun/misc/Launcher.java#l408"><code>Launcher#getClassPath</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> File[] <span class="hljs-title">getClassPath</span>(String cp) {
+        File[] path;
+        <span class="hljs-keyword">if</span> (cp != <span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">int</span> count = <span class="hljs-number">0</span>, maxCount = <span class="hljs-number">1</span>;
+            <span class="hljs-keyword">int</span> pos = <span class="hljs-number">0</span>, lastPos = <span class="hljs-number">0</span>;
+            <span class="hljs-comment">// Count the number of separators first</span>
+            <span class="hljs-keyword">while</span> ((pos = cp.indexOf(File.pathSeparator, lastPos)) != -<span class="hljs-number">1</span>) {
+                maxCount++;
+                lastPos = pos + <span class="hljs-number">1</span>;
+            }
+            path = <span class="hljs-keyword">new</span> File[maxCount];
+            lastPos = pos = <span class="hljs-number">0</span>;
+            <span class="hljs-comment">// Now scan for each path component</span>
+            <span class="hljs-keyword">while</span> ((pos = cp.indexOf(File.pathSeparator, lastPos)) != -<span class="hljs-number">1</span>) {
+                <span class="hljs-keyword">if</span> (pos - lastPos &gt; <span class="hljs-number">0</span>) {
+                    path[count++] = <span class="hljs-keyword">new</span> File(cp.substring(lastPos, pos));
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-comment">// empty path component translates to "."</span>
+                    path[count++] = <span class="hljs-keyword">new</span> File(<span class="hljs-string">"."</span>);
+                }
+                lastPos = pos + <span class="hljs-number">1</span>;
+            }
+            <span class="hljs-comment">// Make sure we include the last path component</span>
+            <span class="hljs-keyword">if</span> (lastPos &lt; cp.length()) {
+                path[count++] = <span class="hljs-keyword">new</span> File(cp.substring(lastPos));
+            } <span class="hljs-keyword">else</span> {
+                path[count++] = <span class="hljs-keyword">new</span> File(<span class="hljs-string">"."</span>);
+            }
+            <span class="hljs-comment">// Trim array to correct size</span>
+            <span class="hljs-keyword">if</span> (count != maxCount) {
+                File[] tmp = <span class="hljs-keyword">new</span> File[count];
+                System.arraycopy(path, <span class="hljs-number">0</span>, tmp, <span class="hljs-number">0</span>, count);
+                path = tmp;
+            }
+        } <span class="hljs-keyword">else</span> {
+            path = <span class="hljs-keyword">new</span> File[<span class="hljs-number">0</span>];
+        }
+        <span class="hljs-comment">// DEBUG</span>
+        <span class="hljs-comment">//for (int i = 0; i &lt; path.length; i++) {</span>
+        <span class="hljs-comment">//  System.out.println("path[" + i + "] = " + '"' + path[i] + '"');</span>
+        <span class="hljs-comment">//}</span>
+        <span class="hljs-keyword">return</span> path;
+    }</code></pre>
+
+<p>可以看到是按classpath字符串的字面顺序来构建数组的，所以结论就是<code>findClass</code>也是按照classpath字符串的字面顺序来进行搜索的。</p>
+
+
+
+<h3 id="wildcard">Wildcard</h3>
+
+<p>classpath还有另外一个问题，就是<a href="http://docs.oracle.com/javase/8/docs/technotes/tools/unix/classpath.html#A1100762">通配符的使用</a>。既然我们已经知道<code>findClass</code>是按照字面顺序来搜索的，那么接下来我们就来看看，如果使用通配符，最后是会被展开成一个什么样的字面顺序。</p>
+
+<p>通配符的展开是由虚拟机的launcher来完成的，这样在虚拟机运行时才能看到展开后的classpath。具体代码在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/tools/launcher/java.c#l879"><code>SetClassPath</code></a>方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span>
+SetClassPath(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *s)
+{
+    <span class="hljs-keyword">char</span> *def;
+    s = JLI_WildcardExpandClasspath(s);
+    def = JLI_MemAlloc(<span class="hljs-built_in">strlen</span>(s) + <span class="hljs-number">40</span>);
+    <span class="hljs-built_in">sprintf</span>(def, <span class="hljs-string">"-Djava.class.path=%s"</span>, s);
+    AddOption(def, NULL);
+}</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/tools/launcher/wildcard.c#l415"><code>JLI_WildcardExpandClasspath</code></a>方法在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/tools/launcher/wildcard.c"><code>wildcard.c</code></a>中，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *
+JLI_WildcardExpandClasspath(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *classpath)
+{
+    <span class="hljs-keyword">char</span> *expanded;
+    FileList fl;
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">strchr</span>(classpath, <span class="hljs-string">'*'</span>) == NULL)
+        <span class="hljs-keyword">return</span> classpath;
+    fl = FileList_split(classpath, PATH_SEPARATOR);
+    FileList_expandWildcards(fl);
+    expanded = FileList_join(fl, PATH_SEPARATOR);
+    FileList_free(fl);
+    <span class="hljs-comment">// 设置环境变量可以观察展开后的类路径</span>
+    <span class="hljs-comment">// $ set _JAVA_LAUNCHER_DEBUG = 1</span>
+    <span class="hljs-keyword">if</span> (getenv(<span class="hljs-string">"_JAVA_LAUNCHER_DEBUG"</span>) != <span class="hljs-number">0</span>)
+        <span class="hljs-built_in">printf</span>(<span class="hljs-string">"Expanded wildcards:\n"</span>
+               <span class="hljs-string">"    before: \"%s\"\n"</span>
+               <span class="hljs-string">"    after : \"%s\"\n"</span>,
+               classpath, expanded);
+    <span class="hljs-keyword">return</span> expanded;
+}</code></pre>
+
+<p>在这个文件头可以看到下面的注释，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">/*
+ *
+ * Expansion of wildcards is done early, prior to the invocation of a
+ * program's main method, rather than late, during the class-loading
+ * process itself.  Each element of the input class path containing a
+ * wildcard is replaced by the (possibly empty) sequence of elements
+ * generated by enumerating the jar files in the named directory.  If
+ * the directory foo contains a.jar, b.jar, and c.jar,
+ * e.g., then the class path foo/"*" is expanded into
+ * foo/a.jar:foo/b.jar:foo/c.jar, and that string would be the value
+ * of the system property java.class.path.
+ *
+ * The order in which the jar files in a directory are enumerated in
+ * the expanded class path is not specified and may vary from platform
+ * to platform and even from moment to moment on the same machine.  A
+ * well-constructed application should not depend upon any particular
+ * order.  If a specific order is required then the jar files can be
+ * enumerated explicitly in the class path.
+ *
+ */</span></code></pre>
+
+<p>其中已经说得很清楚了，通配符的展开并不是确定的，在不同平台可能会不同，即使在同一机器，不同时刻可能也不同，我们不应该依赖通配符展开后的顺序，如果需要依赖顺序就应该直接写明而不要使用通配符。</p>
+
+<p>OK，现在我们又知其然了，但是为什么会这样？接下来继续跟下去，看看在Linux平台上是怎么实现的。可以看到在Linux上面几个关键的方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">struct</span> WildcardIterator_
+{
+    DIR *dir;
+};
+
+<span class="hljs-keyword">static</span> WildcardIterator
+WildcardIterator_for(<span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *wildcard)
+{
+    DIR *dir;
+    <span class="hljs-keyword">int</span> wildlen = <span class="hljs-built_in">strlen</span>(wildcard);
+    <span class="hljs-keyword">if</span> (wildlen &lt; <span class="hljs-number">2</span>) {
+        dir = opendir(<span class="hljs-string">"."</span>);
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">char</span> *dirname = JLI_StringDup(wildcard);
+        dirname[wildlen - <span class="hljs-number">1</span>] = <span class="hljs-string">'\0'</span>;
+        dir = opendir(dirname);
+        JLI_MemFree(dirname);
+    }
+    <span class="hljs-keyword">if</span> (dir == NULL)
+        <span class="hljs-keyword">return</span> NULL;
+    <span class="hljs-keyword">else</span> {
+        WildcardIterator it = NEW_(WildcardIterator);
+        it-&gt;dir = dir;
+        <span class="hljs-keyword">return</span> it;
+    }
+}
+
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">char</span> *
+WildcardIterator_next(WildcardIterator it)
+{
+    <span class="hljs-keyword">struct</span> dirent* dirp = readdir(it-&gt;dir);
+    <span class="hljs-keyword">return</span> dirp ? dirp-&gt;d_name : NULL;
+}</code></pre>
+
+<p>所以结论就是在Linux平台上将会使用<code>readdir</code>这个系统调用（参考<a href="http://man7.org/linux/man-pages/man3/readdir.3.html">man</a>）来读取目录下的文件，那么通配符的展开就要取决于这个系统调用读取文件的顺序了。</p>
+
+<p>那么<code>readdir</code>读取文件的顺序又是怎样的？要了解清楚最好还是能坑进Linux源码看看，所以还是留待下次再说吧：）</p>
+
+
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/8/docs/technotes/tools/unix/findingclasses.html">http://docs.oracle.com/javase/8/docs/technotes/tools/unix/findingclasses.html</a></li>
+<li><a href="http://docs.oracle.com/javase/8/docs/technotes/tools/unix/classpath.html">http://docs.oracle.com/javase/8/docs/technotes/tools/unix/classpath.html</a></li>
+<li><a href="https://docs.oracle.com/javase/tutorial/ext/basics/load.html">https://docs.oracle.com/javase/tutorial/ext/basics/load.html</a></li>
+<li><a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-5.html#jvms-5.3">https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-5.html#jvms-5.3</a></li>
+</ul></div>
+        <script  type="text/javascript">
+            $(function () {
+                $('pre.prettyprint code').each(function () {
+                    var lines = $(this).text().split('\n').length;
+                    var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                    $(this).addClass('has-numbering').parent().append($numbering);
+                    for (i = 1; i <= lines; i++) {
+                        $numbering.append($('<li/>').text(i));
+                    };
+                    $numbering.fadeIn(1700);
+                });
+            });
+        </script>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_detail.css" />
+
+    
+<!--172.16.140.12-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+ 
+
+
+        <div id="digg" ArticleId="44727147" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>0</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='/kisimple/article/details/44726259';">上一篇</span><a href="/kisimple/article/details/44726259" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">HotSpot SA #4：输出类加载路径</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='/kisimple/article/details/44859187';">下一篇</span><a href="/kisimple/article/details/44859187" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">OpenJDK类加载实现浅析#2：安全检查</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+        <div class="similar_article"  style="display:none">
+                <h4>我的同类文章</h4>
+                <div class="similar_c"style="margin:20px 0px 0px 0px">
+                    <div class="similar_c_t">
+                                <label class="similar_cur">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2523467','kisimple','foot','44727147');">JavaVM<em>（24）</em></span>
+                                </label>
+                                <label class="">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2794191','kisimple','foot','44727147');">$RTFSC<em>（26）</em></span>
+                                </label>
+                                <label class="">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2444243','kisimple','foot','44727147');">操作系统<em>（6）</em></span>
+                                </label>
+                    </div>
+                   
+                    <div class="similar_wrap tracking-ad" data-mod="popu_141"  style="max-height:195px;">
+                        <a href="http://blog.csdn.net" style="display:none">http://blog.csdn.net</a>
+                        <ul class="similar_list fl">                          
+                        </ul>
+
+                        <ul class="similar_list fr">                           
+                        </ul>
+                    </div>
+                </div>
+            </div>    
+    <script  type="text/javascript">
+        $(function () {
+            GetCategoryArticles('2523467', 'kisimple','foot','44727147');
+        });
+    </script>
+      
+</div>
+
+    <div>
+            <ins data-revive-zoneid="205" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins> 
+     </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/kisimple/svc/GetSuggestContent/44727147",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+
+<style>
+.blog-ass-articl dd {
+color: #369;
+width: 99%; /*修改行*/
+float: left;
+overflow: hidden;
+font: normal normal 12px/23px "SimSun";
+height: 23px;
+margin: 0;
+padding: 0 0 0 10px;
+margin-right: 30px;
+background: url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;
+}
+</style>
+
+ <link rel="stylesheet" href="http://static.blog.csdn.net/css/replace.css"/>
+<div id="relate" data-mod="popu_218"  class="tracking-ad">
+        <div class="relate_t">
+            <h3><span>参考知识库</span></h3>
+        </div>
+        <div class="relate_c">
+        </div>
+</div>
+ 
+
+<dl class="blog-ass-articl" id="res-relatived" > 
+    <div class="embody embody_b" id="libkeyparent"  style="display:none">
+            <span class="embody_t">更多资料请参考：</span>
+            <div class="embody_c" id="libkey"></div>
+    </div>
+
+
+     <dt><span>猜你在找</span></dt>    
+
+
+   
+
+
+    <div id="adCollege" style="width: 42%;float: left;"> 
+        <script src="http://csdnimg.cn/jobreco/job_reco.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            csdn.position.showEdu({
+                sourceType: "blog",
+                searchType: "detail",
+                searchKey: "44727147",
+                username: "yonka",
+                recordcount: "5",
+                containerId: "adCollege" //容器DIV的id。 
+            });
+            
+            setEduLoc();
+
+            function setEduLoc() {               
+                var edus = $("#adCollege div dd a");
+                if (edus.length == 0) {
+                    setTimeout(function () {
+                        setEduLoc();
+                    }, 500);
+                }
+                else {
+                    var eduLoc = "?ref=blog&loc=0";
+                    $.each(edus, function (index,item) {
+                        var href = $(this).attr("href") + eduLoc;
+                        $(this).attr("href", href);
+                    });
+                }
+            }
+
+        </script> 
+    </div>  
+
+    
+     <div id="res"  data-mod="popu_36"  class="tracking-ad" style="width: 42%;float: left;margin-right: 30px;"></div>
+   
+</dl>
+
+
+<script type="text/javascript">
+    $(function () {
+        setTimeout(function () {
+            var searchtitletags = 'OpenJDK类加载实现浅析#1：整体流程' + ',' + $("#tags").html();
+            searchService({
+                index: 'blog',
+                query: searchtitletags,
+                from: 5,
+                size: 5,
+                appendTo: '#res',
+                url: 'recommend',
+                his: 2,
+                client: "blog_cf_enhance",
+                tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+            });
+        }, 500);
+    });    
+
+ </script>  
+
+
+    <div id="ad_cen">        
+<ins data-revive-zoneid="71" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>    </div>  
+
+    <!-- 广告位开始 -->
+    <ins data-revive-zoneid="72" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins>
+    <!-- 广告位结束 -->
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '44727147';
+    var commentscount = 0;
+    var islock = false
+</script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/comment.js"></script>
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+<div class="tag_list" style="display:none"></div>
+  <script  language="javascript" type='text/javascript'>     
+      $(function(){
+              setTimeout(function(){
+                  $.get("/kisimple/svc/GetTagContent",function(data){
+                      $(".tag_list").html(data).show();
+                  });     
+              });
+          },500);                       
+ </script> 
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+</script>
+ <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>      
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/kisimple" target="_blank">
+    <img src="http://avatar.csdn.net/9/C/F/1_kisimple.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/kisimple" class="user_name" target="_blank">kisimple</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=kisimple','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="2" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>67845次</span></li>
+    <li>积分：<span>1314</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog4.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：1314 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>65篇</span></li>
+    <li>转载：<span>1篇</span></li>
+    <li>译文：<span>6篇</span></li>
+    <li>评论：<span>15条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/kisimple/article/category/2523467" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JavaVM</a><span>(25)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2523465" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java语言</a><span>(30)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444245" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">编程语言</a><span>(18)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2452217" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">并发编程</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444243" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2451799" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机网络</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2457183" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机硬件</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467787" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算理论</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2471973" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据结构</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467709" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">算法</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6118903" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据库</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444247" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2491967" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">开源软件</a><span>(24)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2507851" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">经典论文</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2794191" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$RTFSC</a><span>(27)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246592" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Hacking</a><span>(20)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6714912" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Note</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246320" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档翻译</a><span>(6)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2894847" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档索引</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/kisimple/article/month/2017/02">2017年02月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/06">2016年06月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/05">2016年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2016/04">2016年04月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/12">2015年12月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/07">2015年07月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/06">2015年06月</a><span>(4)</span></li><li><a href="/kisimple/article/month/2015/05">2015年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/04">2015年04月</a><span>(7)</span></li><li><a href="/kisimple/article/month/2015/03">2015年03月</a><span>(17)</span></li><li><a href="/kisimple/article/month/2015/02">2015年02月</a><span>(10)</span></li><li><a href="/kisimple/article/month/2015/01">2015年01月</a><span>(12)</span></li><li><a href="/kisimple/article/month/2014/12">2014年12月</a><span>(6)</span></li><li><a href="/kisimple/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2014/08">2014年08月</a><span>(3)</span></li><li><a href="/kisimple/article/month/2014/07">2014年07月</a><span>(2)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/kisimple/article/details/42747197" title="Kafka#4：存储设计">Kafka#4：存储设计</a><span>(4255)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42396153" title="Kafka#2：消息队列">Kafka#2：消息队列</a><span>(3287)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42747097" title="Kafka#3：分布式设计">Kafka#3：分布式设计</a><span>(2062)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44019989" title="Spring Bean注册方式小结">Spring Bean注册方式小结</a><span>(1779)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43773899" title="Java之道系列：BigDecimal如何解决浮点数精度问题">Java之道系列：BigDecimal如何解决浮点数精度问题</a><span>(1740)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44116519" title="ZooKeeper#2：分布式存储">ZooKeeper#2：分布式存储</a><span>(1568)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43355209" title="JPDA#1：使用JDI写一个调试器">JPDA#1：使用JDI写一个调试器</a><span>(1458)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44632443" title="HotSpotVM 对象机制实现浅析#1">HotSpotVM 对象机制实现浅析#1</a><span>(1435)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44109597" title="Java官方文档索引">Java官方文档索引</a><span>(1258)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43709505" title="Java之道系列：Annotation实现浅析">Java之道系列：Annotation实现浅析</a><span>(1251)</span>
+</li>
+</ul>
+</div>
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/kisimple/article/details/42747197#comments">Kafka#4：存储设计</a>
+    <p style="margin:0px;"><a href="/hisweetgirl" class="user_name">hisweetgirl</a>:
+数据量过大的话 index 文件来不及建立，会抛java.io.FileNotFoundExcept...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/42127799#comments">Diamond#2：源码</a>
+    <p style="margin:0px;"><a href="/zhupanlinch" class="user_name">zhupanlinch</a>:
+请问获取源代码的SVN账号和密码是什么啊？我想获取diamond的源代码！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44632443#comments">HotSpotVM 对象机制实现浅析#1</a>
+    <p style="margin:0px;"><a href="/u011039332" class="user_name">u011039332</a>:
+学习了虽然OOP, Klass大部分的数据结构都不太熟悉, 但是至少学习了SA的使用
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/45182773#comments">OSGi#1：Equinox 初探</a>
+    <p style="margin:0px;"><a href="/xo9ab" class="user_name">xo9ab</a>:
+OSGi学习，不得不读的经典开源开发平台JXADF，官网 http://osgia.com 有惊喜。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/38706729#comments">我所理解的SkipList#1：随机算法</a>
+    <p style="margin:0px;"><a href="/Novoland_L" class="user_name">Novoland_L</a>:
+写的很不错，good~！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43355209#comments">JPDA#1：使用JDI写一个调试器</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@qiubailv:hahaha
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@chenfanglincfl:官方文档跟源码吧，一手资料。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+目前也学习研究 lz有没有推荐的资料
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44109597#comments">Java官方文档索引</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+惠民贴啊
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43192863#comments">HotSpotVM 构建与调试小结</a>
+    <p style="margin:0px;"><a href="/lvzq2006" class="user_name">lvzq2006</a>:
+哥我错了，NetBeans8.0.2确实不行，换成NetBeans7.0.1恩，OK了
+    </p>
+    </li>
+</ul>
+</div>
+
+
+<div id="custom_column_36560875" class="panel">
+<ul class="panel_head"><span>友情链接</span></ul>
+<ul class="panel_body">
+
+<a href="http://blog.csdn.net/jasonblog" target="_blank">JasonLee的专栏</a>
+
+</ul>
+</div>    </div>
+    <div class="clear">
+    </div>
+
+
+                   <!-- 广告位开始 --> 
+                    <ins data-revive-zoneid="190" data-revive-id="8c38e720de1c90a6f6ff52f3f89c4d57"></ins> 
+                    <!-- 广告位结束 -->
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/cnick/cnick.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/newblog.min.js"></script>
+
+
+<script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=4262639"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/JavaScript1.js"></script>
+
+<script type="text/javascript">document.write("<img src=http://counter.csdn.net/pv.aspx?id=24 border=0 width=0 height=0>");</script>
+<script type="text/javascript" src="http://www.csdn.net/ui/scripts/Csdn/counter.js"></script>
+<script type="text/javascript" src="http://ad.csdn.net/scripts/ad-blog.js"></script>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+    <script id="csdn-toolbar-id" btnId="header_notice_num" wrapId="note1" count="5" subCount="5" type="text/javascript" src="http://c.csdnimg.cn/public/common/toolbar/js/toolbar.js"></script>     <!--new top-->
+   
+    <link href="http://c.csdnimg.cn/comm_ask/css/ask_float_block.css" type="text/css" rel="stylesheet" />
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/wmd.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/showdown.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/prettify.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/apps/ask_float_block.js'></script>
+   
+
+   
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_code.css" />
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/saveToCode.js"></script>
+      <script type="text/javascript" src="//csdnimg.cn/rabbit/tracking-ad/main.js?75eacd8"></script>
+
+     <link rel="stylesheet" href="http://static.blog.csdn.net/css/fa.css" />
+
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" />
+    </div>
+</body>
+</html>   
+ 
