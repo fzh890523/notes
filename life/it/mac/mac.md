@@ -47,3 +47,32 @@ end run
 保存到 "应用程序"文件夹, 名字姑且叫 "New File.app" 吧.Finder 工具栏右键, 自定义, 然后把 New File.app 拖上去, 大功告成
 ```
 
+
+
+# 命令行
+
+## netstat
+
+### 替代品
+
+BSD风格的netstat相比GNU的太难用了，要实现`netstat -alnp`的效果，在mac中可以：`lsof -nP -iTCP -sTCP:LISTEN` （虽然挺不一样的 = =）。
+
+格式：`lsof -nP -iTCP:端口号 -sTCP:LISTEN`
+
+类似的有：
+
+* lsof -nP -iTCP -sTCP:LISTEN
+* lsof -nP -iTCP:4000 -sTCP:LISTEN
+
+
+
+# sublime
+
+## 列模式/列选择
+
+option+鼠标左键（或触摸板）
+
+
+
+
+
