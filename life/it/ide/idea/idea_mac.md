@@ -24,3 +24,5 @@
 
 ## 开启终端： fn+alt+F12
 
+## 查看javaDoc： ctrl+j（还可以设置为on mouse on）
+
