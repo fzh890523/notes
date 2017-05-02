@@ -91,5 +91,81 @@ option+鼠标左键（或触摸板）
 
 
 
+# 文本操作
+
+## 删除
+
+### 删除光标之前（win的backspace）： delete
+
+### 删除光标之后（win的del）： fn+delete
+
+### 删除光标之前的一个词（英文有效）： alt+del
+
+### 删除光标之后的一个词： fn+alt+del
+
+### 删除光标之前的整行内容：cmd+del
+
+
+
+# 媒体
+
+## 音频
+
+## 视频
+
+### 屏幕录制
+
+#### 自带quicktime
+
+默认不能录制系统音频，只能选择麦克风作为音频输入，可以安装soundflower，原理类似作为一个虚拟音频设备，quicktime录制时可以选择该设备作为音频输入。
+
+注意，使用时需要设置该设备作为音频输出。
+
+`系统音频 - soundflower - quicktime`
+
+
+
+但这样的话就没有音频输出到外设了，也就是听不到声音了。
+
+解决办法：
+
+在MIDI（音频设备）系统设置里创建多输出设备，选择内建输出和soundflower的输出然后把该多输出设备作为音频输出就OK了（如果用了外置声卡的话也是类似处理、选中）。
+
+
+
+参考：
+
+* [Mac 小贴士：整合多台音频设备](http://www.midifan.com/modulearticle-detailview-5413.htm)
+* [Record your computer's screen with audio on a Mac](https://www.cnet.com/how-to/record-your-computers-screen-with-audio-on-a-mac/)
+* [Mac 下有什么好用的屏幕录像软件？](https://www.zhihu.com/question/19595687)
+
+
+
+# alfred
+
+暂时放这里吧。
+
+
+
+## file explorer
+
+### 打开文件
+
+空格或单引号'然后输入文件名即可
+
+（性能开销不知道如何，哎，以后可以考虑定制，在指定目录下搜索。 目前还是挺快的）
+
+
+
+### 打开目录
+
+飘号~或者斜杠/然后就出现目录了，可以代替大部分finder，操作很便利。
+
+
+
+
+
+
+
 
 

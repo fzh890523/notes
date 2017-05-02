@@ -26,3 +26,20 @@
 
 ## 查看javaDoc： ctrl+j（还可以设置为on mouse on）
 
+
+
+# 编译
+
+## 编译class
+
+class reload是基于class文件变化而不是java文件变化的，而**idea不会在java文件修改后自动重编译**所以就比较少看到*class文件变化是否reload的提示*。
+
+而很多时候是希望做到**hot reload**的，这时候可以用：**cmd+shift+F9**来手动编译。
+
+
+
+此外：
+
+* cmd+shift+F10 运行
+* cmd+shift+F8 查看断点
+
