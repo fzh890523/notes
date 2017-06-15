@@ -20,6 +20,10 @@
 
 ### 立即删除文件/目录（不进入废纸篓）： cmd+option+del
 
+### 在文件选择窗口选择/进入隐藏文件/目录： cmd+shift+g 然后输入要去的path
+
+
+
 ## 窗口操作
 
 ### 关闭当前窗口： cmd+f4（需要把function功能调整回来，否则还需要fn）
@@ -68,6 +72,53 @@ BSD风格的netstat相比GNU的太难用了，要实现`netstat -alnp`的效果�
 * lsof -nP -iTCP -sTCP:LISTEN
 * lsof -nP -iTCP:4000 -sTCP:LISTEN
 
+
+## sz rz
+
+Ref: [[mac iterm2 安装 lrzsz  rz sz命令](http://blog.csdn.net/jack85986370/article/details/51382077)
+
+
+
+首先mac自带的终端是不支持lrzsz的，需要下载安装iterm2，下载地址：
+
+[http://www.iterm2.cn/download](http://www.iterm2.cn/download)
+
+1. 安装lrzsz
+
+```shell
+brew install lrzsz
+```
+
+2. 安装脚本到mac指定目录，地址在： [https://github.com/mmastrac/iterm2-zmodem](https://github.com/mmastrac/iterm2-zmodem)
+
+保存 iterm2-send-zmodem.sh 和 iterm2-recv-zmodem.sh 到mac的 /usr/local/bin/ 路径下 
+`注意添加脚本可执行权限：`
+
+```shell
+chmod +x iterm2-send-zmodem.sh 
+chmod +x iterm2-recv-zmodem.sh  1212
+```
+
+------
+
+3. iterm2 添加 triggers
+
+```
+Regular expression: \*\*B0100
+    Action: Run Silent Coprocess
+    Parameters: /usr/local/bin/iterm2-send-zmodem.sh
+Regular expression: \*\*B00000000000000
+    Action: Run Silent Coprocess
+    Parameters: /usr/local/bin/iterm2-recv-zmodem.sh 
+```
+
+添加步骤：command+“,” 组合键打开“Preferences”面板->Profiles选项卡->Advanced->Triggers（点击Edit即可）
+
+![这里写图片描述](http://img.blog.csdn.net/20160512103326982)
+
+> add、按照上面的内容在GUI里填入...
+
+4. 重启iterm2，链接远程[Linux](http://lib.csdn.net/base/linux)，输入rz命令试一下吧（注意上传文件路径不能包含中文）。
 
 
 

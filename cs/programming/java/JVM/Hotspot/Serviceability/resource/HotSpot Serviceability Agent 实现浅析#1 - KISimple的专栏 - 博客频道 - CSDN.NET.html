@@ -1,0 +1,2169 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+
+    
+
+   
+
+  
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <title>HotSpot Serviceability Agent 实现浅析#1 - KISimple的专栏
+        - 博客频道 - CSDN.NET</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="可以看到SA中有两种方式来获取HotSpotVM里面的变量地址，一种是通过符号表，另一种是通过VMStructEntry这种VM提供的元信息（也就是通过&amp;运算获取的地址）。" />
+    <script src="http://static.blog.csdn.net/scripts/jquery.js" type="text/javascript"></script>
+      <script type="text/javascript" src="http://static.blog.csdn.net/scripts/jquery-version.js"></script>
+    
+        <!--new top-->
+               <link rel="stylesheet" href="http://c.csdnimg.cn/public/common/toolbar/css/index.css">        <!--new top-->
+    
+      <!-- ad begin -->
+         <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/tracking.js"></script>
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/kisimple/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+<script>
+        (function () {
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+                bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+                bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+        })();
+</script>
+
+
+</head>
+<body>
+       
+
+
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/kisimple">KISimple的专栏</a></h2>
+            <h3>-XX:+HeapDumpOnOutOfMemoryError</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/kisimple?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/kisimple?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/kisimple/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "kisimple";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/kisimple";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://bss.csdn.net/m/product/python_creative/index
+ ">
+<font color=blue><strong>【活动】Python创意编程活动开始啦！！！</strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/71104597">
+<font color=red>CSDN日报20170502 ——《程序学徒与导师》</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a href="http://bss.csdn.net/m/topic/edu_unity/index?ref=5">
+<font color=blue><strong>深入浅出，带你学习 Unity </strong>
+</font></a>
+</div>                        </div>
+                        
+
+
+
+  
+<link href="http://static.blog.csdn.net/css/comment1.css" type="text/css" rel="stylesheet" />
+<link href="http://static.blog.csdn.net/css/style1.css" type="text/css" rel="stylesheet" />
+
+
+<link rel="stylesheet" href="http://static.blog.csdn.net/public/res-min/markdown_views.css?v=1.0" />
+<link rel="stylesheet" href="http://static.blog.csdn.net/css/category.css?v=1.0" />
+<script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+           
+            var isBole = false;
+            
+      
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=HotSpot+Serviceability+Agent+%e5%ae%9e%e7%8e%b0%e6%b5%85%e6%9e%90%231&u=http://blog.csdn.net/kisimple/article/details/46496721"
+
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+
+    <h1>
+        <span class="link_title"><a href="/kisimple/article/details/46496721">
+        HotSpot Serviceability Agent 实现浅析#1            
+        </a></span>
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/hotspot' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">hotspot</a><a href='http://www.csdn.net/tag/sa' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">sa</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2015-06-15 00:17</span>
+            <span class="link_view" title="阅读次数">774人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(0)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('HotSpot+Serviceability+Agent+%e5%ae%9e%e7%8e%b0%e6%b5%85%e6%9e%90%231','46496721');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(46496721,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>
+    <div class="embody"  style="display:none" id="embody">
+        <span class="embody_t">本文章已收录于：</span>
+        <div class="embody_c" id="lib" value="{&quot;err&quot;:0,&quot;msg&quot;:&quot;ok&quot;,&quot;data&quot;:[]}"></div>
+    </div>
+    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('2523467','kisimple','top','46496721');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JavaVM<em>（24）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2523467"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2523467">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('2794191','kisimple','top','46496721');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">$RTFSC<em>（26）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2794191"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2794191">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('2444243','kisimple','top','46496721');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">操作系统<em>（6）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/kisimple/article/category/2444243"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2444243">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+    <script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>  
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+<div id="article_content" class="article_content">
+        <div class="markdown_views"><p>今天来看看HotSpotVM强大的SA，底层到底是怎么实现的。<a href="http://openjdk.java.net/groups/hotspot/docs/Serviceability.html#bsa">官方文档</a>对其实现机制有以下描述：</p>
+
+<blockquote>
+  <p>SA consists mostly of Java classes but it contains a small amount of native code to read raw bits from processes and core files.</p>
+  
+  <ul>
+  <li>On Solaris SA uses libproc to read bits from a process or a core file.</li>
+  <li>On Linux, SA uses a mix of /proc and ptrace (mostly the latter) to read bits from a process. For core files, SA parses ELF files directly.</li>
+  <li>On Windows, SA uses the Windows dbgeng.dll library to read the raw bits from processes and core files. An alternate implementation uses Windows process debugging primitives, but this only works for live processes.</li>
+  </ul>
+</blockquote>
+
+<p>也就是说，在Linux平台上，是使用了<a href="http://man7.org/linux/man-pages/man5/proc.5.html"><code>/proc</code></a>和<a href="http://man7.org/linux/man-pages/man2/ptrace.2.html"><code>ptrace</code></a>。下面就坑进代码里面看看到底是怎么用的。</p>
+
+
+
+<h2 id="ptraceattach">PTRACE_ATTACH</h2>
+
+<p>SA工具的基类是<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/tools/Tool.java"><code>Tool</code></a>，通过调用<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/tools/Tool.java#l119"><code>start</code>方法</a>启动，该方法里面会new一个<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/bugspot/BugSpotAgent.java"><code>BugSpotAgent</code></a>，并且attach到目标VM上面。下面来看看通过PID进行attach的方法，<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/bugspot/BugSpotAgent.java#l323"><code>BugSpotAgent#attach(int)</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/** This attaches to a process running on the local machine. */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">attach</span>(<span class="hljs-keyword">int</span> processID)
+    <span class="hljs-keyword">throws</span> DebuggerException {
+        <span class="hljs-keyword">if</span> (debugger != <span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> DebuggerException(<span class="hljs-string">"Already attached"</span>);
+        }
+        pid = processID;
+        startupMode = PROCESS_MODE;
+        isServer = <span class="hljs-keyword">false</span>;
+        go();
+    }</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">go</span>() {
+        setupDebugger();
+        javaMode = setupVM();
+    }</code></pre>
+
+<p>接下来看看<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/bugspot/BugSpotAgent.java#l496"><code>setupDebugger</code></a>和<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/bugspot/BugSpotAgent.java#l554"><code>setupVM</code></a>都干了啥。</p>
+
+
+
+<h3 id="setupdebugger">setupDebugger</h3>
+
+<p><code>setupDebugger</code>会根据不同平台来设置debugger，Linux平台下，<code>setupDebuggerLinux</code>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setupDebuggerLinux</span>() {
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 1. 设置虚拟机库文件名</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        setupJVMLibNamesLinux();
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 2. new一个LinuxDebuggerLocal</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-keyword">if</span> (cpu.equals(<span class="hljs-string">"x86"</span>)) {
+            machDesc = <span class="hljs-keyword">new</span> MachineDescriptionIntelX86();
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (cpu.equals(<span class="hljs-string">"ia64"</span>)) {
+            machDesc = <span class="hljs-keyword">new</span> MachineDescriptionIA64();
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (cpu.equals(<span class="hljs-string">"amd64"</span>)) {
+            machDesc = <span class="hljs-keyword">new</span> MachineDescriptionAMD64();
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (cpu.equals(<span class="hljs-string">"sparc"</span>)) {
+            <span class="hljs-keyword">if</span> (LinuxDebuggerLocal.getAddressSize()==<span class="hljs-number">8</span>) {
+               machDesc = <span class="hljs-keyword">new</span> MachineDescriptionSPARC64Bit();
+            } <span class="hljs-keyword">else</span> {
+               machDesc = <span class="hljs-keyword">new</span> MachineDescriptionSPARC32Bit();
+            }
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-keyword">try</span> {
+            machDesc = (MachineDescription)
+              Class.forName(<span class="hljs-string">"sun.jvm.hotspot.debugger.MachineDescription"</span> +
+              cpu.toUpperCase()).newInstance();
+          } <span class="hljs-keyword">catch</span> (Exception e) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> DebuggerException(<span class="hljs-string">"unsupported machine type"</span>);
+          }
+        }
+        <span class="hljs-comment">// Note we do not use a cache for the local debugger in server</span>
+        <span class="hljs-comment">// mode; it will be taken care of on the client side (once remote</span>
+        <span class="hljs-comment">// debugging is implemented).</span>
+        debugger = <span class="hljs-keyword">new</span> LinuxDebuggerLocal(machDesc, !isServer);
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 3. 调用LinuxDebuggerLocal的attach方法</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        attachDebugger();
+    }</code></pre>
+
+<p>来看下<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/LinuxDebuggerLocal.java#l252"><code>LinuxDebuggerLocal#attach(int)</code></a>方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/** From the Debugger interface via JVMDebugger */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title">attach</span>(<span class="hljs-keyword">int</span> processID) <span class="hljs-keyword">throws</span> DebuggerException {
+        checkAttached();
+        threadList = <span class="hljs-keyword">new</span> ArrayList();
+        loadObjectList = <span class="hljs-keyword">new</span> ArrayList();
+        class AttachTask implements WorkerThreadTask {
+           <span class="hljs-keyword">int</span> pid;
+           <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doit</span>(LinuxDebuggerLocal debugger) {
+              debugger.attach0(pid);
+              debugger.attached = <span class="hljs-keyword">true</span>;
+              debugger.isCore = <span class="hljs-keyword">false</span>;
+              findABIVersion();
+           }
+        }
+
+        AttachTask task = <span class="hljs-keyword">new</span> AttachTask();
+        task.pid = processID;
+        workerThread.execute(task);
+    }</code></pre>
+
+<p>最终是调用了一个本地方法，<code>attach0</code>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">attach0</span>(<span class="hljs-keyword">int</span> pid)
+                                <span class="hljs-keyword">throws</span> DebuggerException;</code></pre>
+
+<p>它的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/LinuxDebuggerLocal.c#l219">实现在<code>LinuxDebuggerLocal.c</code>中</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">/*
+ * Class:     sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal
+ * Method:    attach0
+ * Signature: (I)V
+ */</span>
+JNIEXPORT <span class="hljs-keyword">void</span> JNICALL Java_sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal_attach0__I
+  (JNIEnv *env, jobject this_obj, jint jpid) {
+
+  <span class="hljs-keyword">struct</span> ps_prochandle* ph;
+  <span class="hljs-keyword">if</span> ( (ph = Pgrab(jpid)) == NULL) {
+    THROW_NEW_DEBUGGER_EXCEPTION(<span class="hljs-string">"Can't attach to the process"</span>);
+  }
+  (*env)-&gt;SetLongField(env, this_obj, p_ps_prochandle_ID, (jlong)(intptr_t)ph);
+  fillThreadsAndLoadObjects(env, this_obj, ph);
+}</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/ps_proc.c#l329"><code>Pgrab</code>方法</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// attach to the process. One and only one exposed stuff</span>
+<span class="hljs-keyword">struct</span> ps_prochandle* Pgrab(pid_t pid) {
+  <span class="hljs-keyword">struct</span> ps_prochandle* ph = NULL;
+  thread_info* thr = NULL;
+
+  <span class="hljs-keyword">if</span> ( (ph = (<span class="hljs-keyword">struct</span> ps_prochandle*) <span class="hljs-built_in">calloc</span>(<span class="hljs-number">1</span>, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> ps_prochandle))) == NULL) {
+     print_debug(<span class="hljs-string">"can't allocate memory for ps_prochandle\n"</span>);
+     <span class="hljs-keyword">return</span> NULL;
+  }
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 1. attach到目标进程</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-keyword">if</span> (ptrace_attach(pid) != <span class="hljs-keyword">true</span>) {
+     <span class="hljs-built_in">free</span>(ph);
+     <span class="hljs-keyword">return</span> NULL;
+  }
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 2. 填充ps_prochandle</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+
+  <span class="hljs-comment">// initialize ps_prochandle</span>
+  ph-&gt;pid = pid;
+
+  <span class="hljs-comment">// initialize vtable</span>
+  ph-&gt;ops = &amp;process_ops;
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 读取目标进程的库文件信息和符号表</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// read library info and symbol tables, must do this before attaching threads,</span>
+  <span class="hljs-comment">// as the symbols in the pthread library will be used to figure out</span>
+  <span class="hljs-comment">// the list of threads within the same process.</span>
+  read_lib_info(ph);
+
+  <span class="hljs-comment">// read thread info</span>
+  read_thread_info(ph, add_new_thread);
+
+  <span class="hljs-comment">// attach to the threads</span>
+  thr = ph-&gt;threads;
+  <span class="hljs-keyword">while</span> (thr) {
+     <span class="hljs-comment">// don't attach to the main thread again</span>
+     <span class="hljs-keyword">if</span> (ph-&gt;pid != thr-&gt;lwp_id &amp;&amp; ptrace_attach(thr-&gt;lwp_id) != <span class="hljs-keyword">true</span>) {
+        <span class="hljs-comment">// even if one attach fails, we get return NULL</span>
+        Prelease(ph);
+        <span class="hljs-keyword">return</span> NULL;
+     }
+     thr = thr-&gt;next;
+  }
+  <span class="hljs-keyword">return</span> ph;
+}</code></pre>
+
+<p>先来看是怎么attach到目标进程的，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// attach to a process/thread specified by "pid"</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">bool</span> ptrace_attach(pid_t pid) {
+  <span class="hljs-keyword">if</span> (ptrace(PTRACE_ATTACH, pid, NULL, NULL) &lt; <span class="hljs-number">0</span>) {
+    print_debug(<span class="hljs-string">"ptrace(PTRACE_ATTACH, ..) failed for %d\n"</span>, pid);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">return</span> ptrace_waitpid(pid);
+  }
+}</code></pre>
+
+<p>妥妥的，这里就能看到是使用了<code>ptrace</code>，<code>ptrace</code>的具体用法参考<a href="http://man7.org/linux/man-pages/man2/ptrace.2.html">man文档</a>，这里就不展开了。</p>
+
+<p>然后还有另一个方法值得注意，就是获取库文件跟符号表信息的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/ps_proc.c#l262"><code>read_lib_info</code>方法</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">static</span> <span class="hljs-keyword">bool</span> read_lib_info(<span class="hljs-keyword">struct</span> ps_prochandle* ph) {
+  <span class="hljs-keyword">char</span> fname[<span class="hljs-number">32</span>];
+  <span class="hljs-keyword">char</span> buf[<span class="hljs-number">256</span>];
+  FILE *fp = NULL;
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 1. 打开/proc/[pid]/maps文件</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-built_in">sprintf</span>(fname, <span class="hljs-string">"/proc/%d/maps"</span>, ph-&gt;pid);
+  fp = fopen(fname, <span class="hljs-string">"r"</span>);
+  <span class="hljs-keyword">if</span> (fp == NULL) {
+    print_debug(<span class="hljs-string">"can't open /proc/%d/maps file\n"</span>, ph-&gt;pid);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+  }
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 2. 获取库文件信息</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-keyword">while</span>(fgets_no_cr(buf, <span class="hljs-number">256</span>, fp)){
+    <span class="hljs-keyword">char</span> * word[<span class="hljs-number">6</span>];
+    <span class="hljs-keyword">int</span> nwords = split_n_str(buf, <span class="hljs-number">6</span>, word, <span class="hljs-string">' '</span>, <span class="hljs-string">'\0'</span>);
+    <span class="hljs-keyword">if</span> (nwords &gt; <span class="hljs-number">5</span> &amp;&amp; find_lib(ph, word[<span class="hljs-number">5</span>]) == <span class="hljs-keyword">false</span>) {
+       intptr_t base;
+       lib_info* lib;
+<span class="hljs-preprocessor">#ifdef _LP64</span>
+       <span class="hljs-built_in">sscanf</span>(word[<span class="hljs-number">0</span>], <span class="hljs-string">"%lx"</span>, &amp;base);
+<span class="hljs-preprocessor">#else</span>
+       <span class="hljs-built_in">sscanf</span>(word[<span class="hljs-number">0</span>], <span class="hljs-string">"%x"</span>, &amp;base);
+<span class="hljs-preprocessor">#endif</span>
+       <span class="hljs-comment">////////////////////////////////////////</span>
+       <span class="hljs-comment">// 3. 添加库文件与符号表信息</span>
+       <span class="hljs-comment">////////////////////////////////////////</span>
+       <span class="hljs-keyword">if</span> ((lib = add_lib_info(ph, word[<span class="hljs-number">5</span>], (uintptr_t)base)) == NULL)
+          <span class="hljs-keyword">continue</span>; <span class="hljs-comment">// ignore, add_lib_info prints error</span>
+
+       <span class="hljs-comment">// we don't need to keep the library open, symtab is already</span>
+       <span class="hljs-comment">// built. Only for core dump we need to keep the fd open.</span>
+       close(lib-&gt;fd);
+       lib-&gt;fd = -<span class="hljs-number">1</span>;
+    }
+  }
+  fclose(fp);
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+}</code></pre>
+
+<p><code>/proc/[pid]/maps</code>文件的内容参考<a href="http://man7.org/linux/man-pages/man5/proc.5.html">man文档</a>，上面的<code>word[0]</code>是<code>address</code>字段，</p>
+
+<blockquote>
+  <p>The address field is the address space in the process that the mapping occupies.</p>
+</blockquote>
+
+<p><code>word[5]</code>是<code>pathname</code>字段，</p>
+
+<blockquote>
+  <p>The pathname field will usually be the file that is backing the mapping.</p>
+</blockquote>
+
+<p>是类似<code>/opt/xxx/install/jdk-1.7.0_51/jre/lib/amd64/server/libjvm.so</code>这样的路径。</p>
+
+<p>库文件与符号表信息的添加，<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/libproc_impl.c#l153"><code>add_lib_info</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">lib_info* add_lib_info(<span class="hljs-keyword">struct</span> ps_prochandle* ph, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* libname, uintptr_t base) {
+   <span class="hljs-keyword">return</span> add_lib_info_fd(ph, libname, -<span class="hljs-number">1</span>, base);
+}</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">lib_info* add_lib_info_fd(<span class="hljs-keyword">struct</span> ps_prochandle* ph, <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* libname, <span class="hljs-keyword">int</span> fd, uintptr_t base) {
+   lib_info* newlib;
+
+   <span class="hljs-keyword">if</span> ( (newlib = (lib_info*) <span class="hljs-built_in">calloc</span>(<span class="hljs-number">1</span>, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">struct</span> lib_info))) == NULL) {
+      print_debug(<span class="hljs-string">"can't allocate memory for lib_info\n"</span>);
+      <span class="hljs-keyword">return</span> NULL;
+   }
+
+   <span class="hljs-built_in">strncpy</span>(newlib-&gt;name, libname, <span class="hljs-keyword">sizeof</span>(newlib-&gt;name));
+   newlib-&gt;base = base;
+
+   <span class="hljs-keyword">if</span> (fd == -<span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">if</span> ( (newlib-&gt;fd = pathmap_open(newlib-&gt;name)) &lt; <span class="hljs-number">0</span>) {
+         print_debug(<span class="hljs-string">"can't open shared object %s\n"</span>, newlib-&gt;name);
+         <span class="hljs-built_in">free</span>(newlib);
+         <span class="hljs-keyword">return</span> NULL;
+      }
+   } <span class="hljs-keyword">else</span> {
+      newlib-&gt;fd = fd;
+   }
+
+   <span class="hljs-comment">// check whether we have got an ELF file. /proc/&lt;pid&gt;/map</span>
+   <span class="hljs-comment">// gives out all file mappings and not just shared objects</span>
+   <span class="hljs-keyword">if</span> (is_elf_file(newlib-&gt;fd) == <span class="hljs-keyword">false</span>) {
+      close(newlib-&gt;fd);
+      <span class="hljs-built_in">free</span>(newlib);
+      <span class="hljs-keyword">return</span> NULL;
+   }
+
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   <span class="hljs-comment">// 添加符号表信息</span>
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   newlib-&gt;symtab = build_symtab(newlib-&gt;fd, libname);
+   <span class="hljs-keyword">if</span> (newlib-&gt;symtab == NULL) {
+      print_debug(<span class="hljs-string">"symbol table build failed for %s\n"</span>, newlib-&gt;name);
+   }
+
+   <span class="hljs-comment">// even if symbol table building fails, we add the lib_info.</span>
+   <span class="hljs-comment">// This is because we may need to read from the ELF file for core file</span>
+   <span class="hljs-comment">// address read functionality. lookup_symbol checks for NULL symtab.</span>
+   <span class="hljs-keyword">if</span> (ph-&gt;libs) {
+      ph-&gt;lib_tail-&gt;next = newlib;
+      ph-&gt;lib_tail = newlib;
+   }  <span class="hljs-keyword">else</span> {
+      ph-&gt;libs = ph-&gt;lib_tail = newlib;
+   }
+   ph-&gt;num_libs++;
+
+   <span class="hljs-keyword">return</span> newlib;
+}</code></pre>
+
+<p>符号表的读取在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/symtab.c#l491"><code>build_symtab</code>方法</a>，暂时就先不深究了。</p>
+
+
+
+<h3 id="setupvm">setupVM</h3>
+
+<p><code>setupDebugger</code>结束之后，需要<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/bugspot/BugSpotAgent.java#l554"><code>setupVM</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">setupVM</span>() {
+        <span class="hljs-comment">// We need to instantiate a HotSpotTypeDataBase on both the client</span>
+        <span class="hljs-comment">// and server machine. On the server it is only currently used to</span>
+        <span class="hljs-comment">// configure the Java primitive type sizes (which we should</span>
+        <span class="hljs-comment">// consider making constant). On the client it is used to</span>
+        <span class="hljs-comment">// configure the VM.</span>
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 1. 构建HotSpotTypeDataBase</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-keyword">if</span> (os.equals(<span class="hljs-string">"solaris"</span>)) {
+                db = <span class="hljs-keyword">new</span> HotSpotTypeDataBase(machDesc, <span class="hljs-keyword">new</span> HotSpotSolarisVtblAccess(debugger, jvmLibNames),
+                debugger, jvmLibNames);
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (os.equals(<span class="hljs-string">"win32"</span>)) {
+                db = <span class="hljs-keyword">new</span> HotSpotTypeDataBase(machDesc, <span class="hljs-keyword">new</span> Win32VtblAccess(debugger, jvmLibNames),
+                debugger, jvmLibNames);
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (os.equals(<span class="hljs-string">"linux"</span>)) {
+                db = <span class="hljs-keyword">new</span> HotSpotTypeDataBase(machDesc, <span class="hljs-keyword">new</span> LinuxVtblAccess(debugger, jvmLibNames),
+                debugger, jvmLibNames);
+            } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (os.equals(<span class="hljs-string">"bsd"</span>)) {
+                db = <span class="hljs-keyword">new</span> HotSpotTypeDataBase(machDesc, <span class="hljs-keyword">new</span> BsdVtblAccess(debugger, jvmLibNames),
+                debugger, jvmLibNames);
+            } <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> DebuggerException(<span class="hljs-string">"OS \""</span> + os + <span class="hljs-string">"\" not yet supported (no VtblAccess implemented yet)"</span>);
+            }
+        }
+        <span class="hljs-keyword">catch</span> (NoSuchSymbolException e) {
+            e.printStackTrace();
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+        }
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 2. 设置原生类型大小，从目标VM获取 </span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-keyword">if</span> (startupMode != REMOTE_MODE) {
+            <span class="hljs-comment">// Configure the debugger with the primitive type sizes just obtained from the VM</span>
+            debugger.configureJavaPrimitiveTypeSizes(db.getJBooleanType().getSize(),
+            db.getJByteType().getSize(),
+            db.getJCharType().getSize(),
+            db.getJDoubleType().getSize(),
+            db.getJFloatType().getSize(),
+            db.getJIntType().getSize(),
+            db.getJLongType().getSize(),
+            db.getJShortType().getSize());
+        }
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 3. 构建目标VM的本机表示</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-keyword">if</span> (!isServer) {
+            <span class="hljs-comment">// Do not initialize the VM on the server (unnecessary, since it's</span>
+            <span class="hljs-comment">// instantiated on the client)</span>
+            VM.initialize(db, debugger);
+        }
+
+        <span class="hljs-keyword">try</span> {
+            jvmdi = <span class="hljs-keyword">new</span> ServiceabilityAgentJVMDIModule(debugger, saLibNames);
+            <span class="hljs-keyword">if</span> (jvmdi.canAttach()) {
+                jvmdi.attach();
+                jvmdi.setCommandTimeout(<span class="hljs-number">6000</span>);
+                debugPrintln(<span class="hljs-string">"Attached to Serviceability Agent's JVMDI module."</span>);
+                <span class="hljs-comment">// Jog VM to suspended point with JVMDI module</span>
+                resume();
+                suspendJava();
+                suspend();
+                debugPrintln(<span class="hljs-string">"Suspended all Java threads."</span>);
+            } <span class="hljs-keyword">else</span> {
+                debugPrintln(<span class="hljs-string">"Could not locate SA's JVMDI module; skipping attachment"</span>);
+                jvmdi = <span class="hljs-keyword">null</span>;
+            }
+        } <span class="hljs-keyword">catch</span> (Exception e) {
+            e.printStackTrace();
+            jvmdi = <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }</code></pre>
+
+
+
+<h3 id="hotspottypedatabase">HotSpotTypeDataBase</h3>
+
+<p><code>HotSpotTypeDataBase</code>存储了目标VM上面的类型信息。来看它的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/HotSpotTypeDataBase.java#l77">构造函数</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">  <span class="hljs-javadoc">/** &lt;P&gt; This requires a SymbolLookup mechanism as well as the
+      MachineDescription. Note that we do not need a NameMangler since
+      we use the vmStructs mechanism to avoid looking up C++
+      symbols. &lt;/P&gt;
+
+      &lt;P&gt; NOTE that it is guaranteed that this constructor will not
+      attempt to fetch any Java values from the remote process, only C
+      integers and addresses. This is required because we are fetching
+      the sizes of the Java primitive types from the remote process,
+      implying that attempting to fetch them before their sizes are
+      known is illegal. &lt;/P&gt;
+
+      &lt;P&gt; Throws NoSuchSymbolException if a problem occurred while
+      looking up one of the bootstrapping symbols related to the
+      VMStructs table in the remote VM; this may indicate that the
+      remote process is not actually a HotSpot VM. &lt;/P&gt;
+  */</span>
+  <span class="hljs-keyword">public</span> <span class="hljs-title">HotSpotTypeDataBase</span>(MachineDescription machDesc,
+                             VtblAccess vtblAccess,
+                             Debugger symbolLookup,
+                             String[] jvmLibNames) <span class="hljs-keyword">throws</span> NoSuchSymbolException {
+    <span class="hljs-keyword">super</span>(machDesc, vtblAccess);
+    <span class="hljs-keyword">this</span>.symbolLookup = symbolLookup;
+    <span class="hljs-keyword">this</span>.jvmLibNames = jvmLibNames;
+
+    readVMTypes();
+    initializePrimitiveTypes();
+    readVMStructs();
+    readVMIntConstants();
+    readVMLongConstants();
+    readExternalDefinitions();
+  }</code></pre>
+
+<p>几个<code>readXXX</code>方法都是从HotSpotVM中读取信息。下面以<code>readVMStructs</code>方法为例来看看。</p>
+
+
+
+<h3 id="readvmstructs">readVMStructs</h3>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">  <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">readVMStructs</span>() {
+    <span class="hljs-comment">////////////////////////////////////////</span>
+    <span class="hljs-comment">// VMStructEntry结构体各个成员变量的offset</span>
+    <span class="hljs-comment">////////////////////////////////////////</span>
+    <span class="hljs-comment">// Get the variables we need in order to traverse the VMStructEntry[]</span>
+    <span class="hljs-keyword">long</span> structEntryTypeNameOffset;
+    <span class="hljs-keyword">long</span> structEntryFieldNameOffset;
+    <span class="hljs-keyword">long</span> structEntryTypeStringOffset;
+    <span class="hljs-keyword">long</span> structEntryIsStaticOffset;
+    <span class="hljs-keyword">long</span> structEntryOffsetOffset;
+    <span class="hljs-keyword">long</span> structEntryAddressOffset;
+    <span class="hljs-keyword">long</span> structEntryArrayStride;
+
+    structEntryTypeNameOffset     = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryTypeNameOffset"</span>);
+    structEntryFieldNameOffset    = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryFieldNameOffset"</span>);
+    structEntryTypeStringOffset   = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryTypeStringOffset"</span>);
+    structEntryIsStaticOffset     = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryIsStaticOffset"</span>);
+    structEntryOffsetOffset       = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryOffsetOffset"</span>);
+    structEntryAddressOffset      = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryAddressOffset"</span>);
+    structEntryArrayStride        = getLongValueFromProcess(<span class="hljs-string">"gHotSpotVMStructEntryArrayStride"</span>);
+
+    <span class="hljs-comment">////////////////////////////////////////</span>
+    <span class="hljs-comment">// 通过符号表查找目标VM中gHotSpotVMStructs变量的地址</span>
+    <span class="hljs-comment">////////////////////////////////////////</span>
+    <span class="hljs-comment">// Fetch the address of the VMStructEntry*</span>
+    Address entryAddr = lookupInProcess(<span class="hljs-string">"gHotSpotVMStructs"</span>);
+    <span class="hljs-comment">// Dereference this once to get the pointer to the first VMStructEntry</span>
+    entryAddr = entryAddr.getAddressAt(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">if</span> (entryAddr == <span class="hljs-keyword">null</span>) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">"gHotSpotVMStructs was not initialized properly in the remote process; can not continue"</span>);
+    }
+
+    <span class="hljs-comment">// Start iterating down it until we find an entry with no name</span>
+    Address fieldNameAddr = <span class="hljs-keyword">null</span>;
+    String typeName = <span class="hljs-keyword">null</span>;
+    String fieldName = <span class="hljs-keyword">null</span>;
+    String typeString = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">boolean</span> isStatic = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">long</span> offset = <span class="hljs-number">0</span>;
+    Address staticFieldAddr = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">long</span> size = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">long</span> index = <span class="hljs-number">0</span>;
+    String opaqueName = <span class="hljs-string">"&lt;opaque&gt;"</span>;
+    lookupOrCreateClass(opaqueName, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">false</span>);
+
+    do {
+
+      <span class="hljs-comment">////////////////////////////////////////</span>
+      <span class="hljs-comment">// 读取VMStructEntry各个成员变量的值</span>
+      <span class="hljs-comment">////////////////////////////////////////</span>
+
+      <span class="hljs-comment">// Fetch the field name first</span>
+      fieldNameAddr = entryAddr.getAddressAt(structEntryFieldNameOffset);
+      <span class="hljs-keyword">if</span> (fieldNameAddr != <span class="hljs-keyword">null</span>) {
+        fieldName = CStringUtilities.getString(fieldNameAddr);
+
+        <span class="hljs-comment">// Now the rest of the names. Keep in mind that the type name</span>
+        <span class="hljs-comment">// may be NULL, indicating that the type is opaque.</span>
+        Address addr = entryAddr.getAddressAt(structEntryTypeNameOffset);
+        <span class="hljs-keyword">if</span> (addr == <span class="hljs-keyword">null</span>) {
+          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">"gHotSpotVMStructs unexpectedly had a NULL type name at index "</span> + index);
+        }
+        typeName = CStringUtilities.getString(addr);
+
+        addr = entryAddr.getAddressAt(structEntryTypeStringOffset);
+        <span class="hljs-keyword">if</span> (addr == <span class="hljs-keyword">null</span>) {
+          typeString = opaqueName;
+        } <span class="hljs-keyword">else</span> {
+          typeString = CStringUtilities.getString(addr);
+        }
+
+        isStatic = !(entryAddr.getCIntegerAt(structEntryIsStaticOffset, C_INT32_SIZE, <span class="hljs-keyword">false</span>) == <span class="hljs-number">0</span>);
+        <span class="hljs-keyword">if</span> (isStatic) {
+          staticFieldAddr = entryAddr.getAddressAt(structEntryAddressOffset);
+          offset = <span class="hljs-number">0</span>;
+        } <span class="hljs-keyword">else</span> {
+          offset = entryAddr.getCIntegerAt(structEntryOffsetOffset, C_INT64_SIZE, <span class="hljs-keyword">true</span>);
+          staticFieldAddr = <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-comment">// The containing Type must already be in the database -- no exceptions</span>
+        BasicType containingType = lookupOrFail(typeName);
+
+        <span class="hljs-comment">// The field's Type must already be in the database -- no exceptions</span>
+        BasicType fieldType = (BasicType)lookupType(typeString);
+
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// 根据VMStructEntry创建对应的Field</span>
+        <span class="hljs-comment">////////////////////////////////////////</span>
+        <span class="hljs-comment">// Create field by type</span>
+        createField(containingType, fieldName, fieldType,
+                    isStatic, offset, staticFieldAddr);
+      }
+
+      ++index;
+      <span class="hljs-comment">////////////////////////////////////////</span>
+      <span class="hljs-comment">// 下一个VMStructEntry</span>
+      <span class="hljs-comment">////////////////////////////////////////</span>
+      entryAddr = entryAddr.addOffsetTo(structEntryArrayStride);
+    } <span class="hljs-keyword">while</span> (fieldNameAddr != <span class="hljs-keyword">null</span>);
+  }</code></pre>
+
+<p>HotSpot中的<code>VMStructEntry</code>定义在<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/runtime/vmStructs.hpp"><code>vmStructs.hpp</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> {
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* typeName;            <span class="hljs-comment">// The type name containing the given field (example: "Klass")</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* fieldName;           <span class="hljs-comment">// The field name within the type           (example: "_name")</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* typeString;          <span class="hljs-comment">// Quoted name of the type of this field (example: "Symbol*";</span>
+                                   <span class="hljs-comment">// parsed in Java to ensure type correctness</span>
+  int32_t  isStatic;               <span class="hljs-comment">// Indicates whether following field is an offset or an address</span>
+  uint64_t offset;                 <span class="hljs-comment">// Offset of field within structure; only used for nonstatic fields</span>
+  <span class="hljs-keyword">void</span>* address;                   <span class="hljs-comment">// Address of field; only used for static fields</span>
+                                   <span class="hljs-comment">// ("offset" can not be reused because of apparent SparcWorks compiler bug</span>
+                                   <span class="hljs-comment">// in generation of initializer data)</span>
+} VMStructEntry;</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/runtime/vmStructs.cpp#l3133"><code>gHotSpotVMStructs</code></a>定义在<code>vmStructs.cpp</code>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">JNIEXPORT VMStructEntry* gHotSpotVMStructs                 = VMStructs::localHotSpotVMStructs;</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// These initializers are allowed to access private fields in classes</span>
+<span class="hljs-comment">// as long as class VMStructs is a friend</span>
+VMStructEntry VMStructs::localHotSpotVMStructs[] = {
+
+  VM_STRUCTS(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_STATIC_VM_STRUCT_ENTRY, \
+             GENERATE_UNCHECKED_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_NONPRODUCT_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_C1_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_C2_NONSTATIC_VM_STRUCT_ENTRY, \
+             GENERATE_C1_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+             GENERATE_C2_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+             GENERATE_VM_STRUCT_LAST_ENTRY)
+
+<span class="hljs-preprocessor">#ifndef SERIALGC</span>
+  VM_STRUCTS_PARALLELGC(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                        GENERATE_STATIC_VM_STRUCT_ENTRY)
+
+  VM_STRUCTS_CMS(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_STATIC_VM_STRUCT_ENTRY)
+
+  VM_STRUCTS_G1(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                GENERATE_STATIC_VM_STRUCT_ENTRY)
+<span class="hljs-preprocessor">#endif <span class="hljs-comment">// SERIALGC</span></span>
+
+  VM_STRUCTS_CPU(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_STATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_UNCHECKED_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_NONPRODUCT_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_C2_NONSTATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_C1_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_C2_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+                 GENERATE_VM_STRUCT_LAST_ENTRY)
+
+  VM_STRUCTS_OS_CPU(GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_STATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_UNCHECKED_NONSTATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_NONSTATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_NONPRODUCT_NONSTATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_C2_NONSTATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_C1_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_C2_UNCHECKED_STATIC_VM_STRUCT_ENTRY, \
+                    GENERATE_VM_STRUCT_LAST_ENTRY)
+};</code></pre>
+
+<p><code>VM_STRUCTS</code>是个宏定义，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-preprocessor">#define VM_STRUCTS(nonstatic_field, \</span>
+                   static_field, \
+                   unchecked_nonstatic_field, \
+                   volatile_nonstatic_field, \
+                   nonproduct_nonstatic_field, \
+                   c1_nonstatic_field, \
+                   c2_nonstatic_field, \
+                   unchecked_c1_static_field, \
+                   unchecked_c2_static_field, \
+                   last_entry) \
+
+    ...
+    static_field(Threads,                     _thread_list,                                  JavaThread*)                           \
+    ...</code></pre>
+
+<p>这个宏定义了所有SA中需要用到的HotSpotVM的字段类型信息，上面只贴出了<code>Threads</code>的<code>_thread_list</code>字段。</p>
+
+<p>对于<code>localHotSpotVMStructs</code>的定义，宏展开后，以<code>_thread_list</code>为例，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">GENERATE_STATIC_VM_STRUCT_ENTRY(Threads,                     _thread_list,                                  JavaThread*) </code></pre>
+
+<p>来看看<code>GENERATE_NONSTATIC_VM_STRUCT_ENTRY</code>跟<code>GENERATE_STATIC_VM_STRUCT_ENTRY</code>，也是宏，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// This macro generates a VMStructEntry line for a nonstatic field</span>
+<span class="hljs-preprocessor">#define GENERATE_NONSTATIC_VM_STRUCT_ENTRY(typeName, fieldName, type)              \</span>
+ { QUOTE(typeName), QUOTE(fieldName), QUOTE(type), <span class="hljs-number">0</span>, cast_uint64_t(offset_of(typeName, fieldName)), NULL },
+
+<span class="hljs-comment">// This macro generates a VMStructEntry line for a static field</span>
+<span class="hljs-preprocessor">#define GENERATE_STATIC_VM_STRUCT_ENTRY(typeName, fieldName, type)                 \</span>
+ { QUOTE(typeName), QUOTE(fieldName), QUOTE(type), <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, &amp;typeName::fieldName },</code></pre>
+
+<p>对应了<code>VMStructEntry</code>的6个字段，其中比较巧妙的就是<code>offset</code>字段跟<code>address</code>字段的计算。<code>offset</code>是非静态变量在结构体中地址的偏移量，<code>address</code>是静态字段的地址。</p>
+
+<p>静态字段比较简单，<code>&amp;typeName::fieldName</code>，直接使用<code>&amp;</code>运算就可以获取地址。</p>
+
+<p>非静态字段获取偏移量就要复杂一点，通过<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/utilities/globalDefinitions_gcc.hpp#l302"><code>offset_of</code>方法</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// HACK: gcc warns about applying offsetof() to non-POD object or calculating</span>
+<span class="hljs-comment">//       offset directly when base address is NULL. Use 16 to get around the</span>
+<span class="hljs-comment">//       warning. gcc-3.4 has an option -Wno-invalid-offsetof to suppress</span>
+<span class="hljs-comment">//       this warning.</span>
+<span class="hljs-preprocessor">#define offset_of(klass,field) (size_t)((intx)&amp;(((klass*)16)-&gt;field) - 16)</span></code></pre>
+
+<p>Linux标准库其实也提供了一个获取成员变量偏移量的函数，<a href="http://man7.org/linux/man-pages/man3/offsetof.3.html"><code>offsetof</code></a>，代码在<a href="http://lxr.oss.org.cn/source/include/linux/stddef.h?v=3.12"><code>stddef.h</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-preprocessor">#define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)</span></code></pre>
+
+<p>其中0表示的是内存地址，C语言中允许这样的强制类型转换而不会报错。那么HotSpot所使用的<code>offset_of</code>就如注释所说，基址用16只是为了绕过gcc的warning。</p>
+
+<p><code>readVMTypes</code>方法也是类似的，根据HotSpot的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/src/share/vm/runtime/vmStructs.hpp#l78"><code>VMTypeEntry</code></a>创建对应的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/types/Type.java"><code>Type</code></a>，这里就不赘述了。</p>
+
+<p>SA从HotSpot中读取元信息的这种做法，有个很蛋疼的地方，</p>
+
+<blockquote>
+  <p>The names in vmStructs.cpp are used by the Java code in SA. Thus, if a field named in vmStructs.cpp is deleted or renamed, both vmStructs.cpp and the Java code that access that field have to be modified. If this isn’t done, then SA will fail when it tries to examine a process/core file.</p>
+</blockquote>
+
+
+
+<h3 id="lookupinprocess">lookupInProcess</h3>
+
+<p><code>readVMStructs</code>方法中还有一个需要注意的地方，就是<code>gHotSpotVMStructs</code>变量地址的获取，这等于说是后续读取所有<code>VMStructEntry</code>的入口，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-comment">// Fetch the address of the VMStructEntry*</span>
+    Address entryAddr = lookupInProcess(<span class="hljs-string">"gHotSpotVMStructs"</span>);</code></pre>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">  <span class="hljs-keyword">private</span> Address <span class="hljs-title">lookupInProcess</span>(String symbol) <span class="hljs-keyword">throws</span> NoSuchSymbolException {
+    <span class="hljs-comment">// FIXME: abstract away the loadobject name</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; jvmLibNames.length; i++) {
+      <span class="hljs-comment">////////////////////////////////////////</span>
+      <span class="hljs-comment">// 委托给Debugger来查找</span>
+      <span class="hljs-comment">////////////////////////////////////////</span>
+      Address addr = symbolLookup.lookup(jvmLibNames[i], symbol);
+      <span class="hljs-keyword">if</span> (addr != <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">return</span> addr;
+      }
+    }
+    String errStr = <span class="hljs-string">"("</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; jvmLibNames.length; i++) {
+      errStr += jvmLibNames[i];
+      <span class="hljs-keyword">if</span> (i &lt; jvmLibNames.length - <span class="hljs-number">1</span>) {
+        errStr += <span class="hljs-string">", "</span>;
+      }
+    }
+    errStr += <span class="hljs-string">")"</span>;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoSuchSymbolException(symbol,
+                                    <span class="hljs-string">"Could not find symbol \""</span> + symbol +
+                                    <span class="hljs-string">"\" in any of the known library names "</span> +
+                                    errStr);
+  }</code></pre>
+
+<p>来看看<code>LinuxDebuggerLocal</code>的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/LinuxDebuggerLocal.java#l354"><code>lookup方法</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-javadoc">/** From the SymbolLookup interface via Debugger and JVMDebugger */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Address <span class="hljs-title">lookup</span>(String objectName, String symbol) {
+        requireAttach();
+        <span class="hljs-keyword">if</span> (!attached) {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-keyword">if</span> (isCore) {
+            <span class="hljs-keyword">long</span> addr = lookupByName0(objectName, symbol);
+            <span class="hljs-keyword">return</span> (addr == <span class="hljs-number">0</span>)? <span class="hljs-keyword">null</span> : <span class="hljs-keyword">new</span> LinuxAddress(<span class="hljs-keyword">this</span>, handleGCC32ABI(addr, symbol));
+        } <span class="hljs-keyword">else</span> {
+            class LookupByNameTask implements WorkerThreadTask {
+                String objectName, symbol;
+                Address result;
+
+                <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doit</span>(LinuxDebuggerLocal debugger) {
+                    <span class="hljs-keyword">long</span> addr = debugger.lookupByName0(objectName, symbol);
+                    result = (addr == <span class="hljs-number">0</span> ? <span class="hljs-keyword">null</span> : <span class="hljs-keyword">new</span> LinuxAddress(debugger, handleGCC32ABI(addr, symbol)));
+                }
+            }
+
+            LookupByNameTask task = <span class="hljs-keyword">new</span> LookupByNameTask();
+            task.objectName = objectName;
+            task.symbol = symbol;
+            workerThread.execute(task);
+            <span class="hljs-keyword">return</span> task.result;
+        }
+    }</code></pre>
+
+<p>看看本地方法<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/LinuxDebuggerLocal.c#l219"><code>lookupByName0</code>的实现</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">/*
+ * Class:     sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal
+ * Method:    lookupByName0
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)J
+ */</span>
+JNIEXPORT jlong JNICALL Java_sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal_lookupByName0
+  (JNIEnv *env, jobject this_obj, jstring objectName, jstring symbolName) {
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *objectName_cstr, *symbolName_cstr;
+  jlong addr;
+  jboolean isCopy;
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 获取之前attach后保存下来的ps_prochandle</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-keyword">struct</span> ps_prochandle* ph = get_proc_handle(env, this_obj);
+
+  objectName_cstr = NULL;
+  <span class="hljs-keyword">if</span> (objectName != NULL) {
+    objectName_cstr = (*env)-&gt;GetStringUTFChars(env, objectName, &amp;isCopy);
+    CHECK_EXCEPTION_(<span class="hljs-number">0</span>);
+  }
+  symbolName_cstr = (*env)-&gt;GetStringUTFChars(env, symbolName, &amp;isCopy);
+  CHECK_EXCEPTION_(<span class="hljs-number">0</span>);
+
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  <span class="hljs-comment">// 调用lookup_symbol方法</span>
+  <span class="hljs-comment">////////////////////////////////////////</span>
+  addr = (jlong) lookup_symbol(ph, objectName_cstr, symbolName_cstr);
+
+  <span class="hljs-keyword">if</span> (objectName_cstr != NULL) {
+    (*env)-&gt;ReleaseStringUTFChars(env, objectName, objectName_cstr);
+  }
+  (*env)-&gt;ReleaseStringUTFChars(env, symbolName, symbolName_cstr);
+  <span class="hljs-keyword">return</span> addr;
+}</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/libproc_impl.c#l206"><code>lookup_symbol</code>方法</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// lookup for a specific symbol</span>
+uintptr_t lookup_symbol(<span class="hljs-keyword">struct</span> ps_prochandle* ph,  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* object_name,
+                       <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span>* sym_name) {
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   <span class="hljs-comment">// 传进来的库文件名被忽略了</span>
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   <span class="hljs-comment">// ignore object_name. search in all libraries</span>
+   <span class="hljs-comment">// FIXME: what should we do with object_name?? The library names are obtained</span>
+   <span class="hljs-comment">// by parsing /proc/&lt;pid&gt;/maps, which may not be the same as object_name.</span>
+   <span class="hljs-comment">// What we need is a utility to map object_name to real file name, something</span>
+   <span class="hljs-comment">// dlopen() does by looking at LD_LIBRARY_PATH and /etc/ld.so.cache. For</span>
+   <span class="hljs-comment">// now, we just ignore object_name and do a global search for the symbol.</span>
+
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   <span class="hljs-comment">// 在之前保存下来的符号表中查找</span>
+   <span class="hljs-comment">////////////////////////////////////////</span>
+   lib_info* lib = ph-&gt;libs;
+   <span class="hljs-keyword">while</span> (lib) {
+      <span class="hljs-keyword">if</span> (lib-&gt;symtab) {
+         uintptr_t res = search_symbol(lib-&gt;symtab, lib-&gt;base, sym_name, NULL);
+         <span class="hljs-keyword">if</span> (res) <span class="hljs-keyword">return</span> res;
+      }
+      lib = lib-&gt;next;
+   }
+
+   print_debug(<span class="hljs-string">"lookup failed for symbol '%s' in obj '%s'\n"</span>,
+                          sym_name, object_name);
+   <span class="hljs-keyword">return</span> (uintptr_t) NULL;
+}</code></pre>
+
+<p>alright，可以看到SA中有两种方式来获取HotSpotVM里面的<font color="red">变量地址</font>，一种是通过符号表，另一种是通过<code>VMStructEntry</code>这种VM提供的元信息（也就是通过<code>&amp;</code>运算获取的地址）。</p>
+
+<p>现在地址是有了，那么它们的值是怎么被获取的呢？用<code>ptrace</code>搞定。</p>
+
+
+
+<h2 id="ptracepeekdata">PTRACE_PEEKDATA</h2>
+
+<p>来看下<code>VMStructEntry</code>的<code>isStatic</code>字段的读取，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">        isStatic = !(entryAddr.getCIntegerAt(structEntryIsStaticOffset, C_INT32_SIZE, <span class="hljs-keyword">false</span>) == <span class="hljs-number">0</span>);</code></pre>
+
+<p>Linux下的<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/Address.java"><code>Address</code></a>实现是<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/LinuxAddress.java"><code>LinuxAddress</code></a>，看下它的<code>getCIntegerAt</code>方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getCIntegerAt</span>(<span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> numBytes, <span class="hljs-keyword">boolean</span> isUnsigned)
+            <span class="hljs-keyword">throws</span> UnalignedAddressException, UnmappedAddressException {
+        <span class="hljs-keyword">return</span> debugger.readCInteger(addr + offset, numBytes, isUnsigned);
+    }</code></pre>
+
+<p>交给<code>LinuxDebuggerLocal</code>来处理了，</p>
+
+
+
+<pre class="prettyprint"><code class="language-java hljs ">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">readCInteger</span>(<span class="hljs-keyword">long</span> address, <span class="hljs-keyword">long</span> numBytes, <span class="hljs-keyword">boolean</span> isUnsigned)
+        <span class="hljs-keyword">throws</span> UnmappedAddressException, UnalignedAddressException {
+        <span class="hljs-comment">// Only slightly relaxed semantics -- this is a hack, but is</span>
+        <span class="hljs-comment">// necessary on x86 where it seems the compiler is</span>
+        <span class="hljs-comment">// putting some global 64-bit data on 32-bit boundaries</span>
+        <span class="hljs-keyword">if</span> (numBytes == <span class="hljs-number">8</span>) {
+            utils.checkAlignment(address, <span class="hljs-number">4</span>);
+        } <span class="hljs-keyword">else</span> {
+            utils.checkAlignment(address, numBytes);
+        }
+        <span class="hljs-keyword">byte</span>[] data = readBytes(address, numBytes);
+        <span class="hljs-keyword">return</span> utils.dataToCInteger(data, isUnsigned);
+    }</code></pre>
+
+<p>后面的调用链路是这样的，<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/DebuggerBase.java#l214"><code>DebuggerBase#readBytes</code></a> -&gt; <a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/share/classes/sun/jvm/hotspot/debugger/linux/LinuxDebuggerLocal.java#l558"><code>LinuxDebuggerLocal#readBytesFromProcess</code></a> -&gt; <a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/LinuxDebuggerLocal.c#l265"><code>LinuxDebuggerLocal#readBytesFromProcess0</code></a>，很明显，又到了一个本地方法，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs ">JNIEXPORT jbyteArray JNICALL Java_sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal_readBytesFromProcess0
+  (JNIEnv *env, jobject this_obj, jlong addr, jlong numBytes) {
+
+  jboolean isCopy;
+  jbyteArray <span class="hljs-built_in">array</span>;
+  jbyte *bufPtr;
+  ps_err_e err;
+
+  <span class="hljs-built_in">array</span> = (*env)-&gt;NewByteArray(env, numBytes);
+  CHECK_EXCEPTION_(<span class="hljs-number">0</span>);
+  bufPtr = (*env)-&gt;GetByteArrayElements(env, <span class="hljs-built_in">array</span>, &amp;isCopy);
+  CHECK_EXCEPTION_(<span class="hljs-number">0</span>);
+
+  err = ps_pdread(get_proc_handle(env, this_obj), (psaddr_t) (uintptr_t)addr, bufPtr, numBytes);
+  (*env)-&gt;ReleaseByteArrayElements(env, <span class="hljs-built_in">array</span>, bufPtr, <span class="hljs-number">0</span>);
+  <span class="hljs-keyword">return</span> (err == PS_OK)? <span class="hljs-built_in">array</span> : <span class="hljs-number">0</span>;
+}</code></pre>
+
+<p><a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/libproc_impl.c#l404"><code>ps_pdread</code></a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// read "size" bytes info "buf" from address "addr"</span>
+ps_err_e ps_pdread(<span class="hljs-keyword">struct</span> ps_prochandle *ph, psaddr_t  addr,
+                   <span class="hljs-keyword">void</span> *buf, size_t size) {
+  <span class="hljs-keyword">return</span> ph-&gt;ops-&gt;p_pread(ph, (uintptr_t) addr, buf, size)? PS_OK: PS_ERR;
+}</code></pre>
+
+<p><code>ph-&gt;ops</code>是一个<code>ps_prochandle_ops</code>，<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/ps_proc.c#l321">Linux下的赋值</a>如下，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-keyword">static</span> ps_prochandle_ops process_ops = {
+  .release=  process_cleanup,
+  .p_pread=  process_read_data,
+  .p_pwrite= process_write_data,
+  .get_lwp_regs= process_get_lwp_regs
+};</code></pre>
+
+<p>所以最终是调用了<a href="http://hg.openjdk.java.net/jdk7u/jdk7u/hotspot/file/2cd3690f644c/agent/src/os/linux/ps_proc.c#l57"><code>process_read_data</code>方法</a>，</p>
+
+
+
+<pre class="prettyprint"><code class="language-cpp hljs "><span class="hljs-comment">// read "size" bytes of data from "addr" within the target process.</span>
+<span class="hljs-comment">// unlike the standard ptrace() function, process_read_data() can handle</span>
+<span class="hljs-comment">// unaligned address - alignment check, if required, should be done</span>
+<span class="hljs-comment">// before calling process_read_data.</span>
+
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">bool</span> process_read_data(<span class="hljs-keyword">struct</span> ps_prochandle* ph, uintptr_t addr, <span class="hljs-keyword">char</span> *buf, size_t size) {
+  <span class="hljs-keyword">long</span> rslt;
+  size_t i, words;
+  uintptr_t end_addr = addr + size;
+  uintptr_t aligned_addr = align(addr, <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>));
+
+  <span class="hljs-keyword">if</span> (aligned_addr != addr) {
+    <span class="hljs-keyword">char</span> *ptr = (<span class="hljs-keyword">char</span> *)&amp;rslt;
+    errno = <span class="hljs-number">0</span>;
+    rslt = ptrace(PTRACE_PEEKDATA, ph-&gt;pid, aligned_addr, <span class="hljs-number">0</span>);
+    <span class="hljs-keyword">if</span> (errno) {
+      print_debug(<span class="hljs-string">"ptrace(PTRACE_PEEKDATA, ..) failed for %d bytes @ %lx\n"</span>, size, addr);
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+    }
+    <span class="hljs-keyword">for</span> (; aligned_addr != addr; aligned_addr++, ptr++);
+    <span class="hljs-keyword">for</span> (; ((intptr_t)aligned_addr % <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>)) &amp;&amp; aligned_addr &lt; end_addr;
+        aligned_addr++)
+       *(buf++) = *(ptr++);
+  }
+
+  words = (end_addr - aligned_addr) / <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>);
+
+  <span class="hljs-comment">// assert((intptr_t)aligned_addr % sizeof(long) == 0);</span>
+  <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; words; i++) {
+    errno = <span class="hljs-number">0</span>;
+    rslt = ptrace(PTRACE_PEEKDATA, ph-&gt;pid, aligned_addr, <span class="hljs-number">0</span>);
+    <span class="hljs-keyword">if</span> (errno) {
+      print_debug(<span class="hljs-string">"ptrace(PTRACE_PEEKDATA, ..) failed for %d bytes @ %lx\n"</span>, size, addr);
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+    }
+    *(<span class="hljs-keyword">long</span> *)buf = rslt;
+    buf += <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>);
+    aligned_addr += <span class="hljs-keyword">sizeof</span>(<span class="hljs-keyword">long</span>);
+  }
+
+  <span class="hljs-keyword">if</span> (aligned_addr != end_addr) {
+    <span class="hljs-keyword">char</span> *ptr = (<span class="hljs-keyword">char</span> *)&amp;rslt;
+    errno = <span class="hljs-number">0</span>;
+    rslt = ptrace(PTRACE_PEEKDATA, ph-&gt;pid, aligned_addr, <span class="hljs-number">0</span>);
+    <span class="hljs-keyword">if</span> (errno) {
+      print_debug(<span class="hljs-string">"ptrace(PTRACE_PEEKDATA, ..) failed for %d bytes @ %lx\n"</span>, size, addr);
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+    }
+    <span class="hljs-keyword">for</span> (; aligned_addr != end_addr; aligned_addr++)
+       *(buf++) = *(ptr++);
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+}</code></pre>
+
+<p>可以看到最后也是通过<code>ptrace</code>来读取目标VM中的数据。</p>
+
+<p>总结一下，</p>
+
+<ol>
+<li>通过<code>/proc/[pid]/maps</code>读取<code>ELF</code>文件，保存符号表；</li>
+<li>通过符号表读取HotSpotVM中<code>localHotSpotVMStructs</code>，<code>localHotSpotVMTypes</code>等<font color="red">变量的地址</font>；</li>
+<li>使用<code>ptrace</code>读取上述<font color="red">变量的值</font>；</li>
+<li>这两个变量值包含了SA需要用到的HotSpotVM中的数据的元信息（类型信息，字段offset，地址等）；</li>
+<li>有了这些元信息就可以使用<code>ptrace</code>读取目标VM上这些数据的值；</li>
+</ol>
+
+
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+<li><a href="http://openjdk.java.net/groups/hotspot/docs/Serviceability.html#bsa">http://openjdk.java.net/groups/hotspot/docs/Serviceability.html#bsa</a></li>
+<li><a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html">https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html</a></li>
+<li><a href="http://stackoverflow.com/questions/8238896/gcc-struct-defining-members-in-specific-offsets">http://stackoverflow.com/questions/8238896/gcc-struct-defining-members-in-specific-offsets</a></li>
+</ul></div>
+        <script  type="text/javascript">
+            $(function () {
+                $('pre.prettyprint code').each(function () {
+                    var lines = $(this).text().split('\n').length;
+                    var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                    $(this).addClass('has-numbering').parent().append($numbering);
+                    for (i = 1; i <= lines; i++) {
+                        $numbering.append($('<li/>').text(i));
+                    };
+                    $numbering.fadeIn(1700);
+                });
+            });
+        </script>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_detail.css" />
+
+    
+<!--172.16.140.11-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+<script type="text/javascript">
+    var fromjs = $("#fromjs");
+    if (fromjs.length > 0) {
+            $("#fromjs .markdown_views pre").addClass("prettyprint");
+            prettyPrint();
+
+            $('pre.prettyprint code').each(function () {
+                var lines = $(this).text().split('\n').length;
+                var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                $(this).addClass('has-numbering').parent().append($numbering);
+                for (i = 1; i <= lines; i++) {
+                    $numbering.append($('<li/>').text(i));
+                };
+                $numbering.fadeIn(1700);
+            });
+
+            $('.pre-numbering li').css("color", "#999");
+        }
+
+    
+    $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+    $(".toc a[target='_blank']").attr("target", "");
+
+</script>
+
+ 
+
+
+        <div id="digg" ArticleId="46496721" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>0</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='/kisimple/article/details/46434347';">上一篇</span><a href="/kisimple/article/details/46434347" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">Tomcat源码阅读#1：classloader初始化</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='/kisimple/article/details/46959381';">下一篇</span><a href="/kisimple/article/details/46959381" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">BTrace实现浅析</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+        <div class="similar_article"  style="display:none">
+                <h4>我的同类文章</h4>
+                <div class="similar_c"style="margin:20px 0px 0px 0px">
+                    <div class="similar_c_t">
+                                <label class="similar_cur">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2523467','kisimple','foot','46496721');">JavaVM<em>（24）</em></span>
+                                </label>
+                                <label class="">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2794191','kisimple','foot','46496721');">$RTFSC<em>（26）</em></span>
+                                </label>
+                                <label class="">
+                                    <span  style="cursor:pointer"  onclick="GetCategoryArticles('2444243','kisimple','foot','46496721');">操作系统<em>（6）</em></span>
+                                </label>
+                    </div>
+                   
+                    <div class="similar_wrap tracking-ad" data-mod="popu_141"  style="max-height:195px;">
+                        <a href="http://blog.csdn.net" style="display:none">http://blog.csdn.net</a>
+                        <ul class="similar_list fl">                          
+                        </ul>
+
+                        <ul class="similar_list fr">                           
+                        </ul>
+                    </div>
+                </div>
+            </div>    
+    <script  type="text/javascript">
+        $(function () {
+            GetCategoryArticles('2523467', 'kisimple','foot','46496721');
+        });
+    </script>
+      
+</div>
+
+    <div>
+        
+
+        <script type="text/javascript">
+            /*博客内容页下方Banner1-728*90，创建于2016-12-13*/
+            var cpro_id = "u2843949";
+        </script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+     </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/kisimple/svc/GetSuggestContent/46496721",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+
+<style>
+.blog-ass-articl dd {
+color: #369;
+width: 99%; /*修改行*/
+float: left;
+overflow: hidden;
+font: normal normal 12px/23px "SimSun";
+height: 23px;
+margin: 0;
+padding: 0 0 0 10px;
+margin-right: 30px;
+background: url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;
+}
+</style>
+
+ <link rel="stylesheet" href="http://static.blog.csdn.net/css/replace.css"/>
+<div id="relate" data-mod="popu_218"  class="tracking-ad">
+        <div class="relate_t">
+            <h3><span>参考知识库</span></h3>
+        </div>
+        <div class="relate_c">
+        </div>
+</div>
+ 
+
+<dl class="blog-ass-articl" id="res-relatived" > 
+    <div class="embody embody_b" id="libkeyparent"  style="display:none">
+            <span class="embody_t">更多资料请参考：</span>
+            <div class="embody_c" id="libkey"></div>
+    </div>
+
+
+     <dt><span>猜你在找</span></dt>    
+
+
+   
+
+
+    <div id="adCollege" style="width: 42%;float: left;"> 
+        <script src="http://csdnimg.cn/jobreco/job_reco.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            csdn.position.showEdu({
+                sourceType: "blog",
+                searchType: "detail",
+                searchKey: "46496721",
+                username: "yonka",
+                recordcount: "5",
+                containerId: "adCollege" //容器DIV的id。 
+            });
+            
+            setEduLoc();
+
+            function setEduLoc() {               
+                var edus = $("#adCollege div dd a");
+                if (edus.length == 0) {
+                    setTimeout(function () {
+                        setEduLoc();
+                    }, 500);
+                }
+                else {
+                    var eduLoc = "?ref=blog&loc=0";
+                    $.each(edus, function (index,item) {
+                        var href = $(this).attr("href") + eduLoc;
+                        $(this).attr("href", href);
+                    });
+                }
+            }
+
+        </script> 
+    </div>  
+
+    
+     <div id="res"  data-mod="popu_36"  class="tracking-ad" style="width: 42%;float: left;margin-right: 30px;"></div>
+   
+</dl>
+
+
+
+
+
+    <div id="ad_cen">        
+                      <script type="text/javascript">
+                          /*博客内容页下方Banner-728*90，创建于2014-7-3*/
+                          var cpro_id = "u1607657";
+                                    </script>
+                      <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+    </div>  
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+<div class="J_adv" data-view="true" data-mod="ad_popu_72" data-mtp="62" data-order="40" data-con="ad_content_2072">
+                 <script id="popuLayer_js_q" src="http://ads.csdn.net/js/popuLayer.js" defer="defer"  type="text/javascript"></script>
+            <div id="layerd" style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000">
+    	            <div class="J_close layer_close" style="display:;background-color:#efefef;padding:0px;color:#333;font:12px/24px Helvetica,Tahoma,Arial,sans-serif;text-align:right;">关闭</div><!-- 广告占位容器 --><div id="cpro_u2895327"></div></div>
+            <script>  document.getElementById("popuLayer_js_q").onload=function(){      var styObjd=styObj={width:"300px","height":parseInt(250)+28};window.CSDN.Layer.PopuLayer("#layerd",{storageName:"layerd",styleObj:styObjd,total:50,expoire:1000*60});  }</script><!-- 投放代码 --><script type="text/javascript">                /*服务器频道首页置顶Banner960*90，创建于2014-7-3*/    (window.cproArray = window.cproArray || []).push({        id: "u2895327"      });  </script>  <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script>
+     
+</div>
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '46496721';
+    var commentscount = 0;
+    var islock = false
+</script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/comment.js"></script>
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+<div class="tag_list" style="display:none"></div>
+  <script  language="javascript" type='text/javascript'>     
+      $(function(){
+              setTimeout(function(){
+                  $.get("/kisimple/svc/GetTagContent",function(data){
+                      $(".tag_list").html(data).show();
+                  });     
+              });
+          },500);                       
+ </script> 
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+</script>
+ <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>   
+
+<link rel="stylesheet" href="http://static.blog.csdn.net/code/prettify.css" />
+<script type="text/javascript" src="http://static.blog.csdn.net/code/prettify.js"></script>
+
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/search-service/main.js"></script>
+<script type="text/javascript">
+    $(function () {
+        setTimeout(function () {
+            var searchtitletags = 'HotSpot Serviceability Agent 实现浅析#1' + ',' + $("#tags").html();
+            searchService({
+                index: 'blog',
+                query: searchtitletags,
+                from: 5,
+                size: 5,
+                appendTo: '#res',
+                url: 'recommend',
+                his: 2,
+                client: "blog_cf_enhance",
+                tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+            });
+        }, 1000);
+    });    
+
+ </script>     
+
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/web-storage-cache.min.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/replace.min.js"></script>
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/kisimple" target="_blank">
+    <img src="http://avatar.csdn.net/9/C/F/1_kisimple.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/kisimple" class="user_name" target="_blank">kisimple</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=kisimple','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="2" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>75487次</span></li>
+    <li>积分：<span>1392</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog4.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：1392 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>65篇</span></li>
+    <li>转载：<span>1篇</span></li>
+    <li>译文：<span>6篇</span></li>
+    <li>评论：<span>15条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/kisimple/article/category/2523467" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JavaVM</a><span>(25)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2523465" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java语言</a><span>(30)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444245" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">编程语言</a><span>(18)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2452217" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">并发编程</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444243" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2451799" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机网络</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2457183" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机硬件</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467787" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算理论</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2471973" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据结构</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2467709" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">算法</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6118903" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">数据库</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2444247" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2491967" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">开源软件</a><span>(24)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2507851" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">经典论文</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2794191" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$RTFSC</a><span>(27)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246592" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Hacking</a><span>(20)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6714912" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$Note</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/6246320" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档翻译</a><span>(6)</span>
+                </li>
+                 <li>
+                    <a href="/kisimple/article/category/2894847" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">$文档索引</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/kisimple/article/month/2017/02">2017年02月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/06">2016年06月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2016/05">2016年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2016/04">2016年04月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/12">2015年12月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/07">2015年07月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2015/06">2015年06月</a><span>(4)</span></li><li><a href="/kisimple/article/month/2015/05">2015年05月</a><span>(2)</span></li><li><a href="/kisimple/article/month/2015/04">2015年04月</a><span>(7)</span></li><li><a href="/kisimple/article/month/2015/03">2015年03月</a><span>(17)</span></li><li><a href="/kisimple/article/month/2015/02">2015年02月</a><span>(10)</span></li><li><a href="/kisimple/article/month/2015/01">2015年01月</a><span>(12)</span></li><li><a href="/kisimple/article/month/2014/12">2014年12月</a><span>(6)</span></li><li><a href="/kisimple/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="/kisimple/article/month/2014/08">2014年08月</a><span>(3)</span></li><li><a href="/kisimple/article/month/2014/07">2014年07月</a><span>(2)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/kisimple/article/details/42747197" title="Kafka#4：存储设计">Kafka#4：存储设计</a><span>(4613)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42396153" title="Kafka#2：消息队列">Kafka#2：消息队列</a><span>(3735)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44019989" title="Spring Bean注册方式小结">Spring Bean注册方式小结</a><span>(2304)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/42747097" title="Kafka#3：分布式设计">Kafka#3：分布式设计</a><span>(2167)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43773899" title="Java之道系列：BigDecimal如何解决浮点数精度问题">Java之道系列：BigDecimal如何解决浮点数精度问题</a><span>(2119)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44116519" title="ZooKeeper#2：分布式存储">ZooKeeper#2：分布式存储</a><span>(1763)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43355209" title="JPDA#1：使用JDI写一个调试器">JPDA#1：使用JDI写一个调试器</a><span>(1637)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44632443" title="HotSpotVM 对象机制实现浅析#1">HotSpotVM 对象机制实现浅析#1</a><span>(1569)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/43709505" title="Java之道系列：Annotation实现浅析">Java之道系列：Annotation实现浅析</a><span>(1474)</span>
+</li>
+<li>
+<a href="/kisimple/article/details/44109597" title="Java官方文档索引">Java官方文档索引</a><span>(1439)</span>
+</li>
+</ul>
+</div>
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/kisimple/article/details/42747197#comments">Kafka#4：存储设计</a>
+    <p style="margin:0px;"><a href="/hisweetgirl" class="user_name">hisweetgirl</a>:
+数据量过大的话 index 文件来不及建立，会抛java.io.FileNotFoundExcept...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/42127799#comments">Diamond#2：源码</a>
+    <p style="margin:0px;"><a href="/zhupanlinch" class="user_name">zhupanlinch</a>:
+请问获取源代码的SVN账号和密码是什么啊？我想获取diamond的源代码！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44632443#comments">HotSpotVM 对象机制实现浅析#1</a>
+    <p style="margin:0px;"><a href="/u011039332" class="user_name">u011039332</a>:
+学习了虽然OOP, Klass大部分的数据结构都不太熟悉, 但是至少学习了SA的使用
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/45182773#comments">OSGi#1：Equinox 初探</a>
+    <p style="margin:0px;"><a href="/xo9ab" class="user_name">xo9ab</a>:
+OSGi学习，不得不读的经典开源开发平台JXADF，官网 http://osgia.com 有惊喜。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/38706729#comments">我所理解的SkipList#1：随机算法</a>
+    <p style="margin:0px;"><a href="/Novoland_L" class="user_name">Novoland_L</a>:
+写的很不错，good~！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43355209#comments">JPDA#1：使用JDI写一个调试器</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@qiubailv:hahaha
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/kisimple" class="user_name">kisimple</a>:
+@chenfanglincfl:官方文档跟源码吧，一手资料。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44116325#comments">ZooKeeper#1：数据文件</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+目前也学习研究 lz有没有推荐的资料
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/44109597#comments">Java官方文档索引</a>
+    <p style="margin:0px;"><a href="/chenfanglincfl" class="user_name">chenfanglincfl</a>:
+惠民贴啊
+    </p>
+    </li>
+    <li>
+   
+         <a href="/kisimple/article/details/43192863#comments">HotSpotVM 构建与调试小结</a>
+    <p style="margin:0px;"><a href="/lvzq2006" class="user_name">lvzq2006</a>:
+哥我错了，NetBeans8.0.2确实不行，换成NetBeans7.0.1恩，OK了
+    </p>
+    </li>
+</ul>
+</div>
+
+
+<div id="custom_column_36560875" class="panel">
+<ul class="panel_head"><span>友情链接</span></ul>
+<ul class="panel_body">
+
+<a href="http://blog.csdn.net/jasonblog" target="_blank">JasonLee的专栏</a>
+
+</ul>
+</div>    </div>
+    <div class="clear">
+    </div>
+
+
+                   <!-- 广告位开始 -->                    <!-- 广告位结束 -->
+                   <div class="J_adv" data-view="true" data-mod="ad_popu_190" data-mtp="63" data-order="40" data-con="ad_content_1260" style="width: 200px; height: 200px;">
+                         <div id="nav_show_top_stop" style="width: 200px;height: 200px;z-index:1000"><div id="cpro_u2734128"></div></div>
+                   </div>
+<script>
+
+    
+    setTimeout(function () {
+        var naviga_offsetTop = 0;
+        function naviga_stay_top() { var scrollTop = jQuery(document).scrollTop(); if (scrollTop > naviga_offsetTop) { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": "0px" }); } else { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": naviga_offsetTop - scrollTop + "px" }); } }
+        function onload_function() { naviga_offsetTop = jQuery("#nav_show_top_stop").position().top; jQuery(window).bind("scroll", naviga_stay_top); jQuery(window).bind("mousewheel", naviga_stay_top); jQuery(document).bind("scroll", naviga_stay_top); jQuery(document).bind("mousewheel", naviga_stay_top); } jQuery(document).ready(onload_function);
+               
+    }, 200);    
+</script>
+<script type="text/javascript">(window.cproArray = window.cproArray || []).push({ id: "u2734128" });  </script> 
+                    <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script> 
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+<script type="text/javascript" src="http://c.csdnimg.cn/rabbit/cnick/cnick.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/newblog.min.js"></script>
+
+
+<script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=4262639"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/JavaScript1.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+
+    <script type="text/javascript" src="http://c.csdnimg.cn/pubfooter/js/tracking.js" charset="utf-8"></script>  
+
+   
+    <script id="csdn-toolbar-id" btnId="header_notice_num" wrapId="note1" count="5" subCount="5" type="text/javascript" src="http://c.csdnimg.cn/public/common/toolbar/js/toolbar.js"></script>     <!--new top-->
+   
+    <link href="http://c.csdnimg.cn/comm_ask/css/ask_float_block.css" type="text/css" rel="stylesheet" />
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/wmd.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/showdown.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/libs/prettify.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://c.csdnimg.cn/comm_ask/js/apps/ask_float_block.js'></script>
+   
+
+   
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    <link rel="stylesheet" href="http://static.blog.csdn.net/css/blog_code.css" />
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/saveToCode.js"></script>
+      <script type="text/javascript" src="//csdnimg.cn/rabbit/tracking-ad/main.js?75eacd8"></script>
+
+     <link rel="stylesheet" href="http://static.blog.csdn.net/css/fa.css" />
+
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" />
+    </div>
+</body>
+</html>   
+ 
