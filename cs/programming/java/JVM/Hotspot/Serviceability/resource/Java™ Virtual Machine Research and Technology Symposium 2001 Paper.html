@@ -1,0 +1,865 @@
+
+<!-- saved from url=(0086)https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript" src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/d823139095"></script><script src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/nr-1026.min.js"></script><script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(e,n,t){function r(t){if(!n[t]){var o=n[t]={exports:{}};e[t][0].call(o.exports,function(n){var o=e[t][1][n];return r(o||n)},o,o.exports)}return n[t].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<t.length;o++)r(t[o]);return r}({1:[function(e,n,t){function r(){}function o(e,n,t){return function(){return i(e,[c.now()].concat(u(arguments)),n?null:this,t),n?void 0:this}}var i=e("handle"),a=e(2),u=e(3),f=e("ee").get("tracer"),c=e("loader"),s=NREUM;"undefined"==typeof window.newrelic&&(newrelic=s);var p=["setPageViewName","setCustomAttribute","setErrorHandler","finished","addToTrace","inlineHit","addRelease"],d="api-",l=d+"ixn-";a(p,function(e,n){s[n]=o(d+n,!0,"api")}),s.addPageAction=o(d+"addPageAction",!0),s.setCurrentRouteName=o(d+"routeName",!0),n.exports=newrelic,s.interaction=function(){return(new r).get()};var m=r.prototype={createTracer:function(e,n){var t={},r=this,o="function"==typeof n;return i(l+"tracer",[c.now(),e,t],r),function(){if(f.emit((o?"":"no-")+"fn-start",[c.now(),r,o],t),o)try{return n.apply(this,arguments)}finally{f.emit("fn-end",[c.now()],t)}}}};a("setName,setAttribute,save,ignore,onEnd,getContext,end,get".split(","),function(e,n){m[n]=o(l+n)}),newrelic.noticeError=function(e){"string"==typeof e&&(e=new Error(e)),i("err",[e,c.now()])}},{}],2:[function(e,n,t){function r(e,n){var t=[],r="",i=0;for(r in e)o.call(e,r)&&(t[i]=n(r,e[r]),i+=1);return t}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],3:[function(e,n,t){function r(e,n,t){n||(n=0),"undefined"==typeof t&&(t=e?e.length:0);for(var r=-1,o=t-n||0,i=Array(o<0?0:o);++r<o;)i[r]=e[n+r];return i}n.exports=r},{}],4:[function(e,n,t){n.exports={exists:"undefined"!=typeof window.performance&&window.performance.timing&&"undefined"!=typeof window.performance.timing.navigationStart}},{}],ee:[function(e,n,t){function r(){}function o(e){function n(e){return e&&e instanceof r?e:e?f(e,u,i):i()}function t(t,r,o,i){if(!d.aborted||i){e&&e(t,r,o);for(var a=n(o),u=m(t),f=u.length,c=0;c<f;c++)u[c].apply(a,r);var p=s[y[t]];return p&&p.push([b,t,r,a]),a}}function l(e,n){v[e]=m(e).concat(n)}function m(e){return v[e]||[]}function w(e){return p[e]=p[e]||o(t)}function g(e,n){c(e,function(e,t){n=n||"feature",y[t]=n,n in s||(s[n]=[])})}var v={},y={},b={on:l,emit:t,get:w,listeners:m,context:n,buffer:g,abort:a,aborted:!1};return b}function i(){return new r}function a(){(s.api||s.feature)&&(d.aborted=!0,s=d.backlog={})}var u="nr@context",f=e("gos"),c=e(2),s={},p={},d=n.exports=o();d.backlog=s},{}],gos:[function(e,n,t){function r(e,n,t){if(o.call(e,n))return e[n];var r=t();if(Object.defineProperty&&Object.keys)try{return Object.defineProperty(e,n,{value:r,writable:!0,enumerable:!1}),r}catch(i){}return e[n]=r,r}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],handle:[function(e,n,t){function r(e,n,t,r){o.buffer([e],r),o.emit(e,n,t)}var o=e("ee").get("handle");n.exports=r,r.ee=o},{}],id:[function(e,n,t){function r(e){var n=typeof e;return!e||"object"!==n&&"function"!==n?-1:e===window?0:a(e,i,function(){return o++})}var o=1,i="nr@id",a=e("gos");n.exports=r},{}],loader:[function(e,n,t){function r(){if(!x++){var e=h.info=NREUM.info,n=d.getElementsByTagName("script")[0];if(setTimeout(s.abort,3e4),!(e&&e.licenseKey&&e.applicationID&&n))return s.abort();c(y,function(n,t){e[n]||(e[n]=t)}),f("mark",["onload",a()+h.offset],null,"api");var t=d.createElement("script");t.src="https://"+e.agent,n.parentNode.insertBefore(t,n)}}function o(){"complete"===d.readyState&&i()}function i(){f("mark",["domContent",a()+h.offset],null,"api")}function a(){return E.exists&&performance.now?Math.round(performance.now()):(u=Math.max((new Date).getTime(),u))-h.offset}var u=(new Date).getTime(),f=e("handle"),c=e(2),s=e("ee"),p=window,d=p.document,l="addEventListener",m="attachEvent",w=p.XMLHttpRequest,g=w&&w.prototype;NREUM.o={ST:setTimeout,CT:clearTimeout,XHR:w,REQ:p.Request,EV:p.Event,PR:p.Promise,MO:p.MutationObserver};var v=""+location,y={beacon:"bam.nr-data.net",errorBeacon:"bam.nr-data.net",agent:"js-agent.newrelic.com/nr-1026.min.js"},b=w&&g&&g[l]&&!/CriOS/.test(navigator.userAgent),h=n.exports={offset:u,now:a,origin:v,features:{},xhrWrappable:b};e(1),d[l]?(d[l]("DOMContentLoaded",i,!1),p[l]("load",r,!1)):(d[m]("onreadystatechange",o),p[m]("onload",r)),f("mark",["firstbyte",u],null,"api");var x=0,E=e(4)},{}]},{},["loader"]);</script><title>Java™ Virtual Machine Research and Technology Symposium 2001 Paper</title>
+</head>
+
+<body bgcolor="#ffffff" text="#000000" link="#990000" alink="#666666" vlink="#666666" topmargin="0" leftmargin="0" rightmargin="0" marginheight="0"><a href="http://www.usenix.org/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/new_usenix.jpg" width="288" height="232" alt="Check out the new USENIX Web site." align="right"></a>
+
+<!-- IE understands topmargin, leftmargin, rightmargin, NS understands marginheight -->
+
+<!-- Banner -->
+<table bgcolor="#ffffff" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody><tr><td align="LEFT" valign="TOP"><table border="0" cellspacing="0" cellpadding="0" width="600"><tbody><tr><td>
+<table border="0" cellpadding="0" cellspacing="0" width="600">
+<!-- space at top -->
+<tbody><tr><td colspan="13"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="1" height="5" alt=""><br></td></tr>
+ <tr><!-- row 1 -->
+   <td colspan="13"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smalltop.gif" width="600" height="6" border="0" alt=""></td>
+  </tr>
+
+  <tr><!-- row 2 -->
+   <td rowspan="2"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallleft.gif" width="102" height="23" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallhome.gif" width="38" height="16" border="0" alt="Home"></a></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/about"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallabout.gif" width="90" height="16" border="0" alt="About USENIX"></a></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/events"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallevents.gif" width="42" height="16" border="0" alt="Events"></a></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/membership"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallmembership.gif" width="78" height="16" border="0" alt="Membership"></a></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallpublications.gif" width="77" height="16" border="0" alt="Publications"></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/students"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallstudents.gif" width="54" height="16" border="0" alt="Students"></a></td>
+   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallright16.gif" width="34" height="16" border="0" alt=""></td>
+  </tr>
+
+  <tr><!-- row 3 -->
+   <td colspan="12" bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="2" height="7" border="0" alt=""></td>
+  </tr>
+
+</tbody></table>
+</td></tr></tbody></table></td></tr></tbody></table>
+<!-- End of Banner -->
+
+
+<table width="100%" border="0" cellspacing="0" cellpadding="8"><tbody><tr><td>
+
+
+<font size="+1" color="#990000" face="verdana, arial, helvetica, sans-serif"><b>JVM '01 Paper</b></font>&nbsp;&nbsp;&nbsp;
+<font size="-1" face="verdana, arial, helvetica, sans-serif">[<a href="https://www.usenix.org/legacy/publications/library/proceedings/jvm01/tech.html">JVM '01  Tech Program Index</a>]</font>
+<p>
+
+<table>
+<tbody><tr><td><b>Pp. 117–126 of the <i>Proceedings</i></b></td><td align="bottom"><a href="https://www.usenix.org/legacy/publications/ordering/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/buy_now.gif" border="0"></a></td></tr>
+</tbody></table>
+<!-- START OF PAGE CONTENTS -->
+
+</p><p>
+</p><h1 align="CENTER">The HotSpot™ Serviceability Agent: <br> An out-of-process high level
+debugger for a Java™ virtual machine</h1>
+<p align="CENTER">Kenneth Russell<sup>1</sup> and Lars Bak<sup>2</sup><br>
+<i>Sun Microsystems<br>
+<a href="mailto:Kenneth.Russell@eng.sun.com">Kenneth.Russell@eng.sun.com</a>,
+<a href="mailto:Lars.Bak@eng.sun.com">Lars.Bak@eng.sun.com</a></i></p>
+<p>
+</p><p>
+<sup>1</sup>901 San Antonio Road, M/S UCUP02-302, Palo Alto, CA 94303. <br>
+<sup>2</sup>Computer Science Department, Aarhus University,
+Aabogade 34, DK-8200 Aarhus N, Denmark.
+
+</p><p>
+</p><h3 class="ABSTRACT">Abstract:</h3>
+<p class="ABSTRACT">The HotSpot™ Serviceability Agent (SA) is a set
+of APIs for the Java™ programming language which model the state
+of Sun Microsystems' Java HotSpot Virtual Machine.  Unlike most
+previous debugging systems for dynamic languages which assume a
+"cooperative" model in which the target process runs code to assist
+in the debugging process, the SA requires no code to be run in the
+target VM.  Instead, it uses primitives like symbol lookup and reading
+of process memory to implement its functionality.  The SA can
+transparently examine either live processes or core files, making it
+suitable for debugging both the VM itself and Java programs in
+production.  We describe the design and implementation of the SA,
+comparing it to other debugging systems for both statically compiled
+and dynamic languages, and illustrate future directions for this
+architecture.
+</p><p>
+</p><p>
+</p><p>
+</p><h1><a name="SECTION00010000000000000000">Introduction</a></h1>
+<p>
+The Java HotSpot Virtual Machine implementation (hereafter referred to
+as the HotSpot JVM) is Sun Microsystems' high-performance VM for the
+Java platform (an arbitrary Java virtual machine implementation is
+hereafter referred to as a JVM).  HotSpot's origins are in language
+research in Beta [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#madsen93">18</a>], Smalltalk [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#deutsch84">6</a>], and Self [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#holzle91">12</a>] [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#holzle94">13</a>].  The HotSpot JVM uses many advanced
+techniques to achieve high performance.  The system employs a
+mixed-mode assembly interpreter which shares the stack with both C
+code and Java programming language methods (Java methods) compiled to
+machine code.  Run-time profiling focuses compilation effort only on
+"hot" methods.  Dynamic deoptimization [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#holzle92">14</a>] allows a compiled method to revert
+back to the interpreted state if invariants under which the method was
+compiled are compromised by future class loads.  The ability to
+deoptimize allows the compiler to perform aggressive optimization and
+inlining.
+</p><p>
+How does one debug the product version of a highly-optimizing JVM which
+is written largely in C or C<b>++</b>?  Such a JVM
+</p><ul><li> tends to operate with generated machine code, and to merge the
+  C<b>++</b> and Java virtual machine stacks (Java stacks). Activations on
+  the stack corresponding to invocations of Java methods (Java frames)
+  show up in a C<b>++</b> debugger as raw program counters with no
+  corresponding symbol.</li><li> may have a highly-optimizing compiler. An activation on the
+  stack may correspond to more than one Java method invocation,
+  because of inlining.</li><li> may encode many of its run-time data structures to save space.</li><li> will not have available debug information for the C<b>++</b> data
+  structures describing portions of the run-time system such as the
+  layout of the heap.
+</li></ul>
+In short, when one examines the product version of such a JVM with a
+traditional C<b>++</b> debugger, one deals with raw bits. All of the
+high-level abstract data types are gone.
+<p>
+</p><p>
+<a name="figinspector"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-jbutton-inspector.jpg" width="496" height="502"></a><br>
+</p><dl><dd><strong>Figure 1:</strong>  An object inspector built with the SA's APIs. </dd></dl><br>
+<p>
+</p><p>
+The HotSpot Serviceability Agent is a set of APIs for the Java
+programming language which recover this high-level state from a
+product-mode HotSpot JVM or a core file.  Clients of the SA can use
+its APIs to write application-specific tools, debugging aids, and
+querying operations which operate directly on a target JVM and in a
+completely non-intrusive fashion; Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figinspector">1</a>
+illustrates an object inspector built on top of the SA's APIs.  Unlike
+most debuggers for dynamic languages, the SA requires no code to be
+run in the target JVM.  It is therefore robust in the face of JVM
+failures.  This property is what allows it to operate as a post-mortem
+JVM debugger.  The SA is also applicable to more situations than just
+debugging the JVM; for example, end users can use it to write heap
+profilers which operate on servers in production without taking them
+down.
+</p><p>
+The rest of the paper is organized as follows.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secrelated">2</a> compares the SA to other work in the field
+of debugging.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#seccontrib">3</a> describes its contributions.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secthreads">4</a> gives a concrete example of walking the JVM's
+thread list, and describes how the SA's APIs relate to the target JVM.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#sectypes">5</a> describes how the SA obtains type and offset
+information for C<b>++</b> data structures in the target JVM.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secaccess">6</a> details the low-level debugging primitives
+used by the SA.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secheap">7</a> explains the traversal of the remote JVM's
+heap, and gives an example of an object histogram.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secstacks">8</a> describes how the SA walks the remote JVM's
+Java stacks.
+Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secfuture">9</a> discusses future work.
+</p><p>
+</p><h1><a name="SECTION00020000000000000000">Related Work</a></h1>
+<p>
+<a name="secrelated">&nbsp;</a>
+</p><p>
+We partition related work into two categories: debuggers for
+statically compiled languages (e.g., C, C<b>++</b> Fortran, Modula-2) and
+"dynamic languages", which are typically characterized by the ability
+to load and/or compile code at run time and which typically have a
+substantial run-time system including a garbage collector.
+</p><p>
+The two standard UNIX debuggers, dbx [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#linton90">17</a>] and gdb
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#stallman99">25</a>], assume the model of an <em>uncooperative</em>
+debugging target.  In this model it is assumed that the target process
+may be dead, in which case only examination-only operations are
+allowed.  While both debuggers have a "call" facility which allows
+an arbitrary procedure to be executed in the target process if it is
+alive, a large percentage of the debugging tools are available for use
+on core files.  These debuggers are language-independent, but have
+only been developed in the realm of statically-compiled languages like
+C, C<b>++</b> Fortran, and Modula-2.
+</p><p>
+Higher-level debugging tools for statically compiled languages have
+been developed as well.  Sosic [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#sosic95">23</a>] describes a set of APIs
+which were used to implement debuggers in the Dynascope distributed
+system; these APIs map closely to much of the functionality provided
+in dbx and gdb.  The notion of modeling the contents of the remote
+process's heap is introduced with an example of copying a linked list
+from one process to another assuming that the two processes are
+written in the same language.  While language independence is claimed,
+no language other than C is described.  Gough, Ledermann and Elms
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#gough94">11</a>] describe a substantially different type of debugger
+which is targeted toward fully optimized machine code.  Their system
+works in a "forward" fashion, using a modified compiler to evaluate
+expressions in the context of optimized code, rather than attempting
+to annotate the generated code with debugging information.  This
+system also claims language independence, but was developed for
+statically-compiled languages like C, Pascal and Modula-2
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#elms97">7</a>].  Both of the systems described in Sosic and Gough et
+al. use an agent embedded in the target process to implement all of
+the functionality, thereby requiring that the target process be alive.
+</p><p>
+Debuggers for dynamic languages generally assume a <em>cooperative</em>
+debugging model; that is, the debugger cooperates with the execution
+environment (or virtual machine or "VM") for the language in order
+to allow debugging of programs written in the language.  The debugger
+may be implemented in-process as in Perl [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#perl00">1</a>], Python
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#rossum00">29</a>], and Scheme [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#scheme00">2</a>] or out-of-process using a
+wire protocol as in Spinellis' two-process Prolog debugger
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#spinellis89">24</a>] or as in the Java Platform Debugger Architecture
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#jpda00">19</a>].  Some debuggers for safe languages like Tolmach and
+Appel's Standard ML debugger [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#tolmach90">27</a>] and the Objective Caml
+debugger [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#leroy00">8</a>] take advantage of the safety of the target
+language to provide facilities not commonly found in debuggers for
+statically-compiled languages, such as the ability to step backward
+through the execution of the program.  Gill's post-mortem debugger for
+Haskell [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#gill00">10</a>] is in the same vein as the SA an
+examination-only system, but is post-mortem in the sense that the
+Haskell program has terminated abruptly, not the entire run-time
+system.  All of these systems assume that code can be run in the
+target VM.  Squeak [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#ingalls97">15</a>] was developed and debugged using
+itself; the debugging methodology used was to prototype and debug in
+Smalltalk and then translate to C for high performance.  Debugging a
+crashed Smalltalk VM is not discussed.  Lisp systems, like the Allegro
+Common Lisp environment [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#franz98">9</a>], often have the capability to
+dump an executable image.  However, it appears that it is not possible
+to debug such a dumped image without running code in it.
+</p><p>
+The Jalapeño project has developed a JVM written in the Java
+programming language which is based around compiling Java bytecode to
+machine code [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#alpern99">5</a>].  Because nearly all of the code being
+executed is generated by the system itself, a traditional (C or
+C<b>++</b>\) debugger is of no help in examining data structures.  The
+debugging system for Jalapeño [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#ngo00">21</a>] uses the same
+mechanisms used by dbx, gdb, and the SA to attach to a target JVM and
+read its process memory without running code in the target.  A unique
+aspect of the Jalapeño debugger is that since both the debugger
+and the JVM being debugged are written in Java, a modified Java
+interpreter can be used to execute the debugger's code which allows
+the JVM's data structures to debug themselves.  This aspect of the
+Jalapeño debugger goes beyond what the SA can currently do, since
+the HotSpot JVM is implemented in C<b>++</b>.
+</p><p>
+</p><h1><a name="SECTION00030000000000000000">Contributions</a></h1>
+<p>
+<a name="seccontrib">&nbsp;</a>
+</p><p>
+Compared to previous work, the HotSpot Serviceability Agent is closest
+in design to the Jalapeño debugger [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#ngo00">21</a>], which is also
+constructed around examination-only, out-of-process operations.  In
+addition, the Jalapeño system, by taking advantage of the fact
+that the debugger and target JVM are implemented in the same language,
+achieves a level of elegance not currently possible with the SA.
+</p><p>
+The HotSpot Serviceability Agent was designed to be able to diagnose
+JVM failures.  This requirement informed several design decisions,
+including that no code is run in the target process.  The SA is
+currently an examination-only system, meaning that it derives all of
+its information using low-level primitives like symbol lookup and
+reading memory from a remote process.  This allows it to work both by
+attaching to a running process as well as reading a core file.  It can
+also run its code in an arbitrary JVM.
+</p><p>
+Compared to the Jalapeño work, this paper contributes a deeper
+discussion of debugging in the face of JVM failures, especially
+regarding heap and stack traversal.  It describes a new architecture
+for interacting with remote Java objects which is similarly applicable
+to a run-time system.  It discusses cross-language issues which arise
+when the target JVM is not implemented in Java.  Finally, it analyzes
+the modeling process used to describe JVM data structures and discusses
+possible alternative implementations.
+</p><p>
+Because of the architectural similarities between the SA and the
+Jalapeño debugger, throughout this paper we explicitly point out
+some of the differences between the two systems.  Chief among these is
+that the SA has been used to successfully diagnose difficult bugs in
+the production HotSpot JVM, whereas Jalapeño is a research system.
+</p><p>
+</p><h1><a name="SECTION00040000000000000000">Example: Walking the Thread List</a></h1>
+<p>
+<a name="secthreads">&nbsp;</a>
+</p><p>
+The HotSpot JVM maintains information indicating what kind of code
+each Java thread is executing: JVM-internal code, "native" code
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#liang99">16</a>], or Java code.  Consider the simple example of
+traversing the target JVM's thread list and determining this
+information.
+</p><p>
+</p><p><a name="figthreads"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/thread-list.jpg" width="698" height="775"></a><br>
+</p><dl><dd><strong>Figure 2:</strong>  Illustration of the mirroring of the JVM's data structures
+  in the SA.  (A) shows a subset of the JVM's JavaThread code,
+  including the state of the thread (in JVM code, in native code, or
+  in Java code) and the structure of the thread list. (B) illustrates
+  the memory layout of this data structure in the JVM's address space;
+  starting with the global thread list, JavaThread objects are linked
+  together. (C) shows the SA code which accesses this data
+  structure. Access to the start of the list is not shown. </dd></dl><br>
+<p>
+</p><p>
+Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a> provides a diagram of the interaction between
+the SA and the target JVM.  The JVM uses the C<b>++</b> data structure in
+<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a>A to describe the thread list.  A static pointer
+in class <tt>Threads</tt> points to the head of the list.  The memory
+layout of the resulting objects in the target JVM is shown in
+<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a>B.  Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a>C illustrates the
+analogous code from the SA.  The SA does not actually use hard-coded
+offsets, as is described and illustrated later.
+</p><p>
+The APIs in the SA mirror the C<b>++</b> structures.  When an object created
+by the SA's code models an object in the target JVM, it fetches data
+from the target using the <tt>Address</tt> abstraction, which contains
+the illustrated methods as well as those which fetch strongly-typed,
+Java-sized primitive data like <tt>byte getJByteAt(long offset)</tt> and
+<tt>short getJShortAt(long offset)</tt>.
+</p><p>
+</p><h1><a name="SECTION00050000000000000000">Describing C<b>++</b> Types</a></h1>
+<p>
+<a name="sectypes">&nbsp;</a>
+</p><p>
+In order to avoid hardcoded offsets in the SA's code (as used in
+Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a>), it is necessary to model the types and
+structures of C<b>++</b> objects in the target JVM, so that fields can be
+fetched by name.  There are several ways that this structural
+information can be obtained, the most widely used and automatic being
+to have the C<b>++</b> compiler generate debugging information such as <em>
+stabs</em> [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#linton90">17</a>] during the build.  These annotations are stored
+in the object file and resulting linked shared object or executable
+and can be parsed by the C<b>++</b> debugger on the same platform.
+</p><p>
+The HotSpot JVM contains some classes which have fields defined to be
+the same sizes as some of the Java primitive types; for example, the C
+type <tt>jshort</tt>, defined by the JNI specification [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#liang99">16</a>], is
+identical in size and signedness to the Java type <tt>short</tt>.  In
+order to reduce the possibility of accidental errors in the SA's code,
+it was necessary to understand which fields in C<b>++</b> types were actually
+"Java fields" and expose their contents as the correct Java
+primitive types in the SA.
+</p><p>
+The nature of the process by which stabs and other debug information
+are generated typically loses such type information; for example, a
+<tt>jshort</tt> may be typedefed to a C <tt>short int</tt> or similar, and
+the debug information for a data structure containing a field of that
+type will identify the given field as a <tt>short int</tt>, not a <tt>
+jshort</tt>.  This information loss was deemed unacceptable in the type
+modeling process for the SA.
+</p><p>
+</p><p><a name="figtypes"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/type-database.jpg" width="721" height="852"></a><br>
+</p><dl><dd><strong>Figure 3:</strong>  Modeling of C<b>++</b> types in the SA. (A) shows the
+structure of one of the JVM's three type tables and the global symbols
+used to access and describe it. (B) highlights the salient aspects of
+the TypeDataBase and Type interfaces. (C) shows a portion of the
+actual SA code; compare to the hardcoded offsets in Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figthreads">2</a>. </dd></dl><br>
+<p>
+</p><p>
+For this reason, the structural information provided by the target JVM
+to the SA is presented in the form of three tables which are generated
+by C<b>++</b> preprocessor macros and compiled into the target JVM.  We
+illustrate only the first of these tables in Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figtypes">3</a>A.
+This table contains name, type, and offset or address information for
+nonstatic and static fields, respectively.  The second table models
+the C<b>++</b> inheritance hierarchy, and the third provides named integer
+constants needed by the SA to properly traverse data structures.  The
+SA uses a general symbol lookup mechanism to locate these tables and
+parses them upon attaching to the target JVM or core file, effectively
+downloading the information it needs to analyze the remote JVM.
+</p><p>
+This approach has two additional advantages over using the compiler's
+raw debug information: first, since the symbols being referenced in
+the SA are explicitly exported by the JVM, changes to the JVM code
+which are incompatible with the SA's code are often encountered at
+build time as a failure during compilation of the side tables.
+Second, it reduces porting time by eliminating the need to understand
+the platform-specific debugging information generated by the C<b>++</b>\
+compiler.
+</p><p>
+The structural information for C<b>++</b> types is stored in a <tt>
+TypeDataBase</tt> (Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figtypes">3</a>B), which supports looking up a
+<tt>Type</tt> by name.  From the <tt>Type</tt>, <tt>Field</tt>s can be fetched
+by name.  The <tt>Field</tt> mechanism provides type checking between the
+SA's code and the target JVM, in addition to ensuring that field
+offsets are always kept synchronized as in Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figtypes">3</a>C.
+</p><p>
+Because the SA models C<b>++</b> types as first-class Java objects, the
+relatively simple current implementation of the type system can be
+straightforwardly extended in the future.
+</p><p>
+</p><h1><a name="SECTION00060000000000000000">Access to the Remote Process</a></h1>
+<p>
+<a name="secaccess">&nbsp;</a>
+</p><p>
+</p><p><a name="figconn"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/connection.jpg" width="625" height="168"></a><br>
+</p><dl><dd><strong>Figure 4:</strong>  Block diagram of connections between the SA and the target
+HotSpot JVM on Solaris. </dd></dl><br>
+<p>
+</p><p>
+The SA is built on top of a few very simple debugging primitives,
+including
+</p><ul><li> attach to remote process or core file</li><li> lookup symbol in remote process</li><li> read remote process memory
+</li></ul>
+The Solaris™ Operating Environment (hereafter Solaris)
+version of the SA uses the native debugger, dbx, to obtain this
+functionality, encapsulating it in a small interface called <tt>
+Debugger</tt>.
+<p>
+When the SA is launched, it uses <tt>java.lang.Runtime.exec()</tt>
+to launch a subordinate dbx process.  It sends commands to dbx to load
+and execute a small piece of self-contained C<b>++</b> code, called an <em>
+import module</em> (Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figconn">4</a>), and either to attach to the
+target HotSpot JVM (causing it to be suspended, as with any program
+being debugged) or to load a core file.  The import module
+communicates with dbx via a small set of internal APIs and with the SA
+using a custom text-based protocol over a socket, and provides the SA
+with the above debugging primitives.  The SA itself is written
+entirely in Java.
+</p><p>
+The only significant additional mechanism that has been added to the
+SA's <tt>Debugger</tt> interface as the system has evolved is the ability
+to query the CPU register set for a given thread.  The need for this
+is described in Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secstacks">8</a>.
+</p><p>
+Compared to the Jalapeño debugger, the SA explicitly models the
+interaction with the remote address space.  This was a requirement
+since the target JVM was not implemented in Java and, therefore, JVM
+data structures could not be directly repurposed (and still write the
+SA in Java).  Explicitly describing the interaction with the remote
+address space conveys two additional advantages: first, it describes
+failures using the Java language (for example, by throwing an <tt>
+UnmappedAddressException</tt>), and thereby allows the debugging system to
+become more robust where necessary: see Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secheap">7</a>.
+Second, it opens up the possibility for language-independent debuggers
+written in Java; for example, the SA's modeling of C<b>++</b> types is the
+first small step toward writing a C<b>++</b> debugger.  This is discussed
+further in Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secfuture">9</a>.
+</p><p>
+</p><h1><a name="SECTION00070000000000000000">Traversing the Heap</a></h1>
+<p>
+<a name="secheap">&nbsp;</a>
+</p><p>
+The SA exposes HotSpot's generational [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#ungar84">28</a>] garbage
+collection framework in an abstraction called the <tt>ObjectHeap</tt>.
+The most significant operation provided by this abstraction is the
+ability to uniformly visit all fields in all objects in the heap.
+These objects include both Java objects as well as JVM-internal
+reflective objects like methods and classes.  For this reason objects
+are termed <tt>Oop</tt>s, a term borrowed from the Smalltalk community.
+</p><p>
+</p><p><a name="figoopvisitor">
+</a></p><pre><a name="figoopvisitor">// An OopVisitor can be used to inspect
+// all fields within an object.
+// Fields include vm fields, java
+// fields, indexable fields.
+
+public interface OopVisitor {
+  // Called before visiting an object
+  public void prologue();
+
+  // Called after visiting an object
+  public void epilogue();
+
+  public void setObj(Oop obj);
+
+  // Returns the object being visited
+  public Oop getObj();
+
+  // Callback methods for each field type in an object
+  public void doOop(OopField field);
+  public void doByte(ByteField field);
+  public void doChar(CharField field);
+  public void doBoolean(BooleanField field);
+  public void doShort(ShortField field);
+  public void doInt(IntField field);
+  public void doLong(LongField field);
+  public void doFloat(FloatField field);
+  public void doDouble(DoubleField field);
+  public void doCInt(CIntField field);
+}
+</a></pre><a name="figoopvisitor">
+</a>
+<dl><dd><strong>Figure 5:</strong> The OopVisitor interface, which provides uniform iteration over all objects in the heap.</dd></dl><br>
+<p>
+</p><p>
+</p><p><a name="fighisto"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-object-histogram.jpg" width="517" height="341"></a><br>
+</p><dl><dd><strong>Figure 6:</strong>  Histogram of objects in the heap. </dd></dl><br>
+<p>
+</p><p>
+Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figoopvisitor">5</a> illustrates the iteration mechanism
+provided to clients.  Implementing debugging and profiling tools as
+shown in Figures&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figinspector">1</a> and&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#fighisto">6</a> requires very
+little additional code.
+</p><p>
+The iteration mechanism can be made robust in the face of JVM failures.
+Consider the situation where a bad pointer has been stored in an
+object field of a Java object.  Constructing an <tt>Oop</tt> for the
+value stored in that field will likely result in an <tt>
+UnmappedAddressException</tt> or <tt>UnalignedAddressException</tt>.  Client
+code, for example in an object inspector, can explicitly catch these
+exceptions and raise a red flag in the user interface if one arises.
+It is not clear from the description of the Jalapeño debugger how
+similar functionality is provided, since it seems that such exceptions
+are not modeled explicitly in the Java language, but instead handled
+somehow by the underlying remote-aware interpreter.
+</p><p>
+</p><h1><a name="SECTION00080000000000000000">Traversing the Stacks</a></h1>
+<p>
+<a name="secstacks">&nbsp;</a>
+</p><p>
+</p><p><a name="figstack"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-stack-trace.jpg" width="1169" height="715"></a><br>
+</p><dl><dd><strong>Figure 7:</strong>  Stack memory annotated with Java frames and live objects. </dd></dl><br>
+<p>
+</p><p>
+A debugger is hardly useful if it does not provide detailed
+information about where the program has failed.  In the context of
+debugging a static program, for example from a core file, this means
+providing a stack backtrace of all threads. Figure&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#figstack">7</a>
+shows the trace for one thread.
+</p><p>
+The HotSpot JVM necessarily has internal abstractions for describing
+and walking the stack; it performs type-precise garbage collection
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#agesen98">4</a>], and must therefore be able to walk the stacks of all
+Java threads at GC time, precisely locating all pointers to live Java
+objects and updating those pointers if the object is moved during GC.
+</p><p>
+The HotSpot JVM uses a safepointing mechanism [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#agesen98gc">3</a>] to halt
+execution of interpreted or compiled Java code only when the locations
+of all objects are known precisely.  (Recent work has described how to
+eliminate the need for safepoints for the purposes of garbage
+collection [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#stichnoth99">26</a>], but HotSpot also uses safepoints for
+other system-wide operations such as deoptimization.)  Metadata
+generated by HotSpot's compilers describes the state of compiled code
+in great detail at safepoints, including any inlining the compiler may
+have performed.
+</p><p>
+The code in HotSpot's run-time system was designed to operate at
+safepoints.  In a debugging scenario, however, the JVM will in general
+not be at a safepoint; it may be suspended, or may have crashed, at an
+arbitrary point in its execution.
+</p><p>
+The SA's stackwalking code was ported from the JVM and modified over
+time to handle problems which arise when the JVM is not at a safepoint:
+</p><ul><li> the JVM may not have metadata for a program counter in compiled
+Java code. In this case the metadata associated with the closest
+possible PC is used, unless there is no such information (as in a leaf
+method), in which case the iteration code assumes that there is, for
+example, no inlining.</li><li> an interpreter frame may not have been set up yet, yielding an
+incorrect bytecode index. In this case the iteration code skips the
+topmost frame on the stack.</li><li> a thread executing generated machine code may have been
+interrupted by a signal.</li><li> the topmost Java frame may not be available to the run-time
+system at all.
+</li></ul>
+<p>
+The latter problem is the most significant.  When the JVM reaches a
+safepoint, each thread currently executing Java code enters the
+run-time system, storing its last known Java stack pointer into
+thread-local storage in preparation for stack traversal.  The JVM's
+run-time code traverses only Java frames, skipping around sequences of
+C frames.  In a debugging scenario the entire topmost sequence of Java
+frames for a given thread will be unreachable with the JVM's built-in
+stackwalking code if the thread was suspended (or crashed) while
+executing either interpreted or compiled Java code.
+</p><p>
+The SA solves this problem by using the <tt>Debugger</tt> interface to
+fetch the last known stack pointer for a given thread
+(Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#secaccess">6</a>).  Given that stack pointer, it must be able
+to walk backward to find the first Java frame on the stack, proceeding
+as usual from that point on.  We have found that the JVM's run-time
+code is basically adequate to handle this technique on the SPARC
+architecture, but expect that in a forthcoming port to the x86 we will
+have to implement a more general stackwalking mechanism to handle
+cases where the frame pointer has been eliminated, as described by
+Linton [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#linton90">17</a>].
+</p><p>
+A full description of the technique for recognizing and traversing
+signal handler frames on the stack is beyond the scope of this paper.
+We briefly note that we have implemented a not-quite-satisfactory
+mechanism on the SPARC architecture as an extension to the SA's port
+of the JVM's run-time code.
+</p><p>
+Our experience has been that implementing stackwalking in the context
+of a debugging system has been non-trivial.  The Jalapeño debugger
+rightly emphasizes its reuse of JVM code in examining the remote JVM's
+data structures.  We have found, however, that in order to handle and
+diagnose JVM failures, significant divergence from the JVM's code is
+required in the area of stackwalking.
+</p><p>
+</p><h1><a name="SECTION00090000000000000000">Discussion and Future Work</a></h1>
+<p>
+<a name="secfuture">&nbsp;</a>
+</p><p>
+The Serviceability Agent is similar in architecture to the
+Jalapeño debugger.  The most interesting aspect of the latter is
+that the same code can both implement and debug the JVM's run-time
+system.  A valid criticism of the SA is that it requires duplication
+of JVM code, since the SA and JVM are implemented in different
+languages (and necessarily with different underlying architectures).
+We have found a few unexpected instances of version skew which
+silently broke the SA.  For the most part, however, the table-based
+symbol export mechanism described in Section&nbsp;<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#sectypes">5</a> provides
+early warning when the SA will break.  Roughly 13,000 lines of the
+SA's 35,000 lines of code must track the VM with varying degrees of
+closeness.
+</p><p>
+Compared to other previous work, the SA appears to be the first system
+which has the ability to debug in a high-level manner data structures
+from both static languages like C<b>++</b> and dynamic languages like Java.
+Other dynamic languages could be targeted by the SA by using its
+debugging primitives to model the run-time system of the target VM, as
+has been done for HotSpot.  This is currently a labor-intensive
+process but has the advantage of providing a true post-mortem debugger.
+</p><p>
+The SA operates either on a JVM that has been suspended by
+platform-specific debugging mechanisms or on a core file.  Solaris
+contains a program called <tt>gcore</tt> which takes a core file snapshot
+of a running process without terminating that process; it is
+frequently used in conjunction with dbx to examine the state of
+production systems written in C or C<b>++</b> rather than attaching a
+debugger directly [<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#soleimanipour00">22</a>].  The SA allows gcore to be
+used for Java programs as well.  The speed of the SA's access to the
+target JVM's heap is substantially slower than that enabled by the
+current standard API, the Java Virtual Machine Profiling Interface
+[<a href="https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html#jvmpi00">20</a>].  However, JVMPI imposes a significant performance
+overhead to the normal running of the application.  Used in
+conjunction with gcore, the SA only has the impact of suspending the
+process while taking the snapshot, which takes a few seconds for
+programs of normal heap size.
+</p><p>
+An early design decision was to use only examination-only debugging
+primitives, to make the goal of the system clear and to explore what
+was possible to build using them.  If the target JVM is alive (not a
+core file) and running properly, being able to write to the process
+memory would facilitate more rich interactions when debugging.  Some
+of the possible features, like setting fields, would be
+straightforward to implement and would not require JVM code changes,
+while others, like setting breakpoints, would likely require a
+substantial amount of supporting code in the JVM.  An advantage of the
+SA's architecture is that it could degrade gracefully back to an
+examination-only system if the JVM crashed.
+</p><p>
+In the future, we plan to complete support for Solaris/x86, Linux, and
+Win32.  We will continue to expand the SA's knowledge of JVM data
+structures.  We plan to write more tools using the SA's APIs, and to
+explore the addition of debugging primitives which affect the state of
+the target JVM.  We will investigate if it would make sense from a
+performance or footprint standpoint to rewrite portions of the JVM's
+run-time system in Java.
+</p><p>
+</p><h1><a name="SECTION000100000000000000000">Acknowledgments</a></h1>
+<p>
+We thank Ivan Soleimanipour and Siva Annamalai for their help with the
+system's use of dbx; our managers, Jerry Driscoll and Tricia Jordan,
+for their support of the project, especially in its early stages; the
+entire HotSpot group for encouragement; and Robert Griesemer in
+particular for reviewing early drafts of this paper. We also thank the
+anonymous reviewers for their helpful comments.
+</p><p>
+</p><p><a name="SECTIONREF"></a></p><h2><a name="SECTIONREF">References</a></h2><p>
+</p><dl compact="">
+<dt><a name="perl00"><strong>1</strong></a></dt><dd>
+CPAN: comprehensive perl archive network, 2000.
+<br> <tt><a href="http://www.cpan.org/">http://www.cpan.org/</a></tt>.
+<p>
+</p></dd><dt><a name="scheme00"><strong>2</strong></a></dt><dd>
+The Scheme programming language, 2000.
+<br> <tt><a href="http://www.swiss.ai.mit.edu/projects/scheme/index.html">http://www.swiss.ai.mit.edu/projects/scheme/index.html</a></tt>.
+<p>
+</p></dd><dt><a name="agesen98gc"><strong>3</strong></a></dt><dd>
+O.&nbsp;Agesen.
+GC points in a threaded environment.
+Technical Report SMLI-TR-98-70, Sun Microsystems Laboratories,
+  December 1998.
+<p>
+</p></dd><dt><a name="agesen98"><strong>4</strong></a></dt><dd>
+O.&nbsp;Agesen, D.&nbsp;Detlefs, and J.&nbsp;E.&nbsp;B. Moss.
+Garbage collection and local variable type-precision and liveness in
+  Java Virtual Machines.
+<em>ACM SIGPLAN Notices</em>, 33(5):269-279, 1998.
+<p>
+</p></dd><dt><a name="alpern99"><strong>5</strong></a></dt><dd>
+B.&nbsp;Alpern, D.&nbsp;Attanasio, J.&nbsp;Barton, A.&nbsp;Cocchi, S.&nbsp;Hummel, D.&nbsp;Lieber, M.&nbsp;Mergen,
+  T.&nbsp;Ngo, J.&nbsp;Shepherd, and S.&nbsp;Smith.
+Implementing Jalapeño in Java.
+In <em>1999 ACM SIGPLAN Conference on Object-Oriented Programming
+  Systems, Languages, and Applications (OOPSLA'99)</em>, Denver, Colorado, November
+  1 1999.
+<tt>
+  <a href="http://www.research.ibm.com/jalapeno/publication.html#oopsla99_jvm">http://www.research.ibm.com/jalapeno/publication.html#oopsla99_jvm</a></tt>.
+<p>
+</p></dd><dt><a name="deutsch84"><strong>6</strong></a></dt><dd>
+L.&nbsp;P. Deutsch and A.&nbsp;M. Schiffman.
+Efficient implementation of the Smalltalk-80 system.
+In <em>Conference record of the 11th ACM Symposium on Principles of
+  Programming Languages (POPL)</em>, pages 297-302, 1984.
+<p>
+</p></dd><dt><a name="elms97"><strong>7</strong></a></dt><dd>
+K.&nbsp;Elms.
+Debugging optimised code using function interpretation.
+In Mariam Kamkar, editor, <em>AADEBUG '97, Proceedings of the Third
+  International Workshop on Automatic Debugging</em>, pages 27-36, Linköping,
+  Sweden, May 26-27 1997.
+<p>
+</p></dd><dt><a name="leroy00"><strong>8</strong></a></dt><dd>
+X.&nbsp;Leroy et&nbsp;al.
+The Objective Caml system release 3.00, 2000.
+<br> <tt><a href="http://caml.inria.fr/ocaml/htmlman/">http://caml.inria.fr/ocaml/htmlman/</a></tt>.
+<p>
+</p></dd><dt><a name="franz98"><strong>9</strong></a></dt><dd>
+Franz Incorporated.
+Online documentation in html as part of the Allegro Common Lisp 5,
+  July 1998.
+<p>
+</p></dd><dt><a name="gill00"><strong>10</strong></a></dt><dd>
+A.&nbsp;Gill.
+Haskell object observation debugger, 2000.
+<br> <tt><a href="http://www.haskell.org/hood/">http://www.haskell.org/hood/</a></tt>.
+<p>
+</p></dd><dt><a name="gough94"><strong>11</strong></a></dt><dd>
+K.&nbsp;Gough, J.&nbsp;Ledermann, and K.&nbsp;Elms.
+Interpretive debugging of optimised code, 1994.
+<p>
+</p></dd><dt><a name="holzle91"><strong>12</strong></a></dt><dd>
+U.&nbsp;Hölzle, C.&nbsp;Chambers, and D.&nbsp;Ungar.
+Optimizing dynamically-typed object-oriented languages with
+  polymorphic inline caches.
+In P.&nbsp;America, editor, <em>Proceedings ECOOP'91</em>, pages 21-38,
+  Geneva, Switzerland, July 15-19 1991. Springer-Verlag.
+<p>
+</p></dd><dt><a name="holzle94"><strong>13</strong></a></dt><dd>
+U.&nbsp;Hölzle and D.&nbsp;Ungar.
+Optimizing dynamically-dispatched calls with run-time type feedback.
+In <em>PLDI `94 Conference Proceedings</em>, pages 326-335, Orlando,
+  FL, June 1994.
+<p>
+</p></dd><dt><a name="holzle92"><strong>14</strong></a></dt><dd>
+U.&nbsp;Hözle, C.&nbsp;Chambers, and D.&nbsp;Ungar.
+Debugging optimised code with dynamic deoptimization.
+In <em>Proceedings of the SIGPLAN `92 Conference on Programming
+  Languages Design and Implementation, SIGPLAN Notices</em>, pages 32-43, San
+  Francisco, CA, June 1992. ACM Press.
+<p>
+</p></dd><dt><a name="ingalls97"><strong>15</strong></a></dt><dd>
+D.&nbsp;Ingalls, T.&nbsp;Kaehler, J.&nbsp;Maloney, S.&nbsp;Wallace, and A.&nbsp;Kay.
+Back to the future: The story of squeak, a practical smalltalk
+  written in itself.
+In <em>OOPSLA'97 Conference Proceedings</em>, pages 318-326, 1997.
+<p>
+</p></dd><dt><a name="liang99"><strong>16</strong></a></dt><dd>
+Sheng Liang.
+<em>The Java Native Interface</em>.
+Addison-Wesley, Reading, MA, 1999.
+<p>
+</p></dd><dt><a name="linton90"><strong>17</strong></a></dt><dd>
+M.&nbsp;A. Linton.
+The evolution of dbx.
+In <em>Proceedings of the 1990 Usenix Summer Conference, Anaheim,
+  CA</em>, 1990.
+<p>
+</p></dd><dt><a name="madsen93"><strong>18</strong></a></dt><dd>
+Ole&nbsp;Lehrmann Madsen, Birger Moller-Pedersen, and Kristen Nygaard.
+<em>Object-Oriented Programming in the BETA Programming Language</em>.
+Addison-Wesley, Reading, 1993.
+<p>
+</p></dd><dt><a name="jpda00"><strong>19</strong></a></dt><dd>
+Sun Microsystems.
+Java platform debugger architecture, 2000.
+<br> <tt><a href="http://java.sun.com/j2se/1.3/docs/guide/jpda/">http://java.sun.com/j2se/1.3/docs/guide/jpda/</a></tt>.
+<p>
+</p></dd><dt><a name="jvmpi00"><strong>20</strong></a></dt><dd>
+Sun Microsystems.
+Java virtual machine profiling interface, 2000.
+<br> <tt><a href="http://java.sun.com/j2se/1.3/docs/guide/jvmpi/">http://java.sun.com/j2se/1.3/docs/guide/jvmpi/</a></tt>.
+<p>
+</p></dd><dt><a name="ngo00"><strong>21</strong></a></dt><dd>
+T.&nbsp;Ngo and J.&nbsp;Barton.
+Debugging by remote reflection.
+In <em>Proceedings of Euro-Par 2000</em>, Munich, Germany, August
+  27-September 1 2000.
+<tt>
+  <a href="http://www.research.ibm.com/jalapeno/publication.html#remotereflect">http://www.research.ibm.com/jalapeno/publication.html#remotereflect</a></tt>.
+<p>
+</p></dd><dt><a name="soleimanipour00"><strong>22</strong></a></dt><dd>
+I.&nbsp;Soleimanipour and S.&nbsp;Annamalai.
+Personal communication, 2000.
+<p>
+</p></dd><dt><a name="sosic95"><strong>23</strong></a></dt><dd>
+R.&nbsp;Sosic.
+A procedural interface for program directing.
+<em>Software: Practice and Experience</em>, 25(7):767-787, 1995.
+<p>
+</p></dd><dt><a name="spinellis89"><strong>24</strong></a></dt><dd>
+D.&nbsp;Spinellis.
+The design and implementation of a two process Prolog debugger.
+Technical Report IR-LP-31-21, ECRC, September 1989.
+<p>
+</p></dd><dt><a name="stallman99"><strong>25</strong></a></dt><dd>
+R.&nbsp;Stallman and R.&nbsp;Pesch.
+Debugging with GDB: The GNU source-level debugger, 1999.
+<p>
+</p></dd><dt><a name="stichnoth99"><strong>26</strong></a></dt><dd>
+J.&nbsp;Stichnoth, G.&nbsp;Lueh, and M.&nbsp;Cierniak.
+Support for garbage collection at every instruction in a Java
+  compiler, 1999.
+<p>
+</p></dd><dt><a name="tolmach90"><strong>27</strong></a></dt><dd>
+A.&nbsp;P. Tolmach and A.&nbsp;W. Appel.
+Debugging Standard ML without reverse engineering.
+In <em>ACM Conference on Lisp and Functional Programming</em>, pages
+  1-12, 1995.
+<p>
+</p></dd><dt><a name="ungar84"><strong>28</strong></a></dt><dd>
+D.&nbsp;M. Ungar.
+Generation scavenging: A non-disruptive high-performance storage
+  reclamation algorithm.
+In Peter Henderson, editor, <em>Proceedings of the ACM
+  SIGSOFT/SIGPLAN Software Engineering Symposium on Practical Software
+  Development Environments</em>, pages 157-167, Pittsburgh, Pennsylvania, 1984.
+<p>
+</p></dd><dt><a name="rossum00"><strong>29</strong></a></dt><dd>
+G.&nbsp;van Rossum&nbsp;et al.
+Python library reference: The Python debugger, 2000.
+<br> <tt><a href="http://www.python.org/doc/current/lib/module-pdb.html">http://www.python.org/doc/current/lib/module-pdb.html</a></tt>.
+</dd></dl>
+<p>
+</p><h1><a name="SECTION000120000000000000000">  About this document ... </a></h1>
+<p>
+ <strong>The HotSpot Serviceability Agent: <br> An out-of-process high level
+debugger for a Java virtual machine</strong></p><p>
+This document was generated using the <a href="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><strong>LaTeX</strong>2<tt>HTML</tt></a> translator Version 96.1 (Feb 5, 1996) Copyright © 1993, 1994, 1995, 1996,  <a href="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</a>, Computer Based Learning Unit, University of Leeds. </p><p> The command line arguments were: <br>
+<strong>latex2html</strong> <tt>-split 0 main.tex</tt>. </p><p>The translation was initiated by Kenneth B Russell on Sun Feb 25 17:44:02 PST 2001
+<br> 
+</p><p></p><address>
+<i>Kenneth B Russell <br>
+Sun Feb 25 17:44:02 PST 2001</i>
+</address>
+<!-- END OF PAGE CONTENTS -->
+</td></tr>
+</tbody></table>
+<hr>
+<table border="0" width="100%" cellspacing="0" cellpadding="0" align="LEFT">
+<tbody><tr><td valign="TOP" width="40%">
+<address>
+<font size="2">This paper was originally published in the
+Proceedings of the Java<sup>tm</sup> Virtual Machine Research and Technology Symposium,  
+April 23-24, 2001, Monterey, California, USA.
+</font><br>
+<!-- EDIT THE DATE AND YOUR LOGIN NAME BELOW -->
+<font size="2">Last changed:  4 Jan. 2002 ml</font><br>
+</address>
+</td><td valign="TOP" align="RIGHT" width="60%">
+
+<!-- Upwards Navigation Table -->
+<table border="0" cellspacing="0" cellpadding="0">
+<tbody><tr><td>
+<a href="https://www.usenix.org/legacy/publications/library/proceedings/jvm01/tech.html"><font size="1">Technical Program</font></a><br>
+</td></tr>
+<tr><td>
+<a href="https://www.usenix.org/legacy/publications/library/proceedings/jvm01/"><font size="1">JVM  '01 Home</font></a><br>
+</td></tr>
+<tr><td>
+<a href="https://www.usenix.org/legacy/index.html"><font size="1">USENIX home</font></a><br>
+</td></tr></tbody></table>
+<!-- End of Upwards Navigation Table -->
+
+</td></tr></tbody></table>
+
+
+<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={"beacon":"bam.nr-data.net","licenseKey":"d823139095","applicationID":"509444","transactionName":"YVJVZksCXkEEVhIMWFgYdlFNCl9cSkAVAFlfT2hAXAdZQABWEhZoWFhDbV8MRVwB","queueTime":0,"applicationTime":103,"atts":"TRVWEAMYTU8=","errorBeacon":"bam.nr-data.net","agent":""}</script>
+
+
+
+</body></html>
