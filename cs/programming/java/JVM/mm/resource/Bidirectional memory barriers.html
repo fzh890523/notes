@@ -1,0 +1,180 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>
+Bidirectional memory barriers 
+</title>
+</head>
+<body>
+<h1 align="center">
+Bidirectional memory barriers <br>
+under existing Java semantics
+</h1>
+
+<h1 align="center"><font color="red"><blink>DO NOT USE!</blink></font></h1>
+
+<p>
+The technique described here is inefficient and will not work
+once the Java memory model is revised.  It is described here as a
+historical artifact. 
+
+</p><p> The rules for a synchronized block are that
+none of the actions inside the synchronized block can be performed
+before the lock is obtained or after it is released.
+However, actions before the synchronized block do not have
+to be completed before the lock is obtained. Similarly, actions after a 
+synchronized block can be performed before the lock is released. 
+
+</p><p>In essence, a synchronized block is like a roach motel: statements can move
+in, but they can't move out.
+
+
+
+</p><p>
+<table border="2">
+<tbody><tr><th colspan="2">Initially
+</th></tr><tr><td colspan="2">x = y = 0; a = new Object(); b = new Object();
+</td></tr><tr><th>Thread 1 </th><th>Thread 2 
+</th></tr><tr><td>
+<pre>synchronized(a) {
+  x = 1;
+  } 
+  y = 1;
+</pre>
+</td><td>
+<pre>synchronized(b) {
+  j = y;
+  }
+  i = x;
+</pre>
+</td></tr><tr><th colspan="2">Can result in i = 0 and j = 1
+</th></tr></tbody></table>
+
+</p><p>A compiler could legally transform the above code into:
+</p><p>
+<table border="2">
+<tbody><tr><th colspan="2">Initially
+</th></tr><tr><td colspan="2">x = y = 0; a = new Object(); b = new Object();
+</td></tr><tr><th>Thread 1 </th><th>Thread 2 
+</th></tr><tr><td>
+<pre>synchronized(a) {
+  y = 1;
+  x = 1;
+  } 
+</pre>
+</td><td>
+<pre>synchronized(b) {
+  i = x;
+  j = y;
+  }
+</pre>
+</td></tr><tr><th colspan="2">Can result in i = 0 and j = 1
+</th></tr></tbody></table>
+
+</p><p>However, if each thread contains two synchronized blocks,
+the under the current semantics, but not under the proposed
+semantics, all actions in the first block must be performed
+before any actions in the second block: 
+
+</p><p>
+<table border="2">
+<tbody><tr><th colspan="2"><font color="red">DO NOT USE</font>
+</th></tr><tr><th colspan="2">Initially
+</th></tr><tr><td colspan="2">x = y = 0; a = new Object(); b = new Object();
+</td></tr><tr><th>Thread 1 </th><th>Thread 2 
+</th></tr><tr><td>
+<pre>synchronized(a) {
+  x = 1;
+  }
+synchronized(a) {
+  y = 1;
+  }
+</pre>
+</td><td>
+<pre>synchronized(b) {
+  j = y;
+  }
+synchronized(b) {
+  i = x;
+  }
+</pre>
+</td></tr><tr><th colspan="2">Must not result in in i = 0 and j = 1
+</th></tr></tbody></table>
+
+
+
+
+</p><p> The proposed semantics for eliminating ''useless'' synchronization
+would allow the compiler to transform the above program to the following,
+eliminating the bidirectional memory barrier. In addition, under
+the proposed semantics, since the threads are locking separate objects,
+the locks have no effect on the visibility of the memory actions
+to the other thread.
+
+</p><p>
+<table border="2">
+<tbody><tr><th colspan="2">Initially
+</th></tr><tr><td colspan="2">x = y = 0; a = new Object(); b = new Object();
+</td></tr><tr><th>Thread 1 </th><th>Thread 2 
+</th></tr><tr><td>
+<pre>synchronized(a) {
+  y = 1;
+  x = 1;
+  }
+</pre>
+</td><td>
+<pre>synchronized(b) {
+  i = x;
+  j = y;
+  }
+</pre>
+</td></tr><tr><th colspan="2">Can result in in i = 0 and j = 1
+</th></tr></tbody></table>
+
+</p><h2>Bidirectional memory barriers can't be used to fix double-checked locking<br>
+
+<font color="red"><blink>DO NOT USE!</blink></font></h2>
+<p> The above discussion suggests the following technique might make double-checked locking work:
+</p><p>
+<table border="2"><tbody><tr><td>
+<pre>// (Still) Broken multithreaded version
+// "Double-Checked Locking" idiom
+// DO NOT USE
+class Foo {
+  private Helper helper = null;
+  public Helper getHelper() {
+    if (helper == null) {
+      Helper h;
+      synchronized(this) {
+        h = helper;
+        if (h == null)
+          h = new Helper();
+        } // force bidirectional memory barrier
+          // will not work under proposed semantics
+       synchronized(this) {
+         helper = h;
+	 }
+      }
+    return helper;
+    }
+  // other functions and members...
+  }
+// DO NOT USE
+</pre>
+</td></tr></tbody></table>
+
+</p><p>Even under the current semantics, this does not work.
+The reason is subtle, but has to do with the fact that a thread that
+sees a non-null value for the helper field might not see the correct values
+for the fields of the helper object. 
+</p><p> This is explained in more detail 
+in the <a href="http://www.cs.umd.edu/%7Epugh/java/memoryModel/DoubleCheckedLocking.html#readersNeedSync">Double-Checked Locking declaration</a>. As a another point to look at is 
+<a href="http://www.cs.umd.edu/%7Epugh/java/memoryModel/DoubleCheckedLocking.html#explicitMemoryBarriers">the C++ version
+with explicit memory barriers</a>; The C++ code has bidirectional memory
+barriers in two locations. To make the Java version work, you would need
+to use the technique described on this page to implement both
+memory barriers. Since that would mean that
+each invocation of getHelper enters at least two synchronized regions, it
+would be much slower than just synchronizing the getHelper method. 
+
+
+</p></body></html>

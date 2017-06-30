@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>
+Performance of techniques for correctly implementing lazy initialization
+</title>
+</head>
+<body>
+<h1>
+Performance of techniques for correctly implementing lazy initialization 
+</h1>
+<p>by <a href="http://www.cs.oswego.edu/~dl">Doug Lea</a>
+
+<p>[This note was originally sent as email by Doug Lea 
+on the Java Memory Model mailing list
+in response to questions
+about the performance of <a href="DoubleCheckedLocking.html#ThreadLocal">a technique implementing lazy initialization using
+ThreadLocals</a> -- <a href="/~pugh">Bill Pugh</a>]
+
+<p>
+ The main concern, that I should have mentioned before, is that
+ThreadLocal varies tremendously in speed across JVMs and JDK versions.
+On most 1.2.x JVMs, performance is so bad in this context that you'd
+never want to use it. (The main reason is that until 1.3 ThreadLocal
+internally used WeakHashMaps, which are needlessly heavy. The 1.4
+version will in turn be faster than 1.3.)
+
+<p>
+You can usually avoid this uncertainty though if you need to.
+
+<p>
+If you can create and use your own thread subclass, you can implement
+your own variants of ThreadLocals. (See Section 2.3.2.1 of the 2nd
+edition of my CPJ book). In fact, if you know in advance all of the
+singletons you'll use, you don't need a table, just fields in the
+thread subclass will do.  You can squeeze times even further if you
+can just pass in Thread refs rather than looking it up each time via
+Thread.currentThread. The attached file shows examples/hacks. I'm not
+sure I recommend any of this, but if you are going to go this route,
+you might as well make it both fast and correct.
+
+<p>
+Due to the nice folks at 
+<a href="http://www.testdrive.compaq.com">http://www.testdrive.compaq.com</a>, I did test
+out some of this on alphas. (Testdrive is a very nice service!  Anyone
+can register. It would be great if other MP vendors did this too.)
+
+<p>The fastest versions of Java I could find on MP alphas at testdrive
+were 1.2.2 VMs on a 2X500 running Tru64 and a 4X667 running linux. The
+4-CPU box failed some of Bill's "volatile" tests (at
+<a href="http://www.cs.umd.edu/~pugh/java/memoryModel/">http://www.cs.umd.edu/~pugh/java/memoryModel/</a>). I gather that these
+JVMs don't use enough barriers even for "old" volatile (which is
+itself insufficient to guarantee double check). 
+
+<p>
+The machines were NOT idle (load average was usually around one), but
+repeated tests gave about the same ratios, so these figures are
+probably in the right ballpark.
+
+<p>
+Here are results (the 3rd and 4th columns are 4-CPU sparc, and the last 2
+columns are results on basically the same tests, taken from last post)
+Table entries are ratios compared to "Eager" version of Singleton.
+
+<table>
+<tr><td>
+CPUs   <td> 4-CPU <td> 2-CPU <td> 4-CPU <td> 4-CPU <td> 2-CPU <td> 1-CPU
+<tr><td>
+chip   <td> alpha <td> alpha <td> sparc <td> sparc <td> x86 <td> sparc
+<tr><td>
+OS   <td> linux <td> Tru64 <td> sol 8 <td> sol8 <td> ? <td> Sol 98
+<tr><td>
+JDK <td>  1.2.2 <td> 1.2.2 <td> 1.3 <td> 1.2.2_07 <td> 1.3 <td> 1.3
+
+<tr><td>
+Eager <td>  1.00 <td> 1.00 <td> 1.00 <td> 1.00 <td> 1.00 <td> 1.00
+<tr><td>
+Volatile(DCL) <td> 1.09 <td> 1.01 <td> 1.22 <td> 1.34 <td> 1.31 <td> 1.18
+<tr><td>
+ThreadLocal <td> 300.80 <td> 17.84 <td> 6.32 <td> 240.74 <td> 6.50 <td> 5.01
+<tr><td>
+SimThreadLocal <td> 4.43 <td> 4.19 <td> 4.81 <td> 2.39 <td> ? <td>  ?
+<tr><td>
+Synch <td>  189.26 <td> 5.73 <td> 69.03 <td> 66.41 <td> 32.12 <td> 9.64
+<tr><td>
+Thread Field <td> 2.16 <td> 2.71 <td> 4.16 <td> 2.00 <td> ? <td>  ?
+<tr><td>
+Direct Field <td> 1.00 <td> 1.25 <td> 1.18 <td> 1.29 <td> ? <td>  ?
+</table>
+
+<p>Notes:
+<ul>
+<li>
+ The run on 4-CPU sparc under 1.2.2_07 demonstrates above 
+  remark that ThreadLocal was unusable in this context until 1.3.
+
+<li>
+ SimThreadLocal handcrafts something close to the 1.4 ThreadLocal
+  implementation, in a way that works on pre-1.4.
+
+<li>
+Again, I'm pretty sure the alpha JVMs didn't put in enough barriers
+  in Volatils/DCL code. This is not their fault. They weren't
+  required to. But these results are wrong (too fast) for a properly 
+  barriered version. In fact, on this set of runs, NONE of the
+  volatile results are likely to be exactly right (all too fast).
+
+<li> "Direct Field" differs from "Thread Field" by directly referencing
+  the singleton field off the thread object rather than going through
+  Thread.currentThread. This doesn't apply very often in practice,
+  but shows the best possible results you could ever get via this
+  kind of design.
+
+<li>
+
+As always, remember that this is a microbenchmark, that might
+  not have much relevance to practical use of singletons.
+
+</body>
+</html>

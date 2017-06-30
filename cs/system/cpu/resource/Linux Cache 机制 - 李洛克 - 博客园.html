@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><script async="" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script type="text/javascript" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/encoder.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux Cache 机制 - 李洛克 - 博客园</title>
+<link type="text/css" rel="stylesheet" href="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-ClearGertrude.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-ClearGertrude-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/liloke/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/liloke/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/liloke/wlwmanifest.xml">
+<script src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'liloke', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="header">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/liloke/">李洛克</a></h1>
+<p id="tagline"></p></div>
+<div id="main">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255737.html">Linux Cache 机制</a>
+		</h2>
+		<div class="postText"><div id="cnblogs_post_body"><p>在阅读文章前，您应该具备基本的存储器层次结构知识，至少要了解局部性原理。要详细了解cache基本原理，可以参考本书<a href="http://www.china-pub.com/18133" target="_blank">《深入理解计算机系统》</a>中存储器体系结构一章：</p> <p><strong><font size="3" face="Times New Roman"></font></strong><a href="http://images.cnblogs.com/cnblogs_com/liloke/201111/201111200431286448.jpg"><img title="zcover" style="border-top-width: 0px; display: block; border-left-width: 0px; float: none; border-bottom-width: 0px; margin-left: auto; margin-right: auto; border-right-width: 0px" alt="zcover" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/201111200431294365.jpg" width="162" border="0" height="204"></a>&nbsp;</p> <p>&nbsp;</p> <p>带着疑问来看文章，cache对于程序员是不可见的，它完全是由硬件控制的，为什么在linux内核中还有cache.h这个头文件，定义了一些关于cache的结构？</p> <p>&nbsp;</p> <p><font size="3"><strong>1. cache概述</strong></font></p> <p>cache，
+中译名高速缓冲存储器，其作用是为了更好的利用局部性原理，减少CPU访问主存的次数。简单地说，CPU正在访问的指令和数据，其可能会被以后多次访问
+到，或者是该指令和数据附近的内存区域，也可能会被多次访问。因此，第一次访问这一块区域时，将其复制到cache中，以后访问该区域的指令或者数据时，
+就不用再从主存中取出。</p> <p>&nbsp;</p> <p><font size="3"><strong>2. cache结构</strong></font></p> <p>假设内存容量为M，内存地址为m位：那么寻址范围为000…00~FFF…F(m位)</p> <p>倘若把内存地址分为以下三个区间：</p> <p align="center"><a href="http://images.cnblogs.com/cnblogs_com/liloke/201111/201111200431306217.png"><img title="截图01" style="border-top-width: 0px; display: block; border-left-width: 0px; float: none; border-bottom-width: 0px; margin-left: auto; margin-right: auto; border-right-width: 0px" alt="截图01" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/201111200431313054.png" width="406" border="0" height="138"></a>《深入理解计算机系统》p305 英文版 beta draft&nbsp; </p> <p>&nbsp;</p> <p>tag, set index, block offset三个区间有什么用呢？再来看看Cache的逻辑结构吧：</p> <p><a href="http://images.cnblogs.com/cnblogs_com/liloke/201111/201111200431331493.png"><img title="截图02" style="border-top-width: 0px; display: block; border-left-width: 0px; float: none; border-bottom-width: 0px; margin-left: auto; margin-right: auto; border-right-width: 0px" alt="截图02" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/201111200431344883.png" width="512" border="0" height="358"></a> </p> <p>将此图与上图做对比，可以得出各参数如下：</p> <p>B = 2^b</p> <p>S = 2^s</p> <p>现在来解释一下各个参数的意义：</p> <p>一
+个cache被分为S个组，每个组有E个cacheline，而一个cacheline中，有B个存储单元，现代处理器中，这个存储单元一般是以字节(通
+常8个位)为单位的，也是最小的寻址单元。因此，在一个内存地址中，中间的s位决定了该单元被映射到哪一组，而最低的b位决定了该单元在
+cacheline中的偏移量。valid通常是一位，代表该cacheline是否是有效的(当该cacheline不存在内存映射时，当然是无效
+的)。tag就是内存地址的高t位，因为可能会有多个内存地址映射到同一个cacheline中，所以该位是用来校验该cacheline是否是CPU要
+访问的内存单元。</p> <p>当tag和valid校验成功是，我们称为cache命中，这时只要将cache中的单元取出，放入CPU寄存器中即可。</p> <p>当
+tag或valid校验失败的时候，就说明要访问的内存单元(也可能是连续的一些单元，如int占4个字节，double占8个字节)并不在cache
+中，这时就需要去内存中取了，这就是cache不命中的情况(cache 
+miss)。当不命中的情况发生时，系统就会从内存中取得该单元，将其装入cache中，与此同时也放入CPU寄存器中，等待下一步处理。注意，以下这一
+点对理解linux cache机制非常重要：</p> <blockquote> <p><font color="#ff0000">当从内存中取单元到cache中时，会一次取一个cacheline大小的内存区域到cache中，然后存进相应的cacheline中。</font></p> <p><font color="#ff0000">例如：我们要取地址 (t, s, b) 内存单元，发生了cache miss，那么系统会取 (t, s, 00…000) 到 (t, s, FF…FFF)的内存单元，将其放入相应的cacheline中。</font></p></blockquote> <p>下面看看cache的映射机制：</p> <blockquote> <p>当E=1时， 每组只有一个cacheline。那么相隔2^(s+b)个单元的2个内存单元，会被映射到同一个cacheline中。(好好想想为什么?)</p></blockquote> <blockquote> <p>当1&lt;E&lt;C/B时，每组有E个cacheline，不同的地址，只要中间s位相同，那么就会被映射到同一组中，同一组中被映射到哪个cacheline中是依赖于替换算法的。</p></blockquote> <blockquote> <p>当E=C/B，此时S=1，每个内存单元都能映射到任意的cacheline。带有这样cache的处理器几乎没有，因为这种映射机制需要昂贵复杂的硬件来支持。</p></blockquote> <p>不管哪种映射，只要发生了cache miss，那么必定会有一个cacheline大小的内存区域，被取到cache中相应的cacheline。</p> <p>现
+代处理器，一般将cache分为2~3级，L1, L2, L3。L1一般为CPU专有，不在多个CPU中共享。L2 
+cache一般是多个CPU共享的，也可能装在主板上。L1 cache还可能分为instruction cache, data cache. 
+这样CPU能同时取指令和数据。</p> <p>下面来看看现实中cache的参数，以Intel Pentium处理器为例：</p> <div align="center"> <table width="449" cellspacing="0" cellpadding="2" border="1" align="center"> <tbody> <tr> <td width="93" valign="top">&nbsp;</td> <td width="67" valign="top">E</td> <td width="80" valign="top">B</td> <td width="100" valign="top">S</td> <td width="107" valign="top">C</td></tr> <tr> <td width="93" valign="top">L1 i-cache</td> <td width="67" valign="top">4</td> <td width="80" valign="top">32B</td> <td width="100" valign="top">128</td> <td width="107" valign="top">16KB</td></tr> <tr> <td width="93" valign="top">L1 d-cache</td> <td width="67" valign="top">4</td> <td width="80" valign="top">32B</td> <td width="100" valign="top">128</td> <td width="107" valign="top">16KB</td></tr> <tr> <td width="93" valign="top">L2</td> <td width="67" valign="top">4</td> <td width="80" valign="top">32B</td> <td width="100" valign="top">1024~16384</td> <td width="107" valign="top">128KB~2MB</td></tr></tbody></table></div> <div align="center">&nbsp;</div> <p><font size="3"><strong>3. cache miss的代价</strong></font></p> <p>cache可能被分为L1, L2, L3, 越往外，访问时间也就越长，但同时也就越便宜。</p> <p>L1 cache命中时，访问时间为1~2个CPU周期。</p> <p>L1 cache不命中，L2 cache命中，访问时间为5~10个CPU周期</p> <p>当要去内存中取单元时，访问时间可能就到25~100个CPU周期了。</p> <p>所以，我们总是希望cache的命中率尽可能的高。</p> <p>&nbsp;</p> <p><font size="3"><strong>4. False Sharing(伪共享)问题</strong></font></p> <p>&nbsp;</p> <p>到现在为止，我们似乎还没有提到cache如何和内存保持一致的问题。</p> <p>&nbsp;</p> <p>其
+实在cacheline中，还有其他的标志位，其中一个用于标记cacheline是否被写过。我们称为modified位。当modified=1时，
+表明cacheline被CPU写过。这说明，该cacheline中的内容可能已经被CPU修改过了，这样就与内存中相应的那些存储单元不一致了。因
+此，如果cacheline被写过，那么我们就应该将该cacheline中的内容写回到内存中，以保持数据的一致性。</p> <p>现在问题来了，我们什么时候写回到内存中呢？当然不会是每当modified位被置1就写，这样会极大降低cache的性能，因为每次都要进行内存读写操作。事实上，大多数系统都会在这样的情况下将cacheline中的内容写回到内存：</p> <blockquote> <p><font color="#000000">当该cacheline被置换出去时，且modified位为1。</font></p></blockquote> <p>&nbsp;</p> <p>现在大多数系统正从单处理器环境慢慢过渡到多处理器环境。一个机器中集成2个，4个，甚至是16个CPU。那么新的问题来了。</p> <p>以Intel处理器为典型代表，L1级cache是CPU专有的。</p> <p>&nbsp;</p> <p>先看以下例子：</p> <blockquote> <p><font color="#000000">系统是双核的，即为有2个CPU，CPU(例如Intel Pentium处理器)L1 cache是专有的，对于其他CPU不可见，每个cacheline有8个储存单元。</font></p> <p><font color="#000000">我们的程序中，有一个 char arr[8] 的数组，这个数组当然会被映射到CPU L1 cache中相同的cacheline，因为映射机制是硬件实现的，相同的内存都会被映射到同一个cacheline。</font></p> <p><font color="#000000">2个线程分别对这个数组进行写操作。当0号线程和1号线程分别运行于0号CPU和1号CPU时，假设运行序列如下：</font></p> <p><font color="#000000">开始CPU 0对arr[0]写；</font></p> <p><font color="#000000">随后CPU 1对arr[1]写；</font></p> <p><font color="#000000">随后CPU 0对arr[2]写；</font></p> <p><font color="#000000">……</font></p> <p><font color="#000000">CPU 1对arr[7]写；</font></p> <p><font color="#000000">根据多处理器中cache一致性的协议:</font></p> <p><font color="#000000">当CPU 0对arr[0]写时，8个char单元的数组被加载到CPU 0的某一个cacheline中，该cacheline的modified位已经被置1了；</font></p> <p><font color="#000000">当CPU
+ 1对arr[1]写时，该数组应该也被加载到CPU 
+1的某个cacheline中，但是该数组在cpu0的cache中已经被改变，所以cpu0首先将cacheline中的内容写回到内存，然后再从内存
+中加载该数组到CPU 1中的cacheline中。CPU 1的写操作会让CPU 0对应的cacheline变为invalid状态</font><font color="#ff0000">注意，由于相同的映射机制，cpu1 中的 cacheline 和cpu0 中的cacheline在逻辑上是同一行(直接映射机制中是同一行，组相联映射中则是同一组)</font></p> <p><font color="#000000">当CPU 0对arr[2]写时，该cacheline是invalid状态，故CPU 1需要将cacheline中的数组数据传送给CPU 0，CPU 0在对其cacheline写时，又会将CPU 1中相应的cacheline置为invalid状态</font></p> <p><font color="#000000">……</font></p> <p><font color="#000000">如此往复，cache的性能遭到了极大的损伤！此程序在多核处理器下的性能还不如在单核处理器下的性能高。</font></p> <p><font color="#000000"></font></p></blockquote> <p><em></em></p> <p><em><a href="http://software.intel.com/zh-cn/blogs/2010/02/26/false-sharing/" target="_blank">多
+CPU同时访问同一块内存区域就是“共享”，就会产生冲突，需要控制协议来协调访问。会引起“共享”的最小内存区域大小就是一个cache 
+line。因此，当两个以上CPU都要访问同一个cache 
+line大小的内存区域时，就会引起冲突，这种情况就叫“共享”。但是，这种情况里面又包含了“其实不是共享”的“伪共享”情况。比如，两个处理器各要访
+问一个word，这两个word却存在于同一个cache 
+line大小的区域里，这时，从应用逻辑层面说，这两个处理器并没有共享内存，因为他们访问的是不同的内容（不同的word）。但是因为cache 
+line的存在和限制，这两个CPU要访问这两个不同的word时，却一定要访问同一个cache 
+line块，产生了事实上的“共享”。显然，由于cache 
+line大小限制带来的这种“伪共享”是我们不想要的，会浪费系统资源(此段摘自如下网址：http://software.intel.com/zh-
+cn/blogs/2010/02/26/false-sharing/)</a></em></p> <p>&nbsp;</p> <p>对于伪共享问题，有２种比较好的方法：</p> <blockquote> <p>1. 增大数组元素的间隔使得由不同线程存取的元素位于不同的cache line上。典型的空间换时间 <br>2. 在每个线程中创建全局数组各个元素的本地拷贝，然后结束后再写回全局数组</p></blockquote> <p>而我们要说的linux cache机制，就与第1种方法有关。</p> <p>&nbsp;</p> <p><font size="3"><strong>5. Cache友好的代码</strong></font></p> <p><strong><font size="3"></font></strong></p> <p><font size="2"></font></p> <p>Cache友好的代码，简单地说，</p> <ol> <ol> <li>减小cache miss率  </li><li>在多核环境下，减小乃至消除“伪共享”问题发生的概率。 </li></ol></ol> <p>在单核环境下，有一个典型的例子：</p> <blockquote> <p><font color="#000000">Cache友好的代码：</font></p> <div class="cnblogs_code"><pre><img id="Code_Closed_Image_811496" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_811496').style.display='none'; document.getElementById('Code_Open_Image_811496').style.display='inline'; document.getElementById('Code_Open_Text_811496').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" width="11" height="16" align="top"><img id="Code_Open_Image_811496" style="display: none" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_811496').style.display='none'; getElementById('Code_Closed_Image_811496').style.display='inline'; getElementById('Code_Closed_Text_811496').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_811496"></span><span id="Code_Open_Text_811496" style="display: none"><span style="color: #0000ff">int</span> sumarrayrows(<font color="#0000ff">char</font> a[M][N])
+{
+    <span style="color: #0000ff">int</span> i, j, sum = 0;
+
+    <span style="color: #0000ff">for</span> (i = 0; i &lt; M; i++)
+        <span style="color: #0000ff">for</span> (j = 0; j &lt; N; j++)
+            sum += a[i][j];
+    <span style="color: #0000ff">return</span> sum;
+}</span></pre></div><p>由于一般的机器中，Ｃ语言数组都是按行优先存储的。假设Cacheline的大小为B个字节，Cache
+总容量为C字节，直接映射存储方式，那么一共有C/B行Cacheline。对于a[M][N]这个M*N个字节。每每读到第 n*B 个数组元素时( 
+0&lt;n&lt;M*N/B )，才会发生cache miss，因此至多发生 M*N/B 次cache miss，不命中率至多为 
+(M*N/B)/(M*N) = 1/B。</p><p>&nbsp;</p><p>Cache不友好的代码：</p><div class="cnblogs_code"><pre><img id="Code_Closed_Image_370753" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_370753').style.display='none'; document.getElementById('Code_Open_Image_370753').style.display='inline'; document.getElementById('Code_Open_Text_370753').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" width="11" height="16" align="top"><img id="Code_Open_Image_370753" style="display: none" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_370753').style.display='none'; getElementById('Code_Closed_Image_370753').style.display='inline'; getElementById('Code_Closed_Text_370753').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_370753"></span><span id="Code_Open_Text_370753" style="display: none"><span style="color: #0000ff">int</span> sumarraycols(<span style="color: #0000ff">char</span> a[M][N])
+{
+    <span style="color: #0000ff">int</span> i, j, sum = 0;
+
+    <span style="color: #0000ff">for</span> (j = 0; j &lt; N; j++)
+        <span style="color: #0000ff">for</span> (i = 0; i &lt; M; i++)
+            sum += a[i][j];
+    <span style="color: #0000ff">return</span> sum;
+}</span></pre></div><br><p>这个代码是按列优先访问的，情况要复杂一些。我们只看一种比较简单的情况：</p><ol><li>当
+ N=B , M*N &gt; C, E是cacheline的行数，即为C/B。 
+看看会发生什么：在访问a[0][0]~a[E-1][0]时，每次都会造成Cache 
+miss，然后访问a[E][0]~a[M-1][0]时，又会把第0~M-E-1行cacheline给覆盖掉，因此当访问a[0][0]~a[M-
+1][0]时总是会造成Cache 
+miss。在访问a[0][1]~a[M-1][1]时，分为2个过程，前0~M-E-1行由于被覆盖了，故而Cache又会不命中，而在第M-E~E-
+1行中， 也就是访问a[M-E][1]~a[E-1][1]时，由于没有被覆盖，这些行将会命中。因此总共有 
+M+2*(M-E)*(N-1)次cache 
+miss。不命中率可算得：2-2E/M-1/N+2E/(M*N)。可见，当M&gt;=2E时，不命中率&gt;=1。</li></ol><p>当赋予M,N较大值时，测试结果将会是列优先访问程序的运行时间远远大于行优先访问程序运行时间。<br></p></blockquote>
+<p>&nbsp;</p>
+<p>多核环境下，只要不同的线程或者进程访问同一cacheline的不同内容，就会发生“伪共享问题”。这样的问题较为隐蔽，难以发现。</p>
+<p>&nbsp;</p>
+<p><font size="3"><strong>6. GCC Attribute</strong></font></p>
+<p>&nbsp;</p>
+<p><strong><font size="3"></font></strong>&nbsp;</p>
+<p>&nbsp;</p>
+<p><font size="3"><strong>7. 头文件&lt;linux/cache.h&gt;解读</strong></font><span id="Code_Open_Text_18267" style="display: none"></span> <br><span style="display: none"><br></span></p>
+<p>代码就不贴了</p>
+<p>a. L1_CACHE_ALIGN(x)这个宏</p>
+<div class="cnblogs_code"><pre><img id="Code_Closed_Image_50813" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_50813').style.display='none'; document.getElementById('Code_Open_Image_50813').style.display='inline'; document.getElementById('Code_Open_Text_50813').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" style="display: none;" width="11" height="16" align="top"><img id="Code_Open_Image_50813" style="display: inline;" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_50813').style.display='none'; getElementById('Code_Closed_Image_50813').style.display='inline'; getElementById('Code_Closed_Text_50813').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_50813" style="display: none;"></span><span id="Code_Open_Text_50813" style="display: inline;">#define L1_CACHE_ALIGN(x) ALIGN(x, L1_CACHE_BYTES)
+
+<span style="color: #008000">// linux/kernel.h</span>
+#define __ALIGN_KERNEL(x, a)　__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+#define __ALIGN_KERNEL_MASK(x, mask)　(((x) + (mask)) &amp; ~(mask))</span></pre></div><br>
+<p>该宏返回ｘ所指向的内存区域的起始的cacheline的边界地址。</p>
+<p>b. ____cacheline_aligned宏</p>
+<div class="cnblogs_code"><pre><img id="Code_Closed_Image_969008" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_969008').style.display='none'; document.getElementById('Code_Open_Image_969008').style.display='inline'; document.getElementById('Code_Open_Text_969008').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" style="display: none;" width="11" height="16" align="top"><img id="Code_Open_Image_969008" style="display: inline;" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_969008').style.display='none'; getElementById('Code_Closed_Image_969008').style.display='inline'; getElementById('Code_Closed_Text_969008').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_969008" style="display: none;"></span><span id="Code_Open_Text_969008" style="display: inline;">#define SMP_CACHE_BYTES L1_CACHE_BYTES
+#define ____cacheline_aligned __attribute__((__aligned__(SMP_CACHE_BYTES)))</span></pre></div><br>
+<p>该宏是gcc属性，对定义的数据结构做空间对齐，使之起始位置对齐cacheline</p>
+<p>&nbsp;</p>
+<p>c. __cacheline_aligned宏</p>
+<div class="cnblogs_code"><pre><img id="Code_Closed_Image_379191" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_379191').style.display='none'; document.getElementById('Code_Open_Image_379191').style.display='inline'; document.getElementById('Code_Open_Text_379191').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" style="display: none;" width="11" height="16" align="top"><img id="Code_Open_Image_379191" style="display: inline;" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_379191').style.display='none'; getElementById('Code_Closed_Image_379191').style.display='inline'; getElementById('Code_Closed_Text_379191').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_379191" style="display: none;"></span><span id="Code_Open_Text_379191" style="display: inline;">#define __cacheline_aligned \
+__attribute__((__aligned__(SMP_CACHE_BYTES), \
+__section__("<span style="color: #8b0000">.data..cacheline_aligned</span>")))</span></pre></div><br>
+<p>把数据分配到data段的cacheline_aligned子段里面，并且数据的起始位置对齐
+cacheline。.data..cacheline_aligned的定义在arch/XXX/kernel/vmlinuz.lds.S下面，有兴
+趣的读者可以自行查阅代码</p>
+<p>b和c宏看起来很类似，只差了2个下划线而已，区别在于前者用于局部数据的声明，后者声明于全局数据，可以放在.data段</p>
+<p>&nbsp;</p>
+<p>有一些在多处理器体系结构下的关键数据结构，就是用cacheline_aligned来声明的，譬如：</p>
+<div class="cnblogs_code"><pre><img id="Code_Closed_Image_472122" onclick="this.style.display='none'; document.getElementById('Code_Closed_Text_472122').style.display='none'; document.getElementById('Code_Open_Image_472122').style.display='inline'; document.getElementById('Code_Open_Text_472122').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ContractedBlock.gif" style="display: none;" width="11" height="16" align="top"><img id="Code_Open_Image_472122" style="display: inline;" onclick="this.style.display='none'; document.getElementById('Code_Open_Text_472122').style.display='none'; getElementById('Code_Closed_Image_472122').style.display='inline'; getElementById('Code_Closed_Text_472122').style.display='inline';" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/ExpandedBlockStart.gif" width="11" height="16" align="top"><span class="cnblogs_code_Collapse" id="Code_Closed_Text_472122" style="display: none;"></span><span id="Code_Open_Text_472122" style="display: inline;"><span style="color: #008000">// linux+v3.1.1/arch/ia64/kernel/numa.c#L27</span>
+u16 cpu_to_node_map[NR_CPUS] __cacheline_aligned;</span></pre></div>这样能够避免每个CPU在对属于自己的那个map读写时造成false sharing问题<br></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(2255737,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('b159b8ff-298c-df11-ba8f-001cf0cd104b');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/liloke/" target="_blank"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/sample_face.gif" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/liloke/">李洛克</a><br>
+            <a href="http://home.cnblogs.com/u/liloke/followees">关注 - 0</a><br>
+            <a href="http://home.cnblogs.com/u/liloke/followers">粉丝 - 6</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('b159b8ff-298c-df11-ba8f-001cf0cd104b');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(2255737,'Digg')">
+        <span class="diggnum" id="digg_count">0</span>
+    </div>
+    <div class="buryit" onclick="votePost(2255737,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255736.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255736.html" title="发布于2011-11-20 04:13">深入理解Linux网络技术内幕——读书笔记(2) 关键数据结构</a><br><a href="http://www.cnblogs.com/liloke/archive/2011/12/01/2270850.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/liloke/archive/2011/12/01/2270850.html" title="发布于2011-12-01 16:39">内存寻址的三种模型</a><br></div>
+</div>
+
+</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2011-11-20 04:32</span> <a href="http://www.cnblogs.com/liloke/">李洛克</a> 阅读(<span id="post_view_count">12935</span>) 评论(<span id="post_comment_count">0</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=2255737" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(2255737);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var 
+allowComments=true,cb_blogId=73021,cb_entryId=2255737,cb_blogApp=currentBlogApp,cb_blogUserGuid='b159b8ff-298c-df11-ba8f-001cf0cd104b',cb_entryCreatedDate='2011/11/20
+ 4:32:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container">
+<div id="commentform_title">发表评论</div>
+<span id="tip_comment" style="color:Red"></span>
+<p>
+昵称：<input id="tbCommentAuthor" class="author" disabled="disabled" size="50" value="yonka" type="text">
+</p>
+<div class="commentbox_main">
+<div class="commentbox_title">
+<div class="commentbox_title_left">评论内容：</div>
+<div class="commentbox_title_right">
+<img id="ubb_quote" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/quote.gif" alt="引用" title="添加引用" onclick="insertUBB('tbCommentBody','quote')">
+<img id="ubb_bold" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/b.png" alt="粗体" title="添加粗体" onclick="insertUBB('tbCommentBody','b')">
+<img id="ubb_url" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/lk.png" alt="链接" title="添加链接" onclick="insertUbbUrl('tbCommentBody')">
+<img id="ubb_indent" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/indent.png" alt="缩进" title="添加首行缩进" onclick="insertIndent('tbCommentBody')">
+<img id="ubb_code" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/InsertCode.gif" alt="代码" title="添加代码" onclick="insertUbbCode()">
+<img id="ubb_img" class="comment_icon" src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/img.gif" alt="图片" title="上传图片" onclick="OpenImageUploadWindow();">
+</div>
+</div>
+<div class="clear"></div>
+<textarea id="tbCommentBody" class="comment_textarea"></textarea>
+</div>
+<p id="commentbox_opt">
+<input id="btn_comment_submit" class="comment_btn" value="提交评论" type="button">
+<span id="span_comment_canceledit" style="display:none"><a href="javascript:void(0);" onclick="return CancelCommentEdit()">不改了</a></span>
+<a href="javascript:void(0);" onclick="return logout();">退出</a>
+        <a id="commentbox_opt_sub" href="javascript:void(0);" title="订阅后有新评论时会邮件通知您" onclick="commentManager.Subscribe()">订阅评论</a>
+</p>
+<div id="tip_comment2" style="color:Red"></div>
+<p>
+[Ctrl+Enter快捷键提交]
+</p>
+<div style="display:none">
+<span id="comment_edit_id"></span><span id="span_parentcomment_id"></span>
+<span id="span_parent_id"></span>
+<span id="span_comment_replyto"></span>
+<span id="span_comment_posted"></span>
+</div>
+</div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="http://click.aliyun.com/m/21970/" target="_blank">【阿里云】云计算科技红利邀您免费体验！云服务器、云数据库等35+产品，6个月免费使用！</a><br><a href="https://www.qcloud.com/developer/labs?fromSource=gwzcw.236905.236905.236905" target="_blank">【免费】从零开始学编程，开发者专属实验平台免费实践！</a><br></div>
+<div id="opt_under_post"></div>
+<div id="cnblogs_c1" class="c_ad_block"><a href="http://cn.udacity.com/android/?utm_source=cnbolg&amp;utm_medium=referral&amp;utm_campaign=AND03" target="_blank"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/24442-20170613154413368-1655528381.jpg" alt="Andorid_0613" width="300" height="250"></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/572008/" target="_blank">Snap股价反弹，原因或系与时代华纳达成1亿美元协议</a><br> ·  <a href="http://news.cnblogs.com/n/572007/" target="_blank">传特斯拉工厂将落户上海，最快于本周达成协议</a><br> ·  <a href="http://news.cnblogs.com/n/572006/" target="_blank">Nike+ Run Club更新 AW也支持疾速跑了</a><br> ·  <a href="http://news.cnblogs.com/n/572005/" target="_blank">苹果帮你省钱：Apple Music推年费订阅</a><br> ·  <a href="http://news.cnblogs.com/n/572004/" target="_blank">ofo确认押金由99元上涨至199元</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="cnblogs_c2" class="c_ad_block"><a href="https://www.mtyun.com/activity-anniversary?site=cnblogs&amp;campaign=20170601sales" target="_blank"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/24442-20170615095125603-13625507.png" alt="美团云" width="468" height="60"></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/570194/" target="_blank">小printf的故事：什么是真正的程序员？</a><br> ·  <a href="http://kb.cnblogs.com/page/569992/" target="_blank">程序员的工作、学习与绩效</a><br> ·  <a href="http://kb.cnblogs.com/page/569056/" target="_blank">软件开发为什么很难</a><br> ·  <a href="http://kb.cnblogs.com/page/565901/" target="_blank">唱吧DevOps的落地，微服务CI/CD的范本技术解读</a><br> ·  <a href="http://kb.cnblogs.com/page/566523/" target="_blank">程序员，如何从平庸走向理想？</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+<div id="rightmenu">
+	
+		
+<h3>导航</h3>
+<ul>
+<li><a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" href="http://www.cnblogs.com/liloke/">首页</a></li>
+<li><a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" accesskey="9" rel="nofollow" href="https://msg.cnblogs.com/send/%E6%9D%8E%E6%B4%9B%E5%85%8B">联系</a></li>
+<li><a id="blog_nav_rss" href="http://www.cnblogs.com/liloke/rss">订阅</a><a id="blog_nav_rss_image" href="http://www.cnblogs.com/liloke/rss"><img src="Linux%20Cache%20%E6%9C%BA%E5%88%B6%20-%20%E6%9D%8E%E6%B4%9B%E5%85%8B%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/xml.gif" alt="订阅"></a></li>
+<li><a id="blog_nav_admin" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		
+<h3>公告</h3>
+<div class="newsItem">
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/liloke/">李洛克</a><br>园龄：<a href="http://home.cnblogs.com/u/liloke/" title="入园时间：2010-07-10">6年11个月</a><br>粉丝：<a href="http://home.cnblogs.com/u/liloke/followers/">6</a><br>关注：<a href="http://home.cnblogs.com/u/liloke/followees/">0</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('b159b8ff-298c-df11-ba8f-001cf0cd104b')">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>					
+		<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2011/10/01');return false;">&lt;</a></td><td align="center">2011年11月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2011/12/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">30</td><td class="CalOtherMonthDay" align="center">31</td><td align="center">1</td><td align="center"><a href="http://www.cnblogs.com/liloke/archive/2011/11/02.html"><u>2</u></a></td><td align="center">3</td><td align="center">4</td><td class="CalWeekendDay" align="center">5</td></tr><tr><td class="CalWeekendDay" align="center">6</td><td align="center">7</td><td align="center">8</td><td align="center">9</td><td align="center">10</td><td align="center">11</td><td class="CalWeekendDay" align="center">12</td></tr><tr><td class="CalWeekendDay" align="center">13</td><td align="center">14</td><td align="center">15</td><td align="center">16</td><td align="center">17</td><td align="center">18</td><td class="CalWeekendDay" align="center">19</td></tr><tr><td class="CalWeekendDay" align="center"><a href="http://www.cnblogs.com/liloke/archive/2011/11/20.html"><u>20</u></a></td><td align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center">24</td><td align="center">25</td><td class="CalWeekendDay" align="center">26</td></tr><tr><td class="CalWeekendDay" align="center">27</td><td align="center">28</td><td align="center">29</td><td align="center">30</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td></tr><tr><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td><td class="CalOtherMonthDay" align="center">9</td><td class="CalOtherMonthDay" align="center">10</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+		<div id="blog_stats">
+<h3>统计</h3>
+<ul>
+	<li>随笔 - 13</li>
+	<li>文章 - 0</li>
+	<li>评论 - 1</li>
+	<li>引用 - 0</li>
+ </ul></div>
+		<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk" type="text">&nbsp;<input onclick="zzk_go()" value="找找看" id="btnZzk" class="btn_my_zzk" type="button"></div>
+<div id="widget_my_google" class="div_my_zzk"><input name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk" type="text">&nbsp;<input onclick="google_go()" value="谷歌搜索" class="btn_my_zzk" type="button"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/liloke/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/liloke/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/liloke/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/liloke/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/liloke/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="http://www.cnblogs.com/liloke/tag/tinyos/">tinyos</a>(1)</li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3>随笔档案<span style="font-size:11px;font-weight:normal">(13)</span></h3>
+		
+				<ul>
+			
+				<li><a id="CatList_LinkList_0_Link_0" href="http://www.cnblogs.com/liloke/archive/2012/11.html">2012年11月 (1)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_1" href="http://www.cnblogs.com/liloke/archive/2011/12.html">2011年12月 (2)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_2" href="http://www.cnblogs.com/liloke/archive/2011/11.html">2011年11月 (4)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_3" href="http://www.cnblogs.com/liloke/archive/2011/09.html">2011年9月 (1)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_4" href="http://www.cnblogs.com/liloke/archive/2011/08.html">2011年8月 (1)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_5" href="http://www.cnblogs.com/liloke/archive/2011/07.html">2011年7月 (1)</a> </li>
+			
+				<li><a id="CatList_LinkList_0_Link_6" href="http://www.cnblogs.com/liloke/archive/2011/04.html">2011年4月 (3)</a> </li>
+			
+				</ul>
+			
+	</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255736.html#2254025">1. Re:深入理解Linux网络技术内幕——读书笔记(2) 关键数据结构</a></li>
+        <li class="recent_comment_body">我叫Matt。我在戴尔公司工作，我觉得你写得真的很好。我想，网络管理及相关技术全书从简单的用户操作和管理入手，使读者逐步掌握Linux系统的文件系统管理、进程管理、资源管理、备份管理、网络管理、She......</li>
+        <li class="recent_comment_author">--计算机网络的设计</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255737.html">1. Linux Cache 机制(12935)</a></li><li><a href="http://www.cnblogs.com/liloke/archive/2011/04/12/2014205.html">2. Edge和Level触发的中断(2045)</a></li><li><a href="http://www.cnblogs.com/liloke/archive/2011/07/10/2102233.html">3. Cygwin下sshd不能启动的原因——记录本(1953)</a></li><li><a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255736.html">4. 深入理解Linux网络技术内幕——读书笔记(2) 关键数据结构(710)</a></li><li><a href="http://www.cnblogs.com/liloke/archive/2011/04/11/2012459.html">5. TEP 111 中文试译(597)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/liloke/archive/2011/11/20/2255736.html">1. 深入理解Linux网络技术内幕——读书笔记(2) 关键数据结构(1)</a></li></ul></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/liloke/archive/2011/04/11/2012459.html">1. TEP 111 中文试译(1)</a></li><li><a href="http://www.cnblogs.com/liloke/archive/2011/11/02/2233178.html">2. 深入理解Linux网络技术内幕——读书笔记(1) 名词解释(1)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+		
+<div id="footer">
+	Powered by: 
+	<br>
+	<a id="Footer1_Hyperlink3" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br>
+	Copyright © 李洛克
+</div>
+	
+</div>			
+			
+	
+
+
+
+</body></html>
