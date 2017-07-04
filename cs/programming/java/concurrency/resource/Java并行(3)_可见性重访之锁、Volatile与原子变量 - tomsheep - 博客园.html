@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java并行(3):可见性重访之锁、Volatile与原子变量 - tomsheep - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=m_FXmwz3wxZoecUwNEK23PAzc-j9vbX_C6MblJ5ouMc1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001.css?v=dNz80TfH9-81kuLR86t4JWgT2tb_J0B779DQM4kw0WU1"/>
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001-mobile.css?v=e_QVfUeTMKJaQaYv1olAXHEIJXw3W1tp4SPxjnummuY1"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tomsheep/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tomsheep/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tomsheep/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tomsheep', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=E1-LyrzANB2jbN9omtnpOHx3eU0Kt3DyislfhU0b5p81" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tomsheep/">Lambda</a></h1>
+<div id="subtitle">Y(F) = F(Y(F))</div>
+</div>
+<div id="sub"><div id="blog_stats">
+<div class="BlogStats">随笔 - 37, 文章 - 0, 评论 - 4, 引用 - 0</div>
+</div></div>
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/tomsheep/archive/2010/06/10/1755840.html">Java并行(3):可见性重访之锁、Volatile与原子变量</a>
+		</h2>
+		<div class="postbody">
+		<div id="cnblogs_post_body"><p>1. 过期数据</p> <p>&nbsp;&nbsp;&nbsp; 我们在前面讨论JMM时便已提出“同步之道，外炼‘互斥’，内修‘可见’”的法门。过去，我不注意内存可见性的时候，程序里长满了小红疙瘩：</p> <div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid"> <div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div> <div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> RedPimple <span style="color: #0000ff">extends</span> Thread{
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">boolean</span> done;
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">int</span> value;
+	
+	@Override
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> run() {
+		<span style="color: #0000ff">while</span>(!done) //A
+			Thread.yield();
+		System.out.println(value); //D
+	}
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> done() {
+		done = <span style="color: #0000ff">true</span>;
+	}
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> setValue(<span style="color: #0000ff">int</span> value){
+		<span style="color: #0000ff">this</span>.value = value;
+	}
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">void</span> main(String[] args) {
+		RedPimple r = <span style="color: #0000ff">new</span> RedPimple();
+		r.start();
+		r.setValue(1); //B
+		r.done(); //C
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 上面的代码有什么问题？即使运行它千百遍，你可能也察觉不出有什么问题。但是，问题确实存在。</p>
+<ul>
+<li>病灶一：r线程理论上存在无限循环的可能（这里有两个线程，main线程和r线程）。因为没有任何同步的措施，main线程中C动作的效果何时对于r线程的A可见是不可知的。他肯能在done值已经被改之后的一段时间里仍然读到过期数据，最极端的情况，A一直读到的都是过期数据false。</li>
+<li>病灶二：理论上可能打印出0。这就更匪夷所思了，main线程里不是有 B hb C么？没错，是有B hb C，但是不管是B还是C，都和A、D没有hb关系，理论上存在这样的执行序列C A D B， 它是合法的，C依旧可以宣称看到了B的效果。（这是从JMM理论上论证是允许的，实际情况取决于JMM掩盖之下的你的机器的MM）</li></ul>
+<p>&nbsp;&nbsp;&nbsp; 这就是“过期数据”的隐患。尽管在这个例子里，问题好像还没那么严重，无非皮肤上出点小丘疹而已。但在实际的编程中，过期数据的危害是不容小视的。</p>
+<p>2. 锁的可见性</p>
+<p>&nbsp;&nbsp;&nbsp; 后来，我用了“锁牌香皂”，小红疙瘩真的就不见了！看这里看这里……</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> NoRedPimple <span style="color: #0000ff">extends</span> Thread {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">boolean</span> done;
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">int</span> value;
+
+	@Override
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> run() {
+		<span style="color: #0000ff">boolean</span> tmp = <span style="color: #0000ff">false</span>;
+		<span style="color: #0000ff">while</span> (!tmp) {
+			<span style="color: #0000ff">synchronized</span> (<span style="color: #0000ff">this</span>) {
+				tmp = done; <span style="color: #008000">//A</span>
+			}</pre><pre>                        Thread.yield();
+		}</pre><pre><span style="color: #0000ff">                synchronized</span> (<span style="color: #0000ff">this</span>) { 
+		        System.out.println(value);  //D</pre><pre>                }
+	}
+
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> done() {
+		done = <span style="color: #0000ff">true</span>;
+	}
+
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> setValue(<span style="color: #0000ff">int</span> value) {
+		<span style="color: #0000ff">this</span>.value = value;
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">void</span> main(String[] args) {
+		NoRedPimple r = <span style="color: #0000ff">new</span> NoRedPimple();
+		r.start();
+		r.setValue(1); <span style="color: #008000">//B</span>
+		r.done(); <span style="color: #008000">//C</span>
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 正如这个例子所示，锁不仅仅有“互斥”的功能，而且还保证了内存可见性。运用我们在JMM里提到的理论，被标号的三个操作这次有了明确的HB关系，这下就不会有小红疙瘩了。</p>
+<p>&nbsp;&nbsp;&nbsp; 更进一步看锁的可见性：如果有两个线程t1，t2，t1有动作序列A B C U，其中U为放锁操作，t2有动作序列L D E F，L为加锁操作（同一锁），那么在执行中如果有U tb L，那么这两个线程的执行序列必为 A B C U L D E F，再无其他可能。这就保证了“<font color="#ff0000">在放锁前对t1可见的值，B获得锁后同样可见</font>”。</p>
+<p>3. Volatile</p>
+<p>&nbsp;&nbsp;&nbsp; 虽然上面用锁解决了过期数据的问题，但似乎有些大材小用了吧？代码不那么好看，治好了疹子，却留了一脸麻子。Java早已为消费者考虑到了这一点，volatile就是一种轻量级的同步，它可以保证“可见性”，但不保证“互斥”。</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> NoRedPimple <span style="color: #0000ff">extends</span> Thread {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">volatile</span> <span style="color: #0000ff">boolean</span> done;
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">volatile</span> <span style="color: #0000ff">int</span> value;
+
+	@Override
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> run() {
+		<span style="color: #0000ff">while</span> (!done) {<span style="color: #008000">//A</span>
+			Thread.yield();
+		}
+		System.out.println(value); <span style="color: #008000">//D</span>
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> done() {
+		done = <span style="color: #0000ff">true</span>;
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> setValue(<span style="color: #0000ff">int</span> value) {
+		<span style="color: #0000ff">this</span>.value = value;
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">void</span> main(String[] args) {
+		NoRedPimple r = <span style="color: #0000ff">new</span> NoRedPimple();
+		r.start();
+		r.setValue(1); <span style="color: #008000">//B</span>
+		r.done(); <span style="color: #008000">//C</span>
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 是不是简洁很多？结合JMM中对volatile读写的规定（SW第二条规则），上面的代码完全符合我们的要求，没有过期数据。那么，什么时候可以用volatile呢？必须同时满足以下三条：</p>
+<ul>
+<li>不依赖自己：写变量时并不依赖变量的当前值，或者：可以保证只有一个writer</li>
+<li>不依赖别人：变量不与其他状态共同组成invariant。</li>
+<li>访问变量时，没有其他原因需要加锁。</li></ul>
+<p>&nbsp;&nbsp;&nbsp; 只解释一下第一条，可能很多人对“不依赖自己的当前值”不太理解，举个简单的例子：count++， 这个就叫依赖当前值。为什么要有这样的限制？因为，volatile不保证count++是原子的，即我们所说的“互斥执行”，虽然我们过去的例子都把一条代码当作一个动作，但相信你知道，一条代码在CPU那里多半不会是一条指令，比如count++其实会分解为load-modify-store三个更小的动作，如果这样的操作有多个线程在做，是极易出错的。（鉴于这个问题过于经典，就此打住）。所以，第一条规则实际的意思就是“要么只有一个writer，怎么写随你便；要么可以多个writer，但不能是count++这种依赖当前值的写”。</p>
+<p>4. 原子变量</p>
+<p>&nbsp;&nbsp;&nbsp; Java 1.5 一声炮响，给我们送来了java.util.concurrency包，这个包并行功能强大，工具齐全，我们以后讨论会经常用到。原子变量也是此包提供的工具之一。顾名思义，原子变量，即支持“原子更新”，它更多地被用在“非阻塞算法”和“lock-free算法”中，其实我很想现在讨论非阻塞算法，两次面试都被考到，但抬头看看标题已经写了“可见性重访”，还是不跑题了，以后有机会再和大家讨论这个topic。</p>
+<p>&nbsp;&nbsp;&nbsp; 而除了“原子更新”的好处外，原子变量还提供了与volatile相同的内存语义，所以volatile所能保证的可见性，在原子变量这里同样可以。</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">import</span> java.util.concurrent.atomic.AtomicBoolean;
+<span style="color: #0000ff">import</span> java.util.concurrent.atomic.AtomicInteger;
+
+<span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> NoRedPimple <span style="color: #0000ff">extends</span> Thread {
+	<span style="color: #0000ff">private</span> AtomicBoolean done = <span style="color: #0000ff">new</span> AtomicBoolean(<span style="color: #0000ff">false</span>);
+	<span style="color: #0000ff">private</span> AtomicInteger value = <span style="color: #0000ff">new</span> AtomicInteger(0);
+
+	@Override
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> run() {
+		<span style="color: #0000ff">while</span> (!done.get()) {<span style="color: #008000">//A</span>
+			Thread.yield();
+		}
+		System.out.println(value.get()); <span style="color: #008000">//D</span>
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> done() {
+		done.set(<span style="color: #0000ff">true</span>);
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> setValue(<span style="color: #0000ff">int</span> value) {
+		<span style="color: #0000ff">this</span>.value.set(value);
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">void</span> main(String[] args) {
+		NoRedPimple r = <span style="color: #0000ff">new</span> NoRedPimple();
+		r.start();
+		r.setValue(1); <span style="color: #008000">//B</span>
+		r.done(); <span style="color: #008000">//C</span>
+	}
+}
+</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp;&nbsp; 当然，我们这里使用原子变量，也是“大材小用”了的，原子变量的NB之处在于其原子性的CAS（compare-and-set）操作，由此可以完成volatile所不能的“check-and-act”动作，“可见性”只不过是其稍带脚支持的功能而已。我们以后再讨论他的CAS、由他构建的“非阻塞算法”以及“非阻塞算法”和用一般锁构建的“阻塞算法”的比较。</p>
+<p>&nbsp;</p>
+<p><font color="#808080">主要参考资料：</font></p>
+<p><font color="#808080">1. JSL 第三版</font></p>
+<p><font color="#808080">2. Java Concurrency in Practice</font></p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2010-06-10 19:45</span> <a href='http://www.cnblogs.com/tomsheep/'>tomsheep</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=1755840" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(1755840);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=65480,cb_entryId=1755840,cb_blogApp=currentBlogApp,cb_blogUserGuid='759b9fbe-d9fe-de11-ba8f-001cf0cd104b',cb_entryCreatedDate='2010/6/10 19:45:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+<li>
+<a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li>
+<a id="blog_nav_myhome" class="two_words" href="http://www.cnblogs.com/tomsheep/">首页</a></li>
+<li>
+<a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li>
+<a id="blog_nav_contact" accesskey="9" class="two_words" rel="nofollow" href="https://msg.cnblogs.com/send/tomsheep">联系</a></li>
+<li>
+<a id="blog_nav_rss" class="two_words" href="http://www.cnblogs.com/tomsheep/rss">订阅</a>
+<a id="blog_nav_rss_image" href="http://www.cnblogs.com/tomsheep/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>
+</li>
+<li>
+<a id="blog_nav_admin" class="two_words" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+
+<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+<meta name="vs_showGrid" content="False">
+
+<h3>公告</h3>
+<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+
+<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+
+<p id="footer">
+	Powered by: 
+	<br />
+	
+	<a id="Footer1_Hyperlink3" NAME="Hyperlink1" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br />
+	Copyright &copy; tomsheep
+</p>
+</div>
+</div>
+
+</body>
+</html>

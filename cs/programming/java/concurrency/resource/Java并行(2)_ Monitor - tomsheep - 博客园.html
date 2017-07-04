@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java并行(2): Monitor - tomsheep - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=m_FXmwz3wxZoecUwNEK23PAzc-j9vbX_C6MblJ5ouMc1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001.css?v=dNz80TfH9-81kuLR86t4JWgT2tb_J0B779DQM4kw0WU1"/>
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001-mobile.css?v=e_QVfUeTMKJaQaYv1olAXHEIJXw3W1tp4SPxjnummuY1"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tomsheep/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tomsheep/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tomsheep/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tomsheep', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=E1-LyrzANB2jbN9omtnpOHx3eU0Kt3DyislfhU0b5p81" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tomsheep/">Lambda</a></h1>
+<div id="subtitle">Y(F) = F(Y(F))</div>
+</div>
+<div id="sub"><div id="blog_stats">
+<div class="BlogStats">随笔 - 37, 文章 - 0, 评论 - 4, 引用 - 0</div>
+</div></div>
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/tomsheep/archive/2010/06/09/1754419.html">Java并行(2): Monitor</a>
+		</h2>
+		<div class="postbody">
+		<div id="cnblogs_post_body"><p>1. 什么是Monitor？</p> <p>&nbsp;&nbsp;&nbsp; Monitor其实是一种同步工具，也可以说是一种同步机制，它通常被描述为一个对象，主要特点是：</p> <ul> <li>对象的所有方法都被“互斥”的执行。好比一个Monitor只有一个运行“许可”，任一个线程进入任何一个方法都需要获得这个“许可”，离开时把许可归还。</li> <li>通常提供singal机制：允许正持有“许可”的线程暂时放弃“许可”，等待某个谓词成真（条件变量），而条件成立后，当前进程可以“通知”正在等待这个条件变量的线程，让他可以重新去获得运行许可。</li></ul> <p>&nbsp;&nbsp;&nbsp; Monitor对象可以被多线程安全地访问。关于“互斥”与“为什么要互斥”，我就不傻X兮兮解释了；而关于Monitor的singal机制，历史上曾经出现过两大门派，分别是Hoare派和Mesa派（上过海波老师OS课的SS同学应该对这个有印象），我还是用我的理解通俗地庸俗地解释一下：</p> <ul> <li>Hoare派的singal机制江湖又称“Blocking condition variable”，特点是，当“发通知”的线程发出通知后，立即失去许可，并“亲手”交给等待者，等待者运行完毕后再将许可交还通知者。在这种机制里，可以等待者拿到许可后，谓词肯定为真——也就是说等待者不必再次检查条件成立与否，所以对条件的判断可以使用“if”，不必“while”</li> <li>Mesa派的signal机制又称“Non-Blocking condition variable”， 与Hoare不同，通知者发出通知后，并不立即失去许可，而是把闻风前来等待者安排在ready queue里，等到schedule时有机会去拿到“许可”。这种机制里，等待者拿到许可后不能确定在这个时间差里是否有别的等待者进入过Monitor，因此不能保证谓词一定为真，所以对条件的判断必须使用“while”</li></ul> <p>&nbsp;&nbsp;&nbsp; 这两种方案可以说各有利弊，但Mesa派在后来的盟主争夺中渐渐占了上风，被大多数实现所采用，有人给这种signal另外起了个别名叫“notify”，想必你也知道，Java采取的就是这个机制。</p> <p>2. Monitor与Java不得不说的故事</p> <p>&nbsp;&nbsp;&nbsp; 子曰：“Java对象是天生的Monitor。”每一个Java对象都有成为Monitor的“潜质”。这是为什么？因为在Java的设计中，每一个对象自打娘胎里出来，就带了一把看不见的锁，通常我们叫“内部锁”，或者“Monitor锁”，或者“Intrinsic lock”。为了装逼起见，我们就叫它Intrinsic lock吧。有了这个锁的帮助，只要把类的所有对象方法都用synchronized关键字修饰，并且所有域都为私有（也就是只能通过方法访问对象状态），就是一个货真价实的Monitor了。比如，我们举一个大俗例吧：</p> <div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid"> <div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div> <div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> Account {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">int</span> balance;
+	
+	<span style="color: #0000ff">public</span> Account(<span style="color: #0000ff">int</span> balance) {
+		<span style="color: #0000ff">this</span>.balance = balance;
+	}
+	
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">boolean</span> withdraw(<span style="color: #0000ff">int</span> amount){
+		<span style="color: #0000ff">if</span>(balance&lt;amount)
+			<span style="color: #0000ff">return</span> <span style="color: #0000ff">false</span>;
+		balance -= amount;
+		<span style="color: #0000ff">return</span> <span style="color: #0000ff">true</span>;
+	}
+	
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		balance +=amount;
+	}
+	
+}</pre></div></div>
+<p>3. synchronized关键字</p>
+<p>&nbsp;&nbsp;&nbsp; 上面我们已经看到synchronized的一种用法，用来修饰方法，表示进入该方法需要对Intrinsic lock加锁，离开时放锁。synchronized可以用在程序块中，显示说明对“哪个对象的Intrinsic lock加锁”，比如</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+	balance +=amount;
+}
+</pre><pre>// 等价于
+<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+	<span style="color: #0000ff">synchronized</span>(<span style="color: #0000ff">this</span>){
+		balance +=amount;
+	}
+}</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp;&nbsp; 这时，你可能就要问了，你不是说任何对象都有intrinsic lock么？而synchronized关键字又可以显示指定去锁谁，那我们是不是可以这样做：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> Account {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">int</span> balance;
+	<span style="color: #0000ff">private</span> Object lock = <span style="color: #0000ff">new</span> Object();
+	
+	<span style="color: #0000ff">public</span> Account(<span style="color: #0000ff">int</span> balance) {
+		<span style="color: #0000ff">this</span>.balance = balance;
+	}
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">boolean</span> withdraw(<span style="color: #0000ff">int</span> amount){
+		<span style="color: #0000ff">synchronized</span> (lock) {
+			<span style="color: #0000ff">if</span>(balance&lt;amount)
+				<span style="color: #0000ff">return</span> <span style="color: #0000ff">false</span>;
+			balance -= amount;
+			<span style="color: #0000ff">return</span> <span style="color: #0000ff">true</span>;
+		}	
+	}
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		<span style="color: #0000ff">synchronized</span> (lock) {
+			balance +=amount;
+		}		
+	}
+}</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp;&nbsp; 不用this的内部锁，而是用另外任意一个对象的内部锁来完成完全相同的任务？没错，完全可以。不过，需要注意的是，这时候，你实际上禁止了“客户代码加锁”的行为。前几天BBS上简哥有一贴提到的bug其实就是这个，这个时候使用这份代码的客户程序如果想当然地认为Account的同步是基于其内部锁的，并且傻X兮兮地写了类似下面的代码：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">void</span> main(String[] args) {
+		Account account =<span style="color: #0000ff">new</span> Account(1000);
+		
+		<span style="color: #008000">//some threads modifying account through Account’s methods...</span>
+		
+		<span style="color: #0000ff">synchronized</span> (account) {
+			;<span style="color: #008000">//blabla</span>
+		}
+	}</pre></div></div>
+<p>自认为后面的同步快对account加了锁，期间的操作不会被其余通过Account方法操作account对象的线程所干扰，那就太悲剧了。因为他们并不相干，锁住了不同的锁。</p>
+<p>4. Java中的条件变量</p>
+<p>&nbsp;&nbsp;&nbsp; 正如我们前面所说，Java采取了wait/notify机制来作为intrinsic lock 相关的条件变量，表示为等待某一条件成立的条件队列——说到这里顺带插一段，条件队列必然与某个锁相关，并且语义上关联某个谓词（条件队列、锁、条件谓词就是吉祥的一家）。所以，在使用wait/notify方法时，必然是已经获得相关锁了的，在进一步说，一个推论就是“wait/notify&nbsp; 方法只能出现在相应的同步块中”。如果不呢？就像下面一段（notify表示的谓词是“帐户里有钱啦～”）：</p>
+<p>&nbsp;</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		balance +=amount;
+		notify();
+	}
+
+<span style="color: #008000">//或者这样：</span>
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		<span style="color: #0000ff">synchronized</span> (lock) {
+			balance +=amount;
+			notify();
+		}
+	}</pre></div></div>
+<p>这两段都是错的，第一段没有在同步块里，而第二段拿到的是lock的内部锁，调用的却是this.notify()，让人遗憾。运行时他们都会抛IllegalMonitorStateException异常——唉，想前一阵我参加一次笔试的时候，有一道题就是这个，让你选所给代码会抛什么异常，我当时就傻了，想这考得也太偏了吧，现在看看，确实是很基本的概念，当初被虐是压根没有理解wait/notify机制的缘故。那怎么写是对的呢？</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>	<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		<span style="color: #0000ff">synchronized</span> (lock) {
+			balance +=amount;
+			lock.notify();
+		}
+	}
+<span style="color: #008000">//或者（取决于你采用的锁）：</span>
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount){
+		balance +=amount;
+		notify();
+	}</pre></div></div>
+<p>5.这就够了吗？</p>
+<p>&nbsp;&nbsp;&nbsp; 看上去，Java的内部锁和wait/notify机制已经可以满足任何同步需求了，不是吗？em…可以这么说，但也可以说，不那么完美。有两个问题：</p>
+<ul>
+<li>锁不够用</li></ul>
+<p>&nbsp;&nbsp;&nbsp; 有时候，我们的类里不止有一个状态，这些状态是相互独立的，如果只用同一个内部锁来维护他们全部，未免显得过于笨拙，会严重影响吞吐量。你马上会说，你刚才不是演示了用任意一个Object来做锁吗？我们多整几个Object分别加锁不就行了吗？没错，是可行的。但这样可能显得有些丑陋，而且Object来做锁本身就有语义不明确的缺点。</p>
+<ul>
+<li>条件变量不够用</li></ul>
+<p>&nbsp;&nbsp;&nbsp; Java用wait/notify机制实际上默认给一个内部锁绑定了一个条件队列，但是，有时候，针对一个状态（锁），我们的程序需要两个或以上的条件队列，比如，刚才的Account例子，如果某个2B银行有这样的规定“一个账户存款不得多于10000元”，这个时候，我们的存钱需要满足“余额+要存的数目不大于10000，否则等待，直到满足这个限制”，取钱需要满足“余额足够，否则等待，直到有钱为止”，这里需要两个条件队列，一个等待“存款不溢出”，一个等待“存款足够”，这时，一个默认的条件队列够用么？你可能又说，够用，我们可以模仿network里的“多路复用”，一个队列就能当多个来使，像这样：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> Account {
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">final</span> <span style="color: #0000ff">int</span> BOUND = 10000;
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">int</span> balance;
+	
+	<span style="color: #0000ff">public</span> Account(<span style="color: #0000ff">int</span> balance) {
+		<span style="color: #0000ff">this</span>.balance = balance;
+	}
+	
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">boolean</span> withdraw(<span style="color: #0000ff">int</span> amount) <span style="color: #0000ff">throws</span> InterruptedException{
+			<span style="color: #0000ff">while</span>(balance&lt;amount)
+				wait();<span style="color: #008000">// no money, wait</span>
+			balance -= amount;
+			notifyAll();<span style="color: #008000">// not full, notify</span>
+			<span style="color: #0000ff">return</span> <span style="color: #0000ff">true</span>;
+	}
+	
+	<span style="color: #0000ff">synchronized</span> <span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> deposit(<span style="color: #0000ff">int</span> amount) <span style="color: #0000ff">throws</span> InterruptedException{
+			<span style="color: #0000ff">while</span>(balance+amount &gt;BOUND)
+				wait();<span style="color: #008000">//full, wait</span>
+			balance +=amount;
+			notifyAll();<span style="color: #008000">// has money, notify</span>
+	}
+}</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 不是挺好吗？恩，没错，是可以。但是，仍然存在性能上的缺陷：每次都有多个线程被唤醒，而实际只有一个会运行，频繁的上下文切换和锁请求是件很废的事情。我们能不能不要notifyAll，而每次只用notify（只唤醒一个）呢？不好意思，想要“多路复用”，就必须notifyAll，否则会有丢失信号之虞（不解释了）。只有满足下面两个条件，才能使用notify：</p>
+<p>一，只有一个条件谓词与条件队列相关，每个线程从wait返回执行相同的逻辑。</p>
+<p>二，一进一出：一个对条件变量的通知，语义上至多只激活一个线程。</p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp; <font color="#800080">我又想插播一段</font>：刚才写上面那段代码，IDE提示抛InterruptedException，我想提一下，这是因为wait是一个阻塞方法，几乎所有阻塞方法都会声明可能抛InterruptedException，这是和Java的interrupt机制有关的，以后我们有机会再说。</p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp;&nbsp; 既然这么做不优雅不高效不亚克西，那如之奈何？Java提供了其他工具吗？是的。这就是传说中的java.util.concurrency包里的故事，今天也不说了，有机会在和大家讨论。</p>
+<p><font color="#808080">主要参考资料：</font></p>
+<p><font color="#808080">1. Wiki</font></p>
+<p><font color="#808080">2. Addison Wesley, Java Concurrency in Practice ,Brian Goetz</font></p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2010-06-09 03:46</span> <a href='http://www.cnblogs.com/tomsheep/'>tomsheep</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=1754419" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(1754419);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=65480,cb_entryId=1754419,cb_blogApp=currentBlogApp,cb_blogUserGuid='759b9fbe-d9fe-de11-ba8f-001cf0cd104b',cb_entryCreatedDate='2010/6/9 3:46:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+<li>
+<a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li>
+<a id="blog_nav_myhome" class="two_words" href="http://www.cnblogs.com/tomsheep/">首页</a></li>
+<li>
+<a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li>
+<a id="blog_nav_contact" accesskey="9" class="two_words" rel="nofollow" href="https://msg.cnblogs.com/send/tomsheep">联系</a></li>
+<li>
+<a id="blog_nav_rss" class="two_words" href="http://www.cnblogs.com/tomsheep/rss">订阅</a>
+<a id="blog_nav_rss_image" href="http://www.cnblogs.com/tomsheep/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>
+</li>
+<li>
+<a id="blog_nav_admin" class="two_words" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+
+<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+<meta name="vs_showGrid" content="False">
+
+<h3>公告</h3>
+<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+
+<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+
+<p id="footer">
+	Powered by: 
+	<br />
+	
+	<a id="Footer1_Hyperlink3" NAME="Hyperlink1" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br />
+	Copyright &copy; tomsheep
+</p>
+</div>
+</div>
+
+</body>
+</html>
