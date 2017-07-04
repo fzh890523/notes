@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java并行(4):线程安全前传之Singleton - tomsheep - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=m_FXmwz3wxZoecUwNEK23PAzc-j9vbX_C6MblJ5ouMc1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001.css?v=dNz80TfH9-81kuLR86t4JWgT2tb_J0B779DQM4kw0WU1"/>
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001-mobile.css?v=e_QVfUeTMKJaQaYv1olAXHEIJXw3W1tp4SPxjnummuY1"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tomsheep/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tomsheep/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tomsheep/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tomsheep', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=E1-LyrzANB2jbN9omtnpOHx3eU0Kt3DyislfhU0b5p81" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tomsheep/">Lambda</a></h1>
+<div id="subtitle">Y(F) = F(Y(F))</div>
+</div>
+<div id="sub"><div id="blog_stats">
+<div class="BlogStats">随笔 - 37, 文章 - 0, 评论 - 4, 引用 - 0</div>
+</div></div>
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/tomsheep/archive/2010/06/13/1757862.html">Java并行(4):线程安全前传之Singleton</a>
+		</h2>
+		<div class="postbody">
+		<div id="cnblogs_post_body"><p>1.寂寞的Singleton</p> <p>&nbsp;&nbsp;&nbsp; 如果你是一名OO程序员，Singleton的名字对你来说就不会陌生，它是GoF设计模式的一种，江湖人称“单例”的便是；即便你不是OO程序员，中国人你总该是吧？那么下面一段你应该也会背：“世界上只有一个敏感词，敏感词是敏感词的一部分，敏感词是代表敏感词的唯一合法敏感词，任何企图制造两个敏感词的企图都是注定要失败的。”说的多么好！一语道破Singleton的真谛。但是，为了让帖子存活下去，为了更好地娱乐大众，下面我们从“敏感词系统”转到“世界杯系统”，我们来看：</p> <div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid"> <div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div> <div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">static</span> WorldCup instance = <span style="color: #0000ff">new</span> WorldCup();
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance(){
+		<span style="color: #0000ff">return</span> instance;
+	}
+}
+</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp;&nbsp; 这就是一个极为简易的Singleton范例，但是雷米特同学看到这个类估计哭得心思都有了：这里的instance是eager initialization，也就是说作为世界杯的发起人，雷米特小朋友必须在提出“世界杯”这个概念的时候，就自己掏钱铸一座金杯撂那，这赛事成不成还两说。搁谁谁也不乐意。那这事咋整？雷米特老婆温柔地说，“你个完蛋败家玩意，那就等破世界杯板上钉钉，第一届举办的时候再造呗！”真是一语惊醒梦中人，雷米特立刻打开IDE，敲出下面的代码：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">static</span> WorldCup instance;
+	
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance(){
+		<span style="color: #0000ff">if</span>(instance == <span style="color: #0000ff">null</span>) //A
+			instance = <span style="color: #0000ff">new</span> WorldCup(); //B
+		<span style="color: #0000ff">return</span> instance;
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 雷米特长出一口气，这回lazy initialization，总高枕无忧了吧～</p>
+<p>2. 当Singleton遇见多线程</p>
+<p>&nbsp;&nbsp;&nbsp; 这时，温柔贤惠的老婆又发话了：“你傻啊？倒霉玩意你想造多少个破杯啊？杯具啊，我～不～活～了～～我错了，我从一开始就错了，如果我不嫁过来……”雷米特表示理解不能，这么NB的代码错在哪了？</p>
+<p>&nbsp;&nbsp;&nbsp; 观众朋友们来分析一下，是什么让雷米特的老婆如此伤心欲绝呢？绝大部分朋友应该已经知道了，那就是多线程的问题。在A和B之间存在一个时间差，可能有t1，t2两个线程，t1检测instance为null，没有继续执行B而是被切走，t2又检测到instance为null，这下，两个世界杯就被造出来了。Singleton名不副实。那应该如何？你可能已经对我的傻逼描述烦不胜烦了，加锁呗：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">static</span> WorldCup instance;
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance() {
+		<span style="color: #0000ff">synchronized</span> (WorldCup.<span style="color: #0000ff">class</span>) {
+			<span style="color: #0000ff">if</span> (instance == <span style="color: #0000ff">null</span>) <span style="color: #008000">// A</span>
+				instance = <span style="color: #0000ff">new</span> WorldCup();<span style="color: #008000">// B</span>
+			<span style="color: #0000ff">return</span> instance;
+		}
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 问题解决，不是吗？对，但不那么完美。我们知道，加锁/放锁是很费的操作，这里完全没有必要每次调用getInstance都加锁，事实上我们只想保证一次初始化成功而已，其余的快速返回就好了。</p>
+<p>3. 又见DCL</p>
+<p>&nbsp;&nbsp;&nbsp; 那也不难，用传说中的“双检锁”（Double-Checked Lock）即可：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">static</span> WorldCup instance;
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance() {
+		<span style="color: #0000ff">if</span> (instance == <span style="color: #0000ff">null</span>) { <span style="color: #008000">//C</span>
+			<span style="color: #0000ff">synchronized</span> (WorldCup.<span style="color: #0000ff">class</span>) {
+				<span style="color: #0000ff">if</span> (instance == <span style="color: #0000ff">null</span>) <span style="color: #008000">// A</span>
+					instance = <span style="color: #0000ff">new</span> WorldCup();<span style="color: #008000">// B</span>
+			}
+		}
+		<span style="color: #0000ff">return</span> instance;
+	}
+}
+</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp; 新加的C操作过滤掉了大量的“快速返回”，让程序只有在真正需要加锁时才去加锁，效率大涨。雷米特大喜过望，终于可以和老婆交差了。但是，结束了么？</p>
+<p>4.安全发布</p>
+<p>&nbsp;&nbsp;&nbsp; “结束了么？”一段时间之前的一次电话面试中，面对同样的问题，面试官不怀好意地问。我立刻深深地觉得我被这两个臭不要脸的家伙彻底调戏了，万分纠结地败下阵来。相信雷米特再次面对他老婆时，也会有相同的感受。那么，看似精巧的DCL，会有什么问题呢？我们要从“安全发布”谈起。</p>
+<p>&nbsp;&nbsp;&nbsp; 所谓对象的“发布”（publish），是指使他能够让当前范围以外的代码使用。为了方便理解，列举几种发布对象的常用方法：</p>
+<ul>
+<li>把对象的引用存到公共静态域里。</li>
+<li>把一个对象传递给一个“外部方法”，所谓外部方法是指其他类的方法或者自身可以被子类重写的方法（因为你不知道这些方法会有些什么动作）</li>
+<li>发布一个Inner Class的实例。这是因为每个Inner Class实例都保存了外部对象的引用。</li></ul>
+<p>&nbsp;&nbsp;&nbsp; 另外需要记住的规则是“当发布一个对象时，实际上隐式地发布了他的所有非私有域对象”。&nbsp;&nbsp;&nbsp; </p>
+<p>&nbsp;&nbsp;&nbsp; 发布对象并不可怕，可怕的是错误地发布对象。当一个对象还没有做好准备时就将他发布，我们称作“逃逸”（escape）。举一个简单的例子：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> Argentina {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">boolean</span> isMessiReady;
+
+	<span style="color: #0000ff">public</span> Argentina() {
+		<span style="color: #0000ff">new</span> Thread(<span style="color: #0000ff">new</span> Runnable() {
+			@Override
+			<span style="color: #0000ff">public</span> <span style="color: #0000ff">void</span> run() {
+				tell();  <span style="color: #008000">//Argentina.this</span>
+			}
+		}).start();
+		isMessiReady = <span style="color: #0000ff">true</span>;
+	}
+
+	<span style="color: #0000ff">void</span> tell() {
+		System.out.println("<span style="color: #8b0000">Is Messi Here?:</span>" + isMessiReady);
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 阿根廷队队伍还没组建好就开新闻发布会，这时Messi到底在不在呢？老马可能在放烟雾弹。这里的对象发布属于我们上面提到的第三种，即发布内部类，因为这里的Thread其实是用一个匿名内部类Runnable实现的，新线程可以访问到外部类，在我们加注释的那一行其实隐含的访问了外部类Argentina.this。这属于臭名昭著的“this逃逸”，常见情景包括了“在构造函数中添加listener，启动新线程或者调用可重写方法”。</p>
+<p>&nbsp;&nbsp;&nbsp; 其实说白了，所谓逃逸，<font color="#ff0000">无非是对象“发布”和另一个线程访问该对象之间没有正确的Happens-before关系</font>。</p>
+<p>&nbsp;&nbsp;&nbsp; 回过头来看我们上面的DCL，他虽然不是“this逃逸”，但也属于肇事逃逸的一种。一个线程t1的B操作和另一线程t2的C操作之间没有HB关系，也就是对instance的读写没有同步，可能会造成的现象是t1-B的new WorldCup()还没有完全构造成功，但t2-C已经看到instance非空，这样t2就直接返回了未完全构造的instance的引用，t2想当然地对instance进行操作，结果是微妙的。</p>
+<p>&nbsp;&nbsp;&nbsp; 看到这里，结合上一次的讨论，可能你已经明白了，“说了这么久，原来还不是劳什子的可见性问题，翠花，上volatile～”</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">volatile</span> <span style="color: #0000ff">static</span> WorldCup instance;
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance() {
+		<span style="color: #0000ff">if</span> (instance == <span style="color: #0000ff">null</span>) { <span style="color: #008000">//C</span>
+			<span style="color: #0000ff">synchronized</span> (WorldCup.<span style="color: #0000ff">class</span>) {
+				<span style="color: #0000ff">if</span> (instance == <span style="color: #0000ff">null</span>) <span style="color: #008000">// A</span>
+					instance = <span style="color: #0000ff">new</span> WorldCup();<span style="color: #008000">// B</span>
+			}
+		}
+		<span style="color: #0000ff">return</span> instance;
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp; “这下，你，们，该，满，足，了，吧？”</p>
+<p>5. Yet another 解决方法</p>
+<p>&nbsp;&nbsp;&nbsp; 恭喜你，成功了。但是，其实我还想说，恭喜你，你out了。随着时代的发展JVM的进步，DCL这样的技巧已经逐步被淘汰了，而lazy initialization holder这样的新秀在效率上和DCL已经没什么差别：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">public</span> <span style="color: #0000ff">class</span> WorldCup {
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">static</span> <span style="color: #0000ff">class</span> WorldCupHolder{
+		<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup instance = <span style="color: #0000ff">new</span> WorldCup();
+	}
+
+	<span style="color: #0000ff">public</span> <span style="color: #0000ff">static</span> WorldCup getInstance() {
+		<span style="color: #0000ff">return</span> WorldCupHolder.instance;
+	}
+}
+</pre></div></div>
+<p>&nbsp;&nbsp;&nbsp; 同样是“惰性初始化”，这个是不是更好看？</p>
+<p>&nbsp;&nbsp;&nbsp; 在这里我们回过头来看看我们最初的eager initialization，你这时可能会反过来思考，他不是volatile，会不会有escape问题？不会。因为Java保证了域初始化段落对其余操作的HB关系。好了，这下，雷米特家的河东狮估计可以休矣。</p>
+<p>6. 讨论的延续</p>
+<p>&nbsp;&nbsp;&nbsp; 关于上面阿根廷的例子，写的时候我发现一点疑问，把自己的理解拿出来和大家讨论。那就是如果我把isMessiReady = true（记做A）放在新线程start（记做B）的前面，在这里新线程不就可以保证HB关系了么？因为有IntraThread原则，A hb B，而我们又有start操作hb于任何该线程的动作，比如tell（记做C），那么不就有A hb B hb C了么？可以保证新闻发布会上梅西肯定在场。那么，为什么几乎所有看到的资料里都警告说“即使是构造函数的最后一个操作，也不要启新线程、加listener、调可重写函数”云云？我的理解是，是为了防止这种情况：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre><span style="color: #0000ff">class</span> SuperArgentina <span style="color: #0000ff">extends</span> Argentina{
+	<span style="color: #0000ff">private</span> <span style="color: #0000ff">boolean</span> isDiegoReady;
+	<span style="color: #0000ff">public</span> SuperArgentina() {
+		<span style="color: #0000ff">super</span>();
+		isDiegoReady =<span style="color: #0000ff">true</span>;
+	}
+	
+	@Override
+	<span style="color: #0000ff">protected</span> <span style="color: #0000ff">void</span> tell() {
+		<span style="color: #0000ff">super</span>.tell();
+		System.out.println("<span style="color: #8b0000">Is Diego Here?:</span>"+isDiegoReady);
+	}
+}</pre></div></div>
+<p></p>
+<p>&nbsp;&nbsp;&nbsp; 我们拓展阿根廷为“超级阿根廷”，加入老马的状态，这样一来，老马自己在不在场就成问题了。关于上面的这段分析，我的把握并不是特别大，希望大牛们能够提点一下。</p>
+<p><font color="#808080">主要参考资料：</font></p>
+<p><font color="#808080">1. JavaWorld文章：</font><a href="http://www.javaworld.com/jw-02-2001/jw-0209-double.html" target="_blank"><font color="#808080">Double-checked locking: Clever, but broken</font></a></p>
+<p><font color="#808080">2. Java Concurrency in Practice</font></p>
+<p><font color="#808080">3. GoF设计模式</font></p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2010-06-13 16:12</span> <a href='http://www.cnblogs.com/tomsheep/'>tomsheep</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=1757862" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(1757862);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=65480,cb_entryId=1757862,cb_blogApp=currentBlogApp,cb_blogUserGuid='759b9fbe-d9fe-de11-ba8f-001cf0cd104b',cb_entryCreatedDate='2010/6/13 16:12:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+<li>
+<a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li>
+<a id="blog_nav_myhome" class="two_words" href="http://www.cnblogs.com/tomsheep/">首页</a></li>
+<li>
+<a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li>
+<a id="blog_nav_contact" accesskey="9" class="two_words" rel="nofollow" href="https://msg.cnblogs.com/send/tomsheep">联系</a></li>
+<li>
+<a id="blog_nav_rss" class="two_words" href="http://www.cnblogs.com/tomsheep/rss">订阅</a>
+<a id="blog_nav_rss_image" href="http://www.cnblogs.com/tomsheep/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>
+</li>
+<li>
+<a id="blog_nav_admin" class="two_words" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+
+<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+<meta name="vs_showGrid" content="False">
+
+<h3>公告</h3>
+<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+
+<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+
+<p id="footer">
+	Powered by: 
+	<br />
+	
+	<a id="Footer1_Hyperlink3" NAME="Hyperlink1" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br />
+	Copyright &copy; tomsheep
+</p>
+</div>
+</div>
+
+</body>
+</html>

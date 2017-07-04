@@ -104,11 +104,43 @@ ref：
 
   把临界区ready视为条件ok的话，condition 则表示 lock
 
+  > 此外，可以参考java的monitor
+
 * condition - semaphore
 
   condition + count 可以表示 semaphore
 
+## 语义操作
+
+### lock/unlock
+
+比较具象的（面向资源的）语义操作，主要用在 `lock/mutex` 。
+
+
+
+### acquire/release
+
+这个是最抽象使用访问最广的语义操作，像`lock/condition/semaphore` 都可能使用这对…，在不同场景中表示不同的语义。
+
+
+
+### wait/notify/notifyAll
+
+比较具象的（面向task的）语义操作，主要用在`condition/monitor`
+
+
+
+### P/V
+
+主要用于`semaphore`
+
+
+
 # monitor - 管程
+
+
+
+## 概念
 
 * 协调 而不是 互斥
 * 面向任务 而不是 （共享）资源
@@ -128,19 +160,37 @@ ref：
 
 
 
+## java中的monitor
+
 **注意**：**java中的monitor有不同的含义**
 
 >  a **thread-safe** [class](https://en.wikipedia.org/wiki/Class_(computer_science)), [object](https://en.wikipedia.org/wiki/Object_(computer_science)), or [module](https://en.wikipedia.org/wiki/Module_(programming)) that uses wrapped [mutual exclusion](https://en.wikipedia.org/wiki/Mutual_exclusion) in order to safely allow access to a method or variable by more than one [thread](https://en.wikipedia.org/wiki/Thread_(computer_science)).
 >
-> The defining characteristic of a monitor is that its methods are executed with [mutual exclusion](https://en.wikipedia.org/wiki/Mutual_exclusion): At each point in time, at most one thread may be executing any of its [methods](https://en.wikipedia.org/wiki/Method_(computer_science)).
+>  The defining characteristic of a monitor is that its methods are executed with [mutual exclusion](https://en.wikipedia.org/wiki/Mutual_exclusion): At each point in time, at most one thread may be executing any of its [methods](https://en.wikipedia.org/wiki/Method_(computer_science)).
 >
-> > 也就是说 **java里的monitor只有互斥的语义**
+>  > 也就是说 **java里的monitor只有互斥的语义**
 
 > By using one or more condition variables it can also provide the ability for threads to wait on a certain condition (thus using the above definition of a "monitor"). 
 >
 > > 也就说 **本来可能没有** 或者 **本不必有** **等待条件**的语义
 
 > wikipedia里把这种monitor干脆称为**syntactic sugar “monitor class”**
+
+
+
+java的monitor的几个语义操作就更像是condition而不是lock，其目的也是为了协调线程并发执行而不是保护资源访问
+
+- synchronized
+- wait
+- notify/notifyAll
+
+同时，如果只用synchronized的话，那就跟lock一样了。
+
+而为了提供wait/notify的（condition的）语义操作，java（在一个简单的锁的基础上）额外提供了一个wait queue。
+
+
+
+## 示例
 
 ```java
 class Account {
@@ -182,6 +232,83 @@ class Account {
 
 
 
+## 实现
+
+
+
+### 伪码实现
+
+
+
+**semaphore实现的monitor**
+
+```java
+public method wait(Mutex m, ConditionVariable c){
+    assert m.held;
+    c.internalMutex.acquire();
+    
+    c.numWaiters++;
+    m.release(); // Can go before/after the neighboring lines.
+    c.internalMutex.release();
+
+    // Another thread could signal here, but that's OK because of how
+    // semaphores count.  If c.sem's number becomes 1, we'll have no
+    // waiting time.
+    c.sem.Proberen(); // Block on the CV.
+    // Woken
+    m.acquire(); // Re-acquire the mutex.
+}
+
+public method signal(ConditionVariable c){
+    c.internalMutex.acquire();
+    if (c.numWaiters > 0){
+        c.numWaiters--;
+        c.sem.Verhogen(); // (Doesn't need to be protected by c.internalMutex.)
+    }
+    c.internalMutex.release();
+}
+
+public method broadcast(ConditionVariable c){
+    c.internalMutex.acquire();
+    while (c.numWaiters > 0){
+        c.numWaiters--;
+        c.sem.Verhogen(); // (Doesn't need to be protected by c.internalMutex.)
+    }
+    c.internalMutex.release();
+}
+
+class Mutex {
+    protected boolean held=false; // For assertions only, to make sure sem's number never goes > 1.
+    protected Semaphore sem=Semaphore(1); // The number shall always be at most 1.
+                                          // Not held <--> 1; held <--> 0.
+
+    public method acquire(){
+        sem.Proberen();
+        assert !held;
+        held=true;
+    }
+    
+    public method release(){
+        assert held; // Make sure we never Verhogen sem above 1.  That would be bad.
+        held=false;
+        sem.Verhogen();
+    }
+}
+
+class ConditionVariable {
+    protected int numWaiters=0; // Roughly tracks the number of waiters blocked in sem.
+                                // (The semaphore's internal state is necessarily private.)
+    protected Semaphore sem=Semaphore(0); // Provides the wait queue.
+    protected Mutex internalMutex; // (Really another Semaphore.  Protects "numWaiters".)
+}
+```
+
+
+
+
+
+
+
 # lock - 锁
 
 锁应该只有等待的语义
@@ -194,6 +321,14 @@ class Account {
 
 
 至于是互斥还是spin得方式的等待，则是实现选择了。
+
+
+
+
+
+
+
+
 
 # mutex - 互斥量
 
@@ -608,6 +743,86 @@ CV关联到
 
 
 
+#### notify（all）和wait带来的状态变化
+
+ref： [notify和notifyAll的一段代码分析](http://www.importnew.com/10173.html)
+
+如：
+
+```java
+public synchronized void put(Object o) {
+    while ( buf.size() == MAX_SIZE) {
+         wait(); // 如果buffer为full，就会执行wait方法等待（为了简单，我们省略try/catch语句块）
+    }
+    buf.add(o);
+    notify(); // 通知所有正在等待对象锁的Producer和Consumer（译者注：包括被阻挡在方法外的Producer和Consumer）
+}
+ 
+// Y:这里是C2试图获取锁的地方(原作者将这个方法放到了get方法里面，此处，我把它放在了方法的外面)   
+public synchronized Object get() {
+    while ( buf.size() == 0) {
+         wait(); // 如果buffer为Null，就会执行wait方法（为了简单，同样省略try/catch语句块）
+          // X: 这里是C1试图重新获得锁的地方（看下面代码）
+    }
+    Object o = buf.remove(0);
+    notify(); // 通知所有正在等待对象锁的Producer和Consumer（译者注：包括被阻挡在方法外的Producer和Consumer）
+    return o;
+}
+```
+
+标准cond版本：
+
+```java
+public void put(Object o) {
+    stateChanged.acquire()
+    try {
+        while ( buf.size() == MAX_SIZE) {
+             stateChanged.wait();
+        }
+        buf.add(o);
+        stateChanged.notify(); 
+    } finally {
+      stateChanged.release()
+    }
+}
+ 
+public Object get() {
+    stateChanged.acquire()
+    try {
+        while ( buf.size() == 0) {
+             wait();
+        }
+        Object o = buf.remove(0);
+        notify();
+        return o;      
+    } finally {
+        stateChanged.release()
+    }
+}
+```
+
+
+
+
+
+几个细节：
+
+* 为什么需要while，也即 对于consumer，wait返回后不能表示**notEmpty**吗？
+
+  * 首先，参考改写的`标准cond版本`可以知道： 该场景下，notEmpty和notFull用的是同一个cond `stateChanged`（只有一个waiter-queue），所以被唤醒的不一定是期望的waiters。 
+
+    比如consumer消费后唤醒下一个consumer... 自然不能保证被唤醒的consumer有item可以消费
+
+  * 以consumer为例，不只有（notEmpty）waiters竞争，还有**new-comer**跟waiter竞争，waiter被唤醒（这时如果是正确（被producer）唤醒的话应该是有item可消费的，但）后会和**其他waiters以及new-comers**争抢🔐，那么自然不保证等抢到🔐后还有item可消费
+
+    producer同理
+
+* 所以cond只表示条件（达成）不表示资源可用，后者可以用semaphore
+
+  后面也可以看到semaphore的实现之一就是**cond+资源计数**
+
+
+
 #### notify和notifyAll区别
 
 假定场景：
@@ -631,13 +846,312 @@ CV关联到
 
     * 之后每次释放`_lock`都会面对so many block tasks的情况
 
-      > 无论如何开销还是比notify大一些吧，只是看lock实现确定大多少
-      >
-      > 而且还有个问题是： 
-      >
-      > * `_lock`这把锁的主要是控制wait_queue访问的，也就是控制**尝试wait**的，所以这把锁往往粒度小也即获取/释放频繁
-      >
-      > 如果大量的tasks是在block而不是wait的话，有一些**本以为短暂加锁**的逻辑会因为锁竞争而耗时超过预期，比如之后再执行单个notify时，最后获得锁的不是wait的而是众多block的tasks之一的概率较大
+      > 至于会不会惊群要看`_lock`的实现了
+
+  但以上不是重点，重点在于，如前面提到的，如果用单cond（单waiter-queue）来描述多个条件/状态的话，会带来**错误唤醒**的问题，这时候除了re-check以外，还需要用notifyAll来使得最终能唤醒合适的waiter。
+
+  下面假设MAX为3，初始为2
+
+  1. consumer 消费完（此时为1），notifyAll
+
+  2. 所有consumers、producers被唤醒
+
+     * 另一consumer拿到🔐
+
+       1. 检查value，为notEmpty，消费（此时为0），notifyAll
+
+       2. 所有consumers、producers被唤醒
+
+          * 另一consumer拿到🔐
+
+            1. 检查value，为empty，wait
+
+            2. wait会释放🔐
+
+            3. 因为前面所有...都被唤醒，所有都会block waiting for🔐（当然还可能会有新加入的waiters不会），这时会有新的consumer/producer拿到🔐
+
+               *… 重复这个流程，直到被producer拿到*
+
+     * 另一producer拿到🔐
+
+       和上面的流程差不多（镜像），略...
+
+
+
+
+此外，还有一个场景： **账户扣款**
+
+扣款的特点是：
+
+* 每笔扣款的额度可能不同，所以没有一个单一的达成条件
+* +款无需等扣款完成
+
+
+
+伪码示例如下：
+
+    ```java
+monitor class Account {
+  private int balance := 0
+  invariant balance >= 0
+  private NonblockingCondition balanceMayBeBigEnough
+    
+  public method withdraw(int amount)
+     precondition amount >= 0
+  {
+    while balance < amount do wait balanceMayBeBigEnough
+    assert balance >= amount
+    balance := balance - amount
+  }
+  
+  public method deposit(int amount)
+     precondition amount >= 0
+  {
+    balance := balance + amount
+    notify all balanceMayBeBigEnough
+  }
+}
+    ```
+
+
+
+wait_for版本
+
+```java
+monitor class Account {
+  private int balance := 0
+  invariant balance >= 0
+  private NonblockingCondition balanceMayBeBigEnough
+    
+  public method withdraw(int amount)
+     precondition amount >= 0
+  {
+    while balance < amount do wait for balanceMayBeBigEnough () -> balance >= amount  // 依赖闭包特性
+    balance := balance - amount
+  }
+  
+  public method deposit(int amount)
+     precondition amount >= 0
+  {
+    balance := balance + amount
+    notify all balanceMayBeBigEnough
+  }
+}
+```
+
+
+
+> 注意： 类似wait_for的特性，需要能被及时唤醒以检查条件是否达成（没达成就继续wait）
+
+
+
+### 两种condition： 阻塞式（hoare style - signal and urgent wait） or 非阻塞式（mesa style - signal and contine）
+
+signal后，signaling thread和signaled thread都希望获得monitor，不同的选择衍生出不同的风格：
+
+* 阻塞式： signaled thread优先
+* 非阻塞式： signaling thread优先
+
+
+
+为了便于比较，把两种方式异同列出如下：
+
+* `x.q` wait在条件变量x上的task的队列
+
+* `e` entrance queue
+
+  抽象概念，对标实现的话，可能是 `底层提供的有该语义的实体`
+
+  以py的condition为例：
+
+  * e queue实际就是 `_lock`的实现里的queue
+  * mesa风格的signal里的
+
+* `s` a queue of threads that have signaled
+
+  跟开始的理解相反，开始理解： `被signal的threads`； 实际是： `执行过signal操作的threads`
+
+* 操作
+
+  * schedule
+
+    hoare
+
+    ```python
+      schedule :
+        if there is a thread on s
+          select and remove one thread from s and restart it
+          (this thread will occupy the monitor next)
+        else if there is a thread on e
+          select and remove one thread from e and restart it
+          (this thread will occupy the monitor next)
+        else
+          unlock the monitor
+          (the monitor will become unoccupied)
+    ```
+
+    被唤醒的task自动持有monitor并负责释放，如果没有则由signaler负责释放。
+
+    和mesa区别在于多考虑一个s-queue。
+
+    ​
+
+    mesa
+
+    ```python
+      schedule :
+        if there is a thread on e
+          select and remove one thread from e and restart it
+        else
+          unlock the monitor
+    ```
+
+    被唤醒的task自动持有monitor并负责释放，如果没有则由signaler负责释放。
+
+    ​
+
+  * enter monitor
+
+    ```python
+     enter the monitor:
+        enter the method
+        if the monitor is locked
+            add this thread to e
+            block this thread
+        else
+            lock the monitor
+    ```
+
+    ​
+
+  * leave/exit monitor
+
+    ```python
+     leave the monitor:
+        schedule
+        return from the method
+    ```
+
+    ​
+
+  * wait c
+
+    ```python
+     wait c :
+        add this thread to c.q
+        schedule
+        block this thread
+    ```
+
+    ​
+
+  * signal c (notify/notifyAll c)
+
+    **signal-and-urgent-wait**
+
+    ```python
+     signal c :
+        if there is a thread waiting on c.q
+            select and remove one such thread t from c.q
+            (t is called "the signaled thread")
+            add this thread to s  # s queue，优先于e queue
+            restart t
+            (so t will occupy the monitor next)
+            block this thread  # 然后就只能等t leave时调schedule来唤醒，也即 wait-for-t-completion
+    ```
+
+    等待被唤醒的执行完
+
+    ​
+
+    **signal-and-wait**
+
+    ```python
+     signal c :
+        if there is a thread waiting on c.q
+            select and remove one such thread t from c.q
+            (t is called "the signaled thread")
+            add this thread to e  # 复用e queue
+            restart t
+            (so t will occupy the monitor next)
+            block this thread  # 然后就只能等t leave时调schedule来唤醒，也即 wait-for-t-completion
+    ```
+
+    和urgent一样，区别只在于 signaler thread 和waiters复用一个队列，不优先被唤醒
+
+    ​
+
+    **signal-and-return**
+
+    ```python
+     signal c and return :
+        if there is a thread waiting on c.q
+            select and remove one such thread t from c.q
+            (t is called "the signaled thread")
+            restart t
+            (so t will occupy the monitor next)
+        else
+            schedule
+        return from the method
+    ```
+
+    不等待
+
+    ​
+
+    **非阻塞风格condition变量里signal通常被称为notify**
+
+    **signal-and-continue**
+
+
+    ```python
+     notify c :
+        if there is a thread waiting on c.q
+            select and remove one thread t from c.q
+            (t is called "the notified thread")
+            move t to e
+    ```
+
+    ```python
+     notify all c :
+        move all threads waiting on c.q to e
+    ```
+
+    不等待，并且：
+
+    **mesa风格里notify时不做restart而是move to e queue，然后在schedule时restart**，相比**hoare风格里会在signal里直接restart而不是move to e queue**
+
+
+
+
+
+
+
+![](resource/Monitor (synchronization) - Wikipedia_files/200px-Monitor_(synchronization)-SU.png)
+
+![](resource/Monitor (synchronization) - Wikipedia_files/200px-Monitor_(synchronization)-Mesa.png)
+
+
+
+
+
+#### 阻塞式（hoare style - signal and urgent wait）
+
+![](resource/Monitor (synchronization) - Wikipedia_files/200px-Monitor_(synchronization)-SU.png)
+
+
+
+#### 非阻塞式（mesa style - signal and contine）
+
+![](resource/Monitor (synchronization) - Wikipedia_files/200px-Monitor_(synchronization)-Mesa.png)
+
+
+
+### wait for（predicate）
+
+参见前面扣款的例子，wait有时是case-specific的，于是就需要类似 wait-for 的语义操作。
+
+
 
 
 

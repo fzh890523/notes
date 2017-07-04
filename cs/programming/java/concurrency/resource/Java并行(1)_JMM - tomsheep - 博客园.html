@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Java并行(1):JMM - tomsheep - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=m_FXmwz3wxZoecUwNEK23PAzc-j9vbX_C6MblJ5ouMc1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001.css?v=dNz80TfH9-81kuLR86t4JWgT2tb_J0B779DQM4kw0WU1"/>
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="/skins/AnotherEon001/bundle-AnotherEon001-mobile.css?v=e_QVfUeTMKJaQaYv1olAXHEIJXw3W1tp4SPxjnummuY1"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/tomsheep/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/tomsheep/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/tomsheep/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'tomsheep', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=E1-LyrzANB2jbN9omtnpOHx3eU0Kt3DyislfhU0b5p81" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/tomsheep/">Lambda</a></h1>
+<div id="subtitle">Y(F) = F(Y(F))</div>
+</div>
+<div id="sub"><div id="blog_stats">
+<div class="BlogStats">随笔 - 37, 文章 - 0, 评论 - 4, 引用 - 0</div>
+</div></div>
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/tomsheep/archive/2010/06/08/1753645.html">Java并行(1):JMM</a>
+		</h2>
+		<div class="postbody">
+		<div id="cnblogs_post_body"><p>1.什么是JMM？</p> <p>&nbsp;&nbsp;&nbsp; JMM即Java Memory Model，设想有这样一条赋值语句：int a = 1;而a为诸多线程所共享， JMM所关注的问题就是：“读取a的线程在何时会看到值为1的这个写入？”</p> <p>2. 为什么关注JMM？</p> <p>&nbsp;&nbsp;&nbsp; 在多数情况下，即使是并发程序的程序员，也并不特别关心JMM，因为Java语言与JVM用更高抽象的“同步”语义隐藏了JMM的语义，使得程序员即便对JMM一无所知，也可以写出优雅的并发程序。许多介绍Java同步机制的资料也并不对JMM做过多的介绍。那么你可能会问，“那一上来就讨论JMM有毛用啊？”相信我，是有毛用的。虽然我对Java并不是十分精通，Java下的并发编程更是新上手的菜鸟，但近一段时间的学习经验告诉我，所谓同步，无非关注于两点，一是互斥性，二是可见性。结合自己过去的认识，对并发的理解过多侧重于“互斥性”，而对“可见性”一知半解，影响了对同步更精细的理解。JMM则对此有十分清晰的阐述。</p> <p>3.JMM从何而来？</p> <p>&nbsp;&nbsp;&nbsp; 这就要从盘古开天辟地开始说起了……话说冯诺依曼童鞋当年提出经典的体系结构时，打死他想不到现代的计算机体系结构会发展到这个鸟样子。冯诺依曼模型是一个顺序化的计算模型，可见性不是什么问题，而今天的多处理器架构已经很少再使用顺序一致化模型，而且处理器和编译器的一些优化都会对内存的可见性产生影响：</p> <p>a. 处理器乱序执行</p> <p>b. 存储在处理器本地的缓存，对其他处理器不可见</p> <p>c. 作为优化，编译器可能把变量存在寄存器而非内存</p> <p>d. 聪明的编译器可能改变生成指令的顺序</p> <p>&nbsp;&nbsp;&nbsp; 更棘手的是，江湖之大，各门各派对这些行为并没有达成统一的共识，不同架构的处理器提供了不同级别的cache coherence，而所谓一种架构的Memroy Model，即是说在该架构中，Memory的行为对应用程序做出怎样的担保。而不同架构中memory barrier这样特殊的指令，正是为了获得memory协调性而引入的。而JMM则隐藏了这些不同架构MM的差异性，千秋万载一统江湖斯密达。</p> <p>4. Happens-before关系</p> <p>&nbsp;&nbsp;&nbsp; 在介绍JMM之前，我们先来了解一些比较重要的概念：</p> <p>a. 如果我们把程序看成一个“动作”的集合U，在一个程序的一次执行中，所有这些动作都会在时间上（注意是时间上）有一个次序关系，我们记做“tb”(time-before)关系，显然tb是一个“全序关系”（反对称，传递，并且任意两个动作可比）</p> <p>b. 在这个“动作”集合中，有一些动作被称作“同步动作”，包括上锁/解锁，读写volitile变量，线程开始/结束等。在这个同步动作子集S上，有一个全序“sw”（synchronize-with）关系。详细的SW定义：</p> <ul> <li>对同一个锁，有上锁动作A，解锁动作B，如果B tb A， 则B sw A  <li>对同一个volatile变量，有写动作A，读动作B，如果B tb A，则B sw A  <li>对于一个线程，start动作记做A，B为任一该线程中的动作，则A sw B  <li>对于一个线程，检测到线程终结的动作记做A（包括join返回，isAlive返回false等），B为任一该线程中的动作，则B sw A  <li>线程t1调用线程t2的interrupt动作记做A，t2检测到中断（抛出InterruptedException，或者检测到interrupt状态更改）记做B，则 A sw B  <li>对一个变量默认值赋值（0，false，null）动作记做A，对它的任意操作记做B，则A sw B  <li>一个对象的构造函数结束动作记做A，该对象的finalizer开始记做B，则A sw B</li></ul> <p><font color="#800080">SW一致性含义</font>：在全序SW中，任一个读操作读到的值是在它之前最后一个写操作写入的值。</p> <p>&nbsp;</p> <p>c. 在动作集合U上，有一个偏序（自反，反对称，传递，但不是任意两个元素可比）“hb”(happens-before)关系，而他和sw关系有着千丝万缕的关系：那就是如果把sw关系从S集合拿到他的超集U中，求传递闭包，再加上“intra thread原则”——单一线程中，如果动作B在程序中出现在动作A之后，那么A hb B（这很好理解，相当于顺序模型运用在了每个线程内部）。</p> <p>即有：&nbsp; HB = t(SW) + IntraThread.</p> <p>&nbsp;&nbsp;&nbsp; OK，现在我们已经对HB关系做出了定义。之所以要把它用离散数学的语言写出来，不单单是为了装逼，而是我深感在一些概念性的解释中，数学语言的描述是最简洁、歧义最小、最易于理解的。</p> <p><font color="#800080">HB一致性的含义</font>：对于一个变量，有读操作R，写操作W，如果不存在R hb W，并且也不存在另一个写操作W’，使得W hb W‘，并且W’ hb R，那么，W所写的值对于R来说，是“可能”看见的。（这好像法律条文——凡是没有禁止的，都是可能做的）</p> <p>&nbsp;</p> <p><font color="#ff0000">注意1</font>：这里需要提出的一点是，HB关系和TB关系是没有必然联系的，也就是，如果A hb B， A不一定tb B， 反过来也一样， 如果A tb B， 不一定就有 A hb B， 这是通常容易混淆的。</p> <p><font color="#ff0000">注意2</font>：从我们的定义中就可以发现，tb、sw的某些规则（前两条）、hb的某些规则（从sw演化而来的）都是依赖于某次特定的执行（execution）的，在这些情景下，脱离了这个前提，单纯的提A hb B还是C sw D都是没有意义的。</p> <p>&nbsp;</p> <p>5. JMM现身</p> <p>&nbsp;&nbsp;&nbsp; 做了这么多铺垫，主角到现在还没有出现，作为导演鸭梨很大。前面已经介绍了HB关系模型，您可能认为这就是JMM了，其实是有微小差别的——JMM是一种更严格的HB模型。严格在哪里呢？JSR133中有一大段形式化描述，看得犯晕，即使我个人再喜欢装逼也万难再描述一遍，我用我的理解来做出简单的解释，请大牛们检查。我们看一个例子：</p> <p>初始条件：x = y = 0</p> <div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid"> <div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div> <div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>Thread 1:
+a = x; <span style="color: #008000">//A</span>
+<span style="color: #0000ff">if</span>(a == 1)  <span style="color: #008000">//B</span>
+  y = 1;  <span style="color: #008000">//C</span>
+
+Thread 2:
+b = y;  <span style="color: #008000">//D</span>
+<span style="color: #0000ff">if</span>(b == 1)  <span style="color: #008000">//E</span>
+  x = 1; <span style="color: #008000">//F</span></pre></div></div>
+<p>看上去有点paradox的意思，你可能认为最终a = 0， b = 0是唯一的结果。但是，在HB模型中，不是这样的。让我们来看上面这个例子：我们没有对两个线程做任何同步，对于a，b，x，y的读写都是可能存在data race的。</p>
+<p><font color="#800080">插播一条data race的定义</font>：对同一变量的两个操作A、B，如果至少有一个写操作，并且A、B不存在HB关系，则我们说两操作存在data race。</p>
+<p>&nbsp;&nbsp;&nbsp; 这里，我们把六个操作分别编号（其实6个操作可以再细分为很多个小操作，但这里不需要），我们从HB的定义中可知，同一线程中，A hb B，B hb C，D hb E， E hb F，但是，这个例子中，F和A并没有HB关系，根据HB一致性原则，那么A可以读到F的写入；同理，D可以读到C的写入——这是违背直觉的，但我们并没有违反HB的法律。所以在HB模型中，这是被允许的。</p>
+<p>&nbsp;&nbsp;&nbsp; 在JMM中，上述情景是被禁止的。而JMM是通过什么新的条文做到这一点的？我的理解是，只用了下面一条规则：</p>
+<p><font color="#800080">JMM附加规则</font>：如果某一动作的发生与否不取决于任何data race的发生与否，那么，这个动作是可以被early committed的。</p>
+<p>&nbsp;&nbsp;&nbsp; 带着这条规则，我们再来看上述例子，显然，这样一来，F不能在A之前commit，因为他依赖于对y读写data race的发生，y又依赖x，绕回来了，总之，如果不发生竞争写入，则F不可能发生。如此一来，上述情景被禁止了。为了更好理解，我们再来看一个例子：</p>
+<p>初始条件：x = y = 0</p>
+<p></p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>Thread 1:
+a = x; <span style="color: #008000">//A</span>
+y = 1;  <span style="color: #008000">//B</span>
+
+Thread 2:
+b = y;  <span style="color: #008000">//C</span>
+x = 1; <span style="color: #008000">//D</span></pre></div></div>
+<p>看上去跟刚才那个例子差不多，但如果我告诉你在这个例子中，a = 1， b =1 就是可以被JMM接受的，你会不会感到惊讶？让我们再来检查我们的规则：同样，D和A没有HB关系，B和C没有HB关系，而且，对于附加规则，B、D动作的发生不依赖与任何data race， 即是说，有没有data race，我都可以发生，那么，所有限制性规则再次全军覆没，a = 1， b = 1 可以接受。</p>
+<p>最后一个例子：</p>
+<p>初始条件：x = y = 0</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>Thread 1:
+a = x;  <span style="color: #008000">//A</span>
+b = a | 1;  <span style="color: #008000">//B</span>
+y = b;  <span style="color: #008000">//C</span>
+
+Thread 2:  
+c = y;  <span style="color: #008000">//D</span>
+x = c;  <span style="color: #008000">//E</span></pre></div></div>
+<p>这个例子就没有刚才那么直观了，现在的问题是a = b = c = 1是JMM可以接受的结果吗？直觉上说，你可能脱口而出，不可能，因为违反了附加规则：操作B依赖于x的data race，x依赖y……B不能提前commit。你很聪明，但是，遗憾的是，编译器比你还聪明。我们看，在B执行的时候，a的取值可能有哪些？没错，无非是0或者1，那么，作为一个比你还聪明的编译器，看出“B操作的本质无非是b = 1，这个操作不依赖于data race发生与否”这一事实，应该是情理之中吧。那么它就会做出优化，把上述代码变为：</p>
+<div style="border-bottom: #7f7f7f 1px solid; border-left: #7f7f7f 3px solid; width: 900px; background: #eeeeee 0px 0px; overflow: auto; border-top: #7f7f7f 1px solid; border-right: #7f7f7f 1px solid">
+<div style="border-bottom: #eaeaea 1px dotted; padding-bottom: 4px; padding-left: 4px; padding-right: 4px; background: #afafaf 0px 0px; font-weight: bold; padding-top: 4px"><img style="margin: 0px 2px -3px 0px" alt="div css xhtml xml Example Source Code" src="http://images.cnblogs.com/cnblogs_com/suyuan/quote.gif"> Example Source Code <span style="color: #afafaf; font-weight: 100">[http://www.cnblogs.com/tomsheep/]</span> </div>
+<div style="padding-bottom: 6px; line-height: 140%; padding-left: 6px; padding-right: 6px; padding-top: 6px"><pre>Thread 1:
+a = x;  <span style="color: #008000">//A</span>
+b = 1;  <span style="color: #008000">//B</span>
+y = 1;  <span style="color: #008000">//C</span>
+
+Thread 2:  
+c = y;  <span style="color: #008000">//D</span>
+x = c;  <span style="color: #008000">//E</span></pre></div></div>
+<p></p>
+<p>现在，你还说他违反附加原则吗？因此这个情景是被JMM接受的。</p>
+<p>&nbsp;</p>
+<p>上述是我对JMM一点皮毛的理解，主要参考资料：</p>
+<p>1. JSR133</p>
+<p>2. Addison Wesley, Java Concurrency in Practice ,Brian Goetz</p>
+<p>3. 各路网文</p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+		</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2010-06-08 02:42</span> <a href='http://www.cnblogs.com/tomsheep/'>tomsheep</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=1753645" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(1753645);return false;">收藏</a>
+		</p>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=65480,cb_entryId=1753645,cb_blogApp=currentBlogApp,cb_blogUserGuid='759b9fbe-d9fe-de11-ba8f-001cf0cd104b',cb_entryCreatedDate='2010/6/8 2:42:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+<li>
+<a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li>
+<a id="blog_nav_myhome" class="two_words" href="http://www.cnblogs.com/tomsheep/">首页</a></li>
+<li>
+<a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li>
+<a id="blog_nav_contact" accesskey="9" class="two_words" rel="nofollow" href="https://msg.cnblogs.com/send/tomsheep">联系</a></li>
+<li>
+<a id="blog_nav_rss" class="two_words" href="http://www.cnblogs.com/tomsheep/rss">订阅</a>
+<a id="blog_nav_rss_image" href="http://www.cnblogs.com/tomsheep/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a>
+</li>
+<li>
+<a id="blog_nav_admin" class="two_words" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+
+<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+<meta name="vs_showGrid" content="False">
+
+<h3>公告</h3>
+<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+
+<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+
+<p id="footer">
+	Powered by: 
+	<br />
+	
+	<a id="Footer1_Hyperlink3" NAME="Hyperlink1" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br />
+	Copyright &copy; tomsheep
+</p>
+</div>
+</div>
+
+</body>
+</html>
