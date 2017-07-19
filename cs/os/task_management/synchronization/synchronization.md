@@ -5,6 +5,8 @@
 ref：
 
 * [wikipedia - Monitor](https://en.wikipedia.org/wiki/Monitor_(synchronization))
+* [Lecture 8: Monitors](http://www.cs.cornell.edu/courses/cs4410/2015su/lectures/lec08-mon.html)
+
 
 
 

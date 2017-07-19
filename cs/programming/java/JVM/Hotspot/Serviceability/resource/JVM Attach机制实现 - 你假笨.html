@@ -1,0 +1,797 @@
+
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>JVM Attach机制实现 - 你假笨</title>
+	<meta name="author" content="你假笨">
+
+	
+	<meta name="description" content="JVM Attach机制实现 Attach是什么 &#8195;&#8195;在讲这个之前，我们先来点大家都知道的东西，当我们感觉线程一直卡在某个地方，想知道卡在哪里，首先想到的是进行线程dump，而常用的命令是jstack ，我们就可以看到如下线程栈了 2014-06-18 12:56:14 &hellip;">
+	
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="你假笨" type="application/atom+xml">
+	
+	<link rel="canonical" href="http://nijiaben.github.io/blog/2014/06/18/jvm-attach/">
+	<link href="/images/favicon.ico" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Nunito:400,300,700' rel='stylesheet' type='text/css'>
+	<script src="/javascripts/jquery-3.1.1.min.js"></script>
+	
+  
+
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="left-col">
+			<div class="intrude-less">
+			<header id="header" class="inner"><div class="profilepic">
+	
+	<script src="/javascripts/md5.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			$('.profilepic').append("<a href='/'><img src='/images/header/header.jpg' alt='Profile Picture' style='width: 160px;' /></a>");
+		});
+	</script>
+	
+</div>
+
+<nav id="main-nav"><ul class="main">
+	<li><font size="5" color="#ef7522">【你假笨@JVM】</font></li>
+    <li><a href="/">文章</a></li>
+    <li><a href="/blog/archives">归档</a></li>
+    <li><a href="/comments/latest.html">最新评论</a></li>
+    <li><a href="/about/index.html">关于你假笨</a></li><br/>
+    <li><font color="#ef7522">文章一般会在博客和个人微信公众号同步，欢迎各位关注本人微信公众号<br/>【你假笨】</font></li><br/><img src="/images/gzh.jpg" height="200" width="200"/></li>
+</ul>
+
+</nav>
+<nav id="sub-nav">
+	<div class="social">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    	
+    	
+			<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+		
+                        <a class="weibo" href="http://weibo.com/nijiaben" title="weibo">新浪微博</a>
+                
+	</div>
+</nav>
+</header>				
+			</div>
+		</div>	
+		<div class="mid-col">
+			
+				
+			
+			<div class="mid-col-container">
+				<div id="content" class="inner"><article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+	<h1 class="title" itemprop="name">JVM Attach机制实现</h1>
+	<div class="entry-content" itemprop="articleBody"><h2>Attach是什么</h2>
+
+<p>   &#8195;&#8195;在讲这个之前，我们先来点大家都知道的东西，当我们感觉线程一直卡在某个地方，想知道卡在哪里，首先想到的是进行线程dump，而常用的命令是jstack <pid>，我们就可以看到如下线程栈了</p>
+
+<!--more-->
+
+
+
+
+<pre class="prettyPrint">
+2014-06-18 12:56:14
+Full thread dump Java HotSpot(TM) 64-Bit Server VM (24.51-b03 mixed mode):
+
+"Attach Listener" daemon prio=5 tid=0x00007fb0c6800800 nid=0x440b waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Service Thread" daemon prio=5 tid=0x00007fb0c584d800 nid=0x5303 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread1" daemon prio=5 tid=0x00007fb0c482e000 nid=0x5103 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread0" daemon prio=5 tid=0x00007fb0c482c800 nid=0x4f03 waiting on condition [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Signal Dispatcher" daemon prio=5 tid=0x00007fb0c4815800 nid=0x4d03 runnable [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Finalizer" daemon prio=5 tid=0x00007fb0c4813800 nid=0x3903 in Object.wait() [0x00000001187d2000]
+   java.lang.Thread.State: WAITING (on object monitor)
+    at java.lang.Object.wait(Native Method)
+    - waiting on <0x00000007aaa85568> (a java.lang.ref.ReferenceQueue$Lock)
+    at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:135)
+    - locked <0x00000007aaa85568> (a java.lang.ref.ReferenceQueue$Lock)
+    at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:151)
+    at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:189)
+
+"Reference Handler" daemon prio=5 tid=0x00007fb0c4800000 nid=0x3703 in Object.wait() [0x00000001186cf000]
+   java.lang.Thread.State: WAITING (on object monitor)
+    at java.lang.Object.wait(Native Method)
+    - waiting on <0x00000007aaa850f0> (a java.lang.ref.Reference$Lock)
+    at java.lang.Object.wait(Object.java:503)
+    at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:133)
+    - locked <0x00000007aaa850f0> (a java.lang.ref.Reference$Lock)
+
+"main" prio=5 tid=0x00007fb0c5800800 nid=0x1903 waiting on condition [0x0000000107962000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+    at java.lang.Thread.sleep(Native Method)
+    at Test.main(Test.java:5)
+
+"VM Thread" prio=5 tid=0x00007fb0c583d800 nid=0x3503 runnable
+
+"GC task thread#0 (ParallelGC)" prio=5 tid=0x00007fb0c401e000 nid=0x2503 runnable
+
+"GC task thread#1 (ParallelGC)" prio=5 tid=0x00007fb0c401e800 nid=0x2703 runnable
+
+"GC task thread#2 (ParallelGC)" prio=5 tid=0x00007fb0c401f800 nid=0x2903 runnable
+
+"GC task thread#3 (ParallelGC)" prio=5 tid=0x00007fb0c4020000 nid=0x2b03 runnable
+
+"GC task thread#4 (ParallelGC)" prio=5 tid=0x00007fb0c4020800 nid=0x2d03 runnable
+
+"GC task thread#5 (ParallelGC)" prio=5 tid=0x00007fb0c4021000 nid=0x2f03 runnable
+
+"GC task thread#6 (ParallelGC)" prio=5 tid=0x00007fb0c4022000 nid=0x3103 runnable
+
+"GC task thread#7 (ParallelGC)" prio=5 tid=0x00007fb0c4022800 nid=0x3303 runnable
+
+"VM Periodic Task Thread" prio=5 tid=0x00007fb0c5845000 nid=0x5503 waiting on condition
+
+</pre>
+
+
+<p>   &#8195;&#8195;大家是否注意过上面圈起来的两个线程，”Attach Listener”和“Signal Dispatcher”，这两个线程是我们这次要讲的Attach机制的关键，先偷偷告诉各位，其实Attach Listener这个线程在jvm起来的时候可能并没有的，后面会细说。</p>
+
+<p>   &#8195;&#8195;那Attach机制是什么？说简单点就是jvm提供一种jvm进程间通信的能力，能让一个进程传命令给另外一个进程，并让它执行内部的一些操作，比如说我们为了让另外一个jvm进程把线程dump出来，那么我们跑了一个jstack的进程，然后传了个pid的参数，告诉它要哪个进程进行线程dump，既然是两个进程，那肯定涉及到进程间通信，以及传输协议的定义，比如要执行什么操作，传了什么参数等</p>
+
+<h2>Attach能做些什么</h2>
+
+<p>   &#8195;&#8195;总结起来说，比如内存dump，线程dump，类信息统计(比如加载的类及大小以及实例个数等)，动态加载agent(使用过btrace的应该不陌生)，动态设置vm flag(但是并不是所有的flag都可以设置的，因为有些flag是在jvm启动过程中使用的，是一次性的)，打印vm flag，获取系统属性等，这些对应的源码(AttachListener.cpp)如下</p>
+
+<pre class="prettyPrint">
+static AttachOperationFunctionInfo funcs[] = {
+  { "agentProperties",  get_agent_properties },
+  { "datadump",         data_dump },
+  { "dumpheap",         dump_heap },
+  { "load",             JvmtiExport::load_agent_library },
+  { "properties",       get_system_properties },
+  { "threaddump",       thread_dump },
+  { "inspectheap",      heap_inspection },
+  { "setflag",          set_flag },
+  { "printflag",        print_flag },
+  { "jcmd",             jcmd },
+  { NULL,               NULL }
+};
+</pre>
+
+
+<p>&#8195;&#8195;后面是命令对应的处理函数。</p>
+
+<h2>Attach在jvm里如何实现的</h2>
+
+<h3>Attach Listener线程的创建</h3>
+
+<p> &#8195;&#8195;前面也提到了，jvm在启动过程中可能并没有启动Attach Listener这个线程，可以通过jvm参数来启动，代码  （Threads::create_vm）如下：</p>
+
+<pre class="prettyPrint"> 
+  if (!DisableAttachMechanism) {
+    if (StartAttachListener || AttachListener::init_at_startup()) {
+      AttachListener::init();
+    }
+  }
+bool AttachListener::init_at_startup() {
+  if (ReduceSignalUsage) {
+    return true;
+  } else {
+    return false;
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;其中DisableAttachMechanism，StartAttachListener ，ReduceSignalUsage均默认是false(globals.hpp)</p>
+
+<pre class="prettyPrint">
+product(bool, DisableAttachMechanism, false,                              \
+         "Disable mechanism that allows tools to Attach to this VM”)   
+product(bool, StartAttachListener, false,                                 \
+          "Always start Attach Listener at VM startup")  
+product(bool, ReduceSignalUsage, false,                                   \
+          "Reduce the use of OS signals in Java and/or the VM”)  
+</pre>
+
+
+<p>&#8195;&#8195;因此AttachListener::init()并不会被执行，而Attach Listener线程正是在此方法里创建的</p>
+
+<pre class="prettyPrint">
+// Starts the Attach Listener thread
+void AttachListener::init() {
+  EXCEPTION_MARK;
+  klassOop k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_Thread(), true, CHECK);
+  instanceKlassHandle klass (THREAD, k);
+  instanceHandle thread_oop = klass->allocate_instance_handle(CHECK);
+
+  const char thread_name[] = "Attach Listener";
+  Handle string = java_lang_String::create_from_str(thread_name, CHECK);
+
+  // Initialize thread_oop to put it into the system threadGroup
+  Handle thread_group (THREAD, Universe::system_thread_group());
+  JavaValue result(T_VOID);
+  JavaCalls::call_special(&result, thread_oop,
+                       klass,
+                       vmSymbols::object_initializer_name(),
+                       vmSymbols::threadgroup_string_void_signature(),
+                       thread_group,
+                       string,
+                       CHECK);
+
+  KlassHandle group(THREAD, SystemDictionary::ThreadGroup_klass());
+  JavaCalls::call_special(&result,
+                        thread_group,
+                        group,
+                        vmSymbols::add_method_name(),
+                        vmSymbols::thread_void_signature(),
+                        thread_oop,             // ARG 1
+                        CHECK);
+
+  { MutexLocker mu(Threads_lock);
+    JavaThread* listener_thread = new JavaThread(&Attach_listener_thread_entry);
+
+    // Check that thread and osthread were created
+    if (listener_thread == NULL || listener_thread->osthread() == NULL) {
+      vm_exit_during_initialization("java.lang.OutOfMemoryError",
+                                    "unable to create new native thread");
+    }
+
+    java_lang_Thread::set_thread(thread_oop(), listener_thread);
+    java_lang_Thread::set_daemon(thread_oop());
+
+    listener_thread->set_threadObj(thread_oop());
+    Threads::add(listener_thread);
+    Thread::start(listener_thread);
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;既然在启动的时候不会创建这个线程，那么我们在上面看到的那个线程是怎么创建的呢，这个就要关注另外一个线程“Signal Dispatcher”了，顾名思义是处理信号的，这个线程是在jvm启动的时候就会创建的，具体代码就不说了。</p>
+
+<p>&#8195;&#8195;下面以jstack的实现来说明触发Attach这一机制进行的过程，jstack命令的实现其实是一个叫做JStack.java的类，查看jstack代码后会走到下面的方法里</p>
+
+<pre class="prettyPrint">
+private static void runThreadDump(String pid, String args[]) throws Exception {
+        VirtualMachine vm = null;
+        try {
+            vm = VirtualMachine.Attach(pid);
+        } catch (Exception x) {
+            String msg = x.getMessage();
+            if (msg != null) {
+                System.err.println(pid + ": " + msg);
+            } else {
+                x.printStackTrace();
+            }
+            if ((x instanceof AttachNotSupportedException) &&
+                (loadSAClass() != null)) {
+                System.err.println("The -F option can be used when the target " +
+                    "process is not responding");
+            }
+            System.exit(1);
+        }
+
+        // Cast to HotSpotVirtualMachine as this is implementation specific
+        // method.
+        InputStream in = ((HotSpotVirtualMachine)vm).remoteDataDump((Object[])args);
+
+        // read to EOF and just print output
+        byte b[] = new byte[256];
+        int n;
+        do {
+            n = in.read(b);
+            if (n > 0) {
+                String s = new String(b, 0, n, "UTF-8");
+                System.out.print(s);
+            }
+        } while (n > 0);
+        in.close();
+        vm.detach();
+    }
+</pre>
+
+
+<p>&#8195;&#8195;请注意VirtualMachine.Attach(pid);这行代码，触发Attach pid的关键，如果是在linux下会走到下面的构造函数</p>
+
+<pre class="prettyPrint">
+LinuxVirtualMachine(AttachProvider provider, String vmid)
+        throws AttachNotSupportedException, IOException
+    {
+        super(provider, vmid);
+
+        // This provider only understands pids
+        int pid;
+        try {
+            pid = Integer.parseInt(vmid);
+        } catch (NumberFormatException x) {
+            throw new AttachNotSupportedException("Invalid process identifier");
+        }
+
+        // Find the socket file. If not found then we attempt to start the
+        // Attach mechanism in the target VM by sending it a QUIT signal.
+        // Then we attempt to find the socket file again.
+        path = findSocketFile(pid);
+        if (path == null) {
+            File f = createAttachFile(pid);
+            try {
+                // On LinuxThreads each thread is a process and we don't have the
+                // pid of the VMThread which has SIGQUIT unblocked. To workaround
+                // this we get the pid of the "manager thread" that is created
+                // by the first call to pthread_create. This is parent of all
+                // threads (except the initial thread).
+                if (isLinuxThreads) {
+                    int mpid;
+                    try {
+                        mpid = getLinuxThreadsManager(pid);
+                    } catch (IOException x) {
+                        throw new AttachNotSupportedException(x.getMessage());
+                    }
+                    assert(mpid >= 1);
+                    sendQuitToChildrenOf(mpid);
+                } else {
+                    sendQuitTo(pid);
+                }
+
+                // give the target VM time to start the Attach mechanism
+                int i = 0;
+                long delay = 200;
+                int retries = (int)(AttachTimeout() / delay);
+                do {
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException x) { }
+                    path = findSocketFile(pid);
+                    i++;
+                } while (i <= retries && path == null);
+                if (path == null) {
+                    throw new AttachNotSupportedException(
+                        "Unable to open socket file: target process not responding " +
+                        "or HotSpot VM not loaded");
+                }
+            } finally {
+                f.delete();
+            }
+        }
+
+        // Check that the file owner/permission to avoid Attaching to
+        // bogus process
+        checkPermissions(path);
+
+        // Check that we can connect to the process
+        // - this ensures we throw the permission denied error now rather than
+        // later when we attempt to enqueue a command.
+        int s = socket();
+        try {
+            connect(s, path);
+        } finally {
+            close(s);
+        }
+    }
+</pre>
+
+
+<p>&#8195;&#8195;这里要解释下代码了，首先看到调用了createAttachFile方法在目标进程的cwd目录下创建了一个文件/proc/<pid>/cwd/.Attach_pid<pid>，这个在后面的信号处理过程中会取出来做判断(为了安全)，另外我们知道在linux下线程是用进程实现的，在jvm启动过程中会创建很多线程，比如我们上面的信号线程，也就是会看到很多的pid(应该是LWP)，那么如何找到这个信号处理线程呢，从上面实现来看是找到我们传进去的pid的父进程，然后给它的所有子进程都发送一个SIGQUIT信号，而jvm里除了信号线程，其他线程都设置了对此信号的屏蔽，因此收不到该信号，于是该信号就传给了“Signal Dispatcher”，在传完之后作轮询等待看目标进程是否创建了某个文件，AttachTimeout默认超时时间是5000ms，可通过设置系统变量sun.tools.Attach.AttachTimeout来指定，下面是Signal Dispatcher线程的entry实现</p>
+
+<pre class="prettyPrint">
+static void signal_thread_entry(JavaThread* thread, TRAPS) {
+  os::set_priority(thread, NearMaxPriority);
+  while (true) {
+    int sig;
+    {
+      // FIXME : Currently we have not decieded what should be the status
+      //         for this java thread blocked here. Once we decide about
+      //         that we should fix this.
+      sig = os::signal_wait();
+    }
+    if (sig == os::sigexitnum_pd()) {
+       // Terminate the signal thread
+       return;
+    }
+
+    switch (sig) {
+      case SIGBREAK: {
+        // Check if the signal is a trigger to start the Attach Listener - in that
+        // case don't print stack traces.
+        if (!DisableAttachMechanism && AttachListener::is_init_trigger()) {
+          continue;
+        }
+        // Print stack traces
+        // Any SIGBREAK operations added here should make sure to flush
+        // the output stream (e.g. tty->flush()) after output.  See 4803766.
+        // Each module also prints an extra carriage return after its output.
+        VM_PrintThreads op;
+        VMThread::execute(&op);
+        VM_PrintJNI jni_op;
+        VMThread::execute(&jni_op);
+        VM_FindDeadlocks op1(tty);
+        VMThread::execute(&op1);
+        Universe::print_heap_at_SIGBREAK();
+        if (PrintClassHistogram) {
+          VM_GC_HeapInspection op1(gclog_or_tty, true /* force full GC before heap inspection */,
+                                   true /* need_prologue */);
+          VMThread::execute(&op1);
+        }
+        if (JvmtiExport::should_post_data_dump()) {
+          JvmtiExport::post_data_dump();
+        }
+        break;
+      }
+      ….
+      }
+    }
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;当信号是SIGBREAK(在jvm里做了#define，其实就是SIGQUIT)的时候，就会触发
+AttachListener::is_init_trigger()的执行，</p>
+
+<pre class="prettyPrint">
+bool AttachListener::is_init_trigger() {
+  if (init_at_startup() || is_initialized()) {
+    return false;               // initialized at startup or already initialized
+  }
+  char fn[PATH_MAX+1];
+  sprintf(fn, ".Attach_pid%d", os::current_process_id());
+  int ret;
+  struct stat64 st;
+  RESTARTABLE(::stat64(fn, &st), ret);
+  if (ret == -1) {
+    snprintf(fn, sizeof(fn), "%s/.Attach_pid%d",
+             os::get_temp_directory(), os::current_process_id());
+    RESTARTABLE(::stat64(fn, &st), ret);
+  }
+  if (ret == 0) {
+    // simple check to avoid starting the Attach mechanism when
+    // a bogus user creates the file
+    if (st.st_uid == geteuid()) {
+      init();
+      return true;
+    }
+  }
+  return false;
+}
+</pre>
+
+
+<p>&#8195;&#8195;一开始会判断当前进程目录下是否有个.Attach_pid<pid>文件（前面提到了），如果没有就会在/tmp下创建一个/tmp/.Attach_pid<pid>，当那个文件的uid和自己的uid是一致的情况下（为了安全）再调用init方法</p>
+
+<pre class="prettyPrint">
+// Starts the Attach Listener thread
+void AttachListener::init() {
+  EXCEPTION_MARK;
+  klassOop k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_Thread(), true, CHECK);
+  instanceKlassHandle klass (THREAD, k);
+  instanceHandle thread_oop = klass->allocate_instance_handle(CHECK);
+
+  const char thread_name[] = "Attach Listener";
+  Handle string = java_lang_String::create_from_str(thread_name, CHECK);
+
+  // Initialize thread_oop to put it into the system threadGroup
+  Handle thread_group (THREAD, Universe::system_thread_group());
+  JavaValue result(T_VOID);
+  JavaCalls::call_special(&result, thread_oop,
+                       klass,
+                       vmSymbols::object_initializer_name(),
+                       vmSymbols::threadgroup_string_void_signature(),
+                       thread_group,
+                       string,
+                       CHECK);
+
+  KlassHandle group(THREAD, SystemDictionary::ThreadGroup_klass());
+  JavaCalls::call_special(&result,
+                        thread_group,
+                        group,
+                        vmSymbols::add_method_name(),
+                        vmSymbols::thread_void_signature(),
+                        thread_oop,             // ARG 1
+                        CHECK);
+
+  { MutexLocker mu(Threads_lock);
+    JavaThread* listener_thread = new JavaThread(&Attach_listener_thread_entry);
+
+    // Check that thread and osthread were created
+    if (listener_thread == NULL || listener_thread->osthread() == NULL) {
+      vm_exit_during_initialization("java.lang.OutOfMemoryError",
+                                    "unable to create new native thread");
+    }
+
+    java_lang_Thread::set_thread(thread_oop(), listener_thread);
+    java_lang_Thread::set_daemon(thread_oop());
+
+    listener_thread->set_threadObj(thread_oop());
+    Threads::add(listener_thread);
+    Thread::start(listener_thread);
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;此时水落石出了，看到创建了一个线程，并且取名为Attach Listener。再看看其子类LinuxAttachListener的init方法</p>
+
+<pre class="prettyPrint">
+int LinuxAttachListener::init() {
+  char path[UNIX_PATH_MAX];          // socket file
+  char initial_path[UNIX_PATH_MAX];  // socket file during setup
+  int listener;                      // listener socket (file descriptor)
+
+  // register function to cleanup
+  ::atexit(listener_cleanup);
+
+  int n = snprintf(path, UNIX_PATH_MAX, "%s/.java_pid%d",
+                   os::get_temp_directory(), os::current_process_id());
+  if (n < (int)UNIX_PATH_MAX) {
+    n = snprintf(initial_path, UNIX_PATH_MAX, "%s.tmp", path);
+  }
+  if (n >= (int)UNIX_PATH_MAX) {
+    return -1;
+  }
+
+  // create the listener socket
+  listener = ::socket(PF_UNIX, SOCK_STREAM, 0);
+  if (listener == -1) {
+    return -1;
+  }
+
+  // bind socket
+  struct sockaddr_un addr;
+  addr.sun_family = AF_UNIX;
+  strcpy(addr.sun_path, initial_path);
+  ::unlink(initial_path);
+  int res = ::bind(listener, (struct sockaddr*)&addr, sizeof(addr));
+  if (res == -1) {
+    RESTARTABLE(::close(listener), res);
+    return -1;
+  }
+
+  // put in listen mode, set permissions, and rename into place
+  res = ::listen(listener, 5);
+  if (res == 0) {
+      RESTARTABLE(::chmod(initial_path, S_IREAD|S_IWRITE), res);
+      if (res == 0) {
+          res = ::rename(initial_path, path);
+      }
+  }
+  if (res == -1) {
+    RESTARTABLE(::close(listener), res);
+    ::unlink(initial_path);
+    return -1;
+  }
+  set_path(path);
+  set_listener(listener);
+
+  return 0;
+}
+</pre>
+
+
+<p>&#8195;&#8195;看到其创建了一个监听套接字，并创建了一个文件/tmp/.java_pid<pid>，这个文件就是客户端之前一直在轮询等待的文件，随着这个文件的生成，意味着Attach的过程圆满结束了。</p>
+
+<h3>Attach listener接收请求</h3>
+
+<p>&#8195;&#8195;看看它的entry实现Attach_listener_thread_entry</p>
+
+<pre class="prettyPrint">
+static void Attach_listener_thread_entry(JavaThread* thread, TRAPS) {
+  os::set_priority(thread, NearMaxPriority);
+
+  thread->record_stack_base_and_size();
+
+  if (AttachListener::pd_init() != 0) {
+    return;
+  }
+  AttachListener::set_initialized();
+
+  for (;;) {
+    AttachOperation* op = AttachListener::dequeue();
+    if (op == NULL) {
+      return;   // dequeue failed or shutdown
+    }
+
+    ResourceMark rm;
+    bufferedStream st;
+    jint res = JNI_OK;
+
+    // handle special detachall operation
+    if (strcmp(op->name(), AttachOperation::detachall_operation_name()) == 0) {
+      AttachListener::detachall();
+    } else {
+      // find the function to dispatch too
+      AttachOperationFunctionInfo* info = NULL;
+      for (int i=0; funcs[i].name != NULL; i++) {
+        const char* name = funcs[i].name;
+        assert(strlen(name) <= AttachOperation::name_length_max, "operation <= name_length_max");
+        if (strcmp(op->name(), name) == 0) {
+          info = &(funcs[i]);
+          break;
+        }
+      }
+
+      // check for platform dependent Attach operation
+      if (info == NULL) {
+        info = AttachListener::pd_find_operation(op->name());
+      }
+
+      if (info != NULL) {
+        // dispatch to the function that implements this operation
+        res = (info->func)(op, &st);
+      } else {
+        st.print("Operation %s not recognized!", op->name());
+        res = JNI_ERR;
+      }
+    }
+
+    // operation complete - send result and output to client
+    op->complete(res, &st);
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;从代码来看就是从队列里不断取AttachOperation，然后找到请求命令对应的方法进行执行，比如我们一开始说的jstack命令，找到 { &ldquo;threaddump&rdquo;,       thread_dump }的映射关系，然后执行thread_dump方法</p>
+
+<p>&#8195;&#8195;再来看看其要调用的AttachListener::dequeue()，</p>
+
+<pre class="prettyPrint">
+AttachOperation* AttachListener::dequeue() {
+  JavaThread* thread = JavaThread::current();
+  ThreadBlockInVM tbivm(thread);
+
+  thread->set_suspend_equivalent();
+  // cleared by handle_special_suspend_equivalent_condition() or
+  // java_suspend_self() via check_and_wait_while_suspended()
+
+  AttachOperation* op = LinuxAttachListener::dequeue();
+
+  // were we externally suspended while we were waiting?
+  thread->check_and_wait_while_suspended();
+
+  return op;
+}
+</pre>
+
+
+<p>&#8195;&#8195;最终调用的是LinuxAttachListener::dequeue()，</p>
+
+<pre class="prettyPrint">
+LinuxAttachOperation* LinuxAttachListener::dequeue() {
+  for (;;) {
+    int s;
+
+    // wait for client to connect
+    struct sockaddr addr;
+    socklen_t len = sizeof(addr);
+    RESTARTABLE(::accept(listener(), &addr, &len), s);
+    if (s == -1) {
+      return NULL;      // log a warning?
+    }
+
+    // get the credentials of the peer and check the effective uid/guid
+    // - check with jeff on this.
+    struct ucred cred_info;
+    socklen_t optlen = sizeof(cred_info);
+    if (::getsockopt(s, SOL_SOCKET, SO_PEERCRED, (void*)&cred_info, &optlen) == -1) {
+      int res;
+      RESTARTABLE(::close(s), res);
+      continue;
+    }
+    uid_t euid = geteuid();
+    gid_t egid = getegid();
+
+    if (cred_info.uid != euid || cred_info.gid != egid) {
+      int res;
+      RESTARTABLE(::close(s), res);
+      continue;
+    }
+
+    // peer credential look okay so we read the request
+    LinuxAttachOperation* op = read_request(s);
+    if (op == NULL) {
+      int res;
+      RESTARTABLE(::close(s), res);
+      continue;
+    } else {
+      return op;
+    }
+  }
+}
+</pre>
+
+
+<p>&#8195;&#8195;我们看到如果没有请求的话，会一直accept在那里，当来了请求，然后就会创建一个套接字，并读取数据，构建出LinuxAttachOperation返回并执行。</p>
+
+<p>&#8195;&#8195;整个过程就这样了，从Attach线程创建到接收请求，处理请求。</p>
+</div>
+
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+
+
+  <section>
+    <h1>Comments</h1>
+    <div id="comments" aria-live="polite"]]><div class="ds-thread" data-title=""></div>
+<script type="text/javascript"]]>
+  var duoshuoQuery={short_name:"nijiaben"};
+  (function(){ 
+   var ds=document.createElement('script');
+   ds.type='text/javascript';
+   ds.async=true;
+   ds.src='http://static.duoshuo.com/embed.js';
+   ds.charset='UTF-8'; 
+   (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ds); 
+  })();
+</script>
+
+
+</div>
+  </section>
+
+</div>
+
+</div>
+			</div>
+			<footer id="footer" class="inner">Copyright &copy; 2016
+
+    你假笨
+
+
+Design credit: <a href="http://shashankmehta.in/archive/2012/greyshade.html">Shashank Mehta</a></footer>
+		</div>
+	</div>
+	
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

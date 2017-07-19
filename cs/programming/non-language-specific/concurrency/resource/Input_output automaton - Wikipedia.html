@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html class="client-js ve-not-available" dir="ltr" lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Input/output automaton - Wikipedia</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Input/output_automaton","wgTitle":"Input/output automaton","wgCurRevisionId":720626773,"wgRevisionId":720626773,"wgArticleId":34169731,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Articles created via the Article Wizard","Distributed computing"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"Input/output_automaton","wgRelevantArticleId":34169731,"wgRequestId":"WWsbzApAIDoAADbGYcUAAAAU","wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgFlaggedRevsParams":{"tags":{}},"wgStableRevisionId":null,"wgWikiEditorEnabledModules":{"toolbar":true,"preview":false,"publish":false},"wgBetaFeaturesFeatures":[],"wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":false,"wgPopupsShouldSendModuleToUser":false,"wgPopupsConflictsWithNavPopupGadget":false,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","usePageImages":true,"usePageDescriptions":true},"wgPreferredVariant":"en","wgMFExpandAllSectionsUserOption":false,"wgMFDisplayWikibaseDescriptions":{"search":true,"nearby":true,"watchlist":true,"tagline":false},"wgRelatedArticles":null,"wgRelatedArticlesUseCirrusSearch":true,"wgRelatedArticlesOnlyUseCirrusSearch":false,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralNoticeCookiesToDelete":[],"wgCentralNoticeCategoriesUsingLegacy":["Fundraising","fundraising"],"wgCategoryTreePageCategoryOptions":"{\"mode\":0,\"hideprefix\":20,\"showcount\":true,\"namespaces\":false}","wgWikibaseItemId":"Q5968144","wgCentralAuthMobileDomain":false,"wgVisualEditorToolbarScrollOffset":0,"wgVisualEditorUnsupportedEditParams":["preload","preloadparams","preloadtitle","undo","undoafter","veswitched"],"wgEditSubmitButtonLabelPublish":false});mw.loader.state({"ext.gadget.charinsert-styles":"ready","ext.globalCssJs.user.styles":"ready","ext.globalCssJs.site.styles":"ready","site.styles":"ready","noscript":"ready","user.styles":"ready","user":"ready","user.options":"loading","user.tokens":"loading","ext.cite.styles":"ready","wikibase.client.init":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","mediawiki.legacy.shared":"ready","mediawiki.legacy.commonPrint":"ready","mediawiki.sectionAnchor":"ready","mediawiki.skinning.interface":"ready","skins.vector.styles":"ready","ext.globalCssJs.user":"ready","ext.globalCssJs.site":"ready"});mw.loader.implement("user.options@0gii3s4",function($,jQuery,require,module){mw.user.options.set([]);});mw.loader.implement("user.tokens@1dqfd7l",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["ext.cite.a11y","site","mediawiki.page.startup","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.toc","mediawiki.searchSuggest","ext.gadget.teahouse","ext.gadget.ReferenceTooltips","ext.gadget.watchlist-notice","ext.gadget.DRN-wizard","ext.gadget.charinsert","ext.gadget.refToolbar","ext.gadget.extra-toolbar-buttons","ext.gadget.switcher","ext.gadget.featured-articles-links","ext.centralauth.centralautologin","mmv.head","mmv.bootstrap.autostart","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging.subscriber","ext.wikimediaEvents","ext.navigationTiming","ext.uls.eventlogger","ext.uls.init","ext.uls.interface","ext.centralNotice.geoIP","ext.centralNotice.startUp","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="Input_output%20automaton%20-%20Wikipedia_files/load_002.css">
+<script async="" src="Input_output%20automaton%20-%20Wikipedia_files/load_002.js"></script>
+<style>
+.referencetooltip{position:absolute;list-style:none;list-style-image:none;opacity:0;font-size:10px;margin:0;z-index:5;padding:0}.referencetooltip li{border:#080086 2px solid;max-width:260px;padding:10px 8px 13px 8px;margin:0px;background-color:#F7F7F7;-webkit-box-shadow:2px 4px 2px rgba(0,0,0,0.3);-moz-box-shadow:2px 4px 2px rgba(0,0,0,0.3);box-shadow:2px 4px 2px rgba(0,0,0,0.3)}.referencetooltip li+li{margin-left:7px;margin-top:-2px;border:0;padding:0;height:3px;width:0px;background-color:transparent;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;border-top:12px #080086 solid;border-right:7px transparent solid;border-left:7px transparent solid}.referencetooltip>li+li::after{content:'';border-top:8px #F7F7F7 solid;border-right:5px transparent solid;border-left:5px transparent solid;margin-top:-12px;margin-left:-5px;z-index:1;height:0px;width:0px;display:block}.client-js body .referencetooltip li li{border:none;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;height:auto;width:auto;margin:auto;padding:0;position:static}.RTflipped{padding-top:13px}.referencetooltip.RTflipped li+li{position:absolute;top:2px;border-top:0;border-bottom:12px #080086 solid}.referencetooltip.RTflipped li+li::after{border-top:0;border-bottom:8px #F7F7F7 solid;position:absolute;margin-top:7px}.RTsettings{float:right;height:24px;width:24px;cursor:pointer;background-image:url(//upload.wikimedia.org/wikipedia/commons/thumb/0/05/OOjs_UI_icon_advanced.svg/24px-OOjs_UI_icon_advanced.svg.png);background-image:linear-gradient(transparent,transparent),url(//upload.wikimedia.org/wikipedia/commons/0/05/OOjs_UI_icon_advanced.svg);margin-top:-9px;margin-right:-7px;-webkit-transition:opacity 0.15s;-moz-transition:opacity 0.15s;-ms-transition:opacity 0.15s;-o-transition:opacity 0.15s;transition:opacity 0.15s;opacity:0.6;filter:alpha(opacity=60)}.RTsettings:hover{opacity:1;filter:alpha(opacity=100)}.RTTarget{border:#080086 2px solid}
+.skin-vector li.GA,.skin-monobook li.GA,.skin-modern li.GA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/4/42/Monobook-bullet-ga.png)} .skin-vector li.FA,.skin-monobook li.FA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/d/d4/Monobook-bullet-star.png)}.skin-modern li.FA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Modern-bullet-star.svg/9px-Modern-bullet-star.svg.png)}
+.wp-teahouse-question-form{position:absolute;margin-left:auto;margin-right:auto;background-color:#f4f3f0;border:1px solid #a7d7f9;padding:1em}#wp-th-question-ask{float:right}.wp-teahouse-ask a.external{background-image:none !important}.wp-teahouse-respond-form{position:absolute;margin-left:auto;margin-right:auto;background-color:#f4f3f0;border:1px solid #a7d7f9;padding:1em}.wp-th-respond{float:right}.wp-teahouse-respond a.external{background-image:none !important}</style><style>
+.cite-accessibility-label{ top:-99999px;clip:rect( 1px 1px 1px 1px ); clip:rect( 1px,1px,1px,1px ); position:absolute !important;padding:0 !important;border:0 !important;height:1px !important;width:1px !important; overflow:hidden}
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:0;z-index:1099;padding:0;margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:#fff;cursor:pointer;border:solid 1px #aaa;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:#fff;cursor:pointer;border:solid 1px #aaa;padding:0;margin:0}.suggestions-result{color:#000;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left; overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}.suggestions-result-current{background-color:#4c59a6;color:#fff}.suggestions-special .special-label{color:#808080;text-align:left}.suggestions-special .special-query{color:#000;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:#c0c0c0}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:#fff}.highlight{font-weight:bold}
+@media screen {
+	.tochidden,.toctoggle{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}.toctoggle{font-size:94%}}
+@media print {
+	.toc.tochidden,.toctoggle{display:none}}
+.mw-notification-area{position:absolute}.mw-notification-area-floating{position:fixed}.mw-notification-area{top:0;right:0; padding:1em;width:20em;line-height:1.35;z-index:10000; overflow:hidden}.mw-notification{padding:0.25em 1em;margin-bottom:0.5em;border:solid 1px #ddd;background-color:#fcfcfc; cursor:pointer;opacity:0;-webkit-transform:translateX( 35px );transform:translateX( 35px );-webkit-transition:opacity 0.35s ease-in-out,-webkit-transform 0.35s ease-in-out;transition:opacity 0.35s ease-in-out,transform 0.35s ease-in-out}.mw-notification-visible{opacity:1;-webkit-transform:translateX( 0 );transform:translateX( 0 )}.mw-notification-replaced{opacity:0;-webkit-transform:translateY( -35px );transform:translateY( -35px );pointer-events:none}.mw-notification-title{font-weight:bold}.mw-notification-type-warn{border-color:#f5be00; background-color:#ffffe8}.mw-notification-type-error{border-color:#eb3941; background-color:#fff8f8} .mw-notification-area{font-size:0.8em}.mw-notification-area-layout{top:7em}.mw-notification{background-color:#fff;padding:0.75em 1.5em;border:1px solid #a2a9b1;border-radius:2px;box-shadow:0 2px 2px 0 rgba(0,0,0,0.25)}.mw-notification-type-warn{border-color:#f5be00; }.mw-notification-type-error{border-color:#d33; }
+@media print {
+	.mw-notification-area{display:none}}
+@media print{#centralNotice{display:none}}.cn-closeButton{display:inline-block;zoom:1;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAACeklEQVR4Aa1UM3jkcRBN6qS//tTFttPHqmI359VZ5dm2L1zFtr02YlRx5sX2ft/7ed7O/w1M5ufnt8NZQjCBQXhG+IYZe5zjfju7xcHc3NzEzMwM6xOEqNnZ2ZeVlZW827dv1ycmJnbGx8d3Yr5582Z9eXk5D/d4h/empqYm+K0nw3yKcF4sFmdzOJzGgIAAhb29vc7Ozk6/Atrr/fz8lCwWq6m3tzcb72G3nmzFo/NNTU354eHhIltbW72Tk5M2IyND9P79+8ZPnz7VvXnzpoHBYPS4uLhobGxsDMHBwaLa2tp82MF+PVmUUqnMioiI6LOysjLQLCcPS2ZmZn7Ozc39oPtFYG80GgWpqakSS0tLY1hYmEgikWTBfoXsLD16BT3gUWhoqEKtVheREZ+Qu0IEjI+PZ2k0GqFer+cnJSWJra2tDWw2u2FqauoVeEAW3NzcnBcYGCh3dHTUtba2ltNjLvRJSEiQEQEPRENDQzkMBqPXwsKiXyqVFsFDNzc3LWmoqKmp4YIHZIyHDx9WOzg46GJiYmTk5e/h4eHstLQ0CX2ykXST4JPJ8y7sSVM5/QGMf9y4caMHf3r//v1a8IDsGRm04/D58+dtpNFPPNRqtflXrlzpI8G15IEGc2xsrFSlUglwD+Tk5NRBmuTk5A7wgOxbXFxcF8iysrIa1mskEolKvL29Ne7u7mpXV1dNaWlp9fr7X79+VYMMeQieY/dsv5p1r2g2Nja2vWZ7RXNiYuIA0dwlzwYGBjbkGXmURXeLeUa1ul2ebV8BEH+7CiAiASTYvgJ2qc3MzMzF2vz8+XPd27dvG5hMZg+CsV1tHmfXOP5+dqyddgHOI7v1srTdcwAAAABJRU5ErkJggg==);background:url(/w/extensions/CentralNotice/resources/subscribing/CloseWindow19x19.png?7596b)!ie;width:19px;height:19px;text-indent:19px;white-space:nowrap;overflow:hidden}
+.mw-ui-button{font-family:inherit;font-size:1em;display:inline-block;min-width:4em;max-width:28.75em;padding:0.546875em 1em;line-height:1.286;margin:0;border-radius:2px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;-webkit-appearance:none;*display:inline; zoom:1;vertical-align:middle;background-color:#f8f9fa;color:#222222;border:1px solid #a2a9b1;text-align:center;font-weight:bold;cursor:pointer}.mw-ui-button:visited{color:#222222}.mw-ui-button:hover{background-color:#ffffff;color:#444444;border-color:#a2a9b1}.mw-ui-button:focus{background-color:#ffffff;color:#222222;border-color:#3366cc;box-shadow:inset 0 0 0 1px #3366cc,inset 0 0 0 2px #ffffff}.mw-ui-button:active,.mw-ui-button.is-on,.mw-ui-button.mw-ui-checked{background-color:#d9d9d9;color:#000000;border-color:#72777d;box-shadow:none}.mw-ui-button:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button:disabled:hover,.mw-ui-button:disabled:active{background-color:#c8ccd1;color:#fff;box-shadow:none;border-color:#c8ccd1}.mw-ui-button:focus{outline-width:0}.mw-ui-button:focus::-moz-focus-inner{border-color:transparent;padding:0}.mw-ui-button:not( :disabled ){-webkit-transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;-moz-transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms}.mw-ui-button:disabled{text-shadow:none;cursor:default}.mw-ui-button.mw-ui-big{font-size:1.3em}.mw-ui-button.mw-ui-block{display:block;width:100%;margin-left:auto;margin-right:auto}.mw-ui-button.mw-ui-progressive,.mw-ui-button.mw-ui-constructive{background-color:#3366cc;color:#fff;border:1px solid #3366cc;text-shadow:0 1px rgba(0,0,0,0.1)}.mw-ui-button.mw-ui-progressive:hover,.mw-ui-button.mw-ui-constructive:hover{background-color:#447ff5;border-color:#447ff5}.mw-ui-button.mw-ui-progressive:focus,.mw-ui-button.mw-ui-constructive:focus{box-shadow:inset 0 0 0 1px #3366cc,inset 0 0 0 2px #ffffff}.mw-ui-button.mw-ui-progressive:active,.mw-ui-button.mw-ui-constructive:active,.mw-ui-button.mw-ui-progressive.is-on,.mw-ui-button.mw-ui-constructive.is-on,.mw-ui-button.mw-ui-progressive.mw-ui-checked,.mw-ui-button.mw-ui-constructive.mw-ui-checked{background-color:#2a4b8d;border-color:#2a4b8d;box-shadow:none}.mw-ui-button.mw-ui-progressive:disabled,.mw-ui-button.mw-ui-constructive:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button.mw-ui-progressive:disabled:hover,.mw-ui-button.mw-ui-constructive:disabled:hover,.mw-ui-button.mw-ui-progressive:disabled:active,.mw-ui-button.mw-ui-constructive:disabled:active,.mw-ui-button.mw-ui-progressive:disabled.mw-ui-checked,.mw-ui-button.mw-ui-constructive:disabled.mw-ui-checked{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1;box-shadow:none}.mw-ui-button.mw-ui-progressive.mw-ui-quiet,.mw-ui-button.mw-ui-constructive.mw-ui-quiet{color:#222222}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:hover,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:hover{background-color:transparent;color:#447ff5}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:active,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:active,.mw-ui-button.mw-ui-progressive.mw-ui-quiet.mw-ui-checked,.mw-ui-button.mw-ui-constructive.mw-ui-quiet.mw-ui-checked{color:#2a4b8d}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:focus,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:focus{background-color:transparent;color:#3366cc}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:disabled,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-destructive{background-color:#dd3333;color:#fff;border:1px solid #dd3333;text-shadow:0 1px rgba(0,0,0,0.1)}.mw-ui-button.mw-ui-destructive:hover{background-color:#ff4242;border-color:#ff4242}.mw-ui-button.mw-ui-destructive:focus{box-shadow:inset 0 0 0 1px #dd3333,inset 0 0 0 2px #ffffff}.mw-ui-button.mw-ui-destructive:active,.mw-ui-button.mw-ui-destructive.is-on,.mw-ui-button.mw-ui-destructive.mw-ui-checked{background-color:#b32424;border-color:#b32424;box-shadow:none}.mw-ui-button.mw-ui-destructive:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button.mw-ui-destructive:disabled:hover,.mw-ui-button.mw-ui-destructive:disabled:active,.mw-ui-button.mw-ui-destructive:disabled.mw-ui-checked{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1;box-shadow:none}.mw-ui-button.mw-ui-destructive.mw-ui-quiet{color:#222222}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:hover{background-color:transparent;color:#ff4242}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:active,.mw-ui-button.mw-ui-destructive.mw-ui-quiet.mw-ui-checked{color:#b32424}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:focus{background-color:transparent;color:#dd3333}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-quiet{background:transparent;border:0;text-shadow:none;color:#222222}.mw-ui-button.mw-ui-quiet:hover{background-color:transparent;color:#444444}.mw-ui-button.mw-ui-quiet:active,.mw-ui-button.mw-ui-quiet.mw-ui-checked{color:#000000}.mw-ui-button.mw-ui-quiet:focus{background-color:transparent;color:#222222}.mw-ui-button.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-quiet:hover,.mw-ui-button.mw-ui-quiet:focus{box-shadow:none}.mw-ui-button.mw-ui-quiet:active,.mw-ui-button.mw-ui-quiet:disabled{background:transparent}input.mw-ui-button::-moz-focus-inner,button.mw-ui-button::-moz-focus-inner{margin-top:-1px;margin-bottom:-1px}a.mw-ui-button{text-decoration:none}a.mw-ui-button:hover,a.mw-ui-button:focus{text-decoration:none}.mw-ui-button-group > *{min-width:48px;border-radius:0;float:left}.mw-ui-button-group > *:first-child{border-top-left-radius:2px;border-bottom-left-radius:2px}.mw-ui-button-group > *:not( :first-child ){border-left:0}.mw-ui-button-group > *:last-child{border-top-right-radius:2px;border-bottom-right-radius:2px}.mw-ui-button-group .is-on .button{cursor:default}
+.mw-ui-icon{position:relative;line-height:1.5em;min-height:1.5em;min-width:1.5em}.mw-ui-icon.mw-ui-icon-element{text-indent:-999px;overflow:hidden;width:3.5em;min-width:3.5em;max-width:3.5em}.mw-ui-icon.mw-ui-icon-element:before{left:0;right:0;position:absolute;margin:0 1em}.mw-ui-icon.mw-ui-icon-before:before,.mw-ui-icon.mw-ui-icon-element:before{background-position:50% 50%;background-repeat:no-repeat;background-size:100% auto;float:left;display:block;min-height:1.5em;content:''}.mw-ui-icon.mw-ui-icon-before:before{position:relative;width:1.5em;margin-right:1em}.mw-ui-icon.mw-ui-icon-small:before{background-size:66.67% auto}
+@-webkit-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-webkit-transform:translateY( -20px )}100%{opacity:1;-webkit-transform:translateY( 0 )}}@-moz-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-moz-transform:translateY( -20px )}100%{opacity:1;-moz-transform:translateY( 0 )}}@-o-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-o-transform:translateY( -20px )}100%{opacity:1;-o-transform:translateY( 0 )}}@keyframes centralAuthPPersonalAnimation{0%{opacity:0;transform:translateY( -20px )}100%{opacity:1;transform:translateY( 0 )}}.centralAuthPPersonalAnimation{-webkit-animation-duration:1s;-moz-animation-duration:1s;-o-animation-duration:1s;animation-duration:1s;-webkit-animation-fill-mode:both;-moz-animation-fill-mode:both;-o-animation-fill-mode:both;animation-fill-mode:both;-webkit-animation-name:centralAuthPPersonalAnimation;-moz-animation-name:centralAuthPPersonalAnimation;-o-animation-name:centralAuthPPersonalAnimation;animation-name:centralAuthPPersonalAnimation}
+.uls-menu{border-radius:4px; font-size:medium}.uls-search,.uls-language-settings-close-block{border-top-right-radius:4px;border-top-left-radius:4px}.uls-language-list{border-bottom-right-radius:4px;border-bottom-left-radius:4px} .uls-menu.callout .caret-before,.uls-menu.callout .caret-after{border-top:10px solid transparent;border-bottom:10px solid transparent;display:inline-block; top:17px;position:absolute}.uls-menu.callout .caret-after{display:inline-block}.uls-menu.callout .caret-right .caret-before,.uls-menu.callout .caret-right .caret-after{ border-left:10px solid #c9c9c9; right:-11px}.uls-menu.callout .caret-right .caret-after{ border-left:10px solid #fcfcfc; right:-10px}.uls-menu.callout--languageselection .caret-right .caret-after{ border-left:10px solid #fff}.uls-menu.callout .caret-left .caret-before,.uls-menu.callout .caret-left .caret-after{ border-right:10px solid #c9c9c9; left:-11px}.uls-menu.callout .caret-left .caret-after{ border-right:10px solid #fcfcfc; left:-10px}.uls-menu.callout--languageselection .caret-left .caret-after{ border-right:10px solid #fff}.uls-ui-languages button{margin:5px 15px 5px 0;white-space:nowrap;overflow:hidden}.uls-search-wrapper-wrapper{position:relative;padding-left:40px;margin-top:5px;margin-bottom:5px}.uls-icon-back{background:transparent url(/w/extensions/UniversalLanguageSelector/resources/images/back-grey-ltr.png?90e9b) no-repeat scroll center center;background-image:-webkit-linear-gradient(transparent,transparent),url(/w/extensions/UniversalLanguageSelector/resources/images/back-grey-ltr.svg?ae714);background-image:linear-gradient(transparent,transparent),url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20id%3D%22Layer_1%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M7%2013.1l8.9%208.9c.8-.8.8-2%200-2.8l-6.1-6.1%206-6.1c.8-.8.8-2%200-2.8L7%2013.1z%22%20id%3D%22path3%22%20fill%3D%22%23555%22%2F%3E%0A%3C%2Fsvg%3E%0A);background-size:28px;background-position:center center;height:32px;width:40px;display:block;position:absolute;left:0;border-right:1px solid #c9c9c9;opacity:0.8}.uls-icon-back:hover{opacity:1;cursor:pointer}</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{color:#000;text-decoration:none}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:#fff}.suggestions a.mw-searchSuggest-link .special-query{ overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}
+.postedit-container{margin:0 auto;position:fixed;top:0;height:0;left:50%;z-index:1000;font-size:13px}.postedit-container:hover{cursor:pointer}.postedit{position:relative;top:0.6em;left:-50%;line-height:1.35;opacity:1;-webkit-transition:opacity 250ms;-moz-transition:opacity 250ms;transition:opacity 250ms}.postedit.mw-notification{padding-right:3em}.skin-monobook .postedit{top:6em !important; }.postedit-faded{opacity:0}.postedit-icon{padding-left:41px;  line-height:25px;background-repeat:no-repeat;background-position:8px 50%}.postedit-icon-checkmark{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB9ElEQVR4AZWRA3AYURQArxrVHtW2bdu2bdu2zdi2bdu2bWxs7zeehZaw4f70kbs+zI3e/nWK+RWx3aOFlrL56Sy5SxrruG69hlv6OyK+mz+8KDSXdXembj0ispT7tjs4ZTIbpYBvxGSGKzZTeFrb7W/meN002swFs0U8ttpHTkF2BvCqWQrW35929bTsKm5Zb+SEwWwcY8wAngB9m7Z+d+rIPZ/npdy12M5p47n8dXsCYAf0qPy06eGMdktuDu9Qf+JmKl3SWM91qzVcN9tAbEYkwMaq0tyb1m/To5kP170el/BK8/qa6sJr70ydf+T/Uu5ab+Oo/lS0AkUBpIFWlZ9WPhxpse/PHO7YbOOczjL0vZV2lNxPPtG73dYXM+xvm2znrOl83tidoqCwMBgYXsPFB0on5S6pr+eK5TKuW67lgvaKvF8mL1dtfTL32FHxRdyx3cQpg7m4x9sCXKkTIzA4LDH44zWdzaUf71hv5rTG4uyzcusybxSX7aThbMQ8XgCYAp3rzTTQOiIh9PNlzY3FSuZxrzjme1Y7uGS6kjsWO4jPjM4FVjRZsvD4kO9XtTZzQn82NyzWc0B7AmZh6gA/hOYSGhfw9YbOVnarj+S7800AL2BIsxUAbWNToj7bhBuQmZcOsFdoKUC74rGheCwXmqAIQTc9jQcrADIAAAAASUVORK5CYII=);background-image:url(/w/resources/src/mediawiki.action/images/green-checkmark.png?d94f1)!ie;background-position:left}.postedit-close{position:absolute;padding:0 0.8em;right:0;top:0;font-size:1.25em;font-weight:bold;line-height:2.3em;color:#000;text-shadow:0 0.0625em 0 #fff;text-decoration:none;opacity:0.2}.postedit:hover .postedit-close{color:#000;text-decoration:none;opacity:0.4}
+.mw-mmv-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background-color:#000}body.mw-mmv-lightbox-open{overflow-y:auto;  }body.mw-mmv-lightbox-open #mw-page-base,body.mw-mmv-lightbox-open #mw-head-base,body.mw-mmv-lightbox-open #mw-navigation,body.mw-mmv-lightbox-open #content,body.mw-mmv-lightbox-open #footer,body.mw-mmv-lightbox-open #globalWrapper{ display:none}body.mw-mmv-lightbox-open > *{ display:none}body.mw-mmv-lightbox-open > .mw-mmv-overlay,body.mw-mmv-lightbox-open > .mw-mmv-wrapper{display:block}.mw-mmv-filepage-buttons{margin-top:5px}.mw-mmv-filepage-buttons .mw-mmv-view-expanded,.mw-mmv-filepage-buttons .mw-mmv-view-config{display:block;line-height:inherit}.mw-mmv-filepage-buttons .mw-mmv-view-expanded.mw-ui-icon:before{background-image:url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201024%20768%22%3E%0A%20%20%20%20%3Cg%20fill%3D%22%2372777d%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M851.2%2071.6L690.7%20232.1l-40.1-40.3-9.6%20164.8%20164.8-9.3-40.3-40.4L926%20146.4l58.5%2058.5L997.6%200%20792.7%2013.1%22%2F%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M769.6%2089.3H611.9l70.9%2070.8%207.9%207.5m-47.1%20234.6l-51.2%203%203-51.2%209.4-164.4%205.8-100.3H26.4V768h883.1V387l-100.9%205.8-165%209.4zM813.9%20678H113.6l207.2-270.2%2031.5-12.9L548%20599.8l105.9-63.2%20159.8%20140.8.2.6zm95.6-291.9V228l-79.1%2078.9%207.8%207.9%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A)}.mw-mmv-filepage-buttons .mw-mmv-view-config.mw-ui-icon:before{background-image:url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201024%20768%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M897%20454.6V313.4L810.4%20299c-6.4-23.3-16-45.7-27.3-65.8l50.5-71.4-99.4-100.2-71.4%2050.5c-20.9-11.2-42.5-20.9-65.8-27.3L582.6-1H441.4L427%2085.6c-23.3%206.4-45.7%2016-65.8%2027.3l-71.4-50.5-100.3%2099.5%2050.5%2071.4c-11.2%2020.9-20.9%2042.5-27.3%2066.6L127%20313.4v141.2l85.8%2014.4c6.4%2023.3%2016%2045.7%2027.3%2066.6L189.6%20607l99.5%2099.5%2071.4-50.5c20.9%2011.2%2042.5%2020.9%2066.6%2027.3l14.4%2085.8h141.2l14.4-86.6c23.3-6.4%2045.7-16%2065.8-27.3l71.4%2050.5%2099.5-99.5-50.5-71.4c11.2-20.9%2020.9-42.5%2027.3-66.6l86.4-13.6zm-385%2077c-81.8%200-147.6-66.6-147.6-147.6%200-81.8%2066.6-147.6%20147.6-147.6S659.6%20302.2%20659.6%20384%20593.8%20531.6%20512%20531.6z%22%20fill%3D%22%2372777d%22%2F%3E%0A%3C%2Fsvg%3E%0A);opacity:0.75}.mw-mmv-filepage-buttons .mw-mmv-view-config.mw-ui-icon:before:hover{opacity:1}
+#uls-settings-block{border-top:1px solid #c9c9c9;background:#f8f8f8;background:-webkit-gradient( linear,left top,left bottom,from( #fbfbfb ),to( #f0f0f0 ) );background:-webkit-linear-gradient( top,#fbfbfb,#f0f0f0 );background:-moz-linear-gradient( top,#fbfbfb,#f0f0f0 );background:-o-linear-gradient( top,#fbfbfb,#f0f0f0 );background:linear-gradient( #fbfbfb,#f0f0f0 );padding-left:10px;line-height:1.2em;border-radius:0 0 5px 5px}#uls-settings-block div.display-settings-block,#uls-settings-block div.input-settings-block{display:inline-block;margin:8px 15px;color:#565656}#uls-settings-block div.display-settings-block:hover,#uls-settings-block div.input-settings-block:hover{color:#252525}</style><style>
+.ve-activated #toc,.ve-activated #siteNotice,.ve-activated .mw-indicators,.ve-activated #t-print,.ve-activated #t-permalink,.ve-activated #p-coll-print_export,.ve-activated #t-cite,.ve-deactivating .ve-ui-surface,.ve-active .ve-init-mw-desktopArticleTarget-editableContent{display:none} .ve-activating .ve-ui-surface{height:0;padding:0 !important; overflow:hidden} .ve-loading #content > :not( .ve-init-mw-desktopArticleTarget-loading-overlay ), .ve-activated .ve-init-mw-desktopArticleTarget-uneditableContent{ pointer-events:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;opacity:0.5}.ve-activated #catlinks{cursor:pointer}.ve-activated #catlinks a{opacity:1} .ve-activated #content{position:relative} .ve-init-mw-desktopArticleTarget-loading-overlay{position:absolute;left:0;right:0;z-index:1;margin-top:-0.5em}.ve-init-mw-desktopArticleTarget-progress{height:1em;overflow:hidden;margin:0 25%}.ve-init-mw-desktopArticleTarget-progress-bar{height:1em;width:0} .mw-editsection{white-space:nowrap; unicode-bidi:-moz-isolate;unicode-bidi:-webkit-isolate;unicode-bidi:isolate}.mw-editsection-divider{color:#555} .ve-init-mw-desktopArticleTarget-progress{height:0.75em;border:1px solid #36c;background:#fff;border-radius:2px;box-shadow:0 0.1em 0 0 rgba( 0,0,0,0.15 )}.ve-init-mw-desktopArticleTarget-progress-bar{height:0.75em;background:#36c}</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="Input_output%20automaton%20-%20Wikipedia_files/load.css">
+<link rel="stylesheet" href="Input_output%20automaton%20-%20Wikipedia_files/load_003.css">
+<meta name="generator" content="MediaWiki 1.30.0-wmf.7">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/0/09/SharedMemV2.jpg">
+<link rel="alternate" href="android-app://org.wikipedia/http/en.m.wikipedia.org/wiki/Input/output_automaton">
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit">
+<link rel="edit" title="Edit this page" href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit">
+<link rel="apple-touch-icon" href="https://en.wikipedia.org/static/apple-touch/wikipedia.png">
+<link rel="shortcut icon" href="https://en.wikipedia.org/static/favicon/wikipedia.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="https://en.wikipedia.org/w/opensearch_desc.php" title="Wikipedia (en)">
+<link rel="EditURI" type="application/rsd+xml" href="https://en.wikipedia.org/w/api.php?action=rsd">
+<link rel="copyright" href="https://creativecommons.org/licenses/by-sa/3.0/">
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Input/output_automaton">
+<link rel="dns-prefetch" href="https://login.wikimedia.org/">
+<link rel="dns-prefetch" href="https://meta.wikimedia.org/">
+<script src="Input_output%20automaton%20-%20Wikipedia_files/load.js"></script></head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Input_output_automaton rootpage-Input_output_automaton skin-vector action-view">		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main"><div id="mw-notification-area" class="mw-notification-area mw-notification-area-floating" style="display: none;"></div>
+			<a id="top"></a>
+
+							<div id="siteNotice" class="mw-body-content"><div id="centralNotice"></div><!-- CentralNotice --></div>
+						<div class="mw-indicators mw-body-content">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">Input/output automaton</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" dir="ltr" class="mw-content-ltr" lang="en"><div class="mw-parser-output"><p><b>Input/output automata</b> provide a <a href="https://en.wikipedia.org/wiki/Formal_methods" title="Formal methods">formal model</a>, applicable in describing most types of <a href="https://en.wikipedia.org/wiki/Asynchronous_system" title="Asynchronous system">asynchronous</a> <a href="https://en.wikipedia.org/wiki/Concurrent_computing" title="Concurrent computing">concurrent system</a>. On its own, the I/O automaton model contains a very basic structure that enables it to model various types of <a href="https://en.wikipedia.org/wiki/Distributed_computing" title="Distributed computing">distributed systems</a>.
+ To describe specific types of asynchronous systems, additional 
+structure must be added to this basic model. The model presents an 
+explicit method for describing and reasoning about system components 
+such as processes and message channels that interact with one another, 
+operating at arbitrary relative speeds.<sup id="cite_ref-lynch1997_1-0" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup> The I/O automata were first introduced by <a href="https://en.wikipedia.org/wiki/Nancy_Lynch" title="Nancy Lynch">Nancy A. Lynch</a> and Mark R. Tuttle in "Hierarchical correctness proofs for distributed algorithms", 1987.<sup id="cite_ref-lynch-tuttle87_2-0" class="reference"><a href="#cite_note-lynch-tuttle87-2">[2]</a></sup></p>
+<p>"An I/O automaton models a <i>distributed system</i> component that 
+can interact with other system components. It is a simple type of state 
+machine in which the transitions are associated with named <i>actions</i>."<sup id="cite_ref-lynch1997_1-1" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup> There are three types of actions: <i>input</i>, <i>output</i>, and <i>internal</i>
+ actions. The automaton uses its input and output actions to communicate
+ with its environment, whereas the internal actions are only visible to 
+the automaton itself. Unlike internal and output actions that are 
+selected and carried out by the automaton, the input actions – which 
+simply arrive from the environment - are not under automaton's control.<sup id="cite_ref-lynch1997_1-2" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<p></p>
+<div id="toc" class="toc">
+<div class="toctitle">
+<h2>Contents</h2>
+<span class="toctoggle">&nbsp;[<a role="button" tabindex="0" class="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Examples"><span class="tocnumber">1</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Process_I.2FO_automaton"><span class="tocnumber">1.1</span> <span class="toctext">Process I/O automaton</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#FIFO_message_channel"><span class="tocnumber">1.2</span> <span class="toctext">FIFO message channel</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Atomic_read.2Fwrite_register"><span class="tocnumber">1.3</span> <span class="toctext">Atomic read/write register</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Formal_specification"><span class="tocnumber">2</span> <span class="toctext">Formal specification</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Signature"><span class="tocnumber">2.1</span> <span class="toctext">Signature</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#States"><span class="tocnumber">2.2</span> <span class="toctext">States</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Transition_relation"><span class="tocnumber">2.3</span> <span class="toctext">Transition relation</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Tasks"><span class="tocnumber">2.4</span> <span class="toctext">Tasks</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Example:_Formal_definition_of_channel_I.2FO_automaton"><span class="tocnumber">2.5</span> <span class="toctext">Example: Formal definition of channel I/O automaton</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-11"><a href="#Execution_and_trace"><span class="tocnumber">3</span> <span class="toctext">Execution and trace</span></a>
+<ul>
+<li class="toclevel-2 tocsection-12"><a href="#Execution"><span class="tocnumber">3.1</span> <span class="toctext">Execution</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Trace"><span class="tocnumber">3.2</span> <span class="toctext">Trace</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Example:_Three_executions"><span class="tocnumber">3.3</span> <span class="toctext">Example: Three executions</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-15"><a href="#Operations_on_automata"><span class="tocnumber">4</span> <span class="toctext">Operations on automata</span></a>
+<ul>
+<li class="toclevel-2 tocsection-16"><a href="#Composition_operation"><span class="tocnumber">4.1</span> <span class="toctext">Composition operation</span></a>
+<ul>
+<li class="toclevel-3 tocsection-17"><a href="#Example:_Composition"><span class="tocnumber">4.1.1</span> <span class="toctext">Example: Composition</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-18"><a href="#Hiding_operation"><span class="tocnumber">4.2</span> <span class="toctext">Hiding operation</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-19"><a href="#Fairness"><span class="tocnumber">5</span> <span class="toctext">Fairness</span></a></li>
+<li class="toclevel-1 tocsection-20"><a href="#Properties_and_proof_methods"><span class="tocnumber">6</span> <span class="toctext">Properties and proof methods</span></a>
+<ul>
+<li class="toclevel-2 tocsection-21"><a href="#Input_enabling_properties"><span class="tocnumber">6.1</span> <span class="toctext">Input enabling properties</span></a></li>
+<li class="toclevel-2 tocsection-22"><a href="#Trace_properties"><span class="tocnumber">6.2</span> <span class="toctext">Trace properties</span></a></li>
+<li class="toclevel-2 tocsection-23"><a href="#Safety_properties"><span class="tocnumber">6.3</span> <span class="toctext">Safety properties</span></a></li>
+<li class="toclevel-2 tocsection-24"><a href="#Liveness_properties"><span class="tocnumber">6.4</span> <span class="toctext">Liveness properties</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-25"><a href="#Further_reading"><span class="tocnumber">7</span> <span class="toctext">Further reading</span></a></li>
+<li class="toclevel-1 tocsection-26"><a href="#See_also"><span class="tocnumber">8</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-27"><a href="#References"><span class="tocnumber">9</span> <span class="toctext">References</span></a></li>
+</ul>
+</div>
+<p></p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=1" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>I/O automata can be used to model individual components of a distributed system, such as a process, a message channel in a <a href="https://en.wikipedia.org/wiki/Message_passing" title="Message passing">message passing</a> system, or a shared data structure in a <a href="https://en.wikipedia.org/wiki/Shared_memory_architecture" class="mw-redirect" title="Shared memory architecture">shared memory</a> systems.</p>
+<h3><span class="mw-headline" id="Process_I.2FO_automaton">Process I/O automaton</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=2" title="Edit section: Process I/O automaton">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div class="thumb tright">
+<div class="thumbinner" style="width:222px;"><a href="https://en.wikipedia.org/wiki/File:ProcessIOV2.jpg" class="image"><img alt="Process I-O Automaton" src="Input_output%20automaton%20-%20Wikipedia_files/220px-ProcessIOV2.jpg" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/41/ProcessIOV2.jpg/330px-ProcessIOV2.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/4/41/ProcessIOV2.jpg 2x" data-file-width="358" data-file-height="105" height="65" width="220"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:ProcessIOV2.jpg" class="internal" title="Enlarge"></a></div>
+Figure 1: Process I/O Automaton</div>
+</div>
+</div>
+<p>Figure 1 depicts an example of an I/O automaton for a process in an 
+asynchronous message-passing distributed system. In this setting, 
+process P<sub>i</sub> communicates with other processes by using a message passing system. Its output actions are of the form send(m)<sub>i,j</sub>, which represents process P<sub>i</sub> sending a message with contents m to process P<sub>j</sub>. The input actions are of form receive(m)<sub>k,i</sub>, representing the receipt of message with contents m by process P<sub>i</sub> from process P<sub>k</sub>. (The internal actions of P<sub>i</sub>, which would correspond to the algorithm that the process is running are not shown.)</p>
+<h3><span class="mw-headline" id="FIFO_message_channel">FIFO message channel</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=3" title="Edit section: FIFO message channel">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div class="thumb tright">
+<div class="thumbinner" style="width:332px;"><a href="https://en.wikipedia.org/wiki/File:IOChannelV2.jpg" class="image"><img alt="Channel I-O Automaton" src="Input_output%20automaton%20-%20Wikipedia_files/330px-IOChannelV2.jpg" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/8/8e/IOChannelV2.jpg/495px-IOChannelV2.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/8/8e/IOChannelV2.jpg 2x" data-file-width="569" data-file-height="94" height="55" width="330"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:IOChannelV2.jpg" class="internal" title="Enlarge"></a></div>
+Figure 2: FIFO Channel I/O Automaton</div>
+</div>
+</div>
+<p>A message channel can also be modelled by an I/O automaton. Figure 2 illustrates a typical unidirectional <a href="https://en.wikipedia.org/wiki/FIFO_%28computing_and_electronics%29" title="FIFO (computing and electronics)">FIFO</a> channel automaton, named C<sub>i,j</sub>. It has input actions of the form send(m)<sub>i,j</sub>, and output actions of the form receive(m)<sub>i,j</sub>.
+ Each message m may contain 0 or 1 (m ∈ {0,1}). The state of the 
+automaton stores a FIFO queue of all messages that have been sent but 
+not yet received.</p>
+<p>In a typical distributed system where both process automata and communication channel automata exist, they are <a href="#Composition_operation">composed</a>
+ in a way that output actions of one automaton are matched and executed 
+with identically-named input actions of the other automata. For example,
+ consider a system composed of two process, P<sub>i</sub> and P<sub>j</sub>, and a communication channel C<sub>i,j</sub> from process P<sub>i</sub> to process P<sub>j</sub>. In this setting, process P<sub>i</sub> executes the output action send(m)<sub>i,j</sub>, if and only if channel C<sub>i,j</sub> also executes its send(m)<sub>i,j</sub> input action.</p>
+<h3><span class="mw-headline" id="Atomic_read.2Fwrite_register">Atomic read/write register</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=4" title="Edit section: Atomic read/write register">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div class="thumb tright">
+<div class="thumbinner" style="width:152px;"><a href="https://en.wikipedia.org/wiki/File:SharedMemV2.jpg" class="image"><img alt="Atomic Read-Write Register" src="Input_output%20automaton%20-%20Wikipedia_files/150px-SharedMemV2.jpg" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/0/09/SharedMemV2.jpg/225px-SharedMemV2.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/0/09/SharedMemV2.jpg 2x" data-file-width="258" data-file-height="231" height="134" width="150"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:SharedMemV2.jpg" class="internal" title="Enlarge"></a></div>
+Figure 3: Atomic Read/Write Register I/O Automaton</div>
+</div>
+</div>
+<p>Figure 3 illustrates an atomic read/write register I/O automaton in a shared memory system with two processes, P<sub>1</sub> and P<sub>2</sub>. The value V stored in the register is of type <a href="https://en.wikipedia.org/wiki/Integer" title="Integer">integer</a> (V ∈ <b>Z</b>). The state of the automaton stores this value. Input actions consist of write<sub>i</sub>(V), which represents process P<sub>i</sub> requesting to write a value V to the register (where i ∈ {1,2} and V ∈ <b>Z</b>), and read<sub>i</sub>, which corresponds to a process P<sub>i</sub> requesting to read the value currently stored in the register. The output action ack<sub>i</sub> is used to inform process P<sub>i</sub> that the write request has successfully completed. The output action V<sub>i</sub> represents the value V being returned as a response to a read request by process P<sub>i</sub>.</p>
+<p>The automaton also includes internal actions perform_Write(V), which 
+writes the value V to the register (by updating the state of the 
+automaton), and perform_Read, which is used to read the value V stored 
+in the state. (These internal actions are not shown in Figure 3.)</p>
+<h2><span class="mw-headline" id="Formal_specification">Formal specification</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=5" title="Edit section: Formal specification">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An I/O automaton A, or simply an automaton, comprises five components:</p>
+<ul>
+<li><a href="#Signature">sig(A)</a></li>
+<li><a href="#States">states(A)</a></li>
+<li><a href="#States">start(A)</a></li>
+<li><a href="#Transition">trans(A)</a></li>
+<li><a href="#Tasks">tasks(A)</a><sup id="cite_ref-lynch1997_1-3" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-0" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup></li>
+</ul>
+<p>These five components are described below.</p>
+<h3><span class="mw-headline" id="Signature">Signature</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=6" title="Edit section: Signature">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The initial step in formalization of an I/O automaton A is the definition of its <i>signature</i>, sig(A). A signature S describes the I/O automaton's actions using three <a href="https://en.wikipedia.org/wiki/Disjoint_sets" title="Disjoint sets">disjoint sets</a> of actions:</p>
+<ol>
+<li>in(S): input actions,</li>
+<li>out(S): output actions, <i>and</i></li>
+<li>int(S): internal actions.</li>
+</ol>
+<p>Based on the above formalization of input, output and internal actions, it is possible to define the following objects.</p>
+<ul>
+<li>ext(S): the <i>external actions</i>, defined as in(S) ∪ out(S)</li>
+<li>local(S): the <i>locally controlled actions</i>, defined as out(S) ∪ int(S)</li>
+<li>extsig(S): the <i>external signature</i>, defined as (in(S), out(S), ø)</li>
+<li>acts(S) is defined as the set of all the actions of signature S.<sup id="cite_ref-lynch1997_1-4" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-1" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup></li>
+</ul>
+<h3><span class="mw-headline" id="States">States</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=7" title="Edit section: States">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The set of states of automaton A, denoted states(A), need not be 
+finite. This is a significant generalization of the usual notion of <a href="https://en.wikipedia.org/wiki/Automata_theory" title="Automata theory">finite automata</a>,
+ as it enables modeling systems with unbounded data structures like 
+counters and unbounded length queues. The set of start states (also 
+known as initial states) is a non-empty subset of states. Multiple start
+ states are allowed so that some input information can be included in 
+the start states.<sup id="cite_ref-lynch1997_1-5" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-2" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup></p>
+<h3><span class="mw-headline" id="Transition_relation">Transition relation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=8" title="Edit section: Transition relation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The state-transition relation of automaton A is denoted trans(A) ⊆ 
+states(A) × acts(sig(A)) × states(A). It satisfies the property that 
+"for every state s and every input action π, there is a transition (s, 
+π, s') ∈ trans(A)."</p>
+<p>A transition, also known as a step of I/O automaton A, is defined as an element (s, π, s') of trans(A). An <i>input transition</i> refers to a transition (s, π, s') when π is an input action, <i>output transition</i>
+ indicates a transition (s, π, s') when π is an output action and so on.
+ For any state s and action π, if the I/O automaton A has some 
+transition of the form (s, π, s'), then π is said to be <i>enabled</i> in s. I/O automata are described as <a href="#Input_enabling_properties">input-enabled</a> because all input actions are required to be enabled in every state. A <i>quiescent</i> state s is defined as a state where only input actions are enabled.<sup id="cite_ref-lynch1997_1-6" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-3" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup></p>
+<h3><span class="mw-headline" id="Tasks">Tasks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=9" title="Edit section: Tasks">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The fifth component of the I/O automaton A, tasks (A), is a task partition, defined as an <a href="https://en.wikipedia.org/wiki/Equivalence_relation" title="Equivalence relation">equivalence relation</a> on locally controlled actions of A, which has at most countably many <a href="https://en.wikipedia.org/wiki/Equivalence_class" title="Equivalence class">equivalence classes</a>. Informally, the task partition tasks(A), represents an abstract description of "tasks," or "threads of control," within A.</p>
+<p>This partition is used to define <a href="#Fairness">fairness</a> 
+conditions on an execution of the automaton. These conditions require 
+the automaton to continue giving fair turns to each of its tasks during 
+its execution. This is particularly helpful when modelling a system 
+component that performs multiple jobs. For instance, a component that 
+participates in an ongoing algorithm while periodically reporting status
+ information to its environment simultaneously would have two tasks. The
+ partition is also useful when several automata are <a href="#Composition_operation">composed</a>
+ (to produce a larger system automaton) when specifying that the all 
+automata in the composition continue to take steps in the composed 
+system.<sup id="cite_ref-lynch1997_1-7" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-4" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup></p>
+<h3><span class="mw-headline" id="Example:_Formal_definition_of_channel_I.2FO_automaton">Example: Formal definition of channel I/O automaton</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=10" title="Edit section: Example: Formal definition of channel I/O automaton">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>As described above, C<sub>i,j</sub> is an example of I/O automaton that represents a unidirectional FIFO channel from process P<sub>i</sub> to process P<sub>j</sub>. Let m be a binary message: m ∈ {0,1}. The automaton C<sub>i,j</sub> can be formally defined as follows.</p>
+<p><b>Signature:</b></p>
+<p>sig(C<sub>i,j</sub>) specifies that the automaton has two kinds of actions:</p>
+<ul>
+<li>An input action of (C<sub>i,j</sub>) is of the form send(m)<sub>i,j</sub>, where m ∈ {0,1}.</li>
+<li>An output action of (C<sub>i,j</sub>) is of the form receive(m)<sub>i,j</sub>, where m ∈{0,1}.</li>
+</ul>
+<p>Intuitively, the action send(m)<sub>i,j</sub> indicates that a message m has entered the channel when it is sent by process P<sub>i</sub> and the action receive(m)<sub>i,j</sub> indicates that a message m has left the channel when it is delivered to process P<sub>j</sub>.<sup id="cite_ref-lynch1997_1-8" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<p><b>States:</b></p>
+<p>states(C<sub>i,j</sub>) is the set of all finite sequences of 
+elements m ∈ {0,1}. Intuitively, the state represents the sequence of 
+messages currently en route from the sender, process P<sub>i</sub>, to the receiver, process P<sub>j</sub>, in the order they were sent.</p>
+<p>start(C<sub>i,j</sub>), representing the initial states of the <i>queue</i>, contains only the empty sequence.<sup id="cite_ref-lynch1997_1-9" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<p><b>Transitions</b></p>
+<p>The transition relation can be modelled in a <i>precondition-effect</i>
+ style, where all the transitions that include each specific type of 
+action are grouped into a single piece of code. In this code, the 
+conditions which must be satisfied before allowing an action to occur, 
+are formalized as a predicate on the pre-state s, which is the state 
+before the action occurs. Consequent changes to the state that result 
+from the execution of the action are coded in the form of a simple 
+program. This program is executed indivisibly, as a single transition. 
+If this program is applied to the state s, the new state s' results.</p>
+<p>The transitions of C<sub>i,j</sub> are described as:</p>
+<p>for <i>send(m)<sub>i,j</sub></i>:</p>
+<ul>
+<li>Precondition: None</li>
+<li>Effect: m is added to the end of the sequence stored in the state (where m ∈ {1,0})</li>
+</ul>
+<p>for <i>receive(m)<sub>i,j</sub></i>:</p>
+<ul>
+<li>Precondition: m is the first element in the sequence stored in the state (where m ∈ {1,0})</li>
+<li>Effect: remove the first element of the sequence stored in the state</li>
+</ul>
+<p>Intuitively, the send action can be executed any time; it causes the 
+addition of the message m to the end of the queue of messages in che 
+channel. The receive action removes and returns the first element of the
+ queue.<sup id="cite_ref-lynch1997_1-10" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<p><b>Tasks</b></p>
+<p>tasks(C<sub>i,j</sub>), represents a task partition that groups 
+together all actions of form receive into a single task. Intuitively, 
+handing over messages to process P<sub>j</sub> is considered as a single task.</p>
+<p><code>{receive(m)<sub>i,j</sub>&nbsp;: m ∈ {0,1}}</code>.<sup id="cite_ref-lynch1997_1-11" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h2><span class="mw-headline" id="Execution_and_trace">Execution and trace</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=11" title="Edit section: Execution and trace">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Execution">Execution</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=12" title="Edit section: Execution">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In a <i>run</i> of an automaton, a <a href="https://en.wikipedia.org/wiki/String_%28computer_science%29" title="String (computer science)">string</a> is generated that describes the behaviour of the component the automaton models.<sup id="cite_ref-lynch-tuttle_3-5" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup> "An execution fragment of I/O Automaton A is either</p>
+<ul>
+<li>a finite sequence, s<sub>0</sub>, π<sub>1</sub>, s<sub>1</sub>, π<sub>2</sub>,... , π<sub>r</sub>, s<sub>r</sub>, <i>or</i></li>
+<li>an infinite sequence, s<sub>0</sub>, π<sub>1</sub>, s<sub>1</sub>,π<sub>2</sub>,...,π<sub>r</sub>,s<sub>r</sub>,...,</li>
+</ul>
+<p>of alternating states and actions of A such that (s<sub>k</sub>, π<sub>k+1</sub>, s<sub>k+1</sub>) is a transition of A for every k ≥ 0."</p>
+<p>A finite sequence must terminate with a state. An <i>execution</i> is defined as an execution fragment that begins with start state. The set of executions of A is represented by <i>execs(A)</i>. A <i>reachable</i> state in I/O automaton A is the final state of a finite execution of A.</p>
+<p>Assume α is a finite execution fragment of A ending with state s<sub>f</sub>. Assume further that α' is any execution fragment of A that begins with s<sub>f</sub>, the last state of α. In this case, the sequence produced by <a href="https://en.wikipedia.org/wiki/Concatenation" title="Concatenation">concatenating</a> α and α', and eliminating the duplicate occurrence of s<sub>f</sub>, the last state of α, is represented by α.α' . This sequence is also an execution fragment of I/O automaton A.<sup id="cite_ref-lynch1997_1-12" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h3><span class="mw-headline" id="Trace">Trace</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=13" title="Edit section: Trace">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A trace of an I/O automaton A is the sequence of external actions 
+that occurs in some execution α of A. The set of all traces of A is 
+represented as <i>traces(A)</i>.<sup id="cite_ref-lynch1997_1-13" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h3><span class="mw-headline" id="Example:_Three_executions">Example: Three executions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=14" title="Edit section: Example: Three executions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Executions a, b and c are three executions of the automaton C<sub>i,j</sub> described in <a href="#Example:_Formal_Definition_of_Channel_I.2FO_Automaton">Formal Definition of Channel I/O Automaton</a>
+ (where message m ∈ {0, 1}). In this example, the states are indicated 
+by putting the sequence of messages in queue in brackets; the empty 
+sequence is represented by λ.</p>
+<dl>
+<dd>(a) [λ], send(1)<sub>i,j</sub>, [1], receive(1)<sub>i,j</sub>, [λ], send(0)<sub>i,j</sub>, [0], receive(0)<sub>i,j</sub>, [λ]</dd>
+<dd>(b) [λ], send(1)<sub>i,j</sub>, [1], receive(1)<sub>i,j</sub>, [λ], send(0)<sub>i,j</sub>, [0]</dd>
+<dd>(c) [λ], send(1)<sub>i,j</sub>, [1], send(1)<sub>i,j</sub>, [11], send(0)<sub>i,j</sub>, [110]....<sup id="cite_ref-lynch1997_1-14" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></dd>
+</dl>
+<h2><span class="mw-headline" id="Operations_on_automata">Operations on automata</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=15" title="Edit section: Operations on automata">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Composition_operation">Composition operation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=16" title="Edit section: Composition operation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>It is possible to <i>compose</i> several automata, each describing 
+individual system components, to yield an automaton that represents a 
+larger, more complex system. In this case, actions that have the same 
+name in each constituent automata are identified together. Therefore, 
+when a component automata takes a step that includes an action π, all 
+other component automata with π in their signatures also perform that 
+action. The following outlines the conditions for composition of 
+automata A and A' to be permitted:</p>
+<ol>
+<li>The internal actions of A must be disjoint from actions of A’. This 
+prevents performance of a step in A’ when the internal actions of A – 
+with the same name as actions of A' - are performed.</li>
+<li>The output actions of A and A’ must be disjoint. This condition ensures that only one constituent automaton <i>controls</i> performance of an output action.</li>
+</ol>
+<p>If the composition is constructed from a countably infinite 
+collection of automata, then there is an additional constraint: each 
+action needs to be an action of only finitely many of the constituent 
+automata. Infinite composition of automata allows modeling of <i>logical systems</i> that may be constructed from many logical components. The <i>logical system</i> is often implemented on a <i>physical system</i> that contains fewer components.<sup id="cite_ref-lynch1997_1-15" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h4><span class="mw-headline" id="Example:_Composition">Example: Composition</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=17" title="Edit section: Example: Composition">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<div class="thumb tright">
+<div class="thumbinner" style="width:372px;"><a href="https://en.wikipedia.org/wiki/File:CompositionIOProcessV2.jpg" class="image"><img alt="Composition Example" src="Input_output%20automaton%20-%20Wikipedia_files/370px-CompositionIOProcessV2.jpg" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/47/CompositionIOProcessV2.jpg/555px-CompositionIOProcessV2.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/47/CompositionIOProcessV2.jpg/740px-CompositionIOProcessV2.jpg 2x" data-file-width="797" data-file-height="109" height="51" width="370"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:CompositionIOProcessV2.jpg" class="internal" title="Enlarge"></a></div>
+Figure 4: Composition</div>
+</div>
+</div>
+<p>Figure 4 depicts a composition of two processes, P<sub>i</sub> and P<sub>j</sub> and a FIFO message channel C<sub>i,j</sub>, matching output actions of one automaton with identically named input actions of other automata. Thus, a send(m)<sub>i,j</sub> output performed by process P<sub>i</sub> is matched and performed with a send(m)<sub>i,j</sub> input performed by channel C<sub>i,j</sub>.</p>
+<p>Process P<sub>i</sub> sends the message m, where m ∈{1,0} via channel C<sub>i,j</sub> to Process P<sub>j</sub>. Process P<sub>j</sub> reverses the bit in the received message m from P<sub>i</sub> using its internal action <i>reverse</i> - not shown in the picture - and forwards the message to other parts of the system.</p>
+<h3><span class="mw-headline" id="Hiding_operation">Hiding operation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=18" title="Edit section: Hiding operation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>It is possible to hide the output actions of an I/O automaton through
+ "reclassifying them as internal actions." This has the effect of 
+excluding them from communication with other parts of the system. 
+Formally, the hiding operation for signatures is described as follows:</p>
+<p>Let S be a signature and Φ ⊆ out(S). hide<sub>Φ</sub>(S) is the new signature S', where</p>
+<ul>
+<li>in(S')= in(S)</li>
+<li>out(S')= out(S) - Φ</li>
+<li>int(S') =int(S) ∪ Φ</li>
+</ul>
+<p>Therefore, "If <i>A</i> is an automaton and Φ ⊆ out(A), then hide<sub>Φ</sub>(A) is the automaton A' obtained from A by replacing sig(A) with sig(A') = hide<sub>Φ</sub>(sig(A))."<sup id="cite_ref-lynch1997_1-16" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h2><span class="mw-headline" id="Fairness">Fairness</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=19" title="Edit section: Fairness">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Recall that a <a href="#Tasks">task partition</a> is defined as an 
+equivalence relation on an I/O automaton’s locally controlled actions, 
+containing at most countably many equivalence classes. In this setting, 
+fairness can be defined as continuously providing each task with a 
+chance to perform an action.</p>
+<p>In an I/O automaton A, let C represent a class of tasks(A). Formally, an execution fragment α of A is considered <i>fair</i> if the below criteria hold for every class C:</p>
+<ol>
+<li>"If α is finite, then C is not enabled in the final state of α."</li>
+<li>"If α is infinite, then α contains either infinitely many events 
+from C or infinitely many occurrences of states in which C is not 
+enabled."</li>
+</ol>
+<p>An <i>event</i> is defined as the "occurrence of an action in a 
+sequence, for example, an execution or a trace." Based on the definition
+ of fairness, "infinitely often," each task (or equivalence class C) 
+gets a chance to perform an action. When a task (or equivalence class) C
+ does get a chance to perform an action, two cases are possible: an 
+action in C is enabled in current state and can be performed, or none of
+ the actions in C are enabled in the current state and therefore, can 
+not be performed. Thus, a <i>finite fair execution</i> with final state S<sub>f</sub> can be defined as an execution where the automaton continuously gives turns to all tasks in a <a href="https://en.wikipedia.org/wiki/Round-robin_scheduling" title="Round-robin scheduling">round-robin</a> fashion, but no actions are executed as none are enabled in S<sub>f</sub>.</p>
+<p>The set of fair executions of I/O automaton A is represented by <i>fairexecs(A)</i>. Let β be the trace of a fair execution of A. Then β is a <i>fair trace</i> of A. The set fair traces of A is represented by <i>fairtraces(A)</i>.</p>
+<p>In the <a href="#Example:_Three_executions">execution example</a>, 
+execution (a) is fair, since in its final state no receive action is 
+enabled. Execution (b) is finite, yet a receive action is enabled in its
+ final state. Therefore, execution (b) is not fair. Execution (c) is 
+infinite, does not contain receive events, and at all points after the 
+first step, receive actions are enabled. Therefore, it is not a fair 
+execution.<sup id="cite_ref-lynch1997_1-17" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup><sup id="cite_ref-lynch-tuttle_3-6" class="reference"><a href="#cite_note-lynch-tuttle-3">[3]</a></sup>
+ The definition of fairness has a significant property: "the fair 
+executions of a composition are the composition of the fair executions 
+of the components:" that is, Fair(∏<sub>i</sub> A<sub>i</sub>)= ∏<sub>i</sub> Fair(A<sub>i</sub>).<sup id="cite_ref-lynch-tuttle87_2-1" class="reference"><a href="#cite_note-lynch-tuttle87-2">[2]</a></sup></p>
+<h2><span class="mw-headline" id="Properties_and_proof_methods">Properties and proof methods</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=20" title="Edit section: Properties and proof methods">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>I/O automata provide an accurate description of asynchronous systems.
+ They are also used to formalize and prove "precise claims" about "what 
+systems can do." In this section, a number of important types of 
+properties are described. These, as well as further properties and proof
+ methods, are explained in <i>Distributed Algorithms</i>.<sup id="cite_ref-lynch1997_1-18" class="reference"><a href="#cite_note-lynch1997-1">[1]</a></sup></p>
+<h3><span class="mw-headline" id="Input_enabling_properties">Input enabling properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=21" title="Edit section: Input enabling properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The input enabling property states that the automaton cannot <i>block</i> input actions from happening. The two significant advantages of having this property are:</p>
+<ol>
+<li>As the model is designed to cope with arbitrary inputs, a major 
+source of system errors due to a failure in handling unexpected inputs 
+is eliminated.</li>
+<li>The input-enabling property makes use of "simple notions of external
+ behavior for an automaton, based on sequences of external actions." 
+Proofs of certain theorems in the model might fail without the 
+assumption of this property.</li>
+</ol>
+<h3><span class="mw-headline" id="Trace_properties">Trace properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=22" title="Edit section: Trace properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>As internal actions of an I/O automaton are invisible to a user; the I/O automaton appears to be a <a href="https://en.wikipedia.org/wiki/Black_box" title="Black box">black box</a>
+ and the user merely sees "traces of automaton's executions (or fair 
+executions)." Certain properties of I/O automata and their proofs are 
+typically formalized as "properties of their traces or fair traces."</p>
+<p>Let P be a trace property; P has the following components:</p>
+<ul>
+<li>sig(P), that represents a signature with no internal actions</li>
+<li>traces(P), that corresponds to a set of "sequences of actions in acts(sig(P))." This set may be infinite.</li>
+</ul>
+<p>The trace property describes an external signature as well as a set 
+(or a property) of sequences viewed at that interface. Sometimes 
+acts(sig(P)) is represented by a shorthand notation acts(P). When it is 
+mentioned that I/O automaton A satisfies a trace property P, (at least) 
+two different meanings might be intended:</p>
+<ol>
+<li>"extsig(A) = sig(P) and traces(A) ⊆ traces(P)"</li>
+<li>"extsig(A) = sig(P) and fairtraces(A) ⊆ traces(P)"</li>
+</ol>
+<p>Intuitively, it means that when A generates an external behavior then
+ that is allowed by Property P. However, it is not required for A to 
+actually represent every trace of P. Since A is input-enabled, then for 
+every possible sequence of input actions, the fairtraces(A) (and so 
+traces(A)) includes a response by A. If <i>fairtraces(A)</i> ⊆ <i>traces(P)</i> holds, then property P must contain all of the generated sequences.</p>
+<h3><span class="mw-headline" id="Safety_properties">Safety properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=23" title="Edit section: Safety properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Intuitively, a safety property represents the fact that nothing "bad" happens. More formally, Let P be a <a href="#Trace_properties">trace property</a>. P is a trace safety property, or <i>safety property</i>, if the following criteria hold for traces(P).</p>
+<ul>
+<li><b>traces(P) is not empty</b>: Something bad cannot happen prior to 
+occurrence of any events; therefore, having non-emptiness is a 
+reasonable condition on traces(P).</li>
+<li><b>traces(P) is "prefix-closed"</b>: Let β ∈ traces(P) and β' represent a finite <a href="https://en.wikipedia.org/wiki/Prefix_%28computer_science%29#Prefix" class="mw-redirect" title="Prefix (computer science)">prefix</a>
+ of β In this case, β' ∈ traces(P). To elaborate, assume there is a 
+trace in which nothing bad happens. Therefore, nothing bad happens in 
+any prefix of that trace. Thus, having prefix-closure is a reasonable 
+condition on traces(P).</li>
+<li><b>traces(P) is "limit-closed"</b>: Let β<sub>1</sub>, β<sub>2</sub>, . . . represent an infinite sequence of finite sequences in traces(P). Also, assume that for each i, β<sub>i</sub> is a prefix of β<sub>i+1</sub>. In this case, the unique sequence β, that is "the limit of the β<sub>i</sub>
+ under the successive extension ordering" also exists in traces (P). 
+Therefore, if something bad were to happen in a trace, then it would be 
+the result of certain specific event in the trace. Having limit closure 
+in this case is thus a reasonable condition on traces(P).</li>
+</ul>
+<h3><span class="mw-headline" id="Liveness_properties">Liveness properties</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=24" title="Edit section: Liveness properties">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Informally, a liveness property can be interpreted as something "good" <i>eventually</i>
+ happens. Therefore, regardless of what has happened to a certain point 
+in time, something good can happen at some time in the future. More 
+formally, let P be a <a href="#Trace_properties">trace property</a>. P is a trace liveness property, or a <i>liveness property</i>, "if every finite sequence over acts(P) has some extension in traces(P)."</p>
+<h2><span class="mw-headline" id="Further_reading">Further reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=25" title="Edit section: Further reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><i>Timed I/O Automaton</i>: <cite class="citation conference">Merritt, Michael; Modugno, Francesmary; Tuttle, Mark R. (August 1991). <a rel="nofollow" class="external text" href="http://dl.acm.org/citation.cfm?id=703043">"Time constrained automata (Extended Abstract)"</a>. <i>Proceedings of the 2nd International Conference on Concurrency Theory</i>. CONCUR '91. <b>527</b>. pp.&nbsp;408–423.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AInput%2Foutput+automaton&amp;rft.atitle=Time+constrained+automata+%28Extended+Abstract%29&amp;rft.au=Modugno%2C+Francesmary&amp;rft.au=Tuttle%2C+Mark+R.&amp;rft.aufirst=Michael&amp;rft.aulast=Merritt&amp;rft.btitle=Proceedings+of+the+2nd+International+Conference+on+Concurrency+Theory&amp;rft.date=1991-08&amp;rft.genre=conference&amp;rft.pages=408-423&amp;rft.series=CONCUR+%2791&amp;rft_id=http%3A%2F%2Fdl.acm.org%2Fcitation.cfm%3Fid%3D703043&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+<li><i>Probabilistic I/O Automaton</i>: <cite class="citation journal">Wu, Sue-Hwey; Smolka, Scott A.; Stark, Eugene W. (April 1997). <a rel="nofollow" class="external text" href="http://www.cs.sunysb.edu/%7Esas/papers/tcs97.pdf">"Composition and behaviors of probabilistic I/O automata"</a> <span style="font-size:85%;">(PDF)</span>. <i>Theoretical Computer Science</i>. <b>176</b> (1-2): 1–38. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1016%2Fs0304-3975%2897%2900056-x">10.1016/s0304-3975(97)00056-x</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AInput%2Foutput+automaton&amp;rft.atitle=Composition+and+behaviors+of+probabilistic+I%2FO+automata&amp;rft.au=Smolka%2C+Scott+A.&amp;rft.au=Stark%2C+Eugene+W.&amp;rft.aufirst=Sue-Hwey&amp;rft.aulast=Wu&amp;rft.date=1997-04&amp;rft.genre=article&amp;rft.issue=1-2&amp;rft.jtitle=Theoretical+Computer+Science&amp;rft.pages=1-38&amp;rft.volume=176&amp;rft_id=http%3A%2F%2Fwww.cs.sunysb.edu%2F~sas%2Fpapers%2Ftcs97.pdf&amp;rft_id=info%3Adoi%2F10.1016%2Fs0304-3975%2897%2900056-x&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+</ul>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=26" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Communicating_sequential_processes" title="Communicating sequential processes">Communicating sequential processes</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Actor_model" title="Actor model">Actor model</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit&amp;section=27" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div class="reflist" style="list-style-type: decimal;">
+<ol class="references">
+<li id="cite_note-lynch1997-1"><span class="mw-cite-backlink">^ <a href="#cite_ref-lynch1997_1-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-lynch1997_1-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-lynch1997_1-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-lynch1997_1-3"><sup><i><b>d</b></i></sup></a> <a href="#cite_ref-lynch1997_1-4"><sup><i><b>e</b></i></sup></a> <a href="#cite_ref-lynch1997_1-5"><sup><i><b>f</b></i></sup></a> <a href="#cite_ref-lynch1997_1-6"><sup><i><b>g</b></i></sup></a> <a href="#cite_ref-lynch1997_1-7"><sup><i><b>h</b></i></sup></a> <a href="#cite_ref-lynch1997_1-8"><sup><i><b>i</b></i></sup></a> <a href="#cite_ref-lynch1997_1-9"><sup><i><b>j</b></i></sup></a> <a href="#cite_ref-lynch1997_1-10"><sup><i><b>k</b></i></sup></a> <a href="#cite_ref-lynch1997_1-11"><sup><i><b>l</b></i></sup></a> <a href="#cite_ref-lynch1997_1-12"><sup><i><b>m</b></i></sup></a> <a href="#cite_ref-lynch1997_1-13"><sup><i><b>n</b></i></sup></a> <a href="#cite_ref-lynch1997_1-14"><sup><i><b>o</b></i></sup></a> <a href="#cite_ref-lynch1997_1-15"><sup><i><b>p</b></i></sup></a> <a href="#cite_ref-lynch1997_1-16"><sup><i><b>q</b></i></sup></a> <a href="#cite_ref-lynch1997_1-17"><sup><i><b>r</b></i></sup></a> <a href="#cite_ref-lynch1997_1-18"><sup><i><b>s</b></i></sup></a></span> <span class="reference-text"><cite class="citation book">Lynch, Nancy (1996). <a rel="nofollow" class="external text" href="http://groups.csail.mit.edu/tds/distalgs.html"><i>Distributed Algorithms</i></a> (1st ed.). San Francisco, CA: <a href="https://en.wikipedia.org/wiki/Morgan_Kaufmann_Publishers" title="Morgan Kaufmann Publishers">Morgan Kaufmann Publishers</a>. <a href="https://en.wikipedia.org/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a>&nbsp;<a href="https://en.wikipedia.org/wiki/Special:BookSources/978-1-55860-348-6" title="Special:BookSources/978-1-55860-348-6">978-1-55860-348-6</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AInput%2Foutput+automaton&amp;rft.aufirst=Nancy&amp;rft.aulast=Lynch&amp;rft.btitle=Distributed+Algorithms&amp;rft.date=1996&amp;rft.edition=1st&amp;rft.genre=book&amp;rft.isbn=978-1-55860-348-6&amp;rft.place=San+Francisco%2C+CA&amp;rft.pub=Morgan+Kaufmann+Publishers&amp;rft_id=http%3A%2F%2Fgroups.csail.mit.edu%2Ftds%2Fdistalgs.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-lynch-tuttle87-2"><span class="mw-cite-backlink">^ <a href="#cite_ref-lynch-tuttle87_2-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-lynch-tuttle87_2-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation conference">Lynch, Nancy A.; Tuttle, Mark R. (August 1987). <a rel="nofollow" class="external text" href="http://dl.acm.org/citation.cfm?id=41852">"Hierarchical correctness proofs for distributed algorithms"</a>. <i>Proceedings of the sixth annual ACM Symposium on Principles of distributed computing</i>. PODC '87. pp.&nbsp;137–151.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AInput%2Foutput+automaton&amp;rft.atitle=Hierarchical+correctness+proofs+for+distributed+algorithms&amp;rft.au=Tuttle%2C+Mark+R.&amp;rft.aufirst=Nancy+A.&amp;rft.aulast=Lynch&amp;rft.btitle=Proceedings+of+the+sixth+annual+ACM+Symposium+on+Principles+of+distributed+computing&amp;rft.date=1987-08&amp;rft.genre=conference&amp;rft.pages=137-151&amp;rft.series=PODC+%2787&amp;rft_id=http%3A%2F%2Fdl.acm.org%2Fcitation.cfm%3Fid%3D41852&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-lynch-tuttle-3"><span class="mw-cite-backlink">^ <a href="#cite_ref-lynch-tuttle_3-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-3"><sup><i><b>d</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-4"><sup><i><b>e</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-5"><sup><i><b>f</b></i></sup></a> <a href="#cite_ref-lynch-tuttle_3-6"><sup><i><b>g</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Lynch, Nancy A.; Tuttle, Mark R. (September 1989). <a rel="nofollow" class="external text" href="http://www.markrtuttle.com/papers/lt89-cwi.pdf">"An introduction to input/output automata"</a> <span style="font-size:85%;">(PDF)</span>. <i>CWI-Quarterly</i>. <b>2</b> (3): 219–246.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AInput%2Foutput+automaton&amp;rft.atitle=An+introduction+to+input%2Foutput+automata&amp;rft.au=Tuttle%2C+Mark+R.&amp;rft.aufirst=Nancy+A.&amp;rft.aulast=Lynch&amp;rft.date=1989-09&amp;rft.genre=article&amp;rft.issue=3&amp;rft.jtitle=CWI-Quarterly&amp;rft.pages=219-246&amp;rft.volume=2&amp;rft_id=http%3A%2F%2Fwww.markrtuttle.com%2Fpapers%2Flt89-cwi.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+</ol>
+</div>
+
+
+<!-- 
+NewPP limit report
+Parsed by mw1216
+Cached time: 20170627094934
+Cache expiry: 2592000
+Dynamic content: false
+CPU time usage: 0.108 seconds
+Real time usage: 0.130 seconds
+Preprocessor visited node count: 490/1000000
+Preprocessor generated node count: 0/1500000
+Post‐expand include size: 8875/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 4/40
+Expensive parser function count: 0/500
+Lua time usage: 0.035/10.000 seconds
+Lua memory usage: 2.14 MB/50 MB
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   73.704      1 -total
+ 61.02%   44.972      2 Template:Cite_conference
+ 35.51%   26.172      1 Template:Reflist
+ 14.10%   10.389      2 Template:Cite_journal
+  7.72%    5.690      1 Template:Cite_book
+-->
+</div>
+<!-- Saved in parser cache with key enwiki:pcache:idhash:34169731-0!canonical and timestamp 20170627094934 and revision id 720626773
+ -->
+<noscript><img src="//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript></div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;oldid=720626773">https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;oldid=720626773</a>"					</div>
+				<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="https://en.wikipedia.org/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="https://en.wikipedia.org/wiki/Category:Distributed_computing" title="Category:Distributed computing">Distributed computing</a></li></ul></div><div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: <ul><li><a href="https://en.wikipedia.org/wiki/Category:Articles_created_via_the_Article_Wizard" title="Category:Articles created via the Article Wizard">Articles created via the Article Wizard</a></li></ul></div></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-anonuserpage">Not logged in</li><li id="pt-anontalk"><a href="https://en.wikipedia.org/wiki/Special:MyTalk" title="Discussion about edits from this IP address [⌃⌥n]" accesskey="n">Talk</a></li><li id="pt-anoncontribs"><a href="https://en.wikipedia.org/wiki/Special:MyContributions" title="A list of edits made from this IP address [⌃⌥y]" accesskey="y">Contributions</a></li><li id="pt-createaccount"><a href="https://en.wikipedia.org/w/index.php?title=Special:CreateAccount&amp;returnto=Input%2Foutput+automaton" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="https://en.wikipedia.org/w/index.php?title=Special:UserLogin&amp;returnto=Input%2Foutput+automaton" title="You're encouraged to log in; however, it's not mandatory. [⌃⌥o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li id="ca-nstab-main" class="selected"><span><a href="https://en.wikipedia.org/wiki/Input/output_automaton" title="View the content page [⌃⌥c]" accesskey="c">Article</a></span></li>
+															<li id="ca-talk"><span><a href="https://en.wikipedia.org/wiki/Talk:Input/output_automaton" title="Discussion about the content page [⌃⌥t]" accesskey="t" rel="discussion">Talk</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label" tabindex="0">
+							<span>Variants</span><div></div>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="https://en.wikipedia.org/wiki/Input/output_automaton">Read</a></span></li>
+															<li id="ca-edit"><span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=edit" title="Edit this page [⌃⌥e]" accesskey="e">Edit</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=history" title="Past revisions of this page [⌃⌥h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label" style="">
+						<h3 id="p-cactions-label" tabindex="0"><span>More</span><div></div></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="/w/index.php" id="searchform">
+							<div id="simpleSearch">
+							<input name="search" placeholder="Search Wikipedia" title="Search Wikipedia [⌃⌥f]" accesskey="f" id="searchInput" tabindex="1" autocomplete="off" type="search"><input value="Special:Search" name="title" type="hidden"><input name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton" type="submit">							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="https://en.wikipedia.org/wiki/Main_Page" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage-description"><a href="https://en.wikipedia.org/wiki/Main_Page" title="Visit the main page [⌃⌥z]" accesskey="z">Main page</a></li><li id="n-contents"><a href="https://en.wikipedia.org/wiki/Portal:Contents" title="Guides to browsing Wikipedia">Contents</a></li><li id="n-featuredcontent"><a href="https://en.wikipedia.org/wiki/Portal:Featured_content" title="Featured content – the best of Wikipedia">Featured content</a></li><li id="n-currentevents"><a href="https://en.wikipedia.org/wiki/Portal:Current_events" title="Find background information on current events">Current events</a></li><li id="n-randompage"><a href="https://en.wikipedia.org/wiki/Special:Random" title="Load a random article [⌃⌥x]" accesskey="x">Random article</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en" title="Support us">Donate to Wikipedia</a></li><li id="n-shoplink"><a href="https://shop.wikimedia.org/" title="Visit the Wikipedia store">Wikipedia store</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-interaction" aria-labelledby="p-interaction-label">
+			<h3 id="p-interaction-label">Interaction</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-help"><a href="https://en.wikipedia.org/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia">Help</a></li><li id="n-aboutsite"><a href="https://en.wikipedia.org/wiki/Wikipedia:About" title="Find out about Wikipedia">About Wikipedia</a></li><li id="n-portal"><a href="https://en.wikipedia.org/wiki/Wikipedia:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-recentchanges"><a href="https://en.wikipedia.org/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [⌃⌥r]" accesskey="r">Recent changes</a></li><li id="n-contactpage"><a href="https://en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia">Contact page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="https://en.wikipedia.org/wiki/Special:WhatLinksHere/Input/output_automaton" title="List of all English Wikipedia pages containing links to this page [⌃⌥j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="https://en.wikipedia.org/wiki/Special:RecentChangesLinked/Input/output_automaton" rel="nofollow" title="Recent changes in pages linked from this page [⌃⌥k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="https://en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [⌃⌥u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="https://en.wikipedia.org/wiki/Special:SpecialPages" title="A list of all special pages [⌃⌥q]" accesskey="q">Special pages</a></li><li id="t-permalink"><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;oldid=720626773" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;action=info" title="More information about this page">Page information</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q5968144" title="Link to connected data repository item [⌃⌥g]" accesskey="g">Wikidata item</a></li><li id="t-cite"><a href="https://en.wikipedia.org/w/index.php?title=Special:CiteThisPage&amp;page=Input%2Foutput_automaton&amp;id=720626773" title="Information on how to cite this page">Cite this page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-coll-print_export" aria-labelledby="p-coll-print_export-label">
+			<h3 id="p-coll-print_export-label">Print/export</h3>
+
+			<div class="body">
+									<ul>
+						<li id="coll-create_a_book"><a href="https://en.wikipedia.org/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=Input%2Foutput+automaton">Create a book</a></li><li id="coll-download-as-rdf2latex"><a href="https://en.wikipedia.org/w/index.php?title=Special:ElectronPdf&amp;page=Input%2Foutput+automaton&amp;action=show-selection-screen&amp;coll-download-url=%2Fw%2Findex.php%3Ftitle%3DSpecial%3ABook%26bookcmd%3Drender_article%26arttitle%3DInput%252Foutput%2Bautomaton%26returnto%3DInput%252Foutput%2Bautomaton%26oldid%3D720626773%26writer%3Drdf2latex">Download as PDF</a></li><li id="t-print"><a href="https://en.wikipedia.org/w/index.php?title=Input/output_automaton&amp;printable=yes" title="Printable version of this page [⌃⌥p]" accesskey="p">Printable version</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-lang" aria-labelledby="p-lang-label"><span class="uls-settings-trigger" title="Language settings" tabindex="0" role="button" aria-haspopup="true"></span>
+			<h3 id="p-lang-label">Languages</h3>
+
+			<div class="body">
+									<ul>
+											</ul>
+				<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-add wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q5968144#sitelinks-wikipedia" title="Add interlanguage links" class="wbc-editpage">Add links</a></span></div>			</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last edited on 17 May 2016, at 00:38.</li>
+											<li id="footer-info-copyright">Text is available under the <a rel="license" href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-ShareAlike License</a><a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/" style="display:none;"></a>;
+additional terms may apply.  By using this site, you agree to the <a href="https://wikimediafoundation.org/wiki/Terms_of_Use">Terms of Use</a> and <a href="https://wikimediafoundation.org/wiki/Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a href="https://www.wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="https://wikimediafoundation.org/wiki/Privacy_policy" class="extiw" title="wmf:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="https://en.wikipedia.org/wiki/Wikipedia:About" title="Wikipedia:About">About Wikipedia</a></li>
+											<li id="footer-places-disclaimer"><a href="https://en.wikipedia.org/wiki/Wikipedia:General_disclaimer" title="Wikipedia:General disclaimer">Disclaimers</a></li>
+											<li id="footer-places-contact"><a href="https://en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+											<li id="footer-places-developers"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">Developers</a></li>
+											<li id="footer-places-cookiestatement"><a href="https://wikimediafoundation.org/wiki/Cookie_statement">Cookie statement</a></li>
+											<li id="footer-places-mobileview"><a href="https://en.m.wikipedia.org/w/index.php?title=Input/output_automaton&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-copyrightico">
+							<a href="https://wikimediafoundation.org/"><img src="Input_output%20automaton%20-%20Wikipedia_files/wikimedia-button.png" srcset="/static/images/wikimedia-button-1.5x.png 1.5x, /static/images/wikimedia-button-2x.png 2x" alt="Wikimedia Foundation" height="31" width="88"></a>						</li>
+											<li id="footer-poweredbyico">
+							<a href="https://www.mediawiki.org/"><img src="Input_output%20automaton%20-%20Wikipedia_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/static/images/poweredby_mediawiki_132x47.png 1.5x, /static/images/poweredby_mediawiki_176x62.png 2x" height="31" width="88"></a>						</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.108","walltime":"0.130","ppvisitednodes":{"value":490,"limit":1000000},"ppgeneratednodes":{"value":0,"limit":1500000},"postexpandincludesize":{"value":8875,"limit":2097152},"templateargumentsize":{"value":0,"limit":2097152},"expansiondepth":{"value":4,"limit":40},"expensivefunctioncount":{"value":0,"limit":500},"entityaccesscount":{"value":0,"limit":400},"timingprofile":["100.00%   73.704      1 -total"," 61.02%   44.972      2 Template:Cite_conference"," 35.51%   26.172      1 Template:Reflist"," 14.10%   10.389      2 Template:Cite_journal","  7.72%    5.690      1 Template:Cite_book"]},"scribunto":{"limitreport-timeusage":{"value":"0.035","limit":"10.000"},"limitreport-memusage":{"value":2248353,"limit":52428800}},"cachereport":{"origin":"mw1216","timestamp":"20170627094934","ttl":2592000,"transientcontent":false}}});});</script><script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":86,"wgHostname":"mw1188"});});</script>
+	
+
+<div style="display: none; font-size: 13px;" class="suggestions"><div class="suggestions-results"></div><div class="suggestions-special"></div></div><a accesskey="v" href="https://en.wikipedia.org/wiki/Input/output_automaton?action=edit" style="display: none;"></a></body></html>

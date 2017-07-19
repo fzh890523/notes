@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱讨论第2页:  - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="[HotSpot VM] JVM调优的"标准参数"的各种陷阱讨论第2页: hittyt 写道本人的java环境如下： java -version  java version &quot;1.6.0_18&quot;  Java(TM) SE Runtime Environment (build 1.6.0_18-b07)  Java HotSpot(TM) 64-Bit Server VM (build 16.0-b13, mixed mode) 但使用PrintFlag ..." />
+    <meta name="keywords" content="[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670872" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://rednaxelafx.iteye.com" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/27945/post/new">发表回复</a></div>
+  <div class="pagination"><a href="/group/topic/27945?page=1" class="prev_page" rel="prev start">&laquo; 上一页</a> <a href="/group/topic/27945?page=1" rel="prev start">1</a> <span class="current">2</span> <a href="/group/topic/27945?page=3" rel="next">3</a> <a href="/group/topic/27945?page=3" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/27945">[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-203679">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-11-08
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">hittyt 写道</div><div class="quote_div">本人的java环境如下：<br /><pre name="code" class="Command line">java -version
+java version "1.6.0_18"
+Java(TM) SE Runtime Environment (build 1.6.0_18-b07)
+Java HotSpot(TM) 64-Bit Server VM (build 16.0-b13, mixed mode)</pre><br />但使用PrintFlagsFinal时得到的输出却是下面的结果：<br /><pre name="code" class="Command line">java -XX:+PrintFlagsFinal
+Unrecognized VM option '+PrintFlagsFinal'
+Could not create the Java virtual machine.</pre><br />求LZ解答问题在哪里呢？</div><br />我在顶楼的帖里明明写了…<br /><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div">接着是 <strong>-XX:+PrintFlagsFinal</strong> 。前一个参数只显示跟默认值不同的，而这个参数则可以显示所有可设置的参数及它们的值。不过<span style="color: red;">这个参数本身只从JDK 6 update 21开始才可以用</span>，之前的Oracle/Sun JDK则用不了。</div><br />而且还标红了…诶。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-203837">
+  <td class="post_author"><div class="logo"><a href='http://hittyt.iteye.com' target='_blank'><img alt="hittyt的博客" class="logo" src="http://www.iteye.com/upload/logo/user/344115/776e7f35-d25d-30ca-b4a6-1a3117715b8c-thumb.jpg?1289024422" title="hittyt的博客: 笨小孩" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://hittyt.iteye.com' target='_blank' title='hittyt'>hittyt</a>
+      2011-11-09
+    </div>
+    <div class="post_body"> 
+      So sorry<img src="/images/smiles/icon_cry.gif" /> Anyway, thanks for your replying again.
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-204257">
+  <td class="post_author"><div class="logo"><a href='http://hoorace.iteye.com' target='_blank'><img alt="hoorace的博客" class="logo" src="http://www.iteye.com/upload/logo/user/513683/46cc6e82-e4a7-3383-b7d0-c08e805c7ce8-thumb.jpg?1310386484" title="hoorace的博客: hoorace" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://hoorace.iteye.com' target='_blank' title='hoorace'>hoorace</a>
+      2011-11-15
+    </div>
+    <div class="post_body"> 
+      在使用CMS GC时，添加-XX:+UseNUMA参数后，导致CPU使用率居高不下。<br />具体参数是：<br />-XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=4 -XX:+UseNUMA
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-204263">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-11-15
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">hoorace 写道</div><div class="quote_div">在使用CMS GC时，添加-XX:+UseNUMA参数后，导致CPU使用率居高不下。<br />具体参数是：<br />-XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=4 -XX:+UseNUMA</div><br />请问具体是在什么样的机器上，哪个版本的JDK上跑遇到了这样的情况呢？
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-204762">
+  <td class="post_author"><div class="logo"><a href='http://zhangyou1010.iteye.com' target='_blank'><img alt="zhangyou1010的博客" class="logo" src="http://www.iteye.com/upload/logo/user/844612/060f9985-480b-355e-8c93-87b4240572fe-thumb.png?1368513357" title="zhangyou1010的博客: sunnywolf" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://zhangyou1010.iteye.com' target='_blank' title='zhangyou1010'>zhangyou1010</a>
+      2011-11-20
+    </div>
+    <div class="post_body"> 
+      晕，在chrome16下面，看不到楼主的Command line 中的代码，在ie8下可以看到。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-204776">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-11-20
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">zhangyou1010 写道</div><div class="quote_div">晕，在chrome16下面，看不到楼主的Command line 中的代码，在ie8下可以看到。</div><br />我在用的是Chrome 15，没看到有啥问题。如果显示不出来请截图到<a href="http://javaeye-admin.group.iteye.com/" target="_blank">站务</a>那边反映一下～
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-209749">
+  <td class="post_author"><div class="logo"><a href='http://ningandjiao.iteye.com' target='_blank'><img alt="ningandjin的博客" class="logo" src="http://www.iteye.com/upload/logo/user/216774/f93574a1-d07f-3b1d-adb6-52cf64083b9d-thumb.jpg?1268458261" title="ningandjin的博客: 我期望的世界" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://ningandjiao.iteye.com' target='_blank' title='ningandjin'>ningandjin</a>
+      2012-01-29
+    </div>
+    <div class="post_body"> 
+      R大，1、-XX:+DisableExplicitGC 与 NIO的direct memory 里面的那个例子下面的这句话“例子里用-XX:MaxDirectMemorySize=10m限制了DirectByteBuffer能分配的空间的限额，以便问题更容易展现出来。不用这个参数就得多跑一会儿了。 ”是不是有点问题啊？如果不设置-XX:MaxDirectMemorySize=10m，是不会跑出OOM的，因为你后面说“死在young gen中的DirectByteBuffer对象会在young GC时被处理”。所以分配的DirectByteBuffer会在minorGC的时候回收掉吧。我猜测加上-XX:MaxDirectMemorySize=10m 抛出OOM的原因是触发minorGC前就到了DirectMemory的限制，但是我把参数“-XX:+PrintGCDetails&nbsp; -XX:+DisableExplicitGC -XX:MaxDirectMemorySize=10m”加上，<br /><br />运行结果如下：<br />[GC [DefNew: 4416K-&gt;511K(4928K), 0.0114065 secs] 4416K-&gt;4327K(15872K), 0.0114548 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] <br />[GC [DefNew: 4927K-&gt;511K(4928K), 0.0188013 secs] 8743K-&gt;8741K(15872K), 0.0188398 secs] [Times: user=0.02 sys=0.00, real=0.02 secs] <br />Exception in thread "main" java.lang.OutOfMemoryError: Direct buffer memory<br />	at java.nio.Bits.reserveMemory(Bits.java:633)<br />	at java.nio.DirectByteBuffer.&lt;init&gt;(DirectByteBuffer.java:98)<br />	at java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:288)<br />	at jvm.NativeMemoryGC.main(NativeMemoryGC.java:34)<br />是怎么回事呢？
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-209762">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-01-30
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">ningandjin 写道</div><div class="quote_div">R大，1、-XX:+DisableExplicitGC 与 NIO的direct memory 里面的那个例子下面的这句话“例子里用-XX:MaxDirectMemorySize=10m限制了DirectByteBuffer能分配的空间的限额，以便问题更容易展现出来。不用这个参数就得多跑一会儿了。 ”是不是有点问题啊？</div><br />在我给的例子里这句话是没问题的。条件限定。<br />顺带提醒后面的人看，后面第5条也提到了NIO direct memory分配上限的默认值问题。<br /><br /><div class="quote_title">ningandjin 写道</div><div class="quote_div">如果不设置-XX:MaxDirectMemorySize=10m，是不会跑出OOM的，因为你后面说“死在young gen中的DirectByteBuffer对象会在young GC时被处理”。</div><br />问题是有没有触发young GC，什么时候触发的，那个时候你关心的DirectByteBuffer死了没。这个时候你必须要把你跑的测试的具体代码完整贴出来。你的代码和测试条件如果跟我举的例子不一样的话，讨论的是不是同一个东西就难说了。<br /><br /><div class="quote_title">ningandjin 写道</div><div class="quote_div">[GC [DefNew: 4416K-&gt;511K(4928K), 0.0114065 secs] 4416K-&gt;4327K(15872K), 0.0114548 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] <br />[GC [DefNew: 4927K-&gt;511K(4928K), 0.0188013 secs] 8743K-&gt;8741K(15872K), 0.0188398 secs] [Times: user=0.02 sys=0.00, real=0.02 secs] </div><br />这里你是不是感到很困惑？很明显要么你的测试环境跟我的不一样，要么你的测试代码跟我的不一样，因为我的测试里是一次GC都没有出现过的，无论是young GC还是full GC。<br />请先把完整代码和测试环境信息贴出来。<br />另外，也可以加上-XX:+PrintReferenceGC -XX:+PrintGCDetails来得到更多信息，这样能观察到到底你的测试里每次GC处理了多少个、什么类型的弱引用。Cleaner-based的清理是基于PhantomReference的。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-209781">
+  <td class="post_author"><div class="logo"><a href='http://ningandjiao.iteye.com' target='_blank'><img alt="ningandjin的博客" class="logo" src="http://www.iteye.com/upload/logo/user/216774/f93574a1-d07f-3b1d-adb6-52cf64083b9d-thumb.jpg?1268458261" title="ningandjin的博客: 我期望的世界" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://ningandjiao.iteye.com' target='_blank' title='ningandjin'>ningandjin</a>
+      2012-01-30
+    </div>
+    <div class="post_body"> 
+      OS：Windows 7 professional ，内存2G<br />JDK版本：java version "1.6.0_21"<br />Java(TM) SE Runtime Environment (build 1.6.0_21-b07)<br />Java HotSpot(TM) Client VM (build 17.0-b17, mixed mode, sharing)<br />代码:<pre name="code" class="java">public class NativeMemoryGC
+{
+    
+    public static void main(String[] args)
+        throws SecurityException, NoSuchFieldException, ClassNotFoundException, IllegalArgumentException,
+        IllegalAccessException, InterruptedException
+    {
+        for (int i = 0; i &lt; 100000; i++)
+        {
+            ByteBuffer.allocateDirect(128);
+        }
+        System.out.println("Done");
+    }
+}</pre><br /><br />运行参数：-XX:+PrintReferenceGC -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:MaxDirectMemorySize=10m<br /><br />运行结果：<pre name="code" class="java">[GC [DefNew[SoftReference, 0 refs, 0.0000081 secs][WeakReference, 1 refs, 0.0000056 secs][FinalReference, 2 refs, 0.0000075 secs][PhantomReference, 5779 refs, 0.0008828 secs][JNI Weak Reference, 0.0000036 secs]: 4416K-&gt;511K(4928K), 0.0113104 secs] 4416K-&gt;4327K(15872K), 0.0113425 secs] [Times: user=0.00 sys=0.00, real=0.01 secs] 
+
+[GC [DefNew[SoftReference, 0 refs, 0.0000084 secs][WeakReference, 0 refs, 0.0000053 secs][FinalReference, 0 refs, 0.0000045 secs][PhantomReference, 8193 refs, 0.0018153 secs][JNI Weak Reference, 0.0000036 secs]: 4927K-&gt;511K(4928K), 0.0152790 secs] 8743K-&gt;8741K(15872K), 0.0153095 secs] [Times: user=0.02 sys=0.00, real=0.01 secs] 
+
+Exception in thread "main" java.lang.OutOfMemoryError: Direct buffer memory
+	at java.nio.Bits.reserveMemory(Bits.java:633)
+	at java.nio.DirectByteBuffer.&lt;init&gt;(DirectByteBuffer.java:98)
+	at java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:288)
+	at jvm.NativeMemoryGC.main(NativeMemoryGC.java:34)
+
+Heap
+ def new generation   total 4928K, used 3314K [0x24040000, 0x24590000, 0x29590000)
+  eden space 4416K,  63% used [0x24040000, 0x242fc848, 0x24490000)
+  from space 512K,  99% used [0x24490000, 0x2450fff8, 0x24510000)
+  to   space 512K,   0% used [0x24510000, 0x24510000, 0x24590000)
+ tenured generation   total 10944K, used 8229K [0x29590000, 0x2a040000, 0x34040000)
+   the space 10944K,  75% used [0x29590000, 0x29d99718, 0x29d99800, 0x2a040000)
+ compacting perm gen  total 12288K, used 373K [0x34040000, 0x34c40000, 0x38040000)
+   the space 12288K,   3% used [0x34040000, 0x3409d760, 0x3409d800, 0x34c40000)
+    ro space 10240K,  54% used [0x38040000, 0x385bc0f0, 0x385bc200, 0x38a40000)
+    rw space 12288K,  55% used [0x38a40000, 0x390dfb80, 0x390dfc00, 0x39640000)
+</pre>
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-209812">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-01-30
+    </div>
+    <div class="post_body"> 
+      嗯，找了台32位Windows XP的机器，能再现出你看到的现象。<br />把你的实验稍微改了一下，把相关代码和实验输出放在这里了：<a href="https://gist.github.com/1704102#file_command_prompt" target="_blank">https://gist.github.com/1704102#file_command_prompt</a><br /><br />这个版本里，我修改了DirectByteBuffer的代码，让它：<br />* 整个类变为public的，方便访问里面的状态；<br />* 在构造器里记录下到底创建了多少个DirectByteBuffer对象（并检查传入的大小是否为128，仅为实验用）；<br />* 同时在相应的Deallocator里记录有多少个DirectByteBuffer得到了释放（也就是其Cleaner得到了执行）。<br /><br />实验用的DirectByteBuffer.java是从JDK7的rt.jar反编译出来的。懒得从源码包的Direct-X-Buffer.java慢慢改…那个gist里的DirectByteBuffer.java源码里行首没有/* */的行就是新加的代码。<br /><br />然后在NativeMemoryGC这个实验类里，借助<a href="http://docs.oracle.com/javase/7/docs/jre/api/management/extension/com/sun/management/GarbageCollectionNotificationInfo.html" target="_blank">JDK7的GC Notification功能</a>，在每次GC过后打印10次当前DirectByteBuffer的分配/释放状况，每隔10ms打印一次。<br /><br />Cleaner的执行是在Reference Handler线程上执行，而GC Notification是在Service Thread上处理的（请参考<a href="https://gist.github.com/1465445" target="_blank">另一个gist</a>），两者都与NativeMemoryGC.main()所在的Main线程是并发的，所以多打印几次DirectByteBuffer统计信息能看到Cleaner是一个个执行过去的，不是在GC后瞬间就执行完的，与此同时main()里的实验代码还在不断调用ByteBuffer.allocateDirect(128)创建新的DirectByteBuffer对象。<br /><br />最终能看到deallocated的数量跟GC日志里显示的得到处理的PhantomReference数量一致。<br /><br />===============================================================<br /><br />但是为什么只有部分DirectByteBuffer被释放？<br />实验程序里没有显式引用ByteBuffer.allocateDirect(128)所返回的DirectByteBuffer对象，那么在young GC的时候这些对象都应该死掉。是么？<br /><br />可惜不是。<br /><br />事实上，因为在32位Windows/2G内存/HotSpot Client VM这种组合的默认配置下，Java heap的初始大小和最大大小都比较小，实验中有很多DirectByteBuffer和相应的sun.misc.Cleaner、DirectByteBuffer$Deallocator对象都没死在young gen里，而是在young GC后仍然存活，一些在survivor space之间捣腾，另一些因为survivor space发生了溢出而直接晋升到old gen去了。这可以从jstat的输出中有survivor space的使用量达到100%得知。<br /><br />与WeakReference相比，PhantomReference的一个特点是后者不会阻止它所引用的对象（referent）被GC所回收。<br />sun.misc.Cleaner是基于PhantomReference的，也就是说它本身不会阻碍它所引用的DirectByteBuffer对象在GC时被回收。<br /><br />实际问题出在GC做weak reference discovery的逻辑上。如果背景知识感觉还不够清晰的话，请先读一下Xiao-Feng Li以前写的两篇blog：<br /><a href="http://xiao-feng.blogspot.com/2007/05/weak-reference-in-jvm.html" target="_blank">http://xiao-feng.blogspot.com/2007/05/weak-reference-in-jvm.html</a><br /><a href="http://xiao-feng.blogspot.com/2007/05/weak-reference-processing-in-apache.html" target="_blank">http://xiao-feng.blogspot.com/2007/05/weak-reference-processing-in-apache.html</a><br />其中第二篇是针对Apache Harmony和里面的DRLVM描述的。HotSpot VM的ReferenceProcessor跟这个在大体概念上很相似，有现成的描述我就懒得码字了。<br /><br />HotSpot VM的weak reference discovery是在ReferenceProcessor::discover_reference(oop obj, ReferenceType rt)这里实现的。其中有个参数，RefDiscoveryPolicy，有两个可选值，其中0是默认：<br /><pre name="code" class="c++">// We mention two of several possible choices here:
+// #0: if the reference object is not in the "originating generation"
+//     (or part of the heap being collected, indicated by our "span"
+//     we don't treat it specially (i.e. we scan it as we would
+//     a normal oop, treating its references as strong references).
+//     This means that references can't be enqueued unless their
+//     referent is also in the same span. This is the simplest,
+//     most "local" and most conservative approach, albeit one
+//     that may cause weak references to be enqueued least promptly.
+//     We call this choice the "ReferenceBasedDiscovery" policy.
+// #1: the reference object may be in any generation (span), but if
+//     the referent is in the generation (span) being currently collected
+//     then we can discover the reference object, provided
+//     the object has not already been discovered by
+//     a different concurrently running collector (as may be the
+//     case, for instance, if the reference object is in CMS and
+//     the referent in DefNewGeneration), and provided the processing
+//     of this reference object by the current collector will
+//     appear atomic to every other collector in the system.
+//     (Thus, for instance, a concurrent collector may not
+//     discover references in other generations even if the
+//     referent is in its own generation). This policy may,
+//     in certain cases, enqueue references somewhat sooner than
+//     might Policy #0 above, but at marginally increased cost
+//     and complexity in processing these references.
+//     We call this choice the "RefeferentBasedDiscovery" policy.</pre><br />默认的弱引用发现策略非常保守，不幸在这个实验里就踩到雷——有些sun.misc.Cleaner会错过“被发现”的条件，具体正是因为它们被直接晋升到old gen了。我做了另外一个实验，在VM里打了些日志，从而确认到这点：<a href="https://gist.github.com/1709569" target="_blank">https://gist.github.com/1709569</a><br /><br />同一个实验只要设置-XX:RefDiscoveryPolicy=1就没问题了。<br />实验日志：<a href="https://gist.github.com/1704102#file_command_prompt2" target="_blank">https://gist.github.com/1704102#file_command_prompt2</a><br />之所以默认不用这个策略是因为这个策略一般会稍微慢一些。但在出问题的时候，稍微慢一些总比OOM好…<br /><br />或者，其实只要不让survivor space overflow发生就好了，这样在这个实验里就不会有在young GC中被漏扫的弱引用。<br />如何能保证这个实验里survivor space不会overflow？很简单，让survivor space不小于eden就行。也就是说用-XX:SurvivorRatio=1同样能避开这个例子里的OOME：<br /><pre name="code" class="command prompt">D:\&gt;\sdk\jdk7\bin\java -XX:+PrintReferenceGC -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:MaxDirectMemorySize=10m -Xbootclasspath/p:altclasses -XX:SurvivorRatio=1 NativeMemoryGC
+[GC [DefNew[SoftReference, 0 refs, 0.0000159 secs][WeakReference, 62 refs, 0.0000208 secs][FinalReference, 5 refs, 0.0000199 secs][PhantomReference, 5455 refs,0.0005686 secs][JNI Weak Reference, 0.0047739 secs]: 1856K-&gt;1358K(3648K), 0.0492946 secs] 1856K-&gt;1358K(14592K), 0.0493708 secs] [Times: user=0.00 sys=0.00, real=0.05 secs]
+GC #1
+DirectByteBuffer: allocated = 5528, deallocated = 5455
+DirectByteBuffer: allocated = 5779, deallocated = 5455
+DirectByteBuffer: allocated = 5784, deallocated = 5455
+DirectByteBuffer: allocated = 5790, deallocated = 5455
+DirectByteBuffer: allocated = 5795, deallocated = 5455
+DirectByteBuffer: allocated = 5800, deallocated = 5455
+DirectByteBuffer: allocated = 5806, deallocated = 5455
+DirectByteBuffer: allocated = 5812, deallocated = 5455
+DirectByteBuffer: allocated = 5817, deallocated = 5455
+DirectByteBuffer: allocated = 5822, deallocated = 5455
+[GC [DefNew[SoftReference, 0 refs, 0.0000531 secs][WeakReference, 1 refs, 0.0000120 secs][FinalReference, 9 refs, 0.0000463 secs][PhantomReference, 11395 refs,0.0012726 secs][JNI Weak Reference, 0.0000023 secs]: 3214K-&gt;1561K(3648K), 0.0076529 secs] 3214K-&gt;2237K(14592K), 0.0082608 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+GC #2
+DirectByteBuffer: allocated = 16850, deallocated = 6557
+DirectByteBuffer: allocated = 16856, deallocated = 16850
+DirectByteBuffer: allocated = 16861, deallocated = 16850
+DirectByteBuffer: allocated = 16867, deallocated = 16850
+DirectByteBuffer: allocated = 16873, deallocated = 16850
+DirectByteBuffer: allocated = 16878, deallocated = 16850
+DirectByteBuffer: allocated = 16884, deallocated = 16850
+DirectByteBuffer: allocated = 16889, deallocated = 16850
+DirectByteBuffer: allocated = 16895, deallocated = 16850
+DirectByteBuffer: allocated = 16900, deallocated = 16850
+[GC [DefNew[SoftReference, 0 refs, 0.0000179 secs][WeakReference, 0 refs, 0.0000105 secs][FinalReference, 0 refs, 0.0000102 secs][PhantomReference, 14473 refs,0.0014199 secs][JNI Weak Reference, 0.0000014 secs]: 3417K-&gt;1791K(3648K), 0.0055595 secs] 4093K-&gt;2622K(14592K), 0.0056227 secs] [Times: user=0.01 sys=0.00, real=0.02 secs]
+GC #3
+DirectByteBuffer: allocated = 31323, deallocated = 19558
+DirectByteBuffer: allocated = 31330, deallocated = 31323
+DirectByteBuffer: allocated = 31335, deallocated = 31323
+DirectByteBuffer: allocated = 31340, deallocated = 31323
+DirectByteBuffer: allocated = 31346, deallocated = 31323
+DirectByteBuffer: allocated = 31351, deallocated = 31323
+DirectByteBuffer: allocated = 31357, deallocated = 31323
+DirectByteBuffer: allocated = 31362, deallocated = 31323
+DirectByteBuffer: allocated = 31368, deallocated = 31323
+DirectByteBuffer: allocated = 31373, deallocated = 31323
+[GC [DefNew[SoftReference, 0 refs, 0.0000155 secs][WeakReference, 0 refs, 0.0000104 secs][FinalReference, 0 refs, 0.0000103 secs][PhantomReference, 14492 refs,0.0013976 secs][JNI Weak Reference, 0.0000012 secs]: 3647K-&gt;1791K(3648K), 0.0042904 secs] 4478K-&gt;2669K(14592K), 0.0043564 secs] [Times: user=0.00 sys=0.02, real=0.02 secs]
+GC #4
+DirectByteBuffer: allocated = 45816, deallocated = 32990
+DirectByteBuffer: allocated = 45822, deallocated = 45815
+DirectByteBuffer: allocated = 45828, deallocated = 45815
+DirectByteBuffer: allocated = 45833, deallocated = 45815
+DirectByteBuffer: allocated = 45838, deallocated = 45815
+DirectByteBuffer: allocated = 45844, deallocated = 45815
+DirectByteBuffer: allocated = 45850, deallocated = 45815
+DirectByteBuffer: allocated = 45855, deallocated = 45815
+DirectByteBuffer: allocated = 45861, deallocated = 45815
+DirectByteBuffer: allocated = 45866, deallocated = 45815
+[GC [DefNew[SoftReference, 0 refs, 0.0000484 secs][WeakReference, 0 refs, 0.0000389 secs][FinalReference, 0 refs, 0.0000424 secs][PhantomReference, 14606 refs,0.0016005 secs][JNI Weak Reference, 0.0000019 secs]: 3647K-&gt;1791K(3648K), 0.0050811 secs] 4525K-&gt;2736K(14592K), 0.0052789 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+GC #5
+DirectByteBuffer: allocated = 60422, deallocated = 46609
+DirectByteBuffer: allocated = 60427, deallocated = 60421
+DirectByteBuffer: allocated = 60433, deallocated = 60421
+DirectByteBuffer: allocated = 60438, deallocated = 60421
+DirectByteBuffer: allocated = 60443, deallocated = 60421
+DirectByteBuffer: allocated = 60449, deallocated = 60421
+DirectByteBuffer: allocated = 60454, deallocated = 60421
+DirectByteBuffer: allocated = 60460, deallocated = 60421
+DirectByteBuffer: allocated = 60466, deallocated = 60421
+DirectByteBuffer: allocated = 60470, deallocated = 60421
+[GC [DefNew[SoftReference, 0 refs, 0.0000155 secs][WeakReference, 0 refs, 0.0000104 secs][FinalReference, 0 refs, 0.0000103 secs][PhantomReference, 14572 refs,0.0012682 secs][JNI Weak Reference, 0.0000014 secs]: 3647K-&gt;1791K(3648K), 0.0037896 secs] 4592K-&gt;2813K(14592K), 0.0038488 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+GC #6
+DirectByteBuffer: allocated = 74994, deallocated = 62238
+DirectByteBuffer: allocated = 74999, deallocated = 74993
+DirectByteBuffer: allocated = 75005, deallocated = 74993
+DirectByteBuffer: allocated = 75011, deallocated = 74993
+DirectByteBuffer: allocated = 75016, deallocated = 74993
+DirectByteBuffer: allocated = 75022, deallocated = 74993
+DirectByteBuffer: allocated = 75027, deallocated = 74993
+DirectByteBuffer: allocated = 75032, deallocated = 74993
+DirectByteBuffer: allocated = 75038, deallocated = 74993
+DirectByteBuffer: allocated = 75043, deallocated = 74993
+[GC [DefNew[SoftReference, 0 refs, 0.0000178 secs][WeakReference, 0 refs, 0.0000123 secs][FinalReference, 0 refs, 0.0000109 secs][PhantomReference, 14577 refs,0.0015853 secs][JNI Weak Reference, 0.0000015 secs]: 3647K-&gt;1792K(3648K), 0.0043279 secs] 4669K-&gt;2885K(14592K), 0.0043876 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+GC #7
+DirectByteBuffer: allocated = 89571, deallocated = 76182
+DirectByteBuffer: allocated = 89576, deallocated = 89570
+DirectByteBuffer: allocated = 89581, deallocated = 89570
+DirectByteBuffer: allocated = 89587, deallocated = 89570
+DirectByteBuffer: allocated = 89592, deallocated = 89570
+DirectByteBuffer: allocated = 89598, deallocated = 89570
+DirectByteBuffer: allocated = 89604, deallocated = 89570
+DirectByteBuffer: allocated = 89609, deallocated = 89570
+DirectByteBuffer: allocated = 89615, deallocated = 89570
+DirectByteBuffer: allocated = 89620, deallocated = 89570
+Done
+Heap
+ def new generation   total 3648K, used 3172K [0x02a60000, 0x02fb0000, 0x07fb0000)
+  eden space 1856K,  74% used [0x02a60000, 0x02bb9230, 0x02c30000)
+  from space 1792K, 100% used [0x02df0000, 0x02fb0000, 0x02fb0000)
+  to   space 1792K,   0% used [0x02c30000, 0x02c30000, 0x02df0000)
+ tenured generation   total 10944K, used 1093K [0x07fb0000, 0x08a60000, 0x12a60000)
+   the space 10944K,   9% used [0x07fb0000, 0x080c1668, 0x080c1800, 0x08a60000)
+ compacting perm gen  total 12288K, used 3268K [0x12a60000, 0x13660000, 0x16a60000)
+   the space 12288K,  26% used [0x12a60000, 0x12d913f0, 0x12d91400, 0x13660000)
+No shared spaces configured.
+
+D:\&gt;</pre><br /><br />不得不说这些VM参数弄多了就像黑魔法一样…咒语知道多了整个人都黑了<img src="/images/smiles/icon_mad.gif" /> <br /><br />===============================================================<br /><br />相关的一些额外实验记录在这里：<a href="https://gist.github.com/1709717" target="_blank">https://gist.github.com/1709717</a><br /><br />可以看到HotSpot VM的DefNewGeneration是如何一边扫描活对象，一边把途中遇到的活的弱引用做一定过滤后记录下来（这就是weak reference discovery），活对象都扫完之后做(weak) reference processing，找出referent已经死掉的弱引用加到相应的链表里，然后通知Java一侧的Reference Handler进行后续的处理（执行cleaner，或把弱引用添加到相应的ReferenceQueue之类）。<br /><br />顺带一提，JDK6的HotSpot VM里Java类在VM里的表示几乎都是用instanceKlass；唯有的例外是各弱引用类型，它们的类用instanceRefKlass表示。<br />JDK7的HotSpot VM则新增了一种例外：java.lang.Class类型本身，在VM里的表示从以前用instanceKlass改为用一种新增的instanceMirrorKlass。这是PermGen移除工作的一部分实现，由于原本放在instanceKlass末尾的“Java类静态变量”现在挪到了java.lang.Class实例的末尾，使得这些对象变成了特殊对象，所以对应的klass也要特殊处理了。<br />&lt;&lt; 这段话没看懂的同学请直接无视…看不懂没关系嗯<img src="/images/smiles/icon_lol.gif" /> 
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/27945/post/new">发表回复</a></div>
+  <div class="pagination"><a href="/group/topic/27945?page=1" class="prev_page" rel="prev start">&laquo; 上一页</a> <a href="/group/topic/27945?page=1" rel="prev start">1</a> <span class="current">2</span> <a href="/group/topic/27945?page=3" rel="next">3</a> <a href="/group/topic/27945?page=3" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '[HotSpot VM] JVM调优的"标准参数"的各种陷阱');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/212967" target="_blank">一次Java垃圾收集调优实战</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/894148" target="_blank">HotSpot VM 内存堆的两个Servivor区</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/802638" target="_blank">JVM内存管理：深入垃圾收集器与内存分配策略</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/756538" target="_blank">优化JVM参数提高eclipse运行速度</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/473874" target="_blank">CMS gc实践总结</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

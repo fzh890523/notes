@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<title>Memory ordering - Wikipedia</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Memory_ordering","wgTitle":"Memory ordering","wgCurRevisionId":790691611,"wgRevisionId":790691611,"wgArticleId":8294490,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Computer architecture","Computer memory","Consistency models","Compiler construction","Programming language design","Run-time systems","Concurrency (computer science)"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"Memory_ordering","wgRelevantArticleId":8294490,"wgRequestId":"WWoPMQpAMCUAAAUQ9RAAAABI","wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgFlaggedRevsParams":{"tags":{}},"wgStableRevisionId":null,"wgWikiEditorEnabledModules":{"toolbar":true,"preview":false,"publish":false},"wgBetaFeaturesFeatures":[],"wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":false,"wgPopupsShouldSendModuleToUser":false,"wgPopupsConflictsWithNavPopupGadget":false,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","usePageImages":true,"usePageDescriptions":true},"wgPreferredVariant":"en","wgMFExpandAllSectionsUserOption":false,"wgMFDisplayWikibaseDescriptions":{"search":true,"nearby":true,"watchlist":true,"tagline":false},"wgRelatedArticles":null,"wgRelatedArticlesUseCirrusSearch":true,"wgRelatedArticlesOnlyUseCirrusSearch":false,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralNoticeCookiesToDelete":[],"wgCentralNoticeCategoriesUsingLegacy":["Fundraising","fundraising"],"wgCategoryTreePageCategoryOptions":"{\"mode\":0,\"hideprefix\":20,\"showcount\":true,\"namespaces\":false}","wgWikibaseItemId":"Q6815752","wgCentralAuthMobileDomain":false,"wgVisualEditorToolbarScrollOffset":0,"wgVisualEditorUnsupportedEditParams":["preload","preloadparams","preloadtitle","undo","undoafter","veswitched"],"wgEditSubmitButtonLabelPublish":false});mw.loader.state({"ext.globalCssJs.user.styles":"ready","ext.globalCssJs.site.styles":"ready","site.styles":"ready","noscript":"ready","user.styles":"ready","user":"ready","user.options":"loading","user.tokens":"loading","ext.cite.styles":"ready","wikibase.client.init":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","mediawiki.legacy.shared":"ready","mediawiki.legacy.commonPrint":"ready","mediawiki.sectionAnchor":"ready","mediawiki.skinning.interface":"ready","skins.vector.styles":"ready","ext.globalCssJs.user":"ready","ext.globalCssJs.site":"ready"});mw.loader.implement("user.options@0gii3s4",function($,jQuery,require,module){mw.user.options.set([]);});mw.loader.implement("user.tokens@1dqfd7l",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["ext.cite.a11y","site","mediawiki.page.startup","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.toc","mediawiki.searchSuggest","ext.gadget.teahouse","ext.gadget.ReferenceTooltips","ext.gadget.watchlist-notice","ext.gadget.DRN-wizard","ext.gadget.charinsert","ext.gadget.refToolbar","ext.gadget.extra-toolbar-buttons","ext.gadget.switcher","ext.gadget.featured-articles-links","ext.centralauth.centralautologin","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging.subscriber","ext.wikimediaEvents","ext.navigationTiming","ext.uls.eventlogger","ext.uls.init","ext.uls.interface","ext.centralNotice.geoIP","ext.centralNotice.startUp","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=ext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cmediawiki.legacy.commonPrint%2Cshared%7Cmediawiki.sectionAnchor%7Cmediawiki.skinning.interface%7Cskins.vector.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector"/>
+<script async="" src="/w/load.php?debug=false&amp;lang=en&amp;modules=startup&amp;only=scripts&amp;skin=vector"></script>
+<meta name="ResourceLoaderDynamicStyles" content=""/>
+<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector"/>
+<meta name="generator" content="MediaWiki 1.30.0-wmf.7"/>
+<meta name="referrer" content="origin-when-cross-origin"/>
+<link rel="alternate" href="android-app://org.wikipedia/http/en.m.wikipedia.org/wiki/Memory_ordering"/>
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="/w/index.php?title=Memory_ordering&amp;action=edit"/>
+<link rel="edit" title="Edit this page" href="/w/index.php?title=Memory_ordering&amp;action=edit"/>
+<link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png"/>
+<link rel="shortcut icon" href="/static/favicon/wikipedia.ico"/>
+<link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (en)"/>
+<link rel="EditURI" type="application/rsd+xml" href="//en.wikipedia.org/w/api.php?action=rsd"/>
+<link rel="copyright" href="//creativecommons.org/licenses/by-sa/3.0/"/>
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Memory_ordering"/>
+<link rel="dns-prefetch" href="//login.wikimedia.org"/>
+<link rel="dns-prefetch" href="//meta.wikimedia.org" />
+</head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Memory_ordering rootpage-Memory_ordering skin-vector action-view">		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+
+							<div id="siteNotice" class="mw-body-content"><!-- CentralNotice --></div>
+						<div class="mw-indicators mw-body-content">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">Memory ordering</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><div class="mw-parser-output"><p><b>Memory ordering</b> describes the order of accesses to computer memory by a CPU. The term can refer either to the memory ordering generated by the <a href="/wiki/Compiler" title="Compiler">compiler</a> during <a href="/wiki/Compile_time" title="Compile time">compile time</a>, or to the memory ordering generated by a CPU during <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">runtime</a>.</p>
+<p>In modern <a href="/wiki/Microprocessor" title="Microprocessor">microprocessors</a>, memory ordering characterizes the CPUs ability to reorder memory operations - it is a type of <a href="/wiki/Out-of-order_execution" title="Out-of-order execution">out-of-order execution</a>. Memory reordering can be used to fully utilize the bus-bandwidth of different types of memory such as <a href="/wiki/CPU_cache#Cache_entries" title="CPU cache">caches</a> and <a href="/wiki/Memory_bank" title="Memory bank">memory banks</a>.</p>
+<p>On most modern uniprocessors memory operations are not executed in the order specified by the program code. In single threaded programs all operations appear to have been executed in the order specified, with all out-of-order execution hidden to the programmer – however in multi-threaded environments (or when interfacing with other hardware via memory buses) this can lead to problems. To avoid problems <a href="/wiki/Memory_barrier" title="Memory barrier">memory barriers</a> can be used in these cases.</p>
+<p></p>
+<div id="toc" class="toc">
+<div class="toctitle">
+<h2>Contents</h2>
+</div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Compile-time_memory_ordering"><span class="tocnumber">1</span> <span class="toctext">Compile-time memory ordering</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Compile-time_memory_barrier_implementation"><span class="tocnumber">1.1</span> <span class="toctext">Compile-time memory barrier implementation</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-3"><a href="#Runtime_memory_ordering"><span class="tocnumber">2</span> <span class="toctext">Runtime memory ordering</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#In_symmetric_multiprocessing_.28SMP.29_microprocessor_systems"><span class="tocnumber">2.1</span> <span class="toctext">In symmetric multiprocessing (SMP) microprocessor systems</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Hardware_memory_barrier_implementation"><span class="tocnumber">2.2</span> <span class="toctext">Hardware memory barrier implementation</span></a>
+<ul>
+<li class="toclevel-3 tocsection-6"><a href="#Compiler_support_for_hardware_memory_barriers"><span class="tocnumber">2.2.1</span> <span class="toctext">Compiler support for hardware memory barriers</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#Further_reading"><span class="tocnumber">5</span> <span class="toctext">Further reading</span></a></li>
+</ul>
+</div>
+<p></p>
+<h2><span class="mw-headline" id="Compile-time_memory_ordering">Compile-time memory ordering</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=1" title="Edit section: Compile-time memory ordering">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <a href="/wiki/Compiler" title="Compiler">compiler</a> has some freedom to sort the order of operations during <a href="/wiki/Compile_time" title="Compile time">compile time</a>. However this can lead to problems if the order of memory accesses is of importance.</p>
+<h3><span class="mw-headline" id="Compile-time_memory_barrier_implementation">Compile-time memory barrier implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=2" title="Edit section: Compile-time memory barrier implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div role="note" class="hatnote navigation-not-searchable">See also: <a href="/wiki/Memory_barrier" title="Memory barrier">Memory barrier</a></div>
+<p>These barriers prevent a compiler from reordering instructions during compile time – they do not prevent reordering by CPU during runtime.</p>
+<ul>
+<li>The GNU inline assembler statement</li>
+</ul>
+<pre>
+asm volatile("" ::: "memory");
+</pre>
+<p>or even</p>
+<pre>
+__asm__ __volatile__ ("" ::: "memory");
+</pre>
+<p>forbids <a href="/wiki/GNU_Compiler_Collection" title="GNU Compiler Collection">GCC</a> compiler to reorder read and write commands around it.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup></p>
+<ul>
+<li>The C11/C++11 command</li>
+</ul>
+<pre>
+atomic_signal_fence(memory_order_acq_rel);
+</pre>
+<p>forbids the compiler to reorder read and write commands around it.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2">[2]</a></sup></p>
+<ul>
+<li><a href="/wiki/Intel_C%2B%2B_Compiler" title="Intel C++ Compiler">Intel ECC compiler</a> uses "full compiler fence"</li>
+</ul>
+<pre>
+__memory_barrier()
+</pre>
+<p>intrinsics.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3">[3]</a></sup><sup id="cite_ref-4" class="reference"><a href="#cite_note-4">[4]</a></sup></p>
+<ul>
+<li><a href="/wiki/Microsoft_Visual_C%2B%2B" title="Microsoft Visual C++">Microsoft Visual C++</a> Compiler:<sup id="cite_ref-5" class="reference"><a href="#cite_note-5">[5]</a></sup></li>
+</ul>
+<pre>
+_ReadWriteBarrier()
+</pre>
+<h2><span class="mw-headline" id="Runtime_memory_ordering">Runtime memory ordering</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=3" title="Edit section: Runtime memory ordering">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="In_symmetric_multiprocessing_.28SMP.29_microprocessor_systems">In symmetric multiprocessing (SMP) microprocessor systems</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=4" title="Edit section: In symmetric multiprocessing (SMP) microprocessor systems">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>There are several memory-consistency models for <a href="/wiki/Symmetric_multiprocessing" title="Symmetric multiprocessing">SMP</a> systems:</p>
+<ul>
+<li>Sequential consistency (all reads and all writes are in-order)</li>
+<li>Relaxed consistency (some types of reordering are allowed)
+<ul>
+<li>Loads can be reordered after loads (for better working of cache coherency, better scaling)</li>
+<li>Loads can be reordered after stores</li>
+<li>Stores can be reordered after stores</li>
+<li>Stores can be reordered after loads</li>
+</ul>
+</li>
+<li>Weak consistency (reads and writes are arbitrarily reordered, limited only by explicit <a href="/wiki/Memory_barrier" title="Memory barrier">memory barriers</a>)</li>
+</ul>
+<p>On some CPUs</p>
+<ul>
+<li><a href="/wiki/Atomic_operation" class="mw-redirect" title="Atomic operation">Atomic operations</a> can be reordered with loads and stores.</li>
+<li>There can be incoherent instruction cache pipeline, which prevents <a href="/wiki/Self-modifying_code" title="Self-modifying code">self-modifying code</a> from being executed without special instruction cache flush/reload instructions.</li>
+<li>Dependent loads can be reordered (this is unique for Alpha). If the processor fetches a pointer to some data after this reordering, it might not fetch the data itself but use stale data which it has already cached and not yet invalidated. Allowing this relaxation makes cache hardware simpler and faster but leads to the requirement of memory barriers for readers and writers.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6">[6]</a></sup></li>
+</ul>
+<table class="wikitable">
+<caption>Memory ordering in some architectures<sup id="cite_ref-mem_ord_pdf_7-0" class="reference"><a href="#cite_note-mem_ord_pdf-7">[7]</a></sup><sup id="cite_ref-mem_bar_8-0" class="reference"><a href="#cite_note-mem_bar-8">[8]</a></sup></caption>
+<tr>
+<th>Type</th>
+<th>Alpha</th>
+<th>ARMv7</th>
+<th>PA-RISC</th>
+<th>POWER</th>
+<th>SPARC RMO</th>
+<th>SPARC PSO</th>
+<th>SPARC TSO</th>
+<th>x86</th>
+<th>x86 oostore</th>
+<th>AMD64</th>
+<th>IA-64</th>
+<th>z/Architecture</th>
+</tr>
+<tr>
+<td>Loads reordered after loads</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+</tr>
+<tr>
+<td>Loads reordered after stores</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+</tr>
+<tr>
+<td>Stores reordered after stores</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+</tr>
+<tr>
+<td>Stores reordered after loads</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+</tr>
+<tr>
+<td>Atomic reordered with loads</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+</tr>
+<tr>
+<td>Atomic reordered with stores</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+</tr>
+<tr>
+<td>Dependent loads reordered</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Incoherent instruction cache pipeline</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td style="background: #faa; color: black; vertical-align: middle; text-align: center;" class="no table-no">Y</td>
+<td></td>
+<td></td>
+</tr>
+</table>
+<p>Some older x86 and AMD systems have weaker memory ordering<sup id="cite_ref-table_9-0" class="reference"><a href="#cite_note-table-9">[9]</a></sup></p>
+<p>SPARC memory ordering modes:</p>
+<ul>
+<li>SPARC TSO = total store order (default)</li>
+<li>SPARC RMO = relaxed-memory order (not supported on recent CPUs)</li>
+<li>SPARC PSO = partial store order (not supported on recent CPUs)</li>
+</ul>
+<h3><span class="mw-headline" id="Hardware_memory_barrier_implementation">Hardware memory barrier implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=5" title="Edit section: Hardware memory barrier implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div role="note" class="hatnote navigation-not-searchable">See also: <a href="/wiki/Memory_barrier" title="Memory barrier">Memory barrier</a></div>
+<p>Many architectures with SMP support have special hardware instruction for flushing reads and writes during <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">runtime</a>.</p>
+<ul>
+<li><a href="/wiki/X86" title="X86">x86</a>, <a href="/wiki/X86-64" title="X86-64">x86-64</a></li>
+</ul>
+<pre>
+lfence (asm), void _mm_lfence(void)
+sfence (asm), void _mm_sfence(void)<sup id="cite_ref-vtune-sfence_10-0" class="reference"><a href="#cite_note-vtune-sfence-10">[10]</a></sup>
+mfence (asm), void _mm_mfence(void)<sup id="cite_ref-vtune-mfence_11-0" class="reference"><a href="#cite_note-vtune-mfence-11">[11]</a></sup>
+</pre>
+<ul>
+<li><a href="/wiki/PowerPC" title="PowerPC">PowerPC</a></li>
+</ul>
+<pre>
+sync (asm)
+</pre>
+<ul>
+<li><a href="/wiki/MIPS_architecture" title="MIPS architecture">MIPS</a></li>
+</ul>
+<pre>
+sync (asm)
+</pre>
+<ul>
+<li><a href="/wiki/Itanium" title="Itanium">Itanium</a></li>
+</ul>
+<pre>
+mf (asm)
+</pre>
+<ul>
+<li><a href="/wiki/IBM_POWER_Instruction_Set_Architecture" title="IBM POWER Instruction Set Architecture">POWER</a></li>
+</ul>
+<pre>
+dcs (asm)
+</pre>
+<ul>
+<li><a href="/wiki/ARMv7" class="mw-redirect" title="ARMv7">ARMv7</a><sup id="cite_ref-arm_memory_barrier_12-0" class="reference"><a href="#cite_note-arm_memory_barrier-12">[12]</a></sup></li>
+</ul>
+<pre>
+dmb (asm)
+dsb (asm)
+isb (asm)
+</pre>
+<h4><span class="mw-headline" id="Compiler_support_for_hardware_memory_barriers">Compiler support for hardware memory barriers</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=6" title="Edit section: Compiler support for hardware memory barriers">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Some compilers support <a href="/wiki/Intrinsic_function" title="Intrinsic function">builtins</a> that emit hardware memory barrier instructions:</p>
+<ul>
+<li><a href="/wiki/GNU_Compiler_Collection" title="GNU Compiler Collection">GCC</a>,<sup id="cite_ref-13" class="reference"><a href="#cite_note-13">[13]</a></sup> version 4.4.0 and later,<sup id="cite_ref-14" class="reference"><a href="#cite_note-14">[14]</a></sup> has <code>__sync_synchronize</code>.</li>
+<li>Since C11 and C++11 an <code>atomic_thread_fence()</code> command was added.</li>
+<li>The <a href="/wiki/Microsoft_Visual_C%2B%2B" title="Microsoft Visual C++">Microsoft Visual C++</a> compiler<sup id="cite_ref-15" class="reference"><a href="#cite_note-15">[15]</a></sup> has <code>MemoryBarrier()</code>.</li>
+<li><a href="/wiki/Sun_Studio_Compiler_Suite" class="mw-redirect" title="Sun Studio Compiler Suite">Sun Studio Compiler Suite</a><sup id="cite_ref-16" class="reference"><a href="#cite_note-16">[16]</a></sup> has <code>__machine_r_barrier</code>, <code>__machine_w_barrier</code> and <code>__machine_rw_barrier</code>.</li>
+</ul>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=7" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Memory_model_(programming)" title="Memory model (programming)">Memory model (programming)</a></li>
+<li><a href="/wiki/Memory_barrier" title="Memory barrier">Memory barrier</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=8" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div class="reflist columns references-column-width" style="-moz-column-width: 30em; -webkit-column-width: 30em; column-width: 30em; list-style-type: decimal;">
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://lxr.linux.no/linux+v2.6.31/include/linux/compiler-gcc.h#L12">GCC compiler-gcc.h</a></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external autonumber" href="http://en.cppreference.com/w/cpp/atomic/atomic_signal_fence">[1]</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://lxr.linux.no/linux+v2.6.31/include/linux/compiler-intel.h#L16">ECC compiler-intel.h</a></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://software.intel.com/file/6373">Intel(R) C++ Compiler Intrinsics Reference</a></span>
+<blockquote class="templatequote">
+<p><span class="reference-text">Creates a barrier across which the compiler will not schedule any data access instruction. The compiler may allocate local data in registers across a memory barrier, but not global data.</span></p>
+</blockquote>
+</li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text">Visual C++ Language Reference <a rel="nofollow" class="external text" href="http://msdn.microsoft.com/en-us/library/f20w0x5e(VS.80).aspx">_ReadWriteBarrier</a></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.cs.umd.edu/~pugh/java/memoryModel/AlphaReordering.html">Reordering on an Alpha processor by Kourosh Gharachorloo</a></span></li>
+<li id="cite_note-mem_ord_pdf-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-mem_ord_pdf_7-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.rdrop.com/users/paulmck/scalability/paper/ordering.2007.09.19a.pdf">Memory Ordering in Modern Microprocessors by Paul McKenney</a></span></li>
+<li id="cite_note-mem_bar-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-mem_bar_8-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.rdrop.com/users/paulmck/scalability/paper/whymb.2010.06.07c.pdf">Memory Barriers: a Hardware View for Software Hackers</a>, Figure 5 on Page 16</span></li>
+<li id="cite_note-table-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-table_9-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.linuxjournal.com/files/linuxjournal.com/linuxjournal/articles/082/8211/8211t1.inline.png">Table 1. Summary of Memory Ordering</a>, from "Memory Ordering in Modern Microprocessors, Part I"</span></li>
+<li id="cite_note-vtune-sfence-10"><span class="mw-cite-backlink"><b><a href="#cite_ref-vtune-sfence_10-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.softeng.rl.ac.uk/st/archive/SoftEng/SESP/html/SoftwareTools/vtune/users_guide/mergedProjects/analyzer_ec/mergedProjects/reference_olh/mergedProjects/instructions/instruct32_hh/vc287.htm">SFENCE — Store Fence</a></span></li>
+<li id="cite_note-vtune-mfence-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-vtune-mfence_11-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.softeng.rl.ac.uk/st/archive/SoftEng/SESP/html/SoftwareTools/vtune/users_guide/mergedProjects/analyzer_ec/mergedProjects/reference_olh/mergedProjects/instructions/instruct32_hh/vc172.htm">MFENCE — Memory Fence</a></span></li>
+<li id="cite_note-arm_memory_barrier-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-arm_memory_barrier_12-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0489c/CIHGHHIE.html">Data Memory Barrier, Data Synchronization Barrier, and Instruction Synchronization Barrier.</a></span></li>
+<li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Atomic-Builtins.html">Atomic Builtins</a></span></li>
+<li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external free" href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36793">https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36793</a></span></li>
+<li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms684208(v=vs.85).aspx">MemoryBarrier macro</a></span></li>
+<li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16">^</a></b></span> <span class="reference-text">Handling Memory Ordering in Multithreaded Applications with Oracle Solaris Studio 12 Update 2: Part 2, Memory Barriers and Memory Fence <a rel="nofollow" class="external autonumber" href="http://www.oracle.com/technetwork/server-storage/solarisstudio/documentation/oss-memory-barriers-fences-176056.pdf">[2]</a></span></li>
+</ol>
+</div>
+<h2><span class="mw-headline" id="Further_reading">Further reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_ordering&amp;action=edit&amp;section=9" title="Edit section: Further reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><i>Computer Architecture — A quantitative approach</i>. 4th edition. J Hennessy, D Patterson, 2007. Chapter 4.6</li>
+<li>Sarita V. Adve, Kourosh Gharachorloo, <a rel="nofollow" class="external text" href="http://www.cs.uiuc.edu/class/sp08/cs533/reading_list/adve95shared.pdf">Shared Memory Consistency Models: A Tutorial</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.intel.com/products/processor/manuals/318147.pdf">Intel 64 Architecture Memory Ordering White Paper</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.linuxjournal.com/article/8211">Memory ordering in Modern Microprocessors part 1</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.linuxjournal.com/article/8212">Memory ordering in Modern Microprocessors part 2</a></li>
+<li><a rel="nofollow" class="external text" href="https://www.youtube.com/watch?v=WUfvvFD5tAA"><span class="plainlinks">IA (Intel Architecture) Memory Ordering</span></a> on <a href="/wiki/YouTube" title="YouTube">YouTube</a> - Google Tech Talk</li>
+</ul>
+
+
+<!-- 
+NewPP limit report
+Parsed by mw1288
+Cached time: 20170715124805
+Cache expiry: 2592000
+Dynamic content: false
+CPU time usage: 0.080 seconds
+Real time usage: 0.100 seconds
+Preprocessor visited node count: 882/1000000
+Preprocessor generated node count: 0/1500000
+Post‐expand include size: 7958/2097152 bytes
+Template argument size: 434/2097152 bytes
+Highest expansion depth: 10/40
+Expensive parser function count: 0/500
+Lua time usage: 0.012/10.000 seconds
+Lua memory usage: 847 KB/50 MB
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%   75.081      1 -total
+ 28.25%   21.208      1 Template:YouTube
+ 28.09%   21.088      2 Template:See_also
+ 24.68%   18.533      1 Template:Reflist
+ 13.81%   10.370      1 Template:Namespace_detect
+  5.00%    3.757      1 Template:Quote
+  4.22%    3.168     55 Template:Bad
+  1.80%    1.351      1 Template:Trim
+  1.35%    1.014      1 Template:Column-width
+-->
+</div>
+<!-- Saved in parser cache with key enwiki:pcache:idhash:8294490-0!canonical and timestamp 20170715124806 and revision id 790691611
+ -->
+<noscript><img src="//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript></div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Memory_ordering&amp;oldid=790691611">https://en.wikipedia.org/w/index.php?title=Memory_ordering&amp;oldid=790691611</a>"					</div>
+				<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Computer_architecture" title="Category:Computer architecture">Computer architecture</a></li><li><a href="/wiki/Category:Computer_memory" title="Category:Computer memory">Computer memory</a></li><li><a href="/wiki/Category:Consistency_models" title="Category:Consistency models">Consistency models</a></li><li><a href="/wiki/Category:Compiler_construction" title="Category:Compiler construction">Compiler construction</a></li><li><a href="/wiki/Category:Programming_language_design" title="Category:Programming language design">Programming language design</a></li><li><a href="/wiki/Category:Run-time_systems" title="Category:Run-time systems">Run-time systems</a></li><li><a href="/wiki/Category:Concurrency_(computer_science)" title="Category:Concurrency (computer science)">Concurrency (computer science)</a></li></ul></div></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-anonuserpage">Not logged in</li><li id="pt-anontalk"><a href="/wiki/Special:MyTalk" title="Discussion about edits from this IP address [n]" accesskey="n">Talk</a></li><li id="pt-anoncontribs"><a href="/wiki/Special:MyContributions" title="A list of edits made from this IP address [y]" accesskey="y">Contributions</a></li><li id="pt-createaccount"><a href="/w/index.php?title=Special:CreateAccount&amp;returnto=Memory+ordering" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="/w/index.php?title=Special:UserLogin&amp;returnto=Memory+ordering" title="You're encouraged to log in; however, it's not mandatory. [o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li  id="ca-nstab-main" class="selected"><span><a href="/wiki/Memory_ordering"  title="View the content page [c]" accesskey="c">Article</a></span></li>
+															<li  id="ca-talk"><span><a href="/wiki/Talk:Memory_ordering"  title="Discussion about the content page [t]" accesskey="t" rel="discussion">Talk</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label">
+							<span>Variants</span><div></div>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="/wiki/Memory_ordering" >Read</a></span></li>
+															<li id="ca-edit"><span><a href="/w/index.php?title=Memory_ordering&amp;action=edit"  title="Edit this page [e]" accesskey="e">Edit</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="/w/index.php?title=Memory_ordering&amp;action=history"  title="Past revisions of this page [h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<h3 id="p-cactions-label"><span>More</span><div></div></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="/w/index.php" id="searchform">
+							<div id="simpleSearch">
+							<input type="search" name="search" placeholder="Search Wikipedia" title="Search Wikipedia [f]" accesskey="f" id="searchInput"/><input type="hidden" value="Special:Search" name="title"/><input type="submit" name="fulltext" value="Search" title="Search Wikipedia for this text" id="mw-searchButton" class="searchButton mw-fallbackSearchButton"/><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton"/>							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="/wiki/Main_Page"  title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id='p-navigation' aria-labelledby='p-navigation-label'>
+			<h3 id='p-navigation-label'>Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage-description"><a href="/wiki/Main_Page" title="Visit the main page [z]" accesskey="z">Main page</a></li><li id="n-contents"><a href="/wiki/Portal:Contents" title="Guides to browsing Wikipedia">Contents</a></li><li id="n-featuredcontent"><a href="/wiki/Portal:Featured_content" title="Featured content – the best of Wikipedia">Featured content</a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events" title="Find background information on current events">Current events</a></li><li id="n-randompage"><a href="/wiki/Special:Random" title="Load a random article [x]" accesskey="x">Random article</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en" title="Support us">Donate to Wikipedia</a></li><li id="n-shoplink"><a href="//shop.wikimedia.org" title="Visit the Wikipedia store">Wikipedia store</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-interaction' aria-labelledby='p-interaction-label'>
+			<h3 id='p-interaction-label'>Interaction</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-help"><a href="/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia">Help</a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About" title="Find out about Wikipedia">About Wikipedia</a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia">Contact page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-tb' aria-labelledby='p-tb-label'>
+			<h3 id='p-tb-label'>Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Memory_ordering" title="List of all English Wikipedia pages containing links to this page [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Memory_ordering" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-permalink"><a href="/w/index.php?title=Memory_ordering&amp;oldid=790691611" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="/w/index.php?title=Memory_ordering&amp;action=info" title="More information about this page">Page information</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q6815752" title="Link to connected data repository item [g]" accesskey="g">Wikidata item</a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Memory_ordering&amp;id=790691611" title="Information on how to cite this page">Cite this page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-coll-print_export' aria-labelledby='p-coll-print_export-label'>
+			<h3 id='p-coll-print_export-label'>Print/export</h3>
+
+			<div class="body">
+									<ul>
+						<li id="coll-create_a_book"><a href="/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=Memory+ordering">Create a book</a></li><li id="coll-download-as-rdf2latex"><a href="/w/index.php?title=Special:ElectronPdf&amp;page=Memory+ordering&amp;action=show-selection-screen&amp;coll-download-url=%2Fw%2Findex.php%3Ftitle%3DSpecial%3ABook%26bookcmd%3Drender_article%26arttitle%3DMemory%2Bordering%26returnto%3DMemory%2Bordering%26oldid%3D790691611%26writer%3Drdf2latex">Download as PDF</a></li><li id="t-print"><a href="/w/index.php?title=Memory_ordering&amp;printable=yes" title="Printable version of this page [p]" accesskey="p">Printable version</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-lang' aria-labelledby='p-lang-label'>
+			<h3 id='p-lang-label'>Languages</h3>
+
+			<div class="body">
+									<ul>
+						<li class="interlanguage-link interwiki-ja"><a href="https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%A2%E3%83%AA%E3%82%AA%E3%83%BC%E3%83%80%E3%83%AA%E3%83%B3%E3%82%B0" title="メモリオーダリング – Japanese" lang="ja" hreflang="ja" class="interlanguage-link-target">日本語</a></li>					</ul>
+				<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q6815752#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>			</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last edited on 15 July 2017, at 12:48.</li>
+											<li id="footer-info-copyright">Text is available under the <a rel="license" href="//en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-ShareAlike License</a><a rel="license" href="//creativecommons.org/licenses/by-sa/3.0/" style="display:none;"></a>;
+additional terms may apply.  By using this site, you agree to the <a href="//wikimediafoundation.org/wiki/Terms_of_Use">Terms of Use</a> and <a href="//wikimediafoundation.org/wiki/Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a href="//www.wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="https://wikimediafoundation.org/wiki/Privacy_policy" class="extiw" title="wmf:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="/wiki/Wikipedia:About" title="Wikipedia:About">About Wikipedia</a></li>
+											<li id="footer-places-disclaimer"><a href="/wiki/Wikipedia:General_disclaimer" title="Wikipedia:General disclaimer">Disclaimers</a></li>
+											<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+											<li id="footer-places-developers"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">Developers</a></li>
+											<li id="footer-places-cookiestatement"><a href="https://wikimediafoundation.org/wiki/Cookie_statement">Cookie statement</a></li>
+											<li id="footer-places-mobileview"><a href="//en.m.wikipedia.org/w/index.php?title=Memory_ordering&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-copyrightico">
+							<a href="https://wikimediafoundation.org/"><img src="/static/images/wikimedia-button.png" srcset="/static/images/wikimedia-button-1.5x.png 1.5x, /static/images/wikimedia-button-2x.png 2x" width="88" height="31" alt="Wikimedia Foundation"/></a>						</li>
+											<li id="footer-poweredbyico">
+							<a href="//www.mediawiki.org/"><img src="/static/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/static/images/poweredby_mediawiki_132x47.png 1.5x, /static/images/poweredby_mediawiki_176x62.png 2x" width="88" height="31"/></a>						</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.080","walltime":"0.100","ppvisitednodes":{"value":882,"limit":1000000},"ppgeneratednodes":{"value":0,"limit":1500000},"postexpandincludesize":{"value":7958,"limit":2097152},"templateargumentsize":{"value":434,"limit":2097152},"expansiondepth":{"value":10,"limit":40},"expensivefunctioncount":{"value":0,"limit":500},"entityaccesscount":{"value":0,"limit":400},"timingprofile":["100.00%   75.081      1 -total"," 28.25%   21.208      1 Template:YouTube"," 28.09%   21.088      2 Template:See_also"," 24.68%   18.533      1 Template:Reflist"," 13.81%   10.370      1 Template:Namespace_detect","  5.00%    3.757      1 Template:Quote","  4.22%    3.168     55 Template:Bad","  1.80%    1.351      1 Template:Trim","  1.35%    1.014      1 Template:Column-width"]},"scribunto":{"limitreport-timeusage":{"value":"0.012","limit":"10.000"},"limitreport-memusage":{"value":867276,"limit":52428800}},"cachereport":{"origin":"mw1288","timestamp":"20170715124805","ttl":2592000,"transientcontent":false}}});});</script><script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":71,"wgHostname":"mw1209"});});</script>
+	</body>
+</html>

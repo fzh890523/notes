@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html class="client-js ve-not-available" dir="ltr" lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>Consistency model - Wikipedia</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Consistency_model","wgTitle":"Consistency model","wgCurRevisionId":788165465,"wgRevisionId":788165465,"wgArticleId":274522,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Wikipedia articles needing clarification from January 2015","All Wikipedia articles needing clarification","Consistency models","Transaction processing"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"Consistency_model","wgRelevantArticleId":274522,"wgRequestId":"WWsfUwpAAEMAABdRt8IAAACG","wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgFlaggedRevsParams":{"tags":{}},"wgStableRevisionId":null,"wgWikiEditorEnabledModules":{"toolbar":true,"preview":false,"publish":false},"wgBetaFeaturesFeatures":[],"wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":false,"wgPopupsShouldSendModuleToUser":false,"wgPopupsConflictsWithNavPopupGadget":false,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","usePageImages":true,"usePageDescriptions":true},"wgPreferredVariant":"en","wgMFExpandAllSectionsUserOption":false,"wgMFDisplayWikibaseDescriptions":{"search":true,"nearby":true,"watchlist":true,"tagline":false},"wgRelatedArticles":null,"wgRelatedArticlesUseCirrusSearch":true,"wgRelatedArticlesOnlyUseCirrusSearch":false,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralNoticeCookiesToDelete":[],"wgCentralNoticeCategoriesUsingLegacy":["Fundraising","fundraising"],"wgCategoryTreePageCategoryOptions":"{\"mode\":0,\"hideprefix\":20,\"showcount\":true,\"namespaces\":false}","wgWikibaseItemId":"Q2492305","wgCentralAuthMobileDomain":false,"wgVisualEditorToolbarScrollOffset":0,"wgVisualEditorUnsupportedEditParams":["preload","preloadparams","preloadtitle","undo","undoafter","veswitched"],"wgEditSubmitButtonLabelPublish":false});mw.loader.state({"ext.gadget.charinsert-styles":"ready","ext.globalCssJs.user.styles":"ready","ext.globalCssJs.site.styles":"ready","site.styles":"ready","noscript":"ready","user.styles":"ready","user":"ready","user.options":"loading","user.tokens":"loading","ext.cite.styles":"ready","wikibase.client.init":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","mediawiki.legacy.shared":"ready","mediawiki.legacy.commonPrint":"ready","mediawiki.sectionAnchor":"ready","mediawiki.skinning.interface":"ready","skins.vector.styles":"ready","ext.globalCssJs.user":"ready","ext.globalCssJs.site":"ready"});mw.loader.implement("user.options@0gii3s4",function($,jQuery,require,module){mw.user.options.set([]);});mw.loader.implement("user.tokens@1dqfd7l",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["ext.cite.a11y","site","mediawiki.page.startup","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.toc","mediawiki.searchSuggest","ext.gadget.teahouse","ext.gadget.ReferenceTooltips","ext.gadget.watchlist-notice","ext.gadget.DRN-wizard","ext.gadget.charinsert","ext.gadget.refToolbar","ext.gadget.extra-toolbar-buttons","ext.gadget.switcher","ext.gadget.featured-articles-links","ext.centralauth.centralautologin","mmv.head","mmv.bootstrap.autostart","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging.subscriber","ext.wikimediaEvents","ext.navigationTiming","ext.uls.eventlogger","ext.uls.init","ext.uls.interface","ext.centralNotice.geoIP","ext.centralNotice.startUp","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="Consistency%20model%20-%20Wikipedia_files/load.css">
+<script async="" src="Consistency%20model%20-%20Wikipedia_files/load_002.js"></script>
+<style>
+.cite-accessibility-label{ top:-99999px;clip:rect( 1px 1px 1px 1px ); clip:rect( 1px,1px,1px,1px ); position:absolute !important;padding:0 !important;border:0 !important;height:1px !important;width:1px !important; overflow:hidden}
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:0;z-index:1099;padding:0;margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:#fff;cursor:pointer;border:solid 1px #aaa;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:#fff;cursor:pointer;border:solid 1px #aaa;padding:0;margin:0}.suggestions-result{color:#000;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left; overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}.suggestions-result-current{background-color:#4c59a6;color:#fff}.suggestions-special .special-label{color:#808080;text-align:left}.suggestions-special .special-query{color:#000;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:#c0c0c0}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:#fff}.highlight{font-weight:bold}
+@media screen {
+	.tochidden,.toctoggle{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}.toctoggle{font-size:94%}}
+@media print {
+	.toc.tochidden,.toctoggle{display:none}}
+.mw-notification-area{position:absolute}.mw-notification-area-floating{position:fixed}.mw-notification-area{top:0;right:0; padding:1em;width:20em;line-height:1.35;z-index:10000; overflow:hidden}.mw-notification{padding:0.25em 1em;margin-bottom:0.5em;border:solid 1px #ddd;background-color:#fcfcfc; cursor:pointer;opacity:0;-webkit-transform:translateX( 35px );transform:translateX( 35px );-webkit-transition:opacity 0.35s ease-in-out,-webkit-transform 0.35s ease-in-out;transition:opacity 0.35s ease-in-out,transform 0.35s ease-in-out}.mw-notification-visible{opacity:1;-webkit-transform:translateX( 0 );transform:translateX( 0 )}.mw-notification-replaced{opacity:0;-webkit-transform:translateY( -35px );transform:translateY( -35px );pointer-events:none}.mw-notification-title{font-weight:bold}.mw-notification-type-warn{border-color:#f5be00; background-color:#ffffe8}.mw-notification-type-error{border-color:#eb3941; background-color:#fff8f8} .mw-notification-area{font-size:0.8em}.mw-notification-area-layout{top:7em}.mw-notification{background-color:#fff;padding:0.75em 1.5em;border:1px solid #a2a9b1;border-radius:2px;box-shadow:0 2px 2px 0 rgba(0,0,0,0.25)}.mw-notification-type-warn{border-color:#f5be00; }.mw-notification-type-error{border-color:#d33; }
+@media print {
+	.mw-notification-area{display:none}}
+@media print{#centralNotice{display:none}}.cn-closeButton{display:inline-block;zoom:1;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAACeklEQVR4Aa1UM3jkcRBN6qS//tTFttPHqmI359VZ5dm2L1zFtr02YlRx5sX2ft/7ed7O/w1M5ufnt8NZQjCBQXhG+IYZe5zjfju7xcHc3NzEzMwM6xOEqNnZ2ZeVlZW827dv1ycmJnbGx8d3Yr5582Z9eXk5D/d4h/empqYm+K0nw3yKcF4sFmdzOJzGgIAAhb29vc7Ozk6/Atrr/fz8lCwWq6m3tzcb72G3nmzFo/NNTU354eHhIltbW72Tk5M2IyND9P79+8ZPnz7VvXnzpoHBYPS4uLhobGxsDMHBwaLa2tp82MF+PVmUUqnMioiI6LOysjLQLCcPS2ZmZn7Ozc39oPtFYG80GgWpqakSS0tLY1hYmEgikWTBfoXsLD16BT3gUWhoqEKtVheREZ+Qu0IEjI+PZ2k0GqFer+cnJSWJra2tDWw2u2FqauoVeEAW3NzcnBcYGCh3dHTUtba2ltNjLvRJSEiQEQEPRENDQzkMBqPXwsKiXyqVFsFDNzc3LWmoqKmp4YIHZIyHDx9WOzg46GJiYmTk5e/h4eHstLQ0CX2ykXST4JPJ8y7sSVM5/QGMf9y4caMHf3r//v1a8IDsGRm04/D58+dtpNFPPNRqtflXrlzpI8G15IEGc2xsrFSlUglwD+Tk5NRBmuTk5A7wgOxbXFxcF8iysrIa1mskEolKvL29Ne7u7mpXV1dNaWlp9fr7X79+VYMMeQieY/dsv5p1r2g2Nja2vWZ7RXNiYuIA0dwlzwYGBjbkGXmURXeLeUa1ul2ebV8BEH+7CiAiASTYvgJ2qc3MzMzF2vz8+XPd27dvG5hMZg+CsV1tHmfXOP5+dqyddgHOI7v1srTdcwAAAABJRU5ErkJggg==);background:url(/w/extensions/CentralNotice/resources/subscribing/CloseWindow19x19.png?7596b)!ie;width:19px;height:19px;text-indent:19px;white-space:nowrap;overflow:hidden}
+.mw-ui-button{font-family:inherit;font-size:1em;display:inline-block;min-width:4em;max-width:28.75em;padding:0.546875em 1em;line-height:1.286;margin:0;border-radius:2px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;-webkit-appearance:none;*display:inline; zoom:1;vertical-align:middle;background-color:#f8f9fa;color:#222222;border:1px solid #a2a9b1;text-align:center;font-weight:bold;cursor:pointer}.mw-ui-button:visited{color:#222222}.mw-ui-button:hover{background-color:#ffffff;color:#444444;border-color:#a2a9b1}.mw-ui-button:focus{background-color:#ffffff;color:#222222;border-color:#3366cc;box-shadow:inset 0 0 0 1px #3366cc,inset 0 0 0 2px #ffffff}.mw-ui-button:active,.mw-ui-button.is-on,.mw-ui-button.mw-ui-checked{background-color:#d9d9d9;color:#000000;border-color:#72777d;box-shadow:none}.mw-ui-button:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button:disabled:hover,.mw-ui-button:disabled:active{background-color:#c8ccd1;color:#fff;box-shadow:none;border-color:#c8ccd1}.mw-ui-button:focus{outline-width:0}.mw-ui-button:focus::-moz-focus-inner{border-color:transparent;padding:0}.mw-ui-button:not( :disabled ){-webkit-transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;-moz-transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;transition:background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms}.mw-ui-button:disabled{text-shadow:none;cursor:default}.mw-ui-button.mw-ui-big{font-size:1.3em}.mw-ui-button.mw-ui-block{display:block;width:100%;margin-left:auto;margin-right:auto}.mw-ui-button.mw-ui-progressive,.mw-ui-button.mw-ui-constructive{background-color:#3366cc;color:#fff;border:1px solid #3366cc;text-shadow:0 1px rgba(0,0,0,0.1)}.mw-ui-button.mw-ui-progressive:hover,.mw-ui-button.mw-ui-constructive:hover{background-color:#447ff5;border-color:#447ff5}.mw-ui-button.mw-ui-progressive:focus,.mw-ui-button.mw-ui-constructive:focus{box-shadow:inset 0 0 0 1px #3366cc,inset 0 0 0 2px #ffffff}.mw-ui-button.mw-ui-progressive:active,.mw-ui-button.mw-ui-constructive:active,.mw-ui-button.mw-ui-progressive.is-on,.mw-ui-button.mw-ui-constructive.is-on,.mw-ui-button.mw-ui-progressive.mw-ui-checked,.mw-ui-button.mw-ui-constructive.mw-ui-checked{background-color:#2a4b8d;border-color:#2a4b8d;box-shadow:none}.mw-ui-button.mw-ui-progressive:disabled,.mw-ui-button.mw-ui-constructive:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button.mw-ui-progressive:disabled:hover,.mw-ui-button.mw-ui-constructive:disabled:hover,.mw-ui-button.mw-ui-progressive:disabled:active,.mw-ui-button.mw-ui-constructive:disabled:active,.mw-ui-button.mw-ui-progressive:disabled.mw-ui-checked,.mw-ui-button.mw-ui-constructive:disabled.mw-ui-checked{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1;box-shadow:none}.mw-ui-button.mw-ui-progressive.mw-ui-quiet,.mw-ui-button.mw-ui-constructive.mw-ui-quiet{color:#222222}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:hover,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:hover{background-color:transparent;color:#447ff5}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:active,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:active,.mw-ui-button.mw-ui-progressive.mw-ui-quiet.mw-ui-checked,.mw-ui-button.mw-ui-constructive.mw-ui-quiet.mw-ui-checked{color:#2a4b8d}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:focus,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:focus{background-color:transparent;color:#3366cc}.mw-ui-button.mw-ui-progressive.mw-ui-quiet:disabled,.mw-ui-button.mw-ui-constructive.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-destructive{background-color:#dd3333;color:#fff;border:1px solid #dd3333;text-shadow:0 1px rgba(0,0,0,0.1)}.mw-ui-button.mw-ui-destructive:hover{background-color:#ff4242;border-color:#ff4242}.mw-ui-button.mw-ui-destructive:focus{box-shadow:inset 0 0 0 1px #dd3333,inset 0 0 0 2px #ffffff}.mw-ui-button.mw-ui-destructive:active,.mw-ui-button.mw-ui-destructive.is-on,.mw-ui-button.mw-ui-destructive.mw-ui-checked{background-color:#b32424;border-color:#b32424;box-shadow:none}.mw-ui-button.mw-ui-destructive:disabled{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1}.mw-ui-button.mw-ui-destructive:disabled:hover,.mw-ui-button.mw-ui-destructive:disabled:active,.mw-ui-button.mw-ui-destructive:disabled.mw-ui-checked{background-color:#c8ccd1;color:#fff;border-color:#c8ccd1;box-shadow:none}.mw-ui-button.mw-ui-destructive.mw-ui-quiet{color:#222222}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:hover{background-color:transparent;color:#ff4242}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:active,.mw-ui-button.mw-ui-destructive.mw-ui-quiet.mw-ui-checked{color:#b32424}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:focus{background-color:transparent;color:#dd3333}.mw-ui-button.mw-ui-destructive.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-quiet{background:transparent;border:0;text-shadow:none;color:#222222}.mw-ui-button.mw-ui-quiet:hover{background-color:transparent;color:#444444}.mw-ui-button.mw-ui-quiet:active,.mw-ui-button.mw-ui-quiet.mw-ui-checked{color:#000000}.mw-ui-button.mw-ui-quiet:focus{background-color:transparent;color:#222222}.mw-ui-button.mw-ui-quiet:disabled{color:#c8ccd1}.mw-ui-button.mw-ui-quiet:hover,.mw-ui-button.mw-ui-quiet:focus{box-shadow:none}.mw-ui-button.mw-ui-quiet:active,.mw-ui-button.mw-ui-quiet:disabled{background:transparent}input.mw-ui-button::-moz-focus-inner,button.mw-ui-button::-moz-focus-inner{margin-top:-1px;margin-bottom:-1px}a.mw-ui-button{text-decoration:none}a.mw-ui-button:hover,a.mw-ui-button:focus{text-decoration:none}.mw-ui-button-group > *{min-width:48px;border-radius:0;float:left}.mw-ui-button-group > *:first-child{border-top-left-radius:2px;border-bottom-left-radius:2px}.mw-ui-button-group > *:not( :first-child ){border-left:0}.mw-ui-button-group > *:last-child{border-top-right-radius:2px;border-bottom-right-radius:2px}.mw-ui-button-group .is-on .button{cursor:default}
+.mw-ui-icon{position:relative;line-height:1.5em;min-height:1.5em;min-width:1.5em}.mw-ui-icon.mw-ui-icon-element{text-indent:-999px;overflow:hidden;width:3.5em;min-width:3.5em;max-width:3.5em}.mw-ui-icon.mw-ui-icon-element:before{left:0;right:0;position:absolute;margin:0 1em}.mw-ui-icon.mw-ui-icon-before:before,.mw-ui-icon.mw-ui-icon-element:before{background-position:50% 50%;background-repeat:no-repeat;background-size:100% auto;float:left;display:block;min-height:1.5em;content:''}.mw-ui-icon.mw-ui-icon-before:before{position:relative;width:1.5em;margin-right:1em}.mw-ui-icon.mw-ui-icon-small:before{background-size:66.67% auto}
+@-webkit-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-webkit-transform:translateY( -20px )}100%{opacity:1;-webkit-transform:translateY( 0 )}}@-moz-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-moz-transform:translateY( -20px )}100%{opacity:1;-moz-transform:translateY( 0 )}}@-o-keyframes centralAuthPPersonalAnimation{0%{opacity:0;-o-transform:translateY( -20px )}100%{opacity:1;-o-transform:translateY( 0 )}}@keyframes centralAuthPPersonalAnimation{0%{opacity:0;transform:translateY( -20px )}100%{opacity:1;transform:translateY( 0 )}}.centralAuthPPersonalAnimation{-webkit-animation-duration:1s;-moz-animation-duration:1s;-o-animation-duration:1s;animation-duration:1s;-webkit-animation-fill-mode:both;-moz-animation-fill-mode:both;-o-animation-fill-mode:both;animation-fill-mode:both;-webkit-animation-name:centralAuthPPersonalAnimation;-moz-animation-name:centralAuthPPersonalAnimation;-o-animation-name:centralAuthPPersonalAnimation;animation-name:centralAuthPPersonalAnimation}
+.uls-menu{border-radius:4px; font-size:medium}.uls-search,.uls-language-settings-close-block{border-top-right-radius:4px;border-top-left-radius:4px}.uls-language-list{border-bottom-right-radius:4px;border-bottom-left-radius:4px} .uls-menu.callout .caret-before,.uls-menu.callout .caret-after{border-top:10px solid transparent;border-bottom:10px solid transparent;display:inline-block; top:17px;position:absolute}.uls-menu.callout .caret-after{display:inline-block}.uls-menu.callout .caret-right .caret-before,.uls-menu.callout .caret-right .caret-after{ border-left:10px solid #c9c9c9; right:-11px}.uls-menu.callout .caret-right .caret-after{ border-left:10px solid #fcfcfc; right:-10px}.uls-menu.callout--languageselection .caret-right .caret-after{ border-left:10px solid #fff}.uls-menu.callout .caret-left .caret-before,.uls-menu.callout .caret-left .caret-after{ border-right:10px solid #c9c9c9; left:-11px}.uls-menu.callout .caret-left .caret-after{ border-right:10px solid #fcfcfc; left:-10px}.uls-menu.callout--languageselection .caret-left .caret-after{ border-right:10px solid #fff}.uls-ui-languages button{margin:5px 15px 5px 0;white-space:nowrap;overflow:hidden}.uls-search-wrapper-wrapper{position:relative;padding-left:40px;margin-top:5px;margin-bottom:5px}.uls-icon-back{background:transparent url(/w/extensions/UniversalLanguageSelector/resources/images/back-grey-ltr.png?90e9b) no-repeat scroll center center;background-image:-webkit-linear-gradient(transparent,transparent),url(/w/extensions/UniversalLanguageSelector/resources/images/back-grey-ltr.svg?ae714);background-image:linear-gradient(transparent,transparent),url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20id%3D%22Layer_1%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M7%2013.1l8.9%208.9c.8-.8.8-2%200-2.8l-6.1-6.1%206-6.1c.8-.8.8-2%200-2.8L7%2013.1z%22%20id%3D%22path3%22%20fill%3D%22%23555%22%2F%3E%0A%3C%2Fsvg%3E%0A);background-size:28px;background-position:center center;height:32px;width:40px;display:block;position:absolute;left:0;border-right:1px solid #c9c9c9;opacity:0.8}.uls-icon-back:hover{opacity:1;cursor:pointer}
+.referencetooltip{position:absolute;list-style:none;list-style-image:none;opacity:0;font-size:10px;margin:0;z-index:5;padding:0}.referencetooltip li{border:#080086 2px solid;max-width:260px;padding:10px 8px 13px 8px;margin:0px;background-color:#F7F7F7;-webkit-box-shadow:2px 4px 2px rgba(0,0,0,0.3);-moz-box-shadow:2px 4px 2px rgba(0,0,0,0.3);box-shadow:2px 4px 2px rgba(0,0,0,0.3)}.referencetooltip li+li{margin-left:7px;margin-top:-2px;border:0;padding:0;height:3px;width:0px;background-color:transparent;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;border-top:12px #080086 solid;border-right:7px transparent solid;border-left:7px transparent solid}.referencetooltip>li+li::after{content:'';border-top:8px #F7F7F7 solid;border-right:5px transparent solid;border-left:5px transparent solid;margin-top:-12px;margin-left:-5px;z-index:1;height:0px;width:0px;display:block}.client-js body .referencetooltip li li{border:none;-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none;height:auto;width:auto;margin:auto;padding:0;position:static}.RTflipped{padding-top:13px}.referencetooltip.RTflipped li+li{position:absolute;top:2px;border-top:0;border-bottom:12px #080086 solid}.referencetooltip.RTflipped li+li::after{border-top:0;border-bottom:8px #F7F7F7 solid;position:absolute;margin-top:7px}.RTsettings{float:right;height:24px;width:24px;cursor:pointer;background-image:url(//upload.wikimedia.org/wikipedia/commons/thumb/0/05/OOjs_UI_icon_advanced.svg/24px-OOjs_UI_icon_advanced.svg.png);background-image:linear-gradient(transparent,transparent),url(//upload.wikimedia.org/wikipedia/commons/0/05/OOjs_UI_icon_advanced.svg);margin-top:-9px;margin-right:-7px;-webkit-transition:opacity 0.15s;-moz-transition:opacity 0.15s;-ms-transition:opacity 0.15s;-o-transition:opacity 0.15s;transition:opacity 0.15s;opacity:0.6;filter:alpha(opacity=60)}.RTsettings:hover{opacity:1;filter:alpha(opacity=100)}.RTTarget{border:#080086 2px solid}
+.skin-vector li.GA,.skin-monobook li.GA,.skin-modern li.GA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/4/42/Monobook-bullet-ga.png)} .skin-vector li.FA,.skin-monobook li.FA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/d/d4/Monobook-bullet-star.png)}.skin-modern li.FA{list-style-image:url(//upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Modern-bullet-star.svg/9px-Modern-bullet-star.svg.png)}
+.wp-teahouse-question-form{position:absolute;margin-left:auto;margin-right:auto;background-color:#f4f3f0;border:1px solid #a7d7f9;padding:1em}#wp-th-question-ask{float:right}.wp-teahouse-ask a.external{background-image:none !important}.wp-teahouse-respond-form{position:absolute;margin-left:auto;margin-right:auto;background-color:#f4f3f0;border:1px solid #a7d7f9;padding:1em}.wp-th-respond{float:right}.wp-teahouse-respond a.external{background-image:none !important}</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{color:#000;text-decoration:none}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:#fff}.suggestions a.mw-searchSuggest-link .special-query{ overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}
+.postedit-container{margin:0 auto;position:fixed;top:0;height:0;left:50%;z-index:1000;font-size:13px}.postedit-container:hover{cursor:pointer}.postedit{position:relative;top:0.6em;left:-50%;line-height:1.35;opacity:1;-webkit-transition:opacity 250ms;-moz-transition:opacity 250ms;transition:opacity 250ms}.postedit.mw-notification{padding-right:3em}.skin-monobook .postedit{top:6em !important; }.postedit-faded{opacity:0}.postedit-icon{padding-left:41px;  line-height:25px;background-repeat:no-repeat;background-position:8px 50%}.postedit-icon-checkmark{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAB9ElEQVR4AZWRA3AYURQArxrVHtW2bdu2bdu2zdi2bdu2bWxs7zeehZaw4f70kbs+zI3e/nWK+RWx3aOFlrL56Sy5SxrruG69hlv6OyK+mz+8KDSXdXembj0ispT7tjs4ZTIbpYBvxGSGKzZTeFrb7W/meN002swFs0U8ttpHTkF2BvCqWQrW35929bTsKm5Zb+SEwWwcY8wAngB9m7Z+d+rIPZ/npdy12M5p47n8dXsCYAf0qPy06eGMdktuDu9Qf+JmKl3SWM91qzVcN9tAbEYkwMaq0tyb1m/To5kP170el/BK8/qa6sJr70ydf+T/Uu5ab+Oo/lS0AkUBpIFWlZ9WPhxpse/PHO7YbOOczjL0vZV2lNxPPtG73dYXM+xvm2znrOl83tidoqCwMBgYXsPFB0on5S6pr+eK5TKuW67lgvaKvF8mL1dtfTL32FHxRdyx3cQpg7m4x9sCXKkTIzA4LDH44zWdzaUf71hv5rTG4uyzcusybxSX7aThbMQ8XgCYAp3rzTTQOiIh9PNlzY3FSuZxrzjme1Y7uGS6kjsWO4jPjM4FVjRZsvD4kO9XtTZzQn82NyzWc0B7AmZh6gA/hOYSGhfw9YbOVnarj+S7800AL2BIsxUAbWNToj7bhBuQmZcOsFdoKUC74rGheCwXmqAIQTc9jQcrADIAAAAASUVORK5CYII=);background-image:url(/w/resources/src/mediawiki.action/images/green-checkmark.png?d94f1)!ie;background-position:left}.postedit-close{position:absolute;padding:0 0.8em;right:0;top:0;font-size:1.25em;font-weight:bold;line-height:2.3em;color:#000;text-shadow:0 0.0625em 0 #fff;text-decoration:none;opacity:0.2}.postedit:hover .postedit-close{color:#000;text-decoration:none;opacity:0.4}
+.mw-mmv-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;background-color:#000}body.mw-mmv-lightbox-open{overflow-y:auto;  }body.mw-mmv-lightbox-open #mw-page-base,body.mw-mmv-lightbox-open #mw-head-base,body.mw-mmv-lightbox-open #mw-navigation,body.mw-mmv-lightbox-open #content,body.mw-mmv-lightbox-open #footer,body.mw-mmv-lightbox-open #globalWrapper{ display:none}body.mw-mmv-lightbox-open > *{ display:none}body.mw-mmv-lightbox-open > .mw-mmv-overlay,body.mw-mmv-lightbox-open > .mw-mmv-wrapper{display:block}.mw-mmv-filepage-buttons{margin-top:5px}.mw-mmv-filepage-buttons .mw-mmv-view-expanded,.mw-mmv-filepage-buttons .mw-mmv-view-config{display:block;line-height:inherit}.mw-mmv-filepage-buttons .mw-mmv-view-expanded.mw-ui-icon:before{background-image:url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201024%20768%22%3E%0A%20%20%20%20%3Cg%20fill%3D%22%2372777d%22%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M851.2%2071.6L690.7%20232.1l-40.1-40.3-9.6%20164.8%20164.8-9.3-40.3-40.4L926%20146.4l58.5%2058.5L997.6%200%20792.7%2013.1%22%2F%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d%3D%22M769.6%2089.3H611.9l70.9%2070.8%207.9%207.5m-47.1%20234.6l-51.2%203%203-51.2%209.4-164.4%205.8-100.3H26.4V768h883.1V387l-100.9%205.8-165%209.4zM813.9%20678H113.6l207.2-270.2%2031.5-12.9L548%20599.8l105.9-63.2%20159.8%20140.8.2.6zm95.6-291.9V228l-79.1%2078.9%207.8%207.9%22%2F%3E%0A%20%20%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A)}.mw-mmv-filepage-buttons .mw-mmv-view-config.mw-ui-icon:before{background-image:url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%20standalone%3D%22no%22%3F%3E%0A%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201024%20768%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M897%20454.6V313.4L810.4%20299c-6.4-23.3-16-45.7-27.3-65.8l50.5-71.4-99.4-100.2-71.4%2050.5c-20.9-11.2-42.5-20.9-65.8-27.3L582.6-1H441.4L427%2085.6c-23.3%206.4-45.7%2016-65.8%2027.3l-71.4-50.5-100.3%2099.5%2050.5%2071.4c-11.2%2020.9-20.9%2042.5-27.3%2066.6L127%20313.4v141.2l85.8%2014.4c6.4%2023.3%2016%2045.7%2027.3%2066.6L189.6%20607l99.5%2099.5%2071.4-50.5c20.9%2011.2%2042.5%2020.9%2066.6%2027.3l14.4%2085.8h141.2l14.4-86.6c23.3-6.4%2045.7-16%2065.8-27.3l71.4%2050.5%2099.5-99.5-50.5-71.4c11.2-20.9%2020.9-42.5%2027.3-66.6l86.4-13.6zm-385%2077c-81.8%200-147.6-66.6-147.6-147.6%200-81.8%2066.6-147.6%20147.6-147.6S659.6%20302.2%20659.6%20384%20593.8%20531.6%20512%20531.6z%22%20fill%3D%22%2372777d%22%2F%3E%0A%3C%2Fsvg%3E%0A);opacity:0.75}.mw-mmv-filepage-buttons .mw-mmv-view-config.mw-ui-icon:before:hover{opacity:1}
+#uls-settings-block{border-top:1px solid #c9c9c9;background:#f8f8f8;background:-webkit-gradient( linear,left top,left bottom,from( #fbfbfb ),to( #f0f0f0 ) );background:-webkit-linear-gradient( top,#fbfbfb,#f0f0f0 );background:-moz-linear-gradient( top,#fbfbfb,#f0f0f0 );background:-o-linear-gradient( top,#fbfbfb,#f0f0f0 );background:linear-gradient( #fbfbfb,#f0f0f0 );padding-left:10px;line-height:1.2em;border-radius:0 0 5px 5px}#uls-settings-block div.display-settings-block,#uls-settings-block div.input-settings-block{display:inline-block;margin:8px 15px;color:#565656}#uls-settings-block div.display-settings-block:hover,#uls-settings-block div.input-settings-block:hover{color:#252525}</style><style>
+.ve-activated #toc,.ve-activated #siteNotice,.ve-activated .mw-indicators,.ve-activated #t-print,.ve-activated #t-permalink,.ve-activated #p-coll-print_export,.ve-activated #t-cite,.ve-deactivating .ve-ui-surface,.ve-active .ve-init-mw-desktopArticleTarget-editableContent{display:none} .ve-activating .ve-ui-surface{height:0;padding:0 !important; overflow:hidden} .ve-loading #content > :not( .ve-init-mw-desktopArticleTarget-loading-overlay ), .ve-activated .ve-init-mw-desktopArticleTarget-uneditableContent{ pointer-events:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;opacity:0.5}.ve-activated #catlinks{cursor:pointer}.ve-activated #catlinks a{opacity:1} .ve-activated #content{position:relative} .ve-init-mw-desktopArticleTarget-loading-overlay{position:absolute;left:0;right:0;z-index:1;margin-top:-0.5em}.ve-init-mw-desktopArticleTarget-progress{height:1em;overflow:hidden;margin:0 25%}.ve-init-mw-desktopArticleTarget-progress-bar{height:1em;width:0} .mw-editsection{white-space:nowrap; unicode-bidi:-moz-isolate;unicode-bidi:-webkit-isolate;unicode-bidi:isolate}.mw-editsection-divider{color:#555} .ve-init-mw-desktopArticleTarget-progress{height:0.75em;border:1px solid #36c;background:#fff;border-radius:2px;box-shadow:0 0.1em 0 0 rgba( 0,0,0,0.15 )}.ve-init-mw-desktopArticleTarget-progress-bar{height:0.75em;background:#36c}</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="Consistency%20model%20-%20Wikipedia_files/load_002.css">
+<link rel="stylesheet" href="Consistency%20model%20-%20Wikipedia_files/load_003.css">
+<meta name="generator" content="MediaWiki 1.30.0-wmf.7">
+<meta name="referrer" content="origin-when-cross-origin">
+<link rel="alternate" href="android-app://org.wikipedia/http/en.m.wikipedia.org/wiki/Consistency_model">
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit">
+<link rel="edit" title="Edit this page" href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit">
+<link rel="apple-touch-icon" href="https://en.wikipedia.org/static/apple-touch/wikipedia.png">
+<link rel="shortcut icon" href="https://en.wikipedia.org/static/favicon/wikipedia.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="https://en.wikipedia.org/w/opensearch_desc.php" title="Wikipedia (en)">
+<link rel="EditURI" type="application/rsd+xml" href="https://en.wikipedia.org/w/api.php?action=rsd">
+<link rel="copyright" href="https://creativecommons.org/licenses/by-sa/3.0/">
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Consistency_model">
+<link rel="dns-prefetch" href="https://login.wikimedia.org/">
+<link rel="dns-prefetch" href="https://meta.wikimedia.org/">
+<script src="Consistency%20model%20-%20Wikipedia_files/load.js"></script></head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Consistency_model rootpage-Consistency_model skin-vector action-view">		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main"><div id="mw-notification-area" class="mw-notification-area mw-notification-area-layout" style="display: none;"></div>
+			<a id="top"></a>
+
+							<div id="siteNotice" class="mw-body-content"><div id="centralNotice"></div><!-- CentralNotice --></div>
+						<div class="mw-indicators mw-body-content">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">Consistency model</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" dir="ltr" class="mw-content-ltr" lang="en"><div class="mw-parser-output"><table class="plainlinks metadata ambox ambox-style ambox-confusing" role="presentation">
+<tbody><tr>
+<td class="mbox-image">
+<div style="width:52px"><img alt="" src="Consistency%20model%20-%20Wikipedia_files/40px-Edit-clear.png" srcset="//upload.wikimedia.org/wikipedia/en/thumb/f/f2/Edit-clear.svg/60px-Edit-clear.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/f/f2/Edit-clear.svg/80px-Edit-clear.svg.png 2x" data-file-width="48" data-file-height="48" height="40" width="40"></div>
+</td>
+<td class="mbox-text"><span class="mbox-text-span">This article <b>may be <a href="https://en.wikipedia.org/wiki/Wikipedia:Vagueness" title="Wikipedia:Vagueness">confusing or unclear</a> to readers</b>. <span class="hide-when-compact">Please help us <a href="https://en.wikipedia.org/wiki/Wikipedia:Please_clarify" title="Wikipedia:Please clarify">clarify the article</a>. There might be a discussion about this on <a href="https://en.wikipedia.org/wiki/Talk:Consistency_model" title="Talk:Consistency model">the talk page</a>.</span> <small><i>(January 2015)</i></small> <small class="hide-when-compact"><i>(<a href="https://en.wikipedia.org/wiki/Help:Maintenance_template_removal" title="Help:Maintenance template removal">Learn how and when to remove this template message</a>)</i></small></span></td>
+</tr>
+</tbody></table>
+<p>In <a href="https://en.wikipedia.org/wiki/Computer_science" title="Computer science">computer science</a>, <b>Consistency models</b> are used in <a href="https://en.wikipedia.org/wiki/Distributed_computing" title="Distributed computing">distributed systems</a> like <a href="https://en.wikipedia.org/wiki/Distributed_shared_memory" title="Distributed shared memory">distributed shared memory</a> systems or distributed data stores (such as a <a href="https://en.wikipedia.org/wiki/Filesystem" class="mw-redirect" title="Filesystem">filesystems</a>, <a href="https://en.wikipedia.org/wiki/Database" title="Database">databases</a>, <a href="https://en.wikipedia.org/wiki/Optimistic_replication" title="Optimistic replication">optimistic replication</a> systems or <a href="https://en.wikipedia.org/wiki/Web_caching" class="mw-redirect" title="Web caching">Web caching</a>).
+ The system is said to support a given model if operations on memory 
+follow specific rules. The data consistency model specifies a contract 
+between programmer and system, wherein the system guarantees that if the
+ programmer follows the rules, memory will be <a href="https://en.wikipedia.org/wiki/Consistent" class="mw-redirect" title="Consistent">consistent</a> and the results of <a href="https://en.wikipedia.org/w/index.php?title=Memory_operation&amp;action=edit&amp;redlink=1" class="new" title="Memory operation (page does not exist)">memory operations</a> will be predictable. This is different from <a href="https://en.wikipedia.org/wiki/Cache_coherence" title="Cache coherence">Cache coherence</a>,
+ an issue that occurs in systems that are cached or cache-less is 
+consistency of data with respect to all processors. This is not handled 
+by Coherence as coherence deals with maintaining a global order in which
+ writes only to a single location or a single variable are seen by all 
+processors. Consistency deals with the ordering of operations to 
+multiple locations with respect to all processors.</p>
+<p><a href="https://en.wikipedia.org/wiki/High_level_language" class="mw-redirect" title="High level language">High level languages</a>, such as <a href="https://en.wikipedia.org/wiki/C%2B%2B" title="C++">C++</a> and <a href="https://en.wikipedia.org/wiki/Java" title="Java">Java</a>, partially maintain the contract by translating memory operations into low-level operations in a way that preserves <a href="https://en.wikipedia.org/wiki/Memory_semantics_%28computing%29" title="Memory semantics (computing)">memory semantics</a>. To hold to the contract, compilers may reorder some memory instructions, and library calls such as <code>pthread_mutex_lock()</code> encapsulate required synchronization.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup></p>
+<p>Verifying <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a> through model checking is <a href="https://en.wikipedia.org/wiki/Undecidable_problem" title="Undecidable problem">undecidable</a> in general, even for finite-state <a href="https://en.wikipedia.org/wiki/Cache_coherence" title="Cache coherence">cache-coherence</a> protocols.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2">[2]</a></sup></p>
+<p>Consistency models define rules for the apparent order and visibility of updates, and it is a <a href="https://en.wikipedia.org/wiki/Linear_continuum" title="Linear continuum">continuum</a> with tradeoffs.<sup id="cite_ref-Rules_3-0" class="reference"><a href="#cite_note-Rules-3">[3]</a></sup></p>
+<p></p>
+<div id="toc" class="toc">
+<div class="toctitle">
+<h2>Contents</h2>
+<span class="toctoggle">&nbsp;[<a role="button" tabindex="0" class="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Example"><span class="tocnumber">1</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Types"><span class="tocnumber">2</span> <span class="toctext">Types</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Strict_Consistency"><span class="tocnumber">2.1</span> <span class="toctext">Strict Consistency</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Sequential_Consistency"><span class="tocnumber">2.2</span> <span class="toctext">Sequential Consistency</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Causal_Consistency"><span class="tocnumber">2.3</span> <span class="toctext">Causal Consistency</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Processor_Consistency"><span class="tocnumber">2.4</span> <span class="toctext">Processor Consistency</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#PRAM_Consistency_.28also_known_as_FIFO_consistency.29"><span class="tocnumber">2.5</span> <span class="toctext">PRAM Consistency (also known as FIFO consistency)</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Cache_Consistency"><span class="tocnumber">2.6</span> <span class="toctext">Cache Consistency</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Slow_Consistency"><span class="tocnumber">2.7</span> <span class="toctext">Slow Consistency</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Release_Consistency"><span class="tocnumber">2.8</span> <span class="toctext">Release Consistency</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Entry_Consistency"><span class="tocnumber">2.9</span> <span class="toctext">Entry Consistency</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#General_Consistency"><span class="tocnumber">2.10</span> <span class="toctext">General Consistency</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Local_Consistency"><span class="tocnumber">2.11</span> <span class="toctext">Local Consistency</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-14"><a href="#Relaxed_Memory_Consistency_Models"><span class="tocnumber">3</span> <span class="toctext">Relaxed Memory Consistency Models</span></a>
+<ul>
+<li class="toclevel-2 tocsection-15"><a href="#Relaxation_Models"><span class="tocnumber">3.1</span> <span class="toctext">Relaxation Models</span></a>
+<ul>
+<li class="toclevel-3 tocsection-16"><a href="#Relaxed_Write_to_Read"><span class="tocnumber">3.1.1</span> <span class="toctext">Relaxed Write to Read</span></a></li>
+<li class="toclevel-3 tocsection-17"><a href="#Relaxed_Write_to_Read_and_Write_to_Write"><span class="tocnumber">3.1.2</span> <span class="toctext">Relaxed Write to Read and Write to Write</span></a></li>
+<li class="toclevel-3 tocsection-18"><a href="#Relaxing_Read_and_Read_to_Write_program_orders"><span class="tocnumber">3.1.3</span> <span class="toctext">Relaxing Read and Read to Write program orders</span></a></li>
+<li class="toclevel-3 tocsection-19"><a href="#Weak_Ordering"><span class="tocnumber">3.1.4</span> <span class="toctext">Weak Ordering</span></a></li>
+<li class="toclevel-3 tocsection-20"><a href="#Release_Consistency_.28RCsc.2FRCpc.29"><span class="tocnumber">3.1.5</span> <span class="toctext">Release Consistency (RCsc/RCpc)</span></a></li>
+<li class="toclevel-3 tocsection-21"><a href="#Alpha.2C_RMO.2C_and_PowerPC"><span class="tocnumber">3.1.6</span> <span class="toctext">Alpha, RMO, and PowerPC</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-22"><a href="#Transactional_Memory_Models"><span class="tocnumber">4</span> <span class="toctext">Transactional Memory Models</span></a></li>
+<li class="toclevel-1 tocsection-23"><a href="#Consistency_and_Replication"><span class="tocnumber">5</span> <span class="toctext">Consistency and Replication</span></a>
+<ul>
+<li class="toclevel-2 tocsection-24"><a href="#Data-centric_Consistency_Models"><span class="tocnumber">5.1</span> <span class="toctext">Data-centric Consistency Models</span></a>
+<ul>
+<li class="toclevel-3 tocsection-25"><a href="#Consistent_Ordering_of_Operations"><span class="tocnumber">5.1.1</span> <span class="toctext">Consistent Ordering of Operations</span></a>
+<ul>
+<li class="toclevel-4 tocsection-26"><a href="#Sequential_Consistency_2"><span class="tocnumber">5.1.1.1</span> <span class="toctext">Sequential Consistency</span></a></li>
+<li class="toclevel-4 tocsection-27"><a href="#Causal_Consistency_2"><span class="tocnumber">5.1.1.2</span> <span class="toctext">Causal Consistency</span></a></li>
+<li class="toclevel-4 tocsection-28"><a href="#Grouping_Operations.5B19.5D"><span class="tocnumber">5.1.1.3</span> <span class="toctext">Grouping Operations<sup>[19]</sup></span></a></li>
+</ul>
+</li>
+<li class="toclevel-3 tocsection-29"><a href="#Continuous_Consistency"><span class="tocnumber">5.1.2</span> <span class="toctext">Continuous Consistency</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-30"><a href="#Client-centric_Consistency_Models.5B19.5D"><span class="tocnumber">5.2</span> <span class="toctext">Client-centric Consistency Models<sup>[19]</sup></span></a>
+<ul>
+<li class="toclevel-3 tocsection-31"><a href="#Eventual_Consistency"><span class="tocnumber">5.2.1</span> <span class="toctext">Eventual Consistency</span></a></li>
+<li class="toclevel-3 tocsection-32"><a href="#Monotonic_Read_Consistency"><span class="tocnumber">5.2.2</span> <span class="toctext">Monotonic Read Consistency</span></a></li>
+<li class="toclevel-3 tocsection-33"><a href="#Monotonic_Write_Consistency"><span class="tocnumber">5.2.3</span> <span class="toctext">Monotonic Write Consistency</span></a></li>
+<li class="toclevel-3 tocsection-34"><a href="#Read-your-writes_Consistency"><span class="tocnumber">5.2.4</span> <span class="toctext">Read-your-writes Consistency</span></a></li>
+<li class="toclevel-3 tocsection-35"><a href="#Writes-follows-reads_Consistency"><span class="tocnumber">5.2.5</span> <span class="toctext">Writes-follows-reads Consistency</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-36"><a href="#Consistency_Protocols"><span class="tocnumber">5.3</span> <span class="toctext">Consistency Protocols</span></a>
+<ul>
+<li class="toclevel-3 tocsection-37"><a href="#Continuous_Consistency_2"><span class="tocnumber">5.3.1</span> <span class="toctext">Continuous Consistency</span></a></li>
+<li class="toclevel-3 tocsection-38"><a href="#Primary-based_Protocols"><span class="tocnumber">5.3.2</span> <span class="toctext">Primary-based Protocols</span></a>
+<ul>
+<li class="toclevel-4 tocsection-39"><a href="#Remote-write_Protocols"><span class="tocnumber">5.3.2.1</span> <span class="toctext">Remote-write Protocols</span></a></li>
+<li class="toclevel-4 tocsection-40"><a href="#Local-write_Protocols"><span class="tocnumber">5.3.2.2</span> <span class="toctext">Local-write Protocols</span></a></li>
+</ul>
+</li>
+<li class="toclevel-3 tocsection-41"><a href="#Replicated-write_Protocols"><span class="tocnumber">5.3.3</span> <span class="toctext">Replicated-write Protocols</span></a>
+<ul>
+<li class="toclevel-4 tocsection-42"><a href="#Active_Replication"><span class="tocnumber">5.3.3.1</span> <span class="toctext">Active Replication</span></a></li>
+<li class="toclevel-4 tocsection-43"><a href="#Quorum-based_Protocols.5B19.5D"><span class="tocnumber">5.3.3.2</span> <span class="toctext">Quorum-based Protocols<sup>[19]</sup></span></a></li>
+<li class="toclevel-4 tocsection-44"><a href="#Cache-coherence_Protocols"><span class="tocnumber">5.3.3.3</span> <span class="toctext">Cache-coherence Protocols</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-45"><a href="#See_also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-46"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-47"><a href="#Further_reading"><span class="tocnumber">8</span> <span class="toctext">Further reading</span></a></li>
+<li class="toclevel-1 tocsection-48"><a href="#External_links"><span class="tocnumber">9</span> <span class="toctext">External links</span></a></li>
+</ul>
+</div>
+<p></p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=1" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Assume that the following case occurs:<sup id="cite_ref-Rules_3-1" class="reference"><a href="#cite_note-Rules-3">[3]</a></sup></p>
+<ul>
+<li>The row X is replicated on nodes M and N</li>
+<li>The client A writes row X to node N</li>
+<li>After a period of time t, client B reads row X from node M</li>
+</ul>
+<p>The consistency model has to determine whether client B sees the write from client A or not.</p>
+<h2><span class="mw-headline" id="Types">Types</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=2" title="Edit section: Types">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>There are two methods to define and categorize consistency models; issue and view.</p>
+<p>Issue: Issue method describes the restrictions that define how a process can issue operations.</p>
+<p>View: View method which defines the order of operations visible to processes.</p>
+<p>For example, a consistency model can define that a process is not 
+allowed to issue an operation until all previously issued operations are
+ completed. Different consistency models enforce different conditions. 
+One consistency model can be considered stronger than another if it 
+requires all conditions of that model and more. In other words, a model 
+with fewer constraints is considered a weaker consistency model.</p>
+<p>These models define how the hardware needs to be laid out and at 
+high-level, how the programmer must code. The chosen model also affects 
+how the compiler can re-order instructions. Generally, if control 
+dependencies between instructions and if writes to same location are 
+ordered, then the compiler can reorder as required. However, with the 
+models described below, some may allow Writes before Loads to be 
+reordered while some may not.</p>
+<h3><span class="mw-headline" id="Strict_Consistency">Strict Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=3" title="Edit section: Strict Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Strict consistency is the strongest consistency model. Under this 
+model, a write to a variable by any processor needs to be seen 
+instantaneously by all processors. The Strict model diagram and 
+non-Strict model diagrams describe the time constraint – instantaneous. 
+It can be better understood as though a global clock is present in which
+ every write should be reflected in all processor caches by the end of 
+that clock period. The next operation must happen only in the next clock
+ period.</p>
+<table>
+<tbody><tr>
+<td><i>P</i>1: <i>W</i>(<i>x</i>)1</td>
+<td></td>
+<td><i>P</i>1: <i>W</i>(<i>x</i>)1</td>
+</tr>
+<tr>
+<td><i>P</i>2: <i>R</i>(<i>x</i>)1</td>
+<td></td>
+<td><i>P</i>2: <i>R</i>(<i>x</i>)0 <i>R</i>(<i>x</i>)1</td>
+</tr>
+</tbody></table>
+<p>Strict Model Non-strict Model</p>
+<p>This is the most rigid model and is impossible to implement without 
+forgoing performance. In this model, the programmer’s expected result 
+will be received every time. It is deterministic. A distributed system 
+with many nodes will take some time to copy information written to one 
+node to all the other nodes responsible for replicating that 
+information. That time can't be zero because it takes time for 
+information to propagate through space, and there is a limit to how fast
+ information can travel through space: the <a href="https://en.wikipedia.org/wiki/Speed_of_light" title="Speed of light">speed of light</a>.
+ Therefore, strict consistency is impossible. The best one can do is 
+design a system where the time-to-replicate approaches the theoretical 
+minimum.</p>
+<h3><span class="mw-headline" id="Sequential_Consistency">Sequential Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=4" title="Edit section: Sequential Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a>
+ model is a weaker memory model than strict consistency. A write to a 
+variable does not have to be seen instantaneously, however, writes to 
+variables by different processors have to be seen in the same order by 
+all processors. As defined by Lamport(1979),<sup id="cite_ref-Lamport_4-0" class="reference"><a href="#cite_note-Lamport-4">[4]</a></sup>
+ Sequential Consistency is met if “the result of any execution is the 
+same as if the operations of all the processors were executed in some 
+sequential order, and the operations of each individual processor appear
+ in this sequence in the order specified by its program.”</p>
+<p>Program order within each processor and sequential ordering of 
+operations between processors should be maintained. In order to preserve
+ sequential order of execution between processors, all operations must 
+appear to execute instantaneously or atomically with respect to every 
+other processor. These operations need only “appear” to be completed 
+because it is physically impossible to send information instantaneously.
+ For instance, once a bus line is posted with information, It is 
+guaranteed that all processors will see the information at the same 
+instant. Thus, passing the information to the bus line completes the 
+execution with respect to all processors and has appeared to have been 
+executed. Cache-less architectures or cached architectures with 
+interconnect networks that are not instantaneous can contain a slow path
+ between processors and memories. These slow paths can result in 
+sequential inconsistency, because some memories receive the broadcast 
+data faster than others.</p>
+<p>Sequential consistency can produce non-deterministic results. This is
+ because the sequence of sequential operations between processors can be
+ different during different runs of the program. All memory operations 
+need to happen in the program order.</p>
+<p><b><a href="https://en.wikipedia.org/wiki/Linearizability" title="Linearizability">Linearizability</a></b> (also known as atomic consistency) can be defined as sequential consistency with the real-time constraint.</p>
+<h3><span class="mw-headline" id="Causal_Consistency">Causal Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=5" title="Edit section: Causal Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="https://en.wikipedia.org/wiki/Causal_consistency" title="Causal consistency">Causal consistency</a>
+ is a weakening model of sequential consistency by categorizing events 
+into those causally related and those that are not. It defines that only
+ write operations that are causally related need to be seen in the same 
+order by all processes.</p>
+<p>This model relaxes Sequential consistency on concurrent writes by a 
+processor and on writes that are not causally related. Two writes can 
+become causally related if one write to a variable is dependent on a 
+previous write to any variable if the processor doing the second write 
+has just read the first write. The two writes could have been done by 
+the same processor or by different processors.</p>
+<p>As in sequential consistency, reads do not need to reflect changes 
+instantaneously, however, they need to reflect all changes to a variable
+ sequentially.</p>
+<table>
+<tbody><tr>
+<td><i>P</i>1: W<sub>1</sub>(<i>x</i>)3</td>
+</tr>
+<tr>
+<td><i>P</i>2: W<sub>2</sub>(x)5 R<sub>1</sub>(<i>x</i>)3</td>
+</tr>
+</tbody></table>
+<p>W<sub>1</sub> is not causally related to W<sub>2</sub>. R1 would be Sequentially Inconsistent but is Causally consistent.<sup id="cite_ref-:0_5-0" class="reference"><a href="#cite_note-:0-5">[5]</a></sup></p>
+<table>
+<tbody><tr>
+<td><i>P</i>1:W(x)1</td>
+<td></td>
+<td>W(x)3</td>
+<td></td>
+</tr>
+<tr>
+<td><i>P</i>2:R(x)1</td>
+<td>W(x)2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><i>P</i>3:R(x)1</td>
+<td></td>
+<td>R(x)3</td>
+<td>R(x)2</td>
+</tr>
+<tr>
+<td><i>P</i>4:R(x)1</td>
+<td></td>
+<td>R(x)2</td>
+<td>R(x)3</td>
+</tr>
+</tbody></table>
+<p>W(x)1 and W(x) 2 are causally related due to the read made by P2 to x before W(x)2.<sup id="cite_ref-:0_5-1" class="reference"><a href="#cite_note-:0-5">[5]</a></sup></p>
+<h3><span class="mw-headline" id="Processor_Consistency">Processor Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=6" title="Edit section: Processor Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In order for consistency in data to be maintained and to attain 
+scalable processor systems where every processor has its own memory, the
+ <a href="https://en.wikipedia.org/wiki/Processor_consistency" title="Processor consistency">Processor consistency</a> model was derived.<sup id="cite_ref-:0_5-2" class="reference"><a href="#cite_note-:0-5">[5]</a></sup>
+ All processors need to be consistent in the order in which they see 
+writes done by one processor and in the way they see writes by different
+ processors to the same location (coherence is maintained). However, 
+they do not need to be consistent when the writes are by different 
+processors to different locations.</p>
+<p>Every write operation can be divided into several sub-writes to all 
+memories. A read from one such memory can happen before the write to 
+this memory completes. Therefore, the data read can be stale. Thus, a 
+processor under PC can execute a younger load when an older store needs 
+to be stalled. Read before Write, Read after Read and Write before Write
+ ordering is still preserved in this model.</p>
+<p>The processor consistency model<sup id="cite_ref-cacheconsistency_6-0" class="reference"><a href="#cite_note-cacheconsistency-6">[6]</a></sup> is similar to <a href="https://en.wikipedia.org/wiki/PRAM_consistency" title="PRAM consistency">PRAM consistency</a>
+ model with a stronger condition that defines all writes to the same 
+memory location must be seen in the same sequential order by all other 
+processes. Process consistency is weaker than sequential consistency but
+ stronger than PRAM consistency model.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Stanford_DASH" title="Stanford DASH">Stanford DASH multiprocessor system</a> implements a variation of processor consistency which is incomparable (neither weaker nor stronger) to Goodmans definitions.<sup id="cite_ref-senftleben13_7-0" class="reference"><a href="#cite_note-senftleben13-7">[7]</a></sup>
+ All processors need to be consistent in the order in which they see 
+writes by one processor and in the way they see writes by different 
+processors to the same location. However, they do not need to be 
+consistent when the writes are by different processors to different 
+locations.</p>
+<h3><span class="mw-headline" id="PRAM_Consistency_.28also_known_as_FIFO_consistency.29">PRAM Consistency (also known as FIFO consistency)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=7" title="Edit section: PRAM Consistency (also known as FIFO consistency)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="https://en.wikipedia.org/wiki/PRAM_consistency" title="PRAM consistency">PRAM consistency</a> (Pipelined RAM) was presented by Lipton and Sandberg in 1988<sup id="cite_ref-pram_lipton_8-0" class="reference"><a href="#cite_note-pram_lipton-8">[8]</a></sup>
+ as one of the first described consistency models. Due to its informal 
+definition, there are in fact at least two subtle different 
+implementations,<sup id="cite_ref-senftleben13_7-1" class="reference"><a href="#cite_note-senftleben13-7">[7]</a></sup> one by Ahamad et al. and one by Mosberger.</p>
+<p>In PRAM consistency, all processes view the operations of a single 
+process in the same order that they were issued by that process, while 
+operations issued by different processes can be viewed in different 
+order from different processes. PRAM consistency is weaker than 
+processor consistency. PRAM relaxes the need to maintain coherence to a 
+location across all its processors. Here, reads to any variable can be 
+executed before writes in a processor. Read before Write, Read after 
+Read and Write before Write ordering is still preserved in this model.</p>
+<table>
+<tbody><tr>
+<th><b>P1:</b></th>
+<th><b>W(x)1</b></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+<tr>
+<td>P2:</td>
+<td></td>
+<td>R(x)1</td>
+<td>W(x)2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>P3:</td>
+<td></td>
+<td></td>
+<td></td>
+<td>R(x)1</td>
+<td>R(x)2</td>
+</tr>
+<tr>
+<td>P4:</td>
+<td></td>
+<td></td>
+<td></td>
+<td>R(x)2</td>
+<td>R(x)1</td>
+</tr>
+</tbody></table>
+<h3><span class="mw-headline" id="Cache_Consistency">Cache Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=8" title="Edit section: Cache Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Cache consistency<sup id="cite_ref-cacheconsistency_6-1" class="reference"><a href="#cite_note-cacheconsistency-6">[6]</a></sup><sup id="cite_ref-unified_9-0" class="reference"><a href="#cite_note-unified-9">[9]</a></sup>
+ requires that all write operations to the same memory location are 
+performed in some sequential order. Cache consistency is weaker than 
+process consistency and incomparable with PRAM consistency.</p>
+<h3><span class="mw-headline" id="Slow_Consistency">Slow Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=9" title="Edit section: Slow Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<div class="thumb tright">
+<div class="thumbinner" style="width:222px;"><a href="https://en.wikipedia.org/wiki/File:Slow_memory.gif" class="image"><img alt="" src="Consistency%20model%20-%20Wikipedia_files/220px-Slow_memory.gif" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/0/00/Slow_memory.gif/330px-Slow_memory.gif 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/0/00/Slow_memory.gif/440px-Slow_memory.gif 2x" data-file-width="648" data-file-height="235" height="80" width="220"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:Slow_memory.gif" class="internal" title="Enlarge"></a></div>
+Slow Memory</div>
+</div>
+</div>
+<p>In slow consistency,<sup id="cite_ref-unified_9-1" class="reference"><a href="#cite_note-unified-9">[9]</a></sup>
+ if a process reads a value previously written to a memory location, it 
+cannot subsequently read any earlier value from that location. Writes 
+performed by a process are immediately visible to that process. Slow 
+consistency is a weaker model than PRAM and cache consistency.</p>
+<p><b>Example:</b> Slow memory diagram depicts a slow consistency 
+example. The first process writes 1 to the memory location X and then it
+ writes 1 to the memory location Y. The second process reads 1 from Y 
+and it then reads 0 from X even though X was written before Y.</p>
+<p>Hutto, Phillip W., and Mustaque Ahamad (1990)<sup id="cite_ref-slow_10-0" class="reference"><a href="#cite_note-slow-10">[10]</a></sup>
+ illustrate that by appropriate programming, slow memory (consistency) 
+can be expressive and efficient. They mention that slow memory has two 
+valuable properties; locality and supporting reduction from atomic 
+memory. They propose two algorithms to present the expressiveness of 
+slow memory.</p>
+<p>The following models require specific synchronization by programmers.</p>
+<p><big><b>Weak Ordering</b></big></p>
+<p>Program order and atomicity is maintained only on a group of 
+operations and not on all reads and writes. This was derived from the 
+understanding that certain memory operations – such as those conducted 
+in a critical section - need not be seen by all processors – until after
+ all operations in the critical section are completed for instance. It 
+also exploits the fact that programs written to be executed on a 
+multi-processor system contain the required synchronization to make sure
+ that data races do not occur and SC outcomes are produced always. Thus,
+ in weak ordering, operations other than synchronization operations can 
+be classified as <i>data</i> operations.<sup id="cite_ref-11" class="reference"><a href="#cite_note-11">[11]</a></sup></p>
+<table>
+<tbody><tr>
+<th>P1</th>
+<th>P2</th>
+</tr>
+<tr style="vertical-align:top">
+<td>
+<pre>X = 1;
+<i>fence</i>
+
+xready = 1;
+</pre></td>
+<td>
+<pre><i>fence</i>
+while(!xready) {}; 
+
+<i>fence</i>
+
+y = 2;
+</pre></td>
+</tr>
+</tbody></table>
+<p>Synchronization operations signal the processor to make sure it has 
+completed and seen all previous operations done by all processors. In 
+order to maintain Weak ordering, write operations prior to a 
+synchronization operation must be globally performed before the 
+synchronization operation. Operations present in after a synchronization
+ operation should also be performed only after the synchronization 
+operation completes. Therefore, accesses to synchronization variables is
+ sequentially consistent and any read or write should be performed only 
+after previous synchronization operations have completed. Coherence is 
+not relaxed in this model. Once these requirements are met, all other 
+“data” operations can be reordered.</p>
+<p>There is high reliance on explicit synchronization in the program. 
+For weak ordering models, the programmer must use atomic locking 
+instructions such as test-and-set, fetch-and-op, store conditional, load
+ linked or must label synchronization variables or use fences.</p>
+<h3><span class="mw-headline" id="Release_Consistency"><a href="https://en.wikipedia.org/wiki/Release_consistency" title="Release consistency">Release Consistency</a></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=10" title="Edit section: Release Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This model relaxes the Weak consistency model by distinguishing the 
+entrance synchronization operation from the exit synchronization 
+operation. Under weak ordering, when a synchronization operation is to 
+be seen, all operations in all processors need to be visible before the 
+Synchronization operation is done and the processor proceeds. However, 
+under Release consistency model, during the entry to a critical section,
+ termed as “acquire”, all operations with respect to the local memory 
+variables need to be completed. During the exit, termed as “release”, 
+all changes made by the local processor should be propagated to all 
+other processors. Coherence is still maintained.</p>
+<p>The acquire operation is a load/read that is performed to access the 
+critical section. A release operation is a store/write performed to 
+allow other processors use the shared variables.</p>
+<p>Among synchronization variables, sequential consistency or processor 
+consistency can be maintained. Using SC, all competing synchronization 
+variables should be processed in order. However, with PC, a pair of 
+competing variables need to only follow this order. Younger Acquires can
+ be allowed to happen before older Releases.<sup id="cite_ref-12" class="reference"><a href="#cite_note-12">[12]</a></sup></p>
+<h3><span class="mw-headline" id="Entry_Consistency">Entry Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=11" title="Edit section: Entry Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This is a variant of the Release Consistency model. It also requires 
+the use of Acquire and Release instructions to explicitly state an entry
+ or exit to a critical section. However, under Entry Consistency, every 
+shared variable is assigned a synchronization variable specific to it. 
+This way, only when the Acquire is to variable x, all operations related
+ to x need to be completed with respect to that processor. This allows 
+concurrent operations of different critical sections of different shared
+ variables to occur. Concurrency cannot be seen for critical operations 
+on the same shared variable. Such a consistency model will be useful 
+when different matrix elements can be processed at the same time.</p>
+<h3><span class="mw-headline" id="General_Consistency">General Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=12" title="Edit section: General Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In general consistency,<sup id="cite_ref-13" class="reference"><a href="#cite_note-13">[13]</a></sup> all the copies of a memory location are eventually identical after all processes' writes are completed.</p>
+<h3><span class="mw-headline" id="Local_Consistency">Local Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=13" title="Edit section: Local Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In local consistency,<sup id="cite_ref-unified_9-2" class="reference"><a href="#cite_note-unified-9">[9]</a></sup>
+ each process performs its own operations in the order defined by its 
+program. There is no constraint on the ordering in which the write 
+operations of other processes appear to be performed. Local consistency 
+is the weakest consistency model in shared memory systems.</p>
+<p>Some other consistency models are as follows:</p>
+<ul>
+<li>Causal+ Consistency<sup id="cite_ref-14" class="reference"><a href="#cite_note-14">[14]</a></sup><sup id="cite_ref-15" class="reference"><a href="#cite_note-15">[15]</a></sup></li>
+<li><a href="https://en.wikipedia.org/wiki/Delta_consistency" title="Delta consistency">Delta consistency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Eventual_consistency" title="Eventual consistency">Eventual consistency</a></li>
+<li><a href="https://en.wikipedia.org/w/index.php?title=Fork_consistency&amp;action=edit&amp;redlink=1" class="new" title="Fork consistency (page does not exist)">Fork consistency</a></li>
+<li><a href="https://en.wikipedia.org/w/index.php?title=One-copy_serializability&amp;action=edit&amp;redlink=1" class="new" title="One-copy serializability (page does not exist)">One-copy serializability</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Serializability" title="Serializability">Serializability</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Vector-field_consistency" title="Vector-field consistency">Vector-field consistency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Weak_consistency" title="Weak consistency">Weak consistency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Strong_consistency" title="Strong consistency">Strong consistency</a></li>
+</ul>
+<p>Several other consistency models have been conceived to express 
+restrictions with respect to ordering or visibility of operations, or to
+ deal with specific fault assumptions.<sup id="cite_ref-16" class="reference"><a href="#cite_note-16">[16]</a></sup></p>
+<h2><span class="mw-headline" id="Relaxed_Memory_Consistency_Models">Relaxed Memory Consistency Models</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=14" title="Edit section: Relaxed Memory Consistency Models">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Some different consistency models can be defined by relaxing one or more requirements in <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a> called relaxed consistency models.<sup id="cite_ref-RelaxedModel_17-0" class="reference"><a href="#cite_note-RelaxedModel-17">[17]</a></sup>
+ These consistency models do not provide memory consistency at the 
+hardware level. In fact, the programmers are responsible for 
+implementing the memory consistency by applying synchronization 
+techniques. The above models are classified based on four criteria and 
+are detailed further.</p>
+<p>There are four comparisons to define the relaxed consistency:</p>
+<ul>
+<li><b>Relaxation</b>: One way to categorize the relaxed consistency is 
+to define which sequential consistency requirements are relaxed. We can 
+have less strict models by relaxing either program order or write 
+atomicity requirements defined by Adve and Gharachorloo, 1996.<sup id="cite_ref-sharedmemory_18-0" class="reference"><a href="#cite_note-sharedmemory-18">[18]</a></sup>
+ Program order guarantees that each process issues a memory request 
+ordered by its program and write atomicity defines that memory requests 
+are serviced based on the order of a single FIFO queue. In relaxing 
+program order, any or all the ordering of operation pairs, 
+write-after-write, read-after-write, or read/write-after-read, can be 
+relaxed. In the relaxed write atomicity model, a process can view its 
+own writes before any other processors.</li>
+<li><b>Synchronizing vs. Non-Synchronizing</b>: A synchronizing model 
+can be defined by dividing the memory accesses into two groups and 
+assigning different consistency restrictions to each group considering 
+that one group can have a weak consistency model while the other one 
+needs a more restrictive consistency model. In contrast, a 
+non-synchronizing Model assigns the same consistency model to the memory
+ access types.</li>
+<li><b>Issue vs. View-Based</b>:<sup id="cite_ref-unified_9-3" class="reference"><a href="#cite_note-unified-9">[9]</a></sup>
+ Issue method provides sequential consistency simulation by defining the
+ restrictions for processes to issue memory operations. Whereas, view 
+method describes the visibility restrictions on the events order for 
+processes.</li>
+<li><b>Relative Model Strength</b>: Some consistency models are more 
+restrictive than others. In other words, strict consistency models 
+enforce more constraints as consistency requirements. The strength of a 
+model can be defined by the program order or atomicity relaxations and 
+the strength of models can also be compared. Some models are directly 
+related if they apply same relaxations or more. On the other hand, the 
+models that relax different requirements are not directly related.</li>
+</ul>
+<p>Sequential consistency has two requirements, program order and write 
+atomicity. Different relaxed consistency models can be obtained by 
+relaxing these requirements. This is done so that, along with relaxed 
+constraints, the performance increases, but the programmer is 
+responsible for implementing the memory consistency by applying 
+synchronisation techniques and must have a good understanding of the 
+hardware.</p>
+<p>Potential relaxations:</p>
+<ul>
+<li>Write to Read program order</li>
+<li>Write to Write program order</li>
+<li>Read to Read and Read to Write program orders</li>
+</ul>
+<h3><span class="mw-headline" id="Relaxation_Models">Relaxation Models</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=15" title="Edit section: Relaxation Models">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The following models are some models of relaxed consistency:</p>
+<h4><span class="mw-headline" id="Relaxed_Write_to_Read">Relaxed Write to Read</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=16" title="Edit section: Relaxed Write to Read">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>An approach to improving the performance at the hardware level is by 
+relaxing the PO of a write followed by a read which effectively hides 
+the latency of write operations. The optimisation this type of 
+relaxation relies on is that it allows the subsequent reads to be in a 
+relaxed order with respect to the previous writes from he processor. 
+Because of this relaxation some programs like XXX may fail to give SC 
+results because of this relaxation. Whereas, programs like YYY are still
+ expected to give consistent results because of the enforcement of the 
+remaining program order constraints.</p>
+<p>Three models fall under this category. IBM 370 model is the strictest
+ model. A Read can be complete before an earlier write to a different 
+address, but it is prohibited from returning the value of the write 
+unless all the processors have seen the write. The SPARC V8 total store 
+ordering model (TSO) model partially relaxes the IBM 370 Model, it 
+allows a read to return the value of its own processor’s write with 
+respect to other writes to the same location i.e. it returns the value 
+of its own write before others see it. Similar to the previous model, 
+this cannot return the value of write unless all the processors have 
+seen the write. The processor consistency model (PC) is the most relaxed
+ of the three models and relaxes both the constraints such that a read 
+can complete before an earlier write even before it is made visible to 
+other processors.</p>
+<p>In Example A, the result is possible only in IBM 370 because Read(A) 
+is not issued until the write(A) in that processor is completed. On the 
+other hand, this result is possible in TSO and PC because they allow the
+ reads of the flags before the writes of the flags in a single 
+processor.</p>
+<p>In Example B the result is possible only with PC as it allows P2 to 
+return the value of a write even before it is visible to P3. This won’t 
+be possible in the other two models.</p>
+<p>To ensure sequential consistency in the above models, safety nets or 
+fences are used to manually enforce the constraint. The IBM370 model has
+ some specialised <i>serialisation instructions</i> which are manually 
+placed between operations. These instructions can consist of memory 
+instructions such or non-memory instructions such as branches. On the 
+other hand, the TSO and PC models do not provide safety nets, but the 
+programmers can still use read-modify-write operations to make it appear
+ like the program order is still maintained between a write and a 
+following read. In case of TSO, PO appears to be maintained if the R or W
+ which is already a part of a R-modify-W is replaced by a R-modify-W, 
+this requires the W in the R-modify-W is a ‘dummy’ that returns the read
+ value. Similarly for PC, PO seems to be maintained if the read is 
+replaced by a write or is already a part of R-modify-W.</p>
+<p>However, compiler optimisations cannot be done after exercising this 
+relaxation alone. Compiler optimisations require the full flexibility of
+ reordering any two operations in the PO, so the ability to reorder a 
+write with respect to a read is not sufficiently helpful in this case.</p>
+<p>Example A.</p>
+<p>Initially, A=flag1=flag2=0</p>
+<pre>P1                  P2
+flag1=1             flag2=1 
+A=1                 A=2
+reg1=A              reg3=A 
+reg2=flag2          reg4=flag1
+
+Result: reg1=1 ; reg3=2, reg2=reg4=0
+</pre>
+<p>Example B. Initially, A=B=0</p>
+<pre>P1              P2              P3
+A=1             
+                if(A==1)
+                B=1             if(B==1)
+                                reg1=A
+
+Result: B=1, reg1=0
+
+</pre>
+<h4><span class="mw-headline" id="Relaxed_Write_to_Read_and_Write_to_Write">Relaxed Write to Read and Write to Write</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=17" title="Edit section: Relaxed Write to Read and Write to Write">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Some models relax the program order even further by relaxing even the
+ ordering constraints between writes to different locations. The SPARC 
+V8 Partial Store Ordering model (PSO) is the only example of such a 
+model. The ability to pipeline and overlap writes to different locations
+ from the same processor is the key hardware optimisation enabled by 
+PSO. PSO is similar to TSO in terms of atomicity requirements, in that, 
+it allows a processor to read the value of its own write and preventing 
+other processors from reading another processor’s write before the write
+ is visible to all other processors. Program order between two writes is
+ maintained by PSO using an explicit STBAR instruction. The STBAR is 
+inserted in a write buffer in implementations with FIFO write buffers. A
+ counter is used to determine when all the writes before the STBAR 
+instruction have been completed, which triggers a write to the memory 
+system to increment the counter. A write acknowledgement decrements the 
+counter, and when the counter becomes 0, it signifies that all the 
+previous writes are completed.</p>
+<p>In the examples A and B, PSO allows both these non-sequentially 
+consistent results. The safety net that PSO provides is similar to 
+TSO’s, it imposes program order from a write to a read and enforces 
+write atomicity.</p>
+<p>Similar to the previous models, the relaxations allowed by PSO are 
+not sufficiently flexible to be useful for compiler optimisation, which 
+requires a much more flexible optimisation.</p>
+<h4><span class="mw-headline" id="Relaxing_Read_and_Read_to_Write_program_orders">Relaxing Read and Read to Write program orders</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=18" title="Edit section: Relaxing Read and Read to Write program orders">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In some models, all operations to different locations are relaxed. A 
+read or write may be reordered with respect a different read or write in
+ a different location. The <i>weak ordering</i> may be classified under 
+this category and two types of Release consistency models (RCsc and 
+RCpc) also come under this model. Three commercial architectures are 
+also proposed under this category of relaxation: the Digital Alpha, 
+SPARC V9 relaxed memory order (RMO), and IBM PowerPC models. All these 
+models allow reordering of reads to the same location, except the 
+Digital Alpha. These models violate sequential in examples A and B. An 
+additional relaxation allowed in these models that is absent ninth 
+previous models is that memory operations following a read operation can
+ be overlapped and reordered with respect to the read. All these models,
+ expect the RCpc and PowerPC allow a read to return the value of another
+ processor’s early write. From a programmer’s perspective all these 
+models must maintain the illusion of write atomicity even though they 
+allow the processor to read its own write early.</p>
+<p>These models can be classified into two categories based on the type 
+of safety net provided. Here, the necessity for carefully written 
+programs is seen. The nature of the synchronization helps to categorize 
+between Weak Ordering, RCsc and RCpc models. Where as, The Alpha, RMO 
+and PowerPC models provide fence instructions so that program order can 
+be imposed between different memory operations.</p>
+<h4><span class="mw-headline" id="Weak_Ordering">Weak Ordering</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=19" title="Edit section: Weak Ordering">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>An example of a model that relaxes most of the above constraints 
+(except reading others’ write early) is Weak Ordering. It classifies 
+memory operations into two categories: <i>Data operations</i> and <i>Synchronization operations</i>.
+ To enforce program order, a programmer needs to find at least one 
+synchronisation operation in a program. The assumption under which this 
+works is that, reordering memory operations to data regions between 
+synchronisation operations does not affect the outcome of the program. 
+They just act as the safety net for enforcing program order. The way 
+this works is that a counter tracks the number of data operations and 
+until this counter becomes zero, the synchronisation operation isn’t 
+issued. Furthermore, no more data operations are issued unless all the 
+previous synchronisation’s are completed. Memory operations in between 
+two synchronisation variables can be overlapped and reordered without 
+affecting the correctness of the program. This model ensures that write 
+atomicity is always maintained, therefore no additional safety net is 
+required for Weak Ordering.</p>
+<h4><span class="mw-headline" id="Release_Consistency_.28RCsc.2FRCpc.29">Release Consistency (RCsc/RCpc)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=20" title="Edit section: Release Consistency (RCsc/RCpc)">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>More classification is made to memory operations depending on when 
+they occur. Operations are divided into ordinary and special. Special 
+operations are further divided into sync or sync operations. Syncs 
+correspond to synchronisation operations and syncs correspond to data 
+operations or other special operations that aren’t used for 
+synchronisation. Sync operations are further divided into acquire or 
+release operations. An acquire is effectively a read memory operation 
+used to obtain access to a certain set of shared locations. Release, on 
+the other hand, is a write operation that is performed for granting 
+permission to access the shared locations.</p>
+<p>There are two types of Release consistency, RCsc (Release consistency
+ with Sequential consistency) and RCpc (Release consistency with 
+processor consistency). The first type, RCsc maintains SC among special 
+operations, while RCpc maintains PC among such operations.</p>
+<p>For RCsc the constraints are: Acquire-&gt;All, All-&gt;Release,Special-&gt;Special.</p>
+<p>For RCpc the write to read program order is relaxed: Acquire-&gt;All,
+ All-&gt;Release, Special-&gt;Special(expect when special write is 
+followed by special read)</p>
+<p>NOTE: the above notation A-&gt;B, implies that if the operation A 
+precedes B in the program order, then program order is enforced.</p>
+<h4><span class="mw-headline" id="Alpha.2C_RMO.2C_and_PowerPC">Alpha, RMO, and PowerPC</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=21" title="Edit section: Alpha, RMO, and PowerPC">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>These three commercial architectures exhibit explicit fence 
+instructions as their safety nets. The Alpha model provides two types of
+ fence instructions, Memory barrier(MB) and Write memory barrier(WMB). 
+The MB operation can be used to maintain program order of any memory 
+operation before the MB with a memory operation after the barrier. 
+Similarly, the WMB maintains program order only among writes. The SPARC 
+V9 RMO model provides a MEMBAR instruction which can be customised to 
+order previous reads and writes with respect to future read and write 
+operations. There is no need for using read-modify-writes to achieve 
+this order because the MEMBAR instruction can be used to order a write 
+with respect to a succeeding read. The PowerPC model uses a single fence
+ instruction called the SYNC instruction. It is similar to the MB 
+instruction, but with a little exception that reads can occur out of 
+program order even if a SYNC is placed between two reads to the same 
+location. This model also differs from Alpha and RMO in terms of 
+Atomicity. It allows write to be seen earlier than a read’s completion. A
+ combination of read modify write operations may be required to make an 
+illusion of write atomicity.</p>
+<h2><span class="mw-headline" id="Transactional_Memory_Models">Transactional Memory Models</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=22" title="Edit section: Transactional Memory Models">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Transactional Memory model<sup id="cite_ref-RelaxedModel_17-1" class="reference"><a href="#cite_note-RelaxedModel-17">[17]</a></sup>
+ is the combination of cache coherency and memory consistency models as a
+ communication model for shared memory systems supported by software or 
+hardware; a transactional memory model provides both memory consistency 
+and cache coherency. A transaction is a sequence of operations executed 
+by a process that transforms data from one consistent state to another. A
+ transaction either commits when there is no conflict or aborts. In 
+commits, all changes are visible to all other processes when a 
+transaction is completed, while aborts discard all changes. Compared to 
+relaxed consistency models, a transactional model is easier to use and 
+can provide the higher performance than a sequential consistency model.</p>
+<h2><span class="mw-headline" id="Consistency_and_Replication">Consistency and Replication</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=23" title="Edit section: Consistency and Replication">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-0" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ defines two main reasons for replicating; reliability and performance. 
+Reliability can be achieved in a replicated file system by switching to 
+another replica in the case of the current replica failure. The 
+replication also protects data from being corrupted by providing 
+multiple copies of data on different replicas. It also improves the 
+performance by dividing the work. While replication can improve 
+performance and reliability, it can cause consistency problems between 
+multiple copies of data. The multiple copies are consistent if a read 
+operation returns the same value from all copies and a write operation 
+as a single atomic operation (transaction) updates all copies before any
+ other operation takes place. Tanenbaum, Andrew, &amp; Maarten Van 
+Steen, 2007<sup id="cite_ref-Replica_19-1" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> refer to this type of consistency as <b>tight consistency</b>
+ provided by synchronous replication. However, applying global 
+synchronizations to keep all copies consistent is costly. One way to 
+decrease the cost of global synchronization and improve the performance 
+can be weakening the consistency restrictions.</p>
+<h3><span class="mw-headline" id="Data-centric_Consistency_Models">Data-centric Consistency Models</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=24" title="Edit section: Data-centric Consistency Models">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-2" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defines the <b>consistency model</b>
+ as a contract between the software (processes) and memory 
+implementation (data store). This model guarantees that if the software 
+follows certain rules, the memory works correctly. Since, in a system 
+without a global clock, defining the last operation writes is difficult,
+ some restrictions can be applied on the values that can be returned by a
+ read operation.</p>
+<h4><span class="mw-headline" id="Consistent_Ordering_of_Operations">Consistent Ordering of Operations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=25" title="Edit section: Consistent Ordering of Operations">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Some consistency models such as sequential and also causal 
+consistency models deal with the order of operations on shared 
+replicated data in order to provide consistency. In this models, all 
+replicas must agree on a consistent global ordering of updates.</p>
+<h5><span class="mw-headline" id="Sequential_Consistency_2">Sequential Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=26" title="Edit section: Sequential Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>The goal of data-centric consistency models is to provide a 
+consistent view on a data store where processes may carry out concurrent
+ updates. One important data-centric consistency model is <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a> defined by Lamport (1979).<sup id="cite_ref-Lamport_4-1" class="reference"><a href="#cite_note-Lamport-4">[4]</a></sup> Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-3" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defines <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a> under following condition:</p>
+<p>"The result of any execution is the same as if the (read and write) 
+operations by all processes on the data store were executed in some 
+sequential order and the operations of each individual process appear in
+ this sequence in the order specified by its program."<sup id="cite_ref-Replica_19-4" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<p>Adve and Gharachorloo, 1996<sup id="cite_ref-sharedmemory_18-1" class="reference"><a href="#cite_note-sharedmemory-18">[18]</a></sup> define two requirements to implement the sequential consistency; program order and write atomicity.</p>
+<ul>
+<li>Program order: Program order guarantees that each process issues a memory request ordered by its program.</li>
+<li>Write atomicity: Write atomicity defines that memory requests are serviced based on the order of a single FIFO queue.</li>
+</ul>
+<p>In sequential consistency, there is no notion of time or most recent 
+write operations. There are some operations interleaving that is same 
+for all processes. A process can see the write operations of all 
+processes but it can just see its own read operations.</p>
+<p><a href="https://en.wikipedia.org/wiki/Linearizability" title="Linearizability">Linearizability</a><sup id="cite_ref-Linear_20-0" class="reference"><a href="#cite_note-Linear-20">[20]</a></sup> (Atomic memory)<sup id="cite_ref-RelaxedModel_17-2" class="reference"><a href="#cite_note-RelaxedModel-17">[17]</a></sup>
+ can be defined as a sequential consistency with real time constraint by
+ considering a begin time and end time for each operation. An execution 
+is linearizable if each operation taking place in linearizable order by 
+placing a point between its begin time and its end time and guarantees 
+sequential consistency.</p>
+<h5><span class="mw-headline" id="Causal_Consistency_2">Causal Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=27" title="Edit section: Causal Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>The <a href="https://en.wikipedia.org/wiki/Causal_consistency" title="Causal consistency">causal consistency</a><sup id="cite_ref-Replica_19-5" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defined by Hutto and Ahamad, 1990<sup id="cite_ref-slow_10-1" class="reference"><a href="#cite_note-slow-10">[10]</a></sup>
+ is a weaker consistency model than sequential consistency by making the
+ distinction between causally related operations and those that are not 
+related. For example, if an event b takes effect from an earlier event 
+a, the causal consistency guarantees that all processes see event b 
+after event a.</p>
+<p>Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-6" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defines that a data store is considered causal consistent under the following condition:</p>
+<p>"Writes that are potentially causally related must be seen by all 
+processes in the same order. Concurrent writes may be seen in a 
+different order on different machines."<sup id="cite_ref-Replica_19-7" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<h5><span class="mw-headline" id="Grouping_Operations.5B19.5D">Grouping Operations<sup id="cite_ref-Replica_19-8" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=28" title="Edit section: Grouping Operations[19]">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>In grouping operation, accesses to the synchronization variables are 
+sequentially consistent. A process is allowed to access a 
+synchronization variable that all previous writes have been completed. 
+In other words, accesses to synchronization variables are not permitted 
+until all operations on the synchronization variables are completely 
+performed.</p>
+<h4><span class="mw-headline" id="Continuous_Consistency">Continuous Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=29" title="Edit section: Continuous Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The continuous consistency is defined later in the consistency protocol section.</p>
+<h3><span class="mw-headline" id="Client-centric_Consistency_Models.5B19.5D">Client-centric Consistency Models<sup id="cite_ref-Replica_19-9" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=30" title="Edit section: Client-centric Consistency Models[19]">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In distributed systems, maintaining <a href="https://en.wikipedia.org/wiki/Sequential_consistency" title="Sequential consistency">sequential consistency</a>
+ in order to control the concurrent operations is essential. In some 
+special data stores without simultaneous updates, client-centric 
+consistency models can deal with inconsistencies in a less costly way. 
+The following models are some client-centric consistency models:</p>
+<h4><span class="mw-headline" id="Eventual_Consistency">Eventual Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=31" title="Edit section: Eventual Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>An <a href="https://en.wikipedia.org/wiki/Eventual_consistency" title="Eventual consistency">eventual consistency</a><sup id="cite_ref-Replica_19-10" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ is a weak consistency model in the system with the lack of simultaneous
+ updates. It defines that if no update takes a very long time, all 
+replicas eventually become consistent.</p>
+<h4><span class="mw-headline" id="Monotonic_Read_Consistency">Monotonic Read Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=32" title="Edit section: Monotonic Read Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-11" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defines monotonic read consistency as follows:</p>
+<p>"If a process reads the value of a data item x, any successive read 
+operation on x by that process will always return that same value or a 
+more recent value."<sup id="cite_ref-Replica_19-12" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<p>Monotonic read consistency guarantees that after a process reads a 
+value of data item x at time t, it will never see the older value of 
+that data item.</p>
+<h4><span class="mw-headline" id="Monotonic_Write_Consistency">Monotonic Write Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=33" title="Edit section: Monotonic Write Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Monotonic write consistency condition is defined by Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-13" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> as follows:</p>
+<p>"A write operation by a process on a data item X is completed before any successive write operation on X by the same process."<sup id="cite_ref-Replica_19-14" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<h4><span class="mw-headline" id="Read-your-writes_Consistency">Read-your-writes Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=34" title="Edit section: Read-your-writes Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>A value written by a process on a data item X will be always 
+available to a successive read operation performed by the same process 
+on data item X.<sup id="cite_ref-Replica_19-15" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<h4><span class="mw-headline" id="Writes-follows-reads_Consistency">Writes-follows-reads Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=35" title="Edit section: Writes-follows-reads Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In Writes-follow-reads consistency, updates are propagated after performing the previous read operations. Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-16" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> defines the following condition for Writes-follow-reads consistency:</p>
+<p>"A write operation by a process on a data item x following a previous
+ read operation on x by the same process is guaranteed to take place on 
+the same or a more recent value of x that was read."<sup id="cite_ref-Replica_19-17" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></p>
+<h3><span class="mw-headline" id="Consistency_Protocols">Consistency Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=36" title="Edit section: Consistency Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The implementation of a consistency model is defined by a consistency protocol. Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-18" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> illustrates some consistency protocols for data-centric models.</p>
+<h4><span class="mw-headline" id="Continuous_Consistency_2">Continuous Consistency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=37" title="Edit section: Continuous Consistency">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Continuous consistency introduced by Yu and Vahdat (2000).<sup id="cite_ref-Continuous_21-0" class="reference"><a href="#cite_note-Continuous-21">[21]</a></sup>
+ In this model, consistency semantic of an application is described by 
+using conits in the application. Since the consistency requirements can 
+differ based on application semantics, Yu and Vahdat (2000)<sup id="cite_ref-Continuous_21-1" class="reference"><a href="#cite_note-Continuous-21">[21]</a></sup>
+ believe that a predefined uniform consistency model may not be an 
+appropriate approach. The application should specify the consistency 
+requirements that satisfy the application semantic. In this model, an 
+application specifies each consistency requirements as a conits 
+(abbreviation of consistency units). A conit can be a physical or 
+logical consistency and is used to measure the consistency. Tanenbaum et
+ al., 2007<sup id="cite_ref-Replica_19-19" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> describes the notion of a conit by giving an example. There are three inconsistencies that can be tolerated by applications.</p>
+<ul>
+<li><b>Deviation in numerical values</b><sup id="cite_ref-Continuous_21-2" class="reference"><a href="#cite_note-Continuous-21">[21]</a></sup>
+ Numerical deviation bounds the difference between the conit value and 
+relative value of last update. A weight can be assigned to the writes 
+which defines the importance of the writes in a specific application. 
+The total weights of unseen writes for a conit can be defined as a 
+numerical deviation in an application. There are two different types of 
+numerical deviation; absolute and relative numerical deviation.</li>
+<li><b>Deviation in ordering</b><sup id="cite_ref-Continuous_21-3" class="reference"><a href="#cite_note-Continuous-21">[21]</a></sup>
+ Ordering deviation is the discrepancy between the local order of writes
+ in a replica and their relative ordering in the eventual final image.</li>
+<li><b>Deviation in staleness between replicas</b><sup id="cite_ref-Continuous_21-4" class="reference"><a href="#cite_note-Continuous-21">[21]</a></sup>
+ Staleness deviation defines the validity of the oldest write by 
+bounding the difference between the current time and the time of oldest 
+write on a conit not seen locally. Each server has a local queue of 
+uncertain write that is required an actual order to be determined and 
+applied on a conit. The maximal length of uncertain writes queue is the 
+bound of ordering deviation. When the number of writes exceeds the 
+limit, instead of accepting new submitted write, the server will attempt
+ to commit uncertain writes by communicating with other servers based on
+ the order that writes should be executed.</li>
+</ul>
+<p>If all three deviation bounds set to zero, the continuous consistency model is the strong consistency.</p>
+<h4><span class="mw-headline" id="Primary-based_Protocols">Primary-based Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=38" title="Edit section: Primary-based Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<div class="thumb tright">
+<div class="thumbinner" style="width:222px;"><a href="https://en.wikipedia.org/wiki/File:Primary-backup-protocol.gif" class="image"><img alt="" src="Consistency%20model%20-%20Wikipedia_files/220px-Primary-backup-protocol.gif" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Primary-backup-protocol.gif/330px-Primary-backup-protocol.gif 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Primary-backup-protocol.gif/440px-Primary-backup-protocol.gif 2x" data-file-width="653" data-file-height="523" height="176" width="220"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:Primary-backup-protocol.gif" class="internal" title="Enlarge"></a></div>
+Primary backup protocol</div>
+</div>
+</div>
+<div class="thumb tright">
+<div class="thumbinner" style="width:222px;"><a href="https://en.wikipedia.org/wiki/File:Local-write-backup-protocol.gif" class="image"><img alt="" src="Consistency%20model%20-%20Wikipedia_files/220px-Local-write-backup-protocol.gif" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Local-write-backup-protocol.gif/330px-Local-write-backup-protocol.gif 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Local-write-backup-protocol.gif/440px-Local-write-backup-protocol.gif 2x" data-file-width="783" data-file-height="403" height="113" width="220"></a>
+<div class="thumbcaption">
+<div class="magnify"><a href="https://en.wikipedia.org/wiki/File:Local-write-backup-protocol.gif" class="internal" title="Enlarge"></a></div>
+Primary-backup protocol (local-write)</div>
+</div>
+</div>
+<p>Primary-based protocols<sup id="cite_ref-Replica_19-20" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ can be considered as a class of consistency protocols that are simpler 
+to implement. For instance, sequential ordering is a popular consistency
+ model when consistent ordering of operations is considered. The 
+sequential ordering can be determined as primary-based protocol. In 
+these protocols, there is an associated primary for each data item in a 
+data store to coordinate write operations on that data item.</p>
+<h5><span class="mw-headline" id="Remote-write_Protocols">Remote-write Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=39" title="Edit section: Remote-write Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>In the simplest primary-based protocol that supports replication, 
+also known as primary-backup protocol, write operations are forwarded to
+ a single server and read operations can be performed locally.</p>
+<dl>
+<dd><b>Example:</b> Tanenbaum et al., 2007<sup id="cite_ref-Replica_19-21" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ gives an example of a primary-backup protocol. The diagram of 
+primary-backup protocol shows an example of this protocol. When a client
+ requests a write, the write request is forwarded to a primary server. 
+The primary server sends request to backups to perform the update. The 
+server then receives the update acknowledgement from all backups and 
+sends the acknowledgement of completion of writes to the client. Any 
+client can read the last available update locally. The trade-off of this
+ protocol is that a client who sends the update request might have to 
+wait so long to get the acknowledgement in order to continue. This 
+problem can be solved by performing the updates locally, and then ask 
+other backups perform their updates. The non-blocking primary-backup 
+protocol does not guarantee the consistency of update on all backup 
+servers. However, it improves the performance. In the primary-backup 
+protocol, all processes will see the same order of write operations 
+since this protocol orders all incoming writes based on a globally 
+unique time. Blocking protocols guarantee that processes view the result
+ of the last write operation.</dd>
+</dl>
+<h5><span class="mw-headline" id="Local-write_Protocols">Local-write Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=40" title="Edit section: Local-write Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>In primary-based local-write protocols,<sup id="cite_ref-Replica_19-22" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ primary copy moves between processes willing to perform an update. To 
+update a data item, a process first moves it to its location. As a 
+result, in this approach, successive write operations can be performed 
+locally while each process can read their local copy of data items. 
+After the primary finishes its update, the update is forwarded to other 
+replicas and all perform the update locally. This non-blocking approach 
+can lead to an improvement. The diagram of the local-write protocol 
+depicts the local-write approach in primary-based protocols. A process 
+requests a write operation in a data item x. The current server is 
+considered as the new primary for a data item x. The write operation is 
+performed and when the request is finished, the primary sends an update 
+request to other backup servers. Each backup sends an acknowledgment to 
+the primary after finishing the update operation.</p>
+<h4><span class="mw-headline" id="Replicated-write_Protocols">Replicated-write Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=41" title="Edit section: Replicated-write Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In Replicated-write protocols,<sup id="cite_ref-Replica_19-23" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup> unlike the primary-based protocol, all updates are carried out to all replicas.</p>
+<h5><span class="mw-headline" id="Active_Replication">Active Replication</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=42" title="Edit section: Active Replication">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>In active replication,<sup id="cite_ref-Replica_19-24" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ there is a process associated to each replica to perform the write 
+operation. In other words, updates are sent to each replica in the form 
+of an operation in order to be executed. All updates need to be 
+performed in the same order in all replicas. As a result, a 
+totally-ordered multicast mechanism is required. There is a scalability 
+issue in implementing such a multicasting mechanism in large distributed
+ systems. There is another approach in which each operation is sent to a
+ central coordinator (sequencer). The coordinator first assigns a 
+sequence number to each operation and then forwards the operation to all
+ replicas. Second approach cannot also solve the scalability problem.</p>
+<h5><span class="mw-headline" id="Quorum-based_Protocols.5B19.5D">Quorum-based Protocols<sup id="cite_ref-Replica_19-25" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=43" title="Edit section: Quorum-based Protocols[19]">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>Voting can be another approach in replicated-write protocols. In this
+ approach, a client requests and receives permission from multiple 
+servers in order to read and write a replicated data. As an example, 
+suppose in a distributed file system, a file is replicated on N servers.
+ To update a file, a client must send a request to at least N/2+1 in 
+order to make their agreement to perform an update. After the agreement,
+ changes are applied on the file and a new version number is assigned to
+ the updated file. Similarly, for reading replicated file, a client 
+sends a request to N/2+1 servers in order to receive the associated 
+version number from those servers. Read operation is completed if all 
+received version numbers are the most recent version.</p>
+<h5><span class="mw-headline" id="Cache-coherence_Protocols">Cache-coherence Protocols</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=44" title="Edit section: Cache-coherence Protocols">edit</a><span class="mw-editsection-bracket">]</span></span></h5>
+<p>In a replicated file system, a cache-coherence protocol<sup id="cite_ref-Replica_19-26" class="reference"><a href="#cite_note-Replica-19">[19]</a></sup>
+ provides the cache consistency while caches are generally controlled by
+ clients. In many approaches, cache consistency is provided by the 
+underlying hardware. Some other approaches in middleware-based 
+distributed systems apply software-based solutions to provide the cache 
+consistency. Cache consistency models can differ in their coherence 
+detection strategies that define when inconsistencies occur. There are 
+two approaches to detect the inconsistency; static and dynamic 
+solutions. In the static solution, a compiler determines which variables
+ can cause the cache inconsistency. So, the compiler enforces an 
+instruction in order to avoid the inconsistency problem. In the dynamic 
+solution, the server checks for inconsistencies at run time to control 
+the consistency of the cached data that has changed after it was cached.
+ The coherence enforcement strategy is another cache-coherence protocol.
+ It defines that <i>how</i> to provide the consistency in caches by 
+using the copies located on the server. One way to keep the data 
+consistent is to never cache the shared data. A server can keep the data
+ and apply some consistency protocol such as primary-based protocols to 
+ensure the consistency of shared data. In this solution, only private 
+data can be cached by clients. In the case that shared data are cached, 
+there are two approaches in order to enforce the cache coherence. In 
+first approach, when a shared data is updated, the server forwards 
+invalidation to all caches. In second approach, an update is propagated.
+ Most caching systems apply these two approaches or dynamically choose 
+between them.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=45" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Cache_coherence" title="Cache coherence">Cache coherence</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Distributed_shared_memory" title="Distributed shared memory">Distributed shared memory</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Non-Uniform_Memory_Access" class="mw-redirect" title="Non-Uniform Memory Access">Non-Uniform Memory Access</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=46" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div class="reflist" style="list-style-type: decimal;">
+<div class="mw-references-wrap mw-references-columns">
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation journal">Mark D. Hill (August 1998). "Multiprocessors Should Support Simple Memory Consistency Models". <i>IEEE Computer</i>. <b>31</b> (8): 28–34. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2F2.707614">10.1109/2.707614</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Multiprocessors+Should+Support+Simple+Memory+Consistency+Models&amp;rft.au=Mark+D.+Hill&amp;rft.date=1998-08&amp;rft.genre=article&amp;rft.issue=8&amp;rft.jtitle=IEEE+Computer&amp;rft.pages=28-34&amp;rft.volume=31&amp;rft_id=info%3Adoi%2F10.1109%2F2.707614&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation journal">Shaz Qadeer (August 2003). "Verifying Sequential Consistency on Shared-Memory Multiprocessors by Model Checking". <i>IEEE Transactions on Parallel and Distributed Systems</i>. <b>14</b> (8): 730–741. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2FTPDS.2003.1225053">10.1109/TPDS.2003.1225053</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Verifying+Sequential+Consistency+on+Shared-Memory+Multiprocessors+by+Model+Checking&amp;rft.au=Shaz+Qadeer&amp;rft.date=2003-08&amp;rft.genre=article&amp;rft.issue=8&amp;rft.jtitle=IEEE+Transactions+on+Parallel+and+Distributed+Systems&amp;rft.pages=730-741&amp;rft.volume=14&amp;rft_id=info%3Adoi%2F10.1109%2FTPDS.2003.1225053&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-Rules-3"><span class="mw-cite-backlink">^ <a href="#cite_ref-Rules_3-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-Rules_3-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation web">Todd Lipcon (2014-10-25). <a rel="nofollow" class="external text" href="http://cloudera-todd.s3.amazonaws.com/nosql.pdf">"Design Patterns for Distributed Non-Relational Databases"</a> <span style="font-size:85%;">(PDF)</span><span class="reference-accessdate">. Retrieved <span class="nowrap">2011-03-24</span></span>. <q>A
+ consistency model determines rules for visibility and apparent order of
+ updates. Example: * Row X is replicated on nodes M and N * Client A 
+writes row X to node N * Some period of time t elapses. * Client B reads
+ row X from node M * Does client B see the write from client A? 
+Consistency is a continuum with tradeoffs</q></cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.au=Todd+Lipcon&amp;rft.btitle=Design+Patterns+for+Distributed+Non-Relational+Databases&amp;rft.date=2014-10-25&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fcloudera-todd.s3.amazonaws.com%2Fnosql.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-Lamport-4"><span class="mw-cite-backlink">^ <a href="#cite_ref-Lamport_4-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-Lamport_4-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Lamport, Leslie (Sep 1979). "How to make a multiprocessor computer that correctly executes multiprocess programs.". <i>Computers, IEEE Transactions</i>. <b>C–28</b> (9): 690–691. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2FTC.1979.1675439">10.1109/TC.1979.1675439</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=How+to+make+a+multiprocessor+computer+that+correctly+executes+multiprocess+programs.&amp;rft.au=Lamport%2C+Leslie&amp;rft.date=1979-09&amp;rft.genre=article&amp;rft.issue=9&amp;rft.jtitle=Computers%2C+IEEE+Transactions&amp;rft.pages=690-691&amp;rft.volume=C-28&amp;rft_id=info%3Adoi%2F10.1109%2FTC.1979.1675439&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-:0-5"><span class="mw-cite-backlink">^ <a href="#cite_ref-:0_5-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-:0_5-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-:0_5-2"><sup><i><b>c</b></i></sup></a></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="https://www-vs.informatik.uni-ulm.de/teach/ss05/dsm/arizona.pdf">"Memory Consistency Models"</a> <span style="font-size:85%;">(PDF)</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.btitle=Memory+Consistency+Models&amp;rft.genre=unknown&amp;rft_id=https%3A%2F%2Fwww-vs.informatik.uni-ulm.de%2Fteach%2Fss05%2Fdsm%2Farizona.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-cacheconsistency-6"><span class="mw-cite-backlink">^ <a href="#cite_ref-cacheconsistency_6-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-cacheconsistency_6-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Goodman, James R (1991). "Cache consistency and sequential consistency". <i>IEEE Scalable Coherent Interface (SCI) Working Group</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Cache+consistency+and+sequential+consistency&amp;rft.au=Goodman%2C+James+R&amp;rft.date=1991&amp;rft.genre=article&amp;rft.jtitle=IEEE+Scalable+Coherent+Interface+%28SCI%29+Working+Group&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-senftleben13-7"><span class="mw-cite-backlink">^ <a href="#cite_ref-senftleben13_7-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-senftleben13_7-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation thesis">Senftleben, Maximilian (2013). <a rel="nofollow" class="external text" href="https://es.cs.uni-kl.de/publications/datarsg/Senf13.pdf"><i>Operational Characterization of Weak Memory Consistency Models</i></a> <span style="font-size:85%;">(PDF)</span> (M.Sc. thesis). University of Kaiserslautern.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.aufirst=Maximilian&amp;rft.aulast=Senftleben&amp;rft.date=2013&amp;rft.degree=M.Sc.&amp;rft.inst=University+of+Kaiserslautern&amp;rft.title=Operational+Characterization+of+Weak+Memory+Consistency+Models&amp;rft_id=https%3A%2F%2Fes.cs.uni-kl.de%2Fpublications%2Fdatarsg%2FSenf13.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Adissertation" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-pram_lipton-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-pram_lipton_8-0"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation techreport">Lipton, R.J.; J.S. Sandberg. (1988). <i>PRAM: A scalable shared memory</i> (Technical report). Princeton University. CS-TR-180-88.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.au=J.S.+Sandberg.&amp;rft.aufirst=R.J.&amp;rft.aulast=Lipton&amp;rft.btitle=PRAM%3A+A+scalable+shared+memory&amp;rft.date=1988&amp;rft.genre=report&amp;rft.pub=Princeton+University&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-unified-9"><span class="mw-cite-backlink">^ <a href="#cite_ref-unified_9-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-unified_9-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-unified_9-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-unified_9-3"><sup><i><b>d</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Steinke, Robert C.; Gary J. Nutt (2004). "A unified theory of shared memory consistency.". <i>Journal of the ACM (JACM)</i>. <b>51</b> (5): 800–849. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F1017460.1017464">10.1145/1017460.1017464</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=A+unified+theory+of+shared+memory+consistency.&amp;rft.au=Gary+J.+Nutt&amp;rft.au=Steinke%2C+Robert+C.&amp;rft.date=2004&amp;rft.genre=article&amp;rft.issue=5&amp;rft.jtitle=Journal+of+the+ACM+%28JACM%29&amp;rft.pages=800-849&amp;rft.volume=51&amp;rft_id=info%3Adoi%2F10.1145%2F1017460.1017464&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-slow-10"><span class="mw-cite-backlink">^ <a href="#cite_ref-slow_10-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-slow_10-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Hutto,
+ Phillip W.; Mustaque Ahamad (1990). "Slow memory: Weakening consistency
+ to enhance concurrency in distributed shared memories.". <i>IEEE</i>: 302–309. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2FICDCS.1990.89297">10.1109/ICDCS.1990.89297</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Slow+memory%3A+Weakening+consistency+to+enhance+concurrency+in+distributed+shared+memories.&amp;rft.au=Hutto%2C+Phillip+W.&amp;rft.au=Mustaque+Ahamad&amp;rft.date=1990&amp;rft.genre=article&amp;rft.jtitle=IEEE&amp;rft.pages=302-309&amp;rft_id=info%3Adoi%2F10.1109%2FICDCS.1990.89297&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-11"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-7.pdf">"Shared Memory Consistency Models&nbsp;: A tutorial"</a> <span style="font-size:85%;">(PDF)</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.btitle=Shared+Memory+Consistency+Models+%3A+A+tutorial&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fwww.hpl.hp.com%2Ftechreports%2FCompaq-DEC%2FWRL-95-7.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-12"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation book">Solihin, Yan (2009). <i>Fundamentals of Parallel Computer Architecture</i>. Solihin Books.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.aufirst=Yan&amp;rft.aulast=Solihin&amp;rft.btitle=Fundamentals+of+Parallel+Computer+Architecture&amp;rft.date=2009&amp;rft.genre=book&amp;rft.pub=Solihin+Books&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation journal">Singhal, Mukesh; Niranjan G. Shivaratri (1994). "Advanced concepts in operating systems.". <i>McGraw-Hill, Inc</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Advanced+concepts+in+operating+systems.&amp;rft.au=Niranjan+G.+Shivaratri&amp;rft.au=Singhal%2C+Mukesh&amp;rft.date=1994&amp;rft.genre=article&amp;rft.jtitle=McGraw-Hill%2C+Inc&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation web">Lloyd, Wyatt; Freedman, Michael; Kaminsky, Michael; Andersen, David. <a rel="nofollow" class="external text" href="https://www.cs.cmu.edu/%7Edga/papers/cops-sosp2011.pdf">"Don’t Settle for Eventual:Scalable Causal Consistency for Wide-Area Storage with COPS"</a> <span style="font-size:85%;">(PDF)</span>. <i>Proceedings of the 23rd ACM Symposium on Operating Systems Principles (SOSP’11)</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Don%E2%80%99t+Settle+for+Eventual%3AScalable+Causal+Consistency+for+Wide-Area+Storage+with+COPS&amp;rft.au=Andersen%2C+David&amp;rft.au=Freedman%2C+Michael&amp;rft.au=Kaminsky%2C+Michael&amp;rft.aufirst=Wyatt&amp;rft.aulast=Lloyd&amp;rft.genre=unknown&amp;rft.jtitle=Proceedings+of+the+23rd+ACM+Symposium+on+Operating+Systems+Principles+%28SOSP%E2%80%9911%29&amp;rft_id=https%3A%2F%2Fwww.cs.cmu.edu%2F~dga%2Fpapers%2Fcops-sosp2011.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation web">Almeida, Sérgio; Leitão, João; Rodrigues, Luís. <a rel="nofollow" class="external text" href="http://dl.acm.org/citation.cfm?id=2465361">"ChainReaction: a causal+ consistent datastore based on chain replication"</a>. <i>Proceedings of the 8th ACM European Conference on Computer Systems (EuroSys'13)</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=ChainReaction%3A+a+causal%2B+consistent+datastore+based+on+chain+replication&amp;rft.au=Leit%C3%A3o%2C+Jo%C3%A3o&amp;rft.au=Rodrigues%2C+Lu%C3%ADs&amp;rft.aufirst=S%C3%A9rgio&amp;rft.aulast=Almeida&amp;rft.genre=unknown&amp;rft.jtitle=Proceedings+of+the+8th+ACM+European+Conference+on+Computer+Systems+%28EuroSys%2713%29&amp;rft_id=http%3A%2F%2Fdl.acm.org%2Fcitation.cfm%3Fid%3D2465361&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation journal">Paolo Viotti; Marko Vukolic (2016). <a rel="nofollow" class="external text" href="https://arxiv.org/abs/1512.00168">"Consistency in Non-Transactional Distributed Storage Systems"</a>. <i>ACM Computer Surveys</i>. <b>49</b> (1): 19:1––19:34. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F2926965">10.1145/2926965</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Consistency+in+Non-Transactional+Distributed+Storage+Systems&amp;rft.au=Marko+Vukolic&amp;rft.au=Paolo+Viotti&amp;rft.date=2016&amp;rft.genre=article&amp;rft.issue=1&amp;rft.jtitle=ACM+Computer+Surveys&amp;rft.pages=19%3A1--19%3A34&amp;rft.volume=49&amp;rft_id=https%3A%2F%2Farxiv.org%2Fabs%2F1512.00168&amp;rft_id=info%3Adoi%2F10.1145%2F2926965&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-RelaxedModel-17"><span class="mw-cite-backlink">^ <a href="#cite_ref-RelaxedModel_17-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-RelaxedModel_17-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-RelaxedModel_17-2"><sup><i><b>c</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Mankin, Jenny (2007). "CSG280: Parallel Computing Memory Consistency Models: A Survey in Past and Present Research".</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=CSG280%3A+Parallel+Computing+Memory+Consistency+Models%3A+A+Survey+in+Past+and+Present+Research&amp;rft.au=Mankin%2C+Jenny&amp;rft.date=2007&amp;rft.genre=article&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-sharedmemory-18"><span class="mw-cite-backlink">^ <a href="#cite_ref-sharedmemory_18-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-sharedmemory_18-1"><sup><i><b>b</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Sarita V. Adve; Kourosh Gharachorloo (December 1996). <a rel="nofollow" class="external text" href="http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-7.pdf">"Shared Memory Consistency Models: A Tutorial"</a> <span style="font-size:85%;">(PDF)</span>. <i>IEEE Computer</i>. <b>29</b> (12): 66–76. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2F2.546611">10.1109/2.546611</a><span class="reference-accessdate">. Retrieved <span class="nowrap">2008-05-28</span></span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Shared+Memory+Consistency+Models%3A+A+Tutorial&amp;rft.au=Kourosh+Gharachorloo&amp;rft.au=Sarita+V.+Adve&amp;rft.date=1996-12&amp;rft.genre=article&amp;rft.issue=12&amp;rft.jtitle=IEEE+Computer&amp;rft.pages=66-76&amp;rft.volume=29&amp;rft_id=http%3A%2F%2Fwww.hpl.hp.com%2Ftechreports%2FCompaq-DEC%2FWRL-95-7.pdf&amp;rft_id=info%3Adoi%2F10.1109%2F2.546611&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-Replica-19"><span class="mw-cite-backlink">^ <a href="#cite_ref-Replica_19-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-Replica_19-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-Replica_19-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-Replica_19-3"><sup><i><b>d</b></i></sup></a> <a href="#cite_ref-Replica_19-4"><sup><i><b>e</b></i></sup></a> <a href="#cite_ref-Replica_19-5"><sup><i><b>f</b></i></sup></a> <a href="#cite_ref-Replica_19-6"><sup><i><b>g</b></i></sup></a> <a href="#cite_ref-Replica_19-7"><sup><i><b>h</b></i></sup></a> <a href="#cite_ref-Replica_19-8"><sup><i><b>i</b></i></sup></a> <a href="#cite_ref-Replica_19-9"><sup><i><b>j</b></i></sup></a> <a href="#cite_ref-Replica_19-10"><sup><i><b>k</b></i></sup></a> <a href="#cite_ref-Replica_19-11"><sup><i><b>l</b></i></sup></a> <a href="#cite_ref-Replica_19-12"><sup><i><b>m</b></i></sup></a> <a href="#cite_ref-Replica_19-13"><sup><i><b>n</b></i></sup></a> <a href="#cite_ref-Replica_19-14"><sup><i><b>o</b></i></sup></a> <a href="#cite_ref-Replica_19-15"><sup><i><b>p</b></i></sup></a> <a href="#cite_ref-Replica_19-16"><sup><i><b>q</b></i></sup></a> <a href="#cite_ref-Replica_19-17"><sup><i><b>r</b></i></sup></a> <a href="#cite_ref-Replica_19-18"><sup><i><b>s</b></i></sup></a> <a href="#cite_ref-Replica_19-19"><sup><i><b>t</b></i></sup></a> <a href="#cite_ref-Replica_19-20"><sup><i><b>u</b></i></sup></a> <a href="#cite_ref-Replica_19-21"><sup><i><b>v</b></i></sup></a> <a href="#cite_ref-Replica_19-22"><sup><i><b>w</b></i></sup></a> <a href="#cite_ref-Replica_19-23"><sup><i><b>x</b></i></sup></a> <a href="#cite_ref-Replica_19-24"><sup><i><b>y</b></i></sup></a> <a href="#cite_ref-Replica_19-25"><sup><i><b>z</b></i></sup></a> <a href="#cite_ref-Replica_19-26"><sup><i><b>aa</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Tanenbaum, Andrew; Maarten Van Steen (2007). "Distributed systems". <i>Pearson Prentice Hall</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Distributed+systems&amp;rft.au=Maarten+Van+Steen&amp;rft.au=Tanenbaum%2C+Andrew&amp;rft.date=2007&amp;rft.genre=article&amp;rft.jtitle=Pearson+Prentice+Hall&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-Linear-20"><span class="mw-cite-backlink"><b><a href="#cite_ref-Linear_20-0"><span class="cite-accessibility-label">Jump up </span>^</a></b></span> <span class="reference-text"><cite class="citation journal">Herlihy, Maurice P.; Jeannette M. Wing (July 1990). "<span style="padding-left:0.2em;">"</span>Linearizability: A correctness condition for concurrent objects." ACM Transactions on Programming Languages and Systems". <i>ACM Transactions on Programming Languages and Systems</i>. <b>12</b> (3): 463–492. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F78969.78972">10.1145/78969.78972</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=%22Linearizability%3A+A+correctness+condition+for+concurrent+objects.%22+ACM+Transactions+on+Programming+Languages+and+Systems&amp;rft.au=Herlihy%2C+Maurice+P.&amp;rft.au=Jeannette+M.+Wing&amp;rft.date=1990-07&amp;rft.genre=article&amp;rft.issue=3&amp;rft.jtitle=ACM+Transactions+on+Programming+Languages+and+Systems&amp;rft.pages=463-492&amp;rft.volume=12&amp;rft_id=info%3Adoi%2F10.1145%2F78969.78972&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+<li id="cite_note-Continuous-21"><span class="mw-cite-backlink">^ <a href="#cite_ref-Continuous_21-0"><span class="cite-accessibility-label">Jump up to: </span><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-Continuous_21-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-Continuous_21-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-Continuous_21-3"><sup><i><b>d</b></i></sup></a> <a href="#cite_ref-Continuous_21-4"><sup><i><b>e</b></i></sup></a></span> <span class="reference-text"><cite class="citation journal">Yu, Haifeng; Amin Vahdat (2000). "Design and evaluation of a continuous consistency model for replicated services.". <i>Proceedings of the 4th conference on Symposium on Operating System Design &amp; Implementation</i>. <b>4</b>: 21–21.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Design+and+evaluation+of+a+continuous+consistency+model+for+replicated+services.&amp;rft.au=Amin+Vahdat&amp;rft.au=Yu%2C+Haifeng&amp;rft.date=2000&amp;rft.genre=article&amp;rft.jtitle=Proceedings+of+the+4th+conference+on+Symposium+on+Operating+System+Design+%26+Implementation&amp;rft.pages=21-21&amp;rft.volume=4&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></span></li>
+</ol>
+</div>
+</div>
+<h2><span class="mw-headline" id="Further_reading">Further reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=47" title="Edit section: Further reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><cite class="citation journal">Paolo Viotti; Marko Vukolic (2016). <a rel="nofollow" class="external text" href="https://arxiv.org/abs/1512.00168">"Consistency in Non-Transactional Distributed Storage Systems"</a>. <i>ACM Computer Surveys</i>. <b>49</b> (1): 19:1––19:34. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F2926965">10.1145/2926965</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Consistency+in+Non-Transactional+Distributed+Storage+Systems&amp;rft.au=Marko+Vukolic&amp;rft.au=Paolo+Viotti&amp;rft.date=2016&amp;rft.genre=article&amp;rft.issue=1&amp;rft.jtitle=ACM+Computer+Surveys&amp;rft.pages=19%3A1--19%3A34&amp;rft.volume=49&amp;rft_id=https%3A%2F%2Farxiv.org%2Fabs%2F1512.00168&amp;rft_id=info%3Adoi%2F10.1145%2F2926965&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+<li><cite class="citation journal">Ali Sezgin (2004). <a rel="nofollow" class="external text" href="http://www.cs.utah.edu/%7Eganesh/unpublished/sezgin_phd_04.pdf">"Formalization and verification of shared memory"</a> <span style="font-size:85%;">(PDF)</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Formalization+and+verification+of+shared+memory&amp;rft.au=Ali+Sezgin&amp;rft.date=2004&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.cs.utah.edu%2F~ganesh%2Funpublished%2Fsezgin_phd_04.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span> (contains many valuable references)</li>
+<li><cite class="citation journal">Kathy Yelick; Dan Bonachea; Chuck Wallace (2004). <a rel="nofollow" class="external text" href="http://www.gwu.edu/%7Eupc/downloads/upcmem.pdf">"A Proposal for a UPC Memory Consistency Model (v1.0)"</a> <span style="font-size:85%;">(PDF)</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=A+Proposal+for+a+UPC+Memory+Consistency+Model+%28v1.0%29&amp;rft.au=Chuck+Wallace&amp;rft.au=Dan+Bonachea&amp;rft.au=Kathy+Yelick&amp;rft.date=2004&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.gwu.edu%2F~upc%2Fdownloads%2Fupcmem.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+<li><cite class="citation journal">Mosberger, David (1993). <a rel="nofollow" class="external text" href="http://citeseer.ist.psu.edu/mosberger93memory.html">"Memory Consistency Models"</a>. <i>Operating Systems Review</i>. <b>27</b> (1): 18–26. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F160551.160553">10.1145/160551.160553</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Memory+Consistency+Models&amp;rft.aufirst=David&amp;rft.aulast=Mosberger&amp;rft.date=1993&amp;rft.genre=article&amp;rft.issue=1&amp;rft.jtitle=Operating+Systems+Review&amp;rft.pages=18-26&amp;rft.volume=27&amp;rft_id=http%3A%2F%2Fciteseer.ist.psu.edu%2Fmosberger93memory.html&amp;rft_id=info%3Adoi%2F10.1145%2F160551.160553&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+<li><cite class="citation journal">Sarita V. Adve; Kourosh Gharachorloo (December 1996). <a rel="nofollow" class="external text" href="http://www.hpl.hp.com/techreports/Compaq-DEC/WRL-95-7.pdf">"Shared Memory Consistency Models: A Tutorial"</a> <span style="font-size:85%;">(PDF)</span>. <i>IEEE Computer</i>. <b>29</b> (12): 66–76. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1109%2F2.546611">10.1109/2.546611</a><span class="reference-accessdate">. Retrieved <span class="nowrap">2008-05-28</span></span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=Shared+Memory+Consistency+Models%3A+A+Tutorial&amp;rft.au=Kourosh+Gharachorloo&amp;rft.au=Sarita+V.+Adve&amp;rft.date=1996-12&amp;rft.genre=article&amp;rft.issue=12&amp;rft.jtitle=IEEE+Computer&amp;rft.pages=66-76&amp;rft.volume=29&amp;rft_id=http%3A%2F%2Fwww.hpl.hp.com%2Ftechreports%2FCompaq-DEC%2FWRL-95-7.pdf&amp;rft_id=info%3Adoi%2F10.1109%2F2.546611&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+<li><cite class="citation journal">Steinke, Robert C.; Gary J. Nutt (2004). "A unified theory of shared memory consistency". <i>Journal of the ACM</i>. <b>51</b> (5): 800–849. <a href="https://en.wikipedia.org/wiki/ArXiv" title="ArXiv">arXiv</a>:<span class="plainlinks"><a rel="nofollow" class="external text" href="https://arxiv.org/abs/cs.DC/0208027">cs.DC/0208027</a> <img alt="Freely accessible" src="Consistency%20model%20-%20Wikipedia_files/9px-Lock-green.png" title="Freely accessible" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/6/65/Lock-green.svg/14px-Lock-green.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/6/65/Lock-green.svg/18px-Lock-green.svg.png 2x" data-file-width="512" data-file-height="813" height="14" width="9"></span>. <a href="https://en.wikipedia.org/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="https://doi.org/10.1145%2F1017460.1017464">10.1145/1017460.1017464</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AConsistency+model&amp;rft.atitle=A+unified+theory+of+shared+memory+consistency&amp;rft.au=Gary+J.+Nutt&amp;rft.aufirst=Robert+C.&amp;rft.aulast=Steinke&amp;rft.date=2004&amp;rft.genre=article&amp;rft.issue=5&amp;rft.jtitle=Journal+of+the+ACM&amp;rft.pages=800-849&amp;rft.volume=51&amp;rft_id=info%3Aarxiv%2Fcs.DC%2F0208027&amp;rft_id=info%3Adoi%2F10.1145%2F1017460.1017464&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;">&nbsp;</span></span></li>
+</ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit&amp;section=48" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.ietf.org/old/2009/proceedings/01mar/slides/webi-1/sld006.htm">IETF slides</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.linuxjournal.com/article/8211">Memory Ordering in Modern Microprocessors, Part I</a> and <a rel="nofollow" class="external text" href="http://www.linuxjournal.com/article/8212">Part II</a>, by Paul E. McKenney (2005). <i><a href="https://en.wikipedia.org/wiki/Linux_Journal" title="Linux Journal">Linux Journal</a></i></li>
+</ul>
+<div role="navigation" class="navbox" aria-labelledby="Parallel_computing" style="padding:3px">
+<table class="nowraplinks hlist collapsible autocollapse navbox-inner" style="border-spacing:0;background:transparent;color:inherit" id="collapsibleTable0">
+<tbody><tr>
+<th scope="col" class="navbox-title" colspan="2"><span class="collapseButton">[<a id="collapseButton0" href="#">hide</a>]</span>
+<div class="plainlinks hlist navbar mini">
+<ul>
+<li class="nv-view"><a href="https://en.wikipedia.org/wiki/Template:Parallel_computing" title="Template:Parallel computing"><abbr title="View this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;">v</abbr></a></li>
+<li class="nv-talk"><a href="https://en.wikipedia.org/wiki/Template_talk:Parallel_computing" title="Template talk:Parallel computing"><abbr title="Discuss this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;">t</abbr></a></li>
+<li class="nv-edit"><a class="external text" href="https://en.wikipedia.org/w/index.php?title=Template:Parallel_computing&amp;action=edit"><abbr title="Edit this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none;">e</abbr></a></li>
+</ul>
+</div>
+<div id="Parallel_computing" style="font-size:114%;margin:0 4em"><a href="https://en.wikipedia.org/wiki/Parallel_computing" title="Parallel computing">Parallel computing</a></div>
+</th>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">General</th>
+<td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Distributed_computing" title="Distributed computing">Distributed computing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_computing" title="Parallel computing">Parallel computing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Massively_parallel" title="Massively parallel">Massively parallel</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cloud_computing" title="Cloud computing">Cloud computing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Supercomputer" title="Supercomputer">High-performance computing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Multiprocessing" title="Multiprocessing">Multiprocessing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Manycore_processor" title="Manycore processor">Manycore processor</a></li>
+<li><a href="https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units" title="General-purpose computing on graphics processing units">GPGPU</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Computer_network" title="Computer network">Computer network</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Systolic_array" title="Systolic array">Systolic array</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">Levels</th>
+<td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Bit-level_parallelism" title="Bit-level parallelism">Bit</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Instruction-level_parallelism" title="Instruction-level parallelism">Instruction</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Task_parallelism" title="Task parallelism">Thread</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Task_parallelism" title="Task parallelism">Task</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Data_parallelism" title="Data parallelism">Data</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Memory-level_parallelism" title="Memory-level parallelism">Memory</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Loop-level_parallelism" title="Loop-level parallelism">Loop</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Pipeline_%28computing%29" title="Pipeline (computing)">Pipeline</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%"><a href="https://en.wikipedia.org/wiki/Multithreading_%28computer_architecture%29" title="Multithreading (computer architecture)">Multithreading</a></th>
+<td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Temporal_multithreading" title="Temporal multithreading">Temporal</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Simultaneous_multithreading" title="Simultaneous multithreading">Simultaneous</a> (SMT)</li>
+<li><a href="https://en.wikipedia.org/wiki/Speculative_multithreading" title="Speculative multithreading">Speculative</a> (SpMT)</li>
+<li><a href="https://en.wikipedia.org/wiki/Preemption_%28computing%29" title="Preemption (computing)">Preemptive</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Computer_multitasking#Cooperative_multitasking" title="Computer multitasking">Cooperative</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Bulldozer_%28microarchitecture%29#Bulldozer_core" title="Bulldozer (microarchitecture)">Clustered Multi-Thread</a> (CMT)</li>
+<li><a href="https://en.wikipedia.org/wiki/Hardware_scout" title="Hardware scout">Hardware scout</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">Theory</th>
+<td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_random-access_machine" title="Parallel random-access machine">PRAM model</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Analysis_of_parallel_algorithms" title="Analysis of parallel algorithms">Analysis of parallel algorithms</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Amdahl%27s_law" title="Amdahl's law">Amdahl's law</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Gustafson%27s_law" title="Gustafson's law">Gustafson's law</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cost_efficiency" title="Cost efficiency">Cost efficiency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Karp%E2%80%93Flatt_metric" title="Karp–Flatt metric">Karp–Flatt metric</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_slowdown" title="Parallel slowdown">Slowdown</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Speedup" title="Speedup">Speedup</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">Elements</th>
+<td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Process_%28computing%29" title="Process (computing)">Process</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Thread_%28computing%29" title="Thread (computing)">Thread</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Fiber_%28computer_science%29" title="Fiber (computer science)">Fiber</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Instruction_window" title="Instruction window">Instruction window</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">Coordination</th>
+<td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Multiprocessing" title="Multiprocessing">Multiprocessing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Memory_coherence" title="Memory coherence">Memory coherency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cache_coherence" title="Cache coherence">Cache coherency</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cache_invalidation" title="Cache invalidation">Cache invalidation</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Barrier_%28computer_science%29" title="Barrier (computer science)">Barrier</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Synchronization_%28computer_science%29" title="Synchronization (computer science)">Synchronization</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Application_checkpointing" title="Application checkpointing">Application checkpointing</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%"><a href="https://en.wikipedia.org/wiki/Computer_programming" title="Computer programming">Programming</a></th>
+<td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Stream_processing" title="Stream processing">Stream processing</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Dataflow_programming" title="Dataflow programming">Dataflow programming</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_programming_model" title="Parallel programming model">Models</a>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Implicit_parallelism" title="Implicit parallelism">Implicit parallelism</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Explicit_parallelism" title="Explicit parallelism">Explicit parallelism</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Concurrency_%28computer_science%29" title="Concurrency (computer science)">Concurrency</a></li>
+</ul>
+</li>
+<li><a href="https://en.wikipedia.org/wiki/Non-blocking_algorithm" title="Non-blocking algorithm">Non-blocking algorithm</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%"><a href="https://en.wikipedia.org/wiki/Computer_hardware" title="Computer hardware">Hardware</a></th>
+<td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Flynn%27s_taxonomy" title="Flynn's taxonomy">Flynn's taxonomy</a>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/SISD" title="SISD">SISD</a></li>
+<li><a href="https://en.wikipedia.org/wiki/SIMD" title="SIMD">SIMD</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Single_instruction,_multiple_threads" title="Single instruction, multiple threads">SIMT</a></li>
+<li><a href="https://en.wikipedia.org/wiki/MISD" title="MISD">MISD</a></li>
+<li><a href="https://en.wikipedia.org/wiki/MIMD" title="MIMD">MIMD</a></li>
+</ul>
+</li>
+<li><a href="https://en.wikipedia.org/wiki/Dataflow_architecture" title="Dataflow architecture">Dataflow architecture</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Instruction_pipelining" title="Instruction pipelining">Pipelined processor</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Superscalar_processor" title="Superscalar processor">Superscalar processor</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Vector_processor" title="Vector processor">Vector processor</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Multiprocessing" title="Multiprocessing">Multiprocessor</a>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Symmetric_multiprocessing" title="Symmetric multiprocessing">symmetric</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Asymmetric_multiprocessing" title="Asymmetric multiprocessing">asymmetric</a></li>
+</ul>
+</li>
+<li><a href="https://en.wikipedia.org/wiki/Semiconductor_memory" title="Semiconductor memory">Memory</a>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Shared_memory" title="Shared memory">shared</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Distributed_memory" title="Distributed memory">distributed</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Distributed_shared_memory" title="Distributed shared memory">distributed shared</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Uniform_memory_access" title="Uniform memory access">UMA</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access" title="Non-uniform memory access">NUMA</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cache-only_memory_architecture" title="Cache-only memory architecture">COMA</a></li>
+</ul>
+</li>
+<li><a href="https://en.wikipedia.org/wiki/Massively_parallel" title="Massively parallel">Massively parallel computer</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Computer_cluster" title="Computer cluster">Computer cluster</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Grid_computing" title="Grid computing">Grid computer</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%"><a href="https://en.wikipedia.org/wiki/Application_programming_interface" title="Application programming interface">APIs</a></th>
+<td class="navbox-list navbox-odd" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Ateji_PX" title="Ateji PX">Ateji PX</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Boost_%28C%2B%2B_libraries%29#Multithreading_.E2.80.93_Boost.Thread" title="Boost (C++ libraries)">Boost.Thread</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Charm%2B%2B" title="Charm++">Charm++</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cilk" title="Cilk">Cilk</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Coarray_Fortran" title="Coarray Fortran">Coarray Fortran</a></li>
+<li><a href="https://en.wikipedia.org/wiki/CUDA" title="CUDA">CUDA</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Dryad_%28programming%29" title="Dryad (programming)">Dryad</a></li>
+<li><a href="https://en.wikipedia.org/wiki/C%2B%2B_AMP" title="C++ AMP">C++ AMP</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Global_Arrays" title="Global Arrays">Global Arrays</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Message_Passing_Interface" title="Message Passing Interface">MPI</a></li>
+<li><a href="https://en.wikipedia.org/wiki/OpenMP" title="OpenMP">OpenMP</a></li>
+<li><a href="https://en.wikipedia.org/wiki/OpenCL" title="OpenCL">OpenCL</a></li>
+<li><a href="https://en.wikipedia.org/wiki/OpenHMPP" title="OpenHMPP">OpenHMPP</a></li>
+<li><a href="https://en.wikipedia.org/wiki/OpenACC" title="OpenACC">OpenACC</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_Extensions#Task_Parallel_Library" title="Parallel Extensions">TPL</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_Extensions#PLINQ" title="Parallel Extensions">PLINQ</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_Virtual_Machine" title="Parallel Virtual Machine">PVM</a></li>
+<li><a href="https://en.wikipedia.org/wiki/POSIX_Threads" title="POSIX Threads">POSIX Threads</a></li>
+<li><a href="https://en.wikipedia.org/wiki/RaftLib" title="RaftLib">RaftLib</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Unified_Parallel_C" title="Unified Parallel C">UPC</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Threading_Building_Blocks" title="Threading Building Blocks">TBB</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<th scope="row" class="navbox-group" style="width:1%">Problems</th>
+<td class="navbox-list navbox-even" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+<div style="padding:0em 0.25em">
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel" title="Embarrassingly parallel">Embarrassingly parallel</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Software_lockout" title="Software lockout">Software lockout</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Scalability" title="Scalability">Scalability</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Race_condition#Computing" title="Race condition">Race condition</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Deadlock" title="Deadlock">Deadlock</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Deadlock#Livelock" title="Deadlock">Livelock</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Starvation_%28computer_science%29" title="Starvation (computer science)">Starvation</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Deterministic_algorithm" title="Deterministic algorithm">Deterministic algorithm</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Parallel_slowdown" title="Parallel slowdown">Parallel slowdown</a></li>
+</ul>
+</div>
+</td>
+</tr>
+<tr>
+<td class="navbox-abovebelow" colspan="2">
+<div>
+<ul>
+<li><img alt="Category" src="Consistency%20model%20-%20Wikipedia_files/16px-Folder_Hexagonal_Icon.png" title="Category" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/24px-Folder_Hexagonal_Icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/32px-Folder_Hexagonal_Icon.svg.png 2x" data-file-width="36" data-file-height="31" height="14" width="16">&nbsp;<a href="https://en.wikipedia.org/wiki/Category:Parallel_computing" title="Category:Parallel computing">Category: parallel computing</a></li>
+<li><img alt="Commons page" src="Consistency%20model%20-%20Wikipedia_files/12px-Commons-logo.png" title="Commons page" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/18px-Commons-logo.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/24px-Commons-logo.svg.png 2x" data-file-width="1024" data-file-height="1376" height="16" width="12"> Media related to <a href="https://commons.wikimedia.org/wiki/Category:Parallel_computing" class="extiw" title="c:Category:Parallel computing">Parallel computing</a> at Wikimedia Commons</li>
+</ul>
+</div>
+</td>
+</tr>
+</tbody></table>
+</div>
+
+
+<!-- 
+NewPP limit report
+Parsed by mw1182
+Cached time: 20170715195103
+Cache expiry: 2592000
+Dynamic content: false
+CPU time usage: 0.312 seconds
+Real time usage: 0.369 seconds
+Preprocessor visited node count: 1584/1000000
+Preprocessor generated node count: 0/1500000
+Post‐expand include size: 66358/2097152 bytes
+Template argument size: 92/2097152 bytes
+Highest expansion depth: 6/40
+Expensive parser function count: 1/500
+Lua time usage: 0.144/10.000 seconds
+Lua memory usage: 3.77 MB/50 MB
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  291.937      1 -total
+ 54.18%  158.171      1 Template:Reflist
+ 38.17%  111.430     19 Template:Cite_journal
+ 15.71%   45.850      1 Template:Confusing
+ 10.68%   31.188      1 Template:Ambox
+  7.89%   23.029      1 Template:Parallel_computing
+  7.23%   21.093      5 Template:Cite_web
+  6.91%   20.168      1 Template:Navbox
+  2.83%    8.270      1 Template:Category-inline
+  2.30%    6.717      2 Template:Icon
+-->
+</div>
+<!-- Saved in parser cache with key enwiki:pcache:idhash:274522-0!canonical and timestamp 20170715195102 and revision id 788165465
+ -->
+<noscript><img src="//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript></div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;oldid=788165465">https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;oldid=788165465</a>"					</div>
+				<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="https://en.wikipedia.org/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="https://en.wikipedia.org/wiki/Category:Consistency_models" title="Category:Consistency models">Consistency models</a></li><li><a href="https://en.wikipedia.org/wiki/Category:Transaction_processing" title="Category:Transaction processing">Transaction processing</a></li></ul></div><div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: <ul><li><a href="https://en.wikipedia.org/wiki/Category:Wikipedia_articles_needing_clarification_from_January_2015" title="Category:Wikipedia articles needing clarification from January 2015">Wikipedia articles needing clarification from January 2015</a></li><li><a href="https://en.wikipedia.org/wiki/Category:All_Wikipedia_articles_needing_clarification" title="Category:All Wikipedia articles needing clarification">All Wikipedia articles needing clarification</a></li></ul></div></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-anonuserpage">Not logged in</li><li id="pt-anontalk"><a href="https://en.wikipedia.org/wiki/Special:MyTalk" title="Discussion about edits from this IP address [⌃⌥n]" accesskey="n">Talk</a></li><li id="pt-anoncontribs"><a href="https://en.wikipedia.org/wiki/Special:MyContributions" title="A list of edits made from this IP address [⌃⌥y]" accesskey="y">Contributions</a></li><li id="pt-createaccount"><a href="https://en.wikipedia.org/w/index.php?title=Special:CreateAccount&amp;returnto=Consistency+model" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="https://en.wikipedia.org/w/index.php?title=Special:UserLogin&amp;returnto=Consistency+model" title="You're encouraged to log in; however, it's not mandatory. [⌃⌥o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li id="ca-nstab-main" class="selected"><span><a href="https://en.wikipedia.org/wiki/Consistency_model" title="View the content page [⌃⌥c]" accesskey="c">Article</a></span></li>
+															<li id="ca-talk"><span><a href="https://en.wikipedia.org/wiki/Talk:Consistency_model" title="Discussion about the content page [⌃⌥t]" accesskey="t" rel="discussion">Talk</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label" tabindex="0">
+							<span>Variants</span><div></div>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="https://en.wikipedia.org/wiki/Consistency_model">Read</a></span></li>
+															<li id="ca-edit"><span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=edit" title="Edit this page [⌃⌥e]" accesskey="e">Edit</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=history" title="Past revisions of this page [⌃⌥h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label" style="">
+						<h3 id="p-cactions-label" tabindex="0"><span>More</span><div></div></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="/w/index.php" id="searchform">
+							<div id="simpleSearch">
+							<input name="search" placeholder="Search Wikipedia" title="Search Wikipedia [⌃⌥f]" accesskey="f" id="searchInput" tabindex="1" autocomplete="off" type="search"><input value="Special:Search" name="title" type="hidden"><input name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton" type="submit">							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="https://en.wikipedia.org/wiki/Main_Page" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage-description"><a href="https://en.wikipedia.org/wiki/Main_Page" title="Visit the main page [⌃⌥z]" accesskey="z">Main page</a></li><li id="n-contents"><a href="https://en.wikipedia.org/wiki/Portal:Contents" title="Guides to browsing Wikipedia">Contents</a></li><li id="n-featuredcontent"><a href="https://en.wikipedia.org/wiki/Portal:Featured_content" title="Featured content – the best of Wikipedia">Featured content</a></li><li id="n-currentevents"><a href="https://en.wikipedia.org/wiki/Portal:Current_events" title="Find background information on current events">Current events</a></li><li id="n-randompage"><a href="https://en.wikipedia.org/wiki/Special:Random" title="Load a random article [⌃⌥x]" accesskey="x">Random article</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en" title="Support us">Donate to Wikipedia</a></li><li id="n-shoplink"><a href="https://shop.wikimedia.org/" title="Visit the Wikipedia store">Wikipedia store</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-interaction" aria-labelledby="p-interaction-label">
+			<h3 id="p-interaction-label">Interaction</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-help"><a href="https://en.wikipedia.org/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia">Help</a></li><li id="n-aboutsite"><a href="https://en.wikipedia.org/wiki/Wikipedia:About" title="Find out about Wikipedia">About Wikipedia</a></li><li id="n-portal"><a href="https://en.wikipedia.org/wiki/Wikipedia:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-recentchanges"><a href="https://en.wikipedia.org/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [⌃⌥r]" accesskey="r">Recent changes</a></li><li id="n-contactpage"><a href="https://en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia">Contact page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="https://en.wikipedia.org/wiki/Special:WhatLinksHere/Consistency_model" title="List of all English Wikipedia pages containing links to this page [⌃⌥j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="https://en.wikipedia.org/wiki/Special:RecentChangesLinked/Consistency_model" rel="nofollow" title="Recent changes in pages linked from this page [⌃⌥k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="https://en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [⌃⌥u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="https://en.wikipedia.org/wiki/Special:SpecialPages" title="A list of all special pages [⌃⌥q]" accesskey="q">Special pages</a></li><li id="t-permalink"><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;oldid=788165465" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;action=info" title="More information about this page">Page information</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q2492305" title="Link to connected data repository item [⌃⌥g]" accesskey="g">Wikidata item</a></li><li id="t-cite"><a href="https://en.wikipedia.org/w/index.php?title=Special:CiteThisPage&amp;page=Consistency_model&amp;id=788165465" title="Information on how to cite this page">Cite this page</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-coll-print_export" aria-labelledby="p-coll-print_export-label">
+			<h3 id="p-coll-print_export-label">Print/export</h3>
+
+			<div class="body">
+									<ul>
+						<li id="coll-create_a_book"><a href="https://en.wikipedia.org/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=Consistency+model">Create a book</a></li><li id="coll-download-as-rdf2latex"><a href="https://en.wikipedia.org/w/index.php?title=Special:ElectronPdf&amp;page=Consistency+model&amp;action=show-selection-screen&amp;coll-download-url=%2Fw%2Findex.php%3Ftitle%3DSpecial%3ABook%26bookcmd%3Drender_article%26arttitle%3DConsistency%2Bmodel%26returnto%3DConsistency%2Bmodel%26oldid%3D788165465%26writer%3Drdf2latex">Download as PDF</a></li><li id="t-print"><a href="https://en.wikipedia.org/w/index.php?title=Consistency_model&amp;printable=yes" title="Printable version of this page [⌃⌥p]" accesskey="p">Printable version</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-lang" aria-labelledby="p-lang-label"><span class="uls-settings-trigger" title="Language settings" tabindex="0" role="button" aria-haspopup="true"></span>
+			<h3 id="p-lang-label">Languages</h3>
+
+			<div class="body">
+									<ul>
+						<li class="interlanguage-link interwiki-es"><a href="https://es.wikipedia.org/wiki/Consistencia_de_datos" title="Consistencia de datos – Spanish" hreflang="es" class="interlanguage-link-target" lang="es">Español</a></li><li class="interlanguage-link interwiki-fr"><a href="https://fr.wikipedia.org/wiki/Coh%C3%A9rence_%28donn%C3%A9es%29" title="Cohérence (données) – French" hreflang="fr" class="interlanguage-link-target" lang="fr">Français</a></li><li class="interlanguage-link interwiki-ru"><a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%BE%D0%B4%D0%B5%D0%BB%D1%8C_%D0%BA%D0%BE%D0%BD%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BD%D1%82%D0%BD%D0%BE%D1%81%D1%82%D0%B8" title="Модель консистентности – Russian" hreflang="ru" class="interlanguage-link-target" lang="ru">Русский</a></li><li class="interlanguage-link interwiki-zh"><a href="https://zh.wikipedia.org/wiki/%E5%86%85%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%E6%A8%A1%E5%9E%8B" title="内存一致性模型 – Chinese" hreflang="zh" class="interlanguage-link-target" lang="zh">中文</a></li>					</ul>
+				<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q2492305#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>			</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last edited on 29 June 2017, at 20:57.</li>
+											<li id="footer-info-copyright">Text is available under the <a rel="license" href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-ShareAlike License</a><a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/" style="display:none;"></a>;
+additional terms may apply.  By using this site, you agree to the <a href="https://wikimediafoundation.org/wiki/Terms_of_Use">Terms of Use</a> and <a href="https://wikimediafoundation.org/wiki/Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a href="https://www.wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="https://wikimediafoundation.org/wiki/Privacy_policy" class="extiw" title="wmf:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="https://en.wikipedia.org/wiki/Wikipedia:About" title="Wikipedia:About">About Wikipedia</a></li>
+											<li id="footer-places-disclaimer"><a href="https://en.wikipedia.org/wiki/Wikipedia:General_disclaimer" title="Wikipedia:General disclaimer">Disclaimers</a></li>
+											<li id="footer-places-contact"><a href="https://en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+											<li id="footer-places-developers"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">Developers</a></li>
+											<li id="footer-places-cookiestatement"><a href="https://wikimediafoundation.org/wiki/Cookie_statement">Cookie statement</a></li>
+											<li id="footer-places-mobileview"><a href="https://en.m.wikipedia.org/w/index.php?title=Consistency_model&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-copyrightico">
+							<a href="https://wikimediafoundation.org/"><img src="Consistency%20model%20-%20Wikipedia_files/wikimedia-button.png" srcset="/static/images/wikimedia-button-1.5x.png 1.5x, /static/images/wikimedia-button-2x.png 2x" alt="Wikimedia Foundation" height="31" width="88"></a>						</li>
+											<li id="footer-poweredbyico">
+							<a href="https://www.mediawiki.org/"><img src="Consistency%20model%20-%20Wikipedia_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/static/images/poweredby_mediawiki_132x47.png 1.5x, /static/images/poweredby_mediawiki_176x62.png 2x" height="31" width="88"></a>						</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.312","walltime":"0.369","ppvisitednodes":{"value":1584,"limit":1000000},"ppgeneratednodes":{"value":0,"limit":1500000},"postexpandincludesize":{"value":66358,"limit":2097152},"templateargumentsize":{"value":92,"limit":2097152},"expansiondepth":{"value":6,"limit":40},"expensivefunctioncount":{"value":1,"limit":500},"entityaccesscount":{"value":0,"limit":400},"timingprofile":["100.00%  291.937      1 -total"," 54.18%  158.171      1 Template:Reflist"," 38.17%  111.430     19 Template:Cite_journal"," 15.71%   45.850      1 Template:Confusing"," 10.68%   31.188      1 Template:Ambox","  7.89%   23.029      1 Template:Parallel_computing","  7.23%   21.093      5 Template:Cite_web","  6.91%   20.168      1 Template:Navbox","  2.83%    8.270      1 Template:Category-inline","  2.30%    6.717      2 Template:Icon"]},"scribunto":{"limitreport-timeusage":{"value":"0.144","limit":"10.000"},"limitreport-memusage":{"value":3956056,"limit":52428800}},"cachereport":{"origin":"mw1182","timestamp":"20170715195103","ttl":2592000,"transientcontent":false}}});});</script><script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":79,"wgHostname":"mw1272"});});</script>
+	
+
+<div style="display: none; font-size: 13px;" class="suggestions"><div class="suggestions-results"></div><div class="suggestions-special"></div></div><a accesskey="v" href="https://en.wikipedia.org/wiki/Consistency_model?action=edit" style="display: none;"></a></body></html>
