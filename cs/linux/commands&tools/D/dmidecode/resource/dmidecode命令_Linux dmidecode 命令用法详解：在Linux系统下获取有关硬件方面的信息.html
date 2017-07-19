@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="renderer" content="webkit">
+<title>
+dmidecode命令_Linux dmidecode 命令用法详解：在Linux系统下获取有关硬件方面的信息</title>
+<link rel="shortcut icon" href="http://man.linuxde.net/favicon.ico" type="image/x-icon" />
+<link rel="pingback" href="http://man.linuxde.net/xmlrpc.php" />
+<link href="http://112.124.15.130/res/linuxde_man/style.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="http://112.124.15.130/res/linuxde_man/js/jquery-1.8.3.min.js"></script>
+<!--[if IE 6]>
+<script src="http://112.124.15.130/res/linuxde_man/js/belatedPNG.js"></script>
+<script>DD_belatedPNG.fix('*');</script>
+<script src="http://letskillie6.googlecode.com/svn/trunk/letskillie6.zh_CN.pack.js"></script>
+<![endif]-->
+<link rel='canonical' href='http://man.linuxde.net/dmidecode' />
+</head>
+<body>
+<noscript>
+<p class="nojs">您的浏览器已经禁用了脚本，这会严重影响您正常使用本站的功能，请开启！</p>
+</noscript>
+<div class="man_linuxde_net_page">
+<div class="layout_hd">
+    <div class="logo l">
+        <h2><a title="Linux命令大全" href="http://man.linuxde.net/">
+            Linux命令大全            </a></h2>
+    </div>
+    <div class="nav r"><ul id="menu-%e8%8f%9c%e5%8d%951" class="menu"><li id="menu-item-4" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home current-post-parent menu-item-4"><a href="http://man.linuxde.net/">首页搜索</a></li>
+<li id="menu-item-6" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6"><a href="http://man.linuxde.net/par/2">系统管理</a></li>
+<li id="menu-item-7" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-7"><a href="http://man.linuxde.net/par/5">网络管理</a></li>
+<li id="menu-item-8" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-8"><a href="http://man.linuxde.net/par/4">软件·打印·开发·工具</a></li>
+<li id="menu-item-9" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-9"><a href="http://man.linuxde.net/par/1">文件和目录管理</a></li>
+<li id="menu-item-10" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-10"><a href="http://man.linuxde.net/par/3">硬件·内核·Shell·监测</a></li>
+<li id="menu-item-2096" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2096"><a target="_blank" href="http://www.linuxde.net">Linux Today</a></li>
+</ul></div>    <div class="c"></div>
+</div>
+<div class="layout layout_bd">
+<script type='text/javascript'>
+function addLink() {
+    var body_element = document.getElementsByTagName('body')[0];
+    var selection;
+    selection = window.getSelection();
+    var pagelink = "<br /><br /> 来自: <a href='"+document.location.href+"'>"+document.location.href+"</a>"; 
+    var copy_text = selection + pagelink;
+    var new_div = document.createElement('div');
+    new_div.style.left='-99999px';
+    new_div.style.position='absolute';
+    body_element.appendChild(new_div );
+    new_div.innerHTML = copy_text ;
+    selection.selectAllChildren(new_div );
+    window.setTimeout(function() {
+        body_element.removeChild(new_div );
+    },0);
+}
+document.oncopy = addLink;
+</script>
+<div class="single_default">
+        <div class="main">
+        <div class="breadcrumb">当前位置：<a href="http://man.linuxde.net">首页</a> &raquo; <a href="http://man.linuxde.net/par/3" rel="category tag">硬件·内核·Shell·监测</a> &raquo; dmidecode</div>
+        <div class="post_hd clearfix">
+            <h1 class="l">dmidecode命令</h1>
+            <div class="tag f_yh r">
+                <a href="http://man.linuxde.net/sub/%e7%a1%ac%e4%bb%b6%e7%ae%a1%e7%90%86" rel="tag">硬件管理</a>            </div>
+        </div>
+        <div class="post_bd post">
+            <p>
+	<strong>dmidecode命令</strong>可以让你在Linux系统下获取有关硬件方面的信息。dmidecode的作用是将DMI数据库中的信息解码，以可读的文本方式显示。由于DMI信息可以人为修改，因此里面的信息不一定是系统准确的信息。dmidecode遵循SMBIOS/DMI标准，其输出的信息包括BIOS、系统、主板、处理器、内存、缓存等等。
+</p>
+<p>
+	DMI（Desktop Management Interface,DMI）就是帮助收集电脑系统信息的管理系统，DMI信息的收集必须在严格遵照SMBIOS规范的前提下进行。SMBIOS（System Management BIOS）是主板或系统制造者以标准格式显示产品管理信息所需遵循的统一规范。SMBIOS和DMI是由行业指导机构Desktop Management Task Force(DMTF)起草的开放性的技术标准，其中DMI设计适用于任何的平台和操作系统。
+</p>
+<p>
+	DMI充当了管理工具和系统层之间接口的角色。它建立了标准的可管理系统更加方便了电脑厂商和用户对系统的了解。DMI的主要组成部分是Management Information Format(MIF)数据库。这个数据库包括了所有有关电脑系统和配件的信息。通过DMI，用户可以获取序列号、电脑厂商、串口信息以及其它系统配件信息。
+</p>
+<h3>
+	语法<br />
+</h3>
+<pre>
+dmidecode [选项]</pre>
+<h3>
+	选项<br />
+</h3>
+<pre>
+-d：(default:/dev/mem)从设备文件读取信息，输出内容与不加参数标准输出相同。
+-h：显示帮助信息。
+-s：只显示指定DMI字符串的信息。(string)
+-t：只显示指定条目的信息。(<span class='wp_keywordlink'><a href="http://man.linuxde.net/type" title="type命令" target="_blank">type</a></span>)
+-u：显示未解码的原始条目内容。
+--<span class='wp_keywordlink'><a href="http://man.linuxde.net/dump" title="dump命令" target="_blank">dump</a></span>-bin <span class='wp_keywordlink'><a href="http://man.linuxde.net/file" title="file命令" target="_blank">file</a></span>：将DMI数据转储到一个二进制文件中。
+--from-dump FILE：从一个二进制文件读取DMI数据。
+-V：显示版本信息。</pre>
+<p>
+	<strong>dmidecode参数string及type列表：</strong>
+</p>
+<p>
+	（1）Valid string keywords are：
+</p>
+<ul>
+<li>
+		bios-vendor
+	</li>
+<li>
+		bios-version
+	</li>
+<li>
+		bios-release-<span class='wp_keywordlink'><a href="http://man.linuxde.net/date" title="date命令" target="_blank">date</a></span>
+	</li>
+<li>
+		system-manufacturer
+	</li>
+<li>
+		system-product-name
+	</li>
+<li>
+		system-version
+	</li>
+<li>
+		system-serial-number
+	</li>
+<li>
+		system-uuid
+	</li>
+<li>
+		baseboard-manufacturer
+	</li>
+<li>
+		baseboard-product-name
+	</li>
+<li>
+		baseboard-version
+	</li>
+<li>
+		baseboard-serial-number
+	</li>
+<li>
+		baseboard-asset-tag
+	</li>
+<li>
+		chassis-manufacturer
+	</li>
+<li>
+		chassis-type
+	</li>
+<li>
+		chassis-version
+	</li>
+<li>
+		chassis-serial-number
+	</li>
+<li>
+		chassis-asset-tag
+	</li>
+<li>
+		processor-family
+	</li>
+<li>
+		processor-manufacturer
+	</li>
+<li>
+		processor-version
+	</li>
+<li>
+		processor-frequency
+	</li>
+</ul>
+<p>
+	（2）Valid type keywords are：
+</p>
+<ul>
+<li>
+		bios
+	</li>
+<li>
+		system
+	</li>
+<li>
+		baseboard
+	</li>
+<li>
+		chassis
+	</li>
+<li>
+		processor
+	</li>
+<li>
+		memory
+	</li>
+<li>
+		Cache
+	</li>
+<li>
+		connector
+	</li>
+<li>
+		slot
+	</li>
+</ul>
+<p>
+	（3）type全部编码列表：
+</p>
+<ul>
+<li>
+		BIOS
+	</li>
+<li>
+		System
+	</li>
+<li>
+		Base Board
+	</li>
+<li>
+		Chassis
+	</li>
+<li>
+		Processor
+	</li>
+<li>
+		Memory Controller
+	</li>
+<li>
+		Memory Module
+	</li>
+<li>
+		Cache
+	</li>
+<li>
+		Port Connector
+	</li>
+<li>
+		System Slots
+	</li>
+<li>
+		On Board Devices
+	</li>
+<li>
+		OEM Strings
+	</li>
+<li>
+		System Configuration Options
+	</li>
+<li>
+		BIOS Language
+	</li>
+<li>
+		Group Associations
+	</li>
+<li>
+		System Event Log
+	</li>
+<li>
+		Physical Memory Array
+	</li>
+<li>
+		Memory Device
+	</li>
+<li>
+		32-bit Memory Error
+	</li>
+<li>
+		Memory Array Mapped Address
+	</li>
+<li>
+		Memory Device Mapped Address
+	</li>
+<li>
+		Built-in Pointing Device
+	</li>
+<li>
+		Portable Battery
+	</li>
+<li>
+		System Reset
+	</li>
+<li>
+		Hardware Security
+	</li>
+<li>
+		System Power Controls
+	</li>
+<li>
+		Voltage Probe
+	</li>
+<li>
+		Cooling Device
+	</li>
+<li>
+		Temperature Probe
+	</li>
+<li>
+		Electrical Current Probe
+	</li>
+<li>
+		Out-of-band Remote Access
+	</li>
+<li>
+		Boot Integrity Services
+	</li>
+<li>
+		System Boot
+	</li>
+<li>
+		64-bit Memory Error
+	</li>
+<li>
+		Management Device
+	</li>
+<li>
+		Management Device Component
+	</li>
+<li>
+		Management Device Threshold Data
+	</li>
+<li>
+		Memory Channel
+	</li>
+<li>
+		IPMI Device
+	</li>
+<li>
+		Power Supply
+	</li>
+<li>
+		Additional Information
+	</li>
+<li>
+		Onboard Device
+	</li>
+</ul>
+<h3>
+	实例<br />
+</h3>
+<pre>
+查看服务器型号：dmidecode | <span class='wp_keywordlink'><a href="http://man.linuxde.net/grep" title="grep命令" target="_blank">grep</a></span> &#39;Product Name&#39;
+查看主板的序列号：dmidecode |grep &#39;Serial Number&#39;
+查看系统序列号：dmidecode -s system-serial-number
+查看内存信息：dmidecode -t memory
+查看OEM信息：dmidecode -t 11</pre>
+<p>
+	不带选项执行dmidecode命令通常会输出所有的硬件信息。dmidecode命令有个很有用的选项-t，可以按指定类型输出相关信息，假如要获得处理器方面的信息，则可以执行：
+</p>
+<pre>
+[root@localhost ~]# dmidecode -t processor
+# dmidecode 2.11
+SMBIOS 2.5 present.
+
+Handle 0x0001, DMI type 4, 40 bytes
+Processor Information
+        Socket Designation: Node 1 Socket 1
+        Type: Central Processor
+        Family: Xeon MP
+        Manufacturer: Intel(R) Corporation
+        <span class='wp_keywordlink'><a href="http://man.linuxde.net/id" title="id命令" target="_blank">id</a></span>: C2 06 02 00 FF FB EB BF
+        Signature: Type 0, Family 6, Model 44, Stepping 2
+        Flags:
+                FPU (Floating-point unit on-chip)
+                VME (Virtual mode extension)
+                DE (Debugging extension)
+                PSE (Page size extension)
+                TSC (<span class='wp_keywordlink'><a href="http://man.linuxde.net/time" title="time命令" target="_blank">time</a></span> stamp counter)
+                MSR (Model specific registers)
+                PAE (Physical address extension)
+                MCE (Machine check exception)
+                CX8 (CMPXCHG8 instruction supported)
+                APIC (On-chip APIC hardware supported)
+                SEP (Fast system call)
+                MTRR (Memory type range registers)
+                PGE (Page global <span class='wp_keywordlink'><a href="http://man.linuxde.net/enable" title="enable命令" target="_blank">enable</a></span>)
+                MCA (Machine check architecture)
+                CMOV (Conditional move instruction supported)
+                PAT (Page attribute table)
+                PSE-36 (36-bit page size extension)
+                CLFSH (CLFLUSH instruction supported)
+                DS (Debug store)
+                ACPI (ACPI supported)
+                MMX (MMX technology supported)
+                FXSR (FXSAVE and FXSTOR instructions supported)
+                SSE (Streaming SIMD extensions)
+                SSE2 (Streaming SIMD extensions 2)
+                <span class='wp_keywordlink'><a href="http://man.linuxde.net/ss" title="ss命令" target="_blank">ss</a></span> (Self-snoop)
+                HTT (Multi-threading)
+                TM (Thermal monitor supported)
+                PBE (Pending break enabled)
+        Version: Intel(R) Xeon(R) CPU           E5620  @ 2.40GHz
+        Voltage: 1.2 V
+        External Clock: 5866 MHz
+        Max Speed: 4400 MHz
+        Current Speed: 2400 MHz
+        Status: Populated, Enabled
+        Upgrade: ZIF Socket
+        L1 Cache Handle: 0x0002
+        L2 Cache Handle: 0x0003
+        L3 Cache Handle: 0x0004
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+        Core Count: 4
+        Core Enabled: 4
+        Thread Count: 8
+        Characteristics:
+                64-bit capable
+
+Handle 0x0055, DMI type 4, 40 bytes
+Processor Information
+        Socket Designation: Node 1 Socket 2
+        Type: Central Processor
+        Family: Xeon MP
+        Manufacturer: Not Specified
+        ID: 00 00 00 00 00 00 00 00
+        Signature: Type 0, Family 0, Model 0, Stepping 0
+        Flags: None
+        Version: Not Specified
+        Voltage: 1.2 V
+        External Clock: 5866 MHz
+        Max Speed: 4400 MHz
+        Current Speed: Unknown
+        Status: Unpopulated
+        Upgrade: ZIF Socket
+        L1 Cache Handle: Not Provided
+        L2 Cache Handle: Not Provided
+        L3 Cache Handle: Not Provided
+        Serial Number: Not Specified
+        Asset Tag: Not Specified
+        Part Number: Not Specified
+        Characteristics: None</pre>
+        </div>
+        <div class="post_ft">
+            <div class="title">最近更新的命令</div>
+            <ul>
+                <li><a href="http://man.linuxde.net/cut" title="cut">cut</a></li><li><a href="http://man.linuxde.net/sh" title="sh">sh</a></li><li><a href="http://man.linuxde.net/seq" title="seq">seq</a></li><li><a href="http://man.linuxde.net/awk" title="awk">awk</a></li><li><a href="http://man.linuxde.net/syslog" title="syslog">syslog</a></li><li><a href="http://man.linuxde.net/inotifywait" title="inotifywait">inotifywait</a></li><li><a href="http://man.linuxde.net/dd" title="dd">dd</a></li><li><a href="http://man.linuxde.net/read" title="read">read</a></li><li><a href="http://man.linuxde.net/uname" title="uname">uname</a></li><li><a href="http://man.linuxde.net/pssh" title="pssh">pssh</a></li><li><a href="http://man.linuxde.net/tar" title="tar">tar</a></li><li><a href="http://man.linuxde.net/axel" title="axel">axel</a></li><li><a href="http://man.linuxde.net/losetup" title="losetup">losetup</a></li><li><a href="http://man.linuxde.net/lsb_release" title="lsb_release">lsb_release</a></li><li><a href="http://man.linuxde.net/tcpreplay" title="tcpreplay">tcpreplay</a></li><li><a href="http://man.linuxde.net/strings" title="strings">strings</a></li><li><a href="http://man.linuxde.net/screen" title="screen">screen</a></li><li><a href="http://man.linuxde.net/speedtest-cli" title="speedtest-cli">speedtest-cli</a></li><li><a href="http://man.linuxde.net/clockdiff" title="clockdiff">clockdiff</a></li><li><a href="http://man.linuxde.net/ntpdate" title="ntpdate">ntpdate</a></li><li><a href="http://man.linuxde.net/dnf" title="dnf">dnf</a></li><li><a href="http://man.linuxde.net/nethogs" title="nethogs">nethogs</a></li><li><a href="http://man.linuxde.net/hping3" title="hping3">hping3</a></li><li><a href="http://man.linuxde.net/trap" title="trap">trap</a></li><li><a href="http://man.linuxde.net/let" title="let">let</a></li><li><a href="http://man.linuxde.net/ifstat" title="ifstat">ifstat</a></li><li><a href="http://man.linuxde.net/blkid" title="blkid">blkid</a></li><li><a href="http://man.linuxde.net/ipcrm" title="ipcrm">ipcrm</a></li><li><a href="http://man.linuxde.net/openssl" title="openssl">openssl</a></li><li><a href="http://man.linuxde.net/chage" title="chage">chage</a></li>            </ul>
+        </div>
+        <div id="comments">
+            <!-- You can start editing here. -->
+        </div>
+    </div>
+    
+<div class="sidebar">
+    <div class="widget related">
+        <div class="hd">
+            <h3>相关命令</h3>
+        </div>
+        <div class="bd">
+            <ul>
+                            <li><a href="http://man.linuxde.net/setpci" title="setpci">setpci</a></li>
+                <li><a href="http://man.linuxde.net/arch" title="arch">arch</a></li>
+                <li><a href="http://man.linuxde.net/lspci" title="lspci">lspci</a></li>
+                <li><a href="http://man.linuxde.net/lsusb" title="lsusb">lsusb</a></li>
+                <li><a href="http://man.linuxde.net/systool" title="systool">systool</a></li>
+                <li><a href="http://man.linuxde.net/cdrecord" title="cdrecord">cdrecord</a></li>
+                <li><a href="http://man.linuxde.net/volname" title="volname">volname</a></li>
+                <li><a href="http://man.linuxde.net/losetup" title="losetup">losetup</a></li>
+                <li><a href="http://man.linuxde.net/hwclock" title="hwclock">hwclock</a></li>
+                </ul>
+        </div>
+    </div>
+    <div id="fixedBox">
+        <div id="float" class="dbox">
+            <div class="sidebar_search_box">
+                <form action="http://man.linuxde.net/">
+                    <input type="text" name="s" id="sidebar_search" value="命令搜索" onFocus="if (value =='命令搜索'){value =''}" onBlur="if (value ==''){value='命令搜索'}" />
+                </form>
+                <form action="http://man.linuxde.net/" method="post">
+                    <input type="text" name="ss" id="sidebar_search" value="命令直达" onFocus="if (value =='命令直达'){value =''}" onBlur="if (value ==''){value='命令直达'}" />
+                </form>
+            </div>
+            <div class="widget ad"> 
+				<!--
+				<script type="text/javascript">
+					document.write('<a style="display:none!important" id="tanx-a-mm_22964816_6616438_33736229"></a>');
+					tanx_s = document.createElement("script");
+					tanx_s.type = "text/javascript";
+					tanx_s.charset = "gbk";
+					tanx_s.id = "tanx-s-mm_22964816_6616438_33736229";
+					tanx_s.async = true;
+					tanx_s.src = "http://p.tanx.com/ex?i=mm_22964816_6616438_33736229";
+					tanx_h = document.getElementsByTagName("head")[0];
+					if(tanx_h)tanx_h.insertBefore(tanx_s,tanx_h.firstChild);
+				</script>
+				-->
+				<a title="linux马克杯" href="http://man.linuxde.net/go.php?http://s.click.taobao.com/t?e=m%3D2%26s%3DbWlkMAz37zAcQipKwQzePDAVflQIoZepLKpWJ%2Bin0XJRAdhuF14FMdl7wKby%2Bc%2FExq3IhSJN6GSAAkUL03DNGUpamuccnq1qrmvEga4qAXJgE5NxN1hjMoxodiO%2Bbyu%2BIYULNg46oBA%3D" target="_blank"><img src="http://112.124.15.130/res/linuxde_man/images/s-ad.jpg" alt="linux马克杯"></a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="layout layout_ft">
+    <div class="footer">
+        <div class="copyright">
+            <a href="http://man.linuxde.net/" title="Linux命令大全">Linux命令大全</a>
+            <em class="sx"></em>
+            <a href="http://man.linuxde.net/about_us" title="关于">关于</a>
+            <em class="sx"></em>
+			收藏本站请使用Ctrl+D
+			<em class="sx"></em>
+			<a href="http://man.linuxde.net/shell-script" target="_blank">Shell脚本攻略</a>
+			<em class="sx"></em>
+			<a href="http://man.linuxde.net/docs/shell_regex.html" target="_blank">Shell正则表达式</a>
+			<em class="sx"></em>
+			共收录528条Linux系统指令
+        </div>
+        <div class="des">在Linux命令大全（man.linuxde.net）可以查询您所需要的Linux命令教程和相关实例。如果您觉得本站内容对您有所帮助，请推荐给更多需要帮助的人。</div>
+        <div class="info">
+		赞助商链接：<a href="http://www.1987.name/" target="_blank">组装电脑配置清单2017</a>,　运行在<a href="http://man.linuxde.net/go.php?http://s.click.taobao.com/t?e=m%3D2%26s%3DvTDIoAjlYzMcQipKwQzePCperVdZeJviEViQ0P1Vf2kguMN8XjClAhYdwmcpX19FpcfgoZBkhQKMhxXrDnK9L8ge8W1gUmbKFOH2PYQYfJNjOghCi4TzwOdn1BbglxZYxUhy8exlzcq9AmARIwX9K2Zg%2BdzdQFOwfMRvoxSVDSdLyrb2g0H2G5JcxXijM%2BwneEHpPTskRHknGN7svee8j7S4un6ZpbmpIYULNg46oBA%3D" target="_blank">阿里云服务器</a>！
+		</div>
+    </div>
+</div>
+</div>
+<!--js-->
+<script type="text/javascript" src="http://112.124.15.130/res/linuxde_man/js/sitejs.js"></script>
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"3","bdPos":"right","bdTop":"100"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=86835285.js?cdnversion='+~(-new Date()/36e5)];</script>
+<div style="display:none"><script src="http://s17.cnzz.com/stat.php?id=5762282&web_id=5762282" language="JavaScript"></script></div>
+
+<!--活动推广
+<script type="text/javascript" src="http://112.124.15.130/res/ad/ad.js"></script>
+<style type="text/css">
+.ad-box{width:240px;height:277px;background:#CCC;position:fixed;right:-240px;bottom:10px;}
+.ad-img{position:relative;overflow:hidden;}
+.ad-close{width:30px;height:22px;line-height:22px;display:block;top:10px;right:10px;position:absolute;}
+</style>
+<div class="ad-box">
+    <div class="ad-img">
+        <a href="http://man.linuxde.net/go.php?http://s.click.taobao.com/t?e=m%3D2%26s%3DuGXlvKu7Iv4cQipKwQzePCperVdZeJviK7Vc7tFgwiFRAdhuF14FMZQUNi%2Bb4SgsMMgx22UI05aAAkUL03DNGT6XZIOJR7dCTAHi9HSRVmdzguIHwwNmQ6UuZxIcp9pfUIgVEmFmgnbDX0%2BHH2IEVaX4VWt66S4EJPwiig1bxLP9BvYCQR6XAr%2BKQ71wHNCAqP8YyUoZZlq4cXg3ii9waXPs9Sj9Qli1np4c65at3FeX3cwyLTlAhj2l4PysJx%2FP" target="_blank"><img src="http://112.124.15.130/res/ad/1111.jpg"></a>
+        <a href="javascript:" class="ad-close">关闭</a>
+    </div>
+</div>
+<!--推广结束-->
+
+</body></html>

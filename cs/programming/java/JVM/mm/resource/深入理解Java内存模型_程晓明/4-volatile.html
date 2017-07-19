@@ -1,0 +1,2061 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head profile="http://gmpg.org/xfn/11"><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/shares.js" charset="utf-8"></script>
+<meta name="baidu_union_verify" content="d30f7acd6a9a378cc0aeb0bd0ddfe30d">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/ca-pub-9394337417063147.js"></script><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-9394337417063147",
+    enable_page_level_ads: true
+  });
+</script>
+<title>深入理解Java内存模型（四）——volatile | 并发编程网 – ifeve.com</title>
+<meta name="description" content="让天下没有难学的技术">
+
+<link rel="alternate" type="application/rss+xml" title="并发编程网 – ifeve.com RSS Feed" href="http://ifeve.com/feed/">
+<link rel="alternate" type="application/atom+xml" title="并发编程网 – ifeve.com Atom Feed" href="http://ifeve.com/feed/atom/"> 
+<link rel="pingback" href="http://ifeve.com/xmlrpc.php">
+
+<link rel="stylesheet" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/style.css" type="text/css">
+<link rel="stylesheet" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/comment-style.css" type="text/css">
+
+ 
+<link rel="dns-prefetch" href="http://s.w.org/">
+<link rel="alternate" type="application/rss+xml" title="并发编程网 - ifeve.com » 深入理解Java内存模型（四）——volatile Comments Feed" href="http://ifeve.com/java-memory-model-4/feed/">
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.3\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.3\/svg\/","svgExt":".svg","source":{"concatemoji":"http:\/\/ifeve.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.8"}};
+			!function(a,b,c){function d(a){var b,c,d,e,f=String.fromCharCode;if(!k||!k.fillText)return!1;switch(k.clearRect(0,0,j.width,j.height),k.textBaseline="top",k.font="600 32px Arial",a){case"flag":return k.fillText(f(55356,56826,55356,56819),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,56826,8203,55356,56819),0,0),c=j.toDataURL(),b===c&&(k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447),0,0),c=j.toDataURL(),b!==c);case"emoji4":return k.fillText(f(55358,56794,8205,9794,65039),0,0),d=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55358,56794,8203,9794,65039),0,0),e=j.toDataURL(),d!==e}return!1}function e(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i,j=b.createElement("canvas"),k=j.getContext&&j.getContext("2d");for(i=Array("flag","emoji4"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/wp-emoji-release.js" type="text/javascript" defer="defer"></script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel="stylesheet" id="wpfp-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/wpfp.css" type="text/css">
+<link rel="stylesheet" id="yarppWidgetCss-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/widget.css" type="text/css" media="all">
+<link rel="stylesheet" id="dwqa-style-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/style_002.css" type="text/css" media="all">
+<link rel="stylesheet" id="dwqa-rtl-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rtl.css" type="text/css" media="all">
+<link rel="stylesheet" id="wp-postratings-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/postratings-css.css" type="text/css" media="all">
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jquery.js"></script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jquery-migrate.js"></script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/wpfp.js"></script>
+<link rel="https://api.w.org/" href="http://ifeve.com/wp-json/">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://ifeve.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://ifeve.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="LMAX Disruptor——一个高性能、低延迟且简单的框架" href="http://ifeve.com/disruptor-dsl/">
+<link rel="next" title="Disruptor 2.0更新摘要" href="http://ifeve.com/disruptor-2-change/">
+<meta name="generator" content="WordPress 4.8">
+<link rel="canonical" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/a_006.html">
+<link rel="shortlink" href="http://ifeve.com/?p=2976">
+<link rel="alternate" type="application/json+oembed" href="http://ifeve.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">
+<link rel="alternate" type="text/xml+oembed" href="http://ifeve.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F&amp;format=xml">
+
+<!-- StarBox - the Author Box for Humans 3.0.6, visit: http://wordpress.org/plugins/starbox/ -->
+<!-- /StarBox - the Author Box for Humans -->
+
+<link rel="stylesheet" id="frontend.css-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/frontend.css" type="text/css" media="all">
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/frontend.js"></script>
+<link rel="stylesheet" id="hidedefault.css-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/hidedefault.css" type="text/css" media="all">
+<style type="text/css" media="screen">#wp-admin-bar-user-info .avatar-64 {width:64px}</style>
+		<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+		<style type="text/css" id="syntaxhighlighteranchor"></style>
+
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jscript.js"></script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/comment.js"></script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rollover.js"></script>
+
+<!--[if IE 7]>
+<link rel="stylesheet" href="http://ifeve.com/wp-content/themes/flat/ie7.css" type="text/css" />
+<![endif]-->
+<!--[if IE 8]>
+<link rel="stylesheet" href="http://ifeve.com/wp-content/themes/flat/ie8.css" type="text/css" />
+<![endif]-->
+
+
+<style type="text/css">
+a, .post .title a:hover, .post_meta a:hover, #bread_crumb ul li a:hover, #previous_post a:hover, #next_post a:hover, .post a.more-link:hover, #right_col li a:hover, #copyright li a:hover, #archive_headline #keyword,
+   #comments_wrapper a:hover, #comment_header_right .comment_switch_active a, #comment_header_right .comment_switch_active a:hover, #comment_pager .current
+   { color:#00A19E; }
+
+#no_post a.back:hover, #wp-calendar td a:hover, #wp-calendar #prev a:hover, #wp-calendar #next a:hover, .page_navi a:hover, #submit_comment:hover
+ { background-color:#00A19E; }
+
+#guest_info input:focus, #comment_textarea textarea:focus
+ { border:1px solid #00A19E; }
+
+a:hover
+ { color:#BDC900; }
+
+body { font-size:14px; }
+
+#header { background:url(http://ifeve.com/wp-content/uploads/flat/bg.png) left top; }
+.logo_text a { color:#F5F5F5; }
+#site_description {  border-top:1px solid #BBBBBB; color:#D2D9CC; }
+
+
+</style>
+
+</head>
+
+<body><link href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jiathis_counter.css" rel="stylesheet" type="text/css"><link href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jiathis_share.css" rel="stylesheet" type="text/css"><iframe style="position: fixed; display: none; opacity: 0;" frameborder="0"></iframe><div class="jiathis_style" style="position: absolute; z-index: 1000000000; display: none; top: 50%; left: 50%; overflow: auto;"></div><div class="jiathis_style" style="position: absolute; z-index: 1000000000; display: none; overflow: auto;"></div><iframe style="display: none;" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jiathis_utility.html" frameborder="0"></iframe>
+
+ <div id="header">
+  <div class="header_menu">
+    <ul id="menu-%e4%b8%bb%e8%8f%9c%e5%8d%95" class="menu"><li id="menu-item-16594" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-16594"><a href="http://ifeve.com/">首页</a></li>
+<li id="menu-item-3432" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-3432"><a href="http://ifeve.com/wp-login.php">登录</a></li>
+<li id="menu-item-9219" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-9219"><a href="http://ifeve.com/category/java/">JAVA</a>
+<ul class="sub-menu">
+	<li id="menu-item-16108" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-16108"><a href="http://ifeve.com/java-io/">Java IO 教程</a></li>
+	<li id="menu-item-5283" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-5283"><a href="http://ifeve.com/java-nio-all/">Java NIO 教程</a></li>
+	<li id="menu-item-17514" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-17514"><a href="http://ifeve.com/java-reflection/">JAVA Reflection教程</a></li>
+	<li id="menu-item-16239" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-16239"><a href="http://ifeve.com/java-network">Java 网络教程</a></li>
+	<li id="menu-item-4416" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4416"><a href="http://ifeve.com/java-concurrency-thread-directory/">Java并发和多线程</a></li>
+	<li id="menu-item-2767" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2767"><a href="http://ifeve.com/jmm-cookbook/">Java内存模型指南</a></li>
+	<li id="menu-item-2747" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2747"><a href="http://ifeve.com/jmm-faq/">Java内存模型FAQ</a></li>
+	<li id="menu-item-2765" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2765"><a href="http://ifeve.com/syn-jmm/">同步与Java内存模型</a></li>
+	<li id="menu-item-5789" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-5789"><a href="http://ifeve.com/oracle-java-concurrency-tutorial/">Oracle官方并发教程</a></li>
+	<li id="menu-item-15316" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-15316"><a href="http://ifeve.com/jvm-optimize/">JVM性能优化系列</a></li>
+	<li id="menu-item-15313" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-15313"><a href="http://ifeve.com/useful-jvm-flags/">JVM实用参数系列</a></li>
+</ul>
+</li>
+<li id="menu-item-7938" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-7938"><a href="http://ifeve.com/category/c/">C++</a></li>
+<li id="menu-item-9220" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-9220"><a href="http://ifeve.com/category/framework/">Framework</a>
+<ul class="sub-menu">
+	<li id="menu-item-12798" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12798"><a href="http://ifeve.com/disruptor/">Disruptor 框架指南</a></li>
+	<li id="menu-item-12783" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-12783"><a title="Netty" href="http://ifeve.com/category/netty/">Netty</a></li>
+	<li id="menu-item-12791" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-12791"><a href="http://ifeve.com/category/scala/">Scala</a></li>
+	<li id="menu-item-12312" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12312"><a href="http://ifeve.com/getting-started-with-stom-index/">Storm 入门</a></li>
+	<li id="menu-item-9218" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-9218"><a href="http://ifeve.com/google-guava/">Guava 官方指南</a></li>
+	<li id="menu-item-20471" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-20471"><a href="http://ifeve.com/velocity-guide/">Apache Velocity 官方指南</a></li>
+	<li id="menu-item-21439" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-21439"><a href="http://ifeve.com/storm-translation/">Apache Storm 官方文档</a></li>
+</ul>
+</li>
+<li id="menu-item-555" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-555"><a href="http://ifeve.com/category/concurrency-translation/">其他译文</a>
+<ul class="sub-menu">
+	<li id="menu-item-2777" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2777"><a href="http://ifeve.com/java-concurrent/">并发基础</a></li>
+	<li id="menu-item-3340" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-3340"><a href="http://ifeve.com/aqs/">j.u.c同步框架</a></li>
+	<li id="menu-item-2769" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2769"><a href="http://ifeve.com/fj/">Fork Join框架</a></li>
+	<li id="menu-item-9221" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-9221"><a href="http://ifeve.com/doug-lea/">Doug Lea 论文</a></li>
+	<li id="menu-item-4643" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4643"><a href="http://ifeve.com/mechanical-sympathy/">Mechanical Sympathy</a></li>
+	<li id="menu-item-6397" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6397"><a href="http://ifeve.com/stm/">软件事务内存导论</a></li>
+	<li id="menu-item-10845" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10845"><a href="http://ifeve.com/jsr133-cn/">JSR133中文版</a></li>
+</ul>
+</li>
+<li id="menu-item-103" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-has-children menu-item-103"><a href="http://ifeve.com/category/talk-concurrent/">本站原创</a>
+<ul class="sub-menu">
+	<li id="menu-item-2763" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2763"><a href="http://ifeve.com/talk-concurrency/">聊聊并发</a></li>
+	<li id="menu-item-2753" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-2753"><a href="http://ifeve.com/java-memory-model-0/">深入理解Java内存模型</a></li>
+	<li id="menu-item-4862" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4862"><a href="http://ifeve.com/from-javaeye-sys-struct/">从Java视角理解系统结构</a></li>
+	<li id="menu-item-4627" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4627"><a href="http://ifeve.com/ali-itu-agile/">阿里内贸团队敏捷实践</a></li>
+</ul>
+</li>
+<li id="menu-item-7119" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-7119"><a href="http://ifeve.com/category/%e5%b9%b6%e5%8f%91%e4%b9%a6%e7%b1%8d/">并发书籍</a>
+<ul class="sub-menu">
+	<li id="menu-item-10846" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10846"><a href="http://ifeve.com/art-of-java-concurrent-program/">《Java 并发编程的艺术》迷你书</a></li>
+	<li id="menu-item-6042" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-6042"><a href="http://ifeve.com/perfbook/">《深入理解并行编程》</a></li>
+	<li id="menu-item-9172" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-9172"><a href="http://ifeve.com/c-plus-plus-concurrency-in-action/">《C++ 并发编程》</a></li>
+	<li id="menu-item-7785" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7785"><a href="http://ifeve.com/java-7-concurrency-cookbook/">《Java 7 并发编程指南》</a></li>
+	<li id="menu-item-7120" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7120"><a href="http://ifeve.com/jvm-concurrency">《Java 虚拟机并发编程》</a></li>
+	<li id="menu-item-12360" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12360"><a href="http://ifeve.com/getting-started-with-stom-index/">《Storm入门》中文版</a></li>
+</ul>
+</li>
+<li id="menu-item-17079" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-17079"><a href="http://ifeve.com/questions/">面试题</a></li>
+<li id="menu-item-22180" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-22180"><a href="http://ifeve.com/my-favorite/">我的收藏</a></li>
+<li id="menu-item-9171" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-9171"><a href="http://ifeve.com/need-you/">加入我们</a>
+<ul class="sub-menu">
+	<li id="menu-item-3246" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-3246"><a href="http://ifeve.com/contribute/">我要投稿</a></li>
+	<li id="menu-item-6854" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-6854"><a href="http://ifeve.com/neitui/">内推阿里</a></li>
+</ul>
+</li>
+<li id="menu-item-105" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-105"><a href="http://ifeve.com/about-site/">关于本站</a>
+<ul class="sub-menu">
+	<li id="menu-item-11306" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-11306"><a href="http://ifeve.com/category/%e6%b4%bb%e5%8a%a8/">活动</a></li>
+	<li id="menu-item-1487" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1487"><a href="http://ifeve.com/sitemap.html">文章归档</a></li>
+	<li id="menu-item-29361" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-29361"><a href="http://ifeve.com/author/">本站作者</a></li>
+	<li id="menu-item-131" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-131"><a href="http://ifeve.com/about-site/about-me/">关于清英</a></li>
+	<li id="menu-item-7600" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-7600"><a href="http://ifeve.com/ads/">广告合作</a></li>
+</ul>
+</li>
+</ul>    </div>
+  <!-- logo -->
+  <h1 class="logo_text"><a href="http://ifeve.com/">并发编程网 - ifeve.com</a></h1>
+<h2 id="site_description">让天下没有难学的技术</h2>
+ </div>
+
+ <div id="main_content" class="clearfix">
+
+  <div id="left_col">
+      <div id="bread_crumb">
+    <ul class="clearfix">
+     <li id="bc_home"><a href="http://ifeve.com/" title="HOME">HOME</a></li>
+     <li id="bc_cat"><a href="http://ifeve.com/category/talk-concurrent/">本站原创</a></li>     <li class="last">深入理解Java内存模型（四）——volatile</li>
+    </ul>
+   </div>
+   
+   
+   <div class="post_wrap clearfix" id="single">
+    <div class="post">
+     <h3 class="title"><span>深入理解Java内存模型（四）——volatile</span></h3>
+     <div class="post_content">
+      <p>本文属于作者原创，原文发表于InfoQ：<a href="http://www.infoq.com/cn/articles/java-memory-model-4">http://www.infoq.com/cn/articles/java-memory-model-4</a></p>
+<h2>volatile的特性</h2>
+<p>当我们声明共享变量为volatile后，对这个变量的读/写将会很特别。理解volatile特性的一个好方法是：把对volatile变量的单个读/写，看成是使用同一个锁对这些单个读/写操作做了同步。下面我们通过具体的示例来说明，请看下面的示例代码：</p>
+<pre>class VolatileFeaturesExample {
+    //使用volatile声明64位的long型变量
+    volatile long vl = 0L;
+
+    public void set(long l) {
+        vl = l;   //单个volatile变量的写
+    }
+
+    public void getAndIncrement () {
+        vl++;    //复合（多个）volatile变量的读/写
+    }
+
+    public long get() {
+        return vl;   //单个volatile变量的读
+    }
+}</pre>
+<p><span id="more-2976"></span><br>
+假设有多个线程分别调用上面程序的三个方法，这个程序在语义上和下面程序等价：</p>
+<pre>class VolatileFeaturesExample {
+    long vl = 0L;               // 64位的long型普通变量
+
+    //对单个的普通 变量的写用同一个锁同步
+    public synchronized void set(long l) {             
+       vl = l;
+    }
+
+    public void getAndIncrement () { //普通方法调用
+        long temp = get();           //调用已同步的读方法
+        temp += 1L;                  //普通写操作
+        set(temp);                   //调用已同步的写方法
+    }
+    public synchronized long get() { 
+        //对单个的普通变量的读用同一个锁同步
+        return vl;
+    }
+}</pre>
+<p>如上面示例程序所示，对一个volatile变量的单个读/写操作，与对一个普通变量的读/写操作使用同一个锁来同步，它们之间的执行效果相同。</p>
+<p>锁的happens-before规则保证释放锁和获取锁的两个线程之间的内存可见性，这意味着对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入。</p>
+<p>锁的语义决定了临界区代码的执行具有原子性。这意味着即使是64位的long型和double型变量，只要它是volatile变量，对该变量的读写就将具有原子性。如果是多个volatile操作或类似于volatile++这种复合操作，这些操作整体上不具有原子性。</p>
+<p>简而言之，volatile变量自身具有下列特性：</p>
+<ul>
+<li>可见性。对一个volatile变量的读，总是能看到（任意线程）对这个volatile变量最后的写入。</li>
+<li>原子性：对任意单个volatile变量的读/写具有原子性，但类似于volatile++这种复合操作不具有原子性。</li>
+</ul>
+<h2>volatile的写-读建立的happens before关系</h2>
+<p>上面讲的是volatile变量自身的特性，对程序员来说，volatile对线程的内存可见性的影响比volatile自身的特性更为重要，也更需要我们去关注。</p>
+<p>从JSR-133开始，volatile变量的写-读可以实现线程之间的通信。</p>
+<p>从内存语义的角度来说，volatile与锁有相同的效果：volatile写和锁的释放有相同的内存语义；volatile读与锁的获取有相同的内存语义。</p>
+<p>请看下面使用volatile变量的示例代码：</p>
+<pre>class VolatileExample {
+    int a = 0;
+    volatile boolean flag = false;
+
+    public void writer() {
+        a = 1;                   //1
+        flag = true;               //2
+    }
+
+    public void reader() {
+        if (flag) {                //3
+            int i =  a;           //4
+            ……
+        }
+    }
+}</pre>
+<p>假设线程A执行writer()方法之后，线程B执行reader()方法。根据happens before规则，这个过程建立的happens before 关系可以分为两类：</p>
+<ol>
+<li>根据程序次序规则，1 happens before 2; 3 happens before 4。</li>
+<li>根据volatile规则，2 happens before 3。</li>
+<li>根据happens before 的传递性规则，1 happens before 4。</li>
+</ol>
+<p>上述happens before 关系的图形化表现形式如下：</p>
+<p><img alt="" src="4-volatile/1.png"></p>
+<p>在上图中，每一个箭头链接的两个节点，代表了一个happens before 关系。黑色箭头表示程序顺序规则；橙色箭头表示volatile规则；蓝色箭头表示组合这些规则后提供的happens before保证。</p>
+<p>这里A线程写一个volatile变量后，B线程读同一个volatile变量。A线程在写volatile变量之前所有可见的共享变量，在B线程读同一个volatile变量后，将立即变得对B线程可见。</p>
+<h2>volatile写-读的内存语义</h2>
+<p>volatile写的内存语义如下：</p>
+<ul>
+<li>当写一个volatile变量时，JMM会把该线程对应的本地内存中的共享变量刷新到主内存。</li>
+</ul>
+<p>以上面示例程序VolatileExample为例，假设线程A首先执行writer()方法，随后线程B执行reader()方法，初始时两个线程的本地内存中的flag和a都是初始状态。下图是线程A执行volatile写后，共享变量的状态示意图：</p>
+<p><img alt="" src="4-volatile/2.png"></p>
+<p>如上图所示，线程A在写flag变量后，本地内存A中被线程A更新过的两个共享变量的值被刷新到主内存中。此时，本地内存A和主内存中的共享变量的值是一致的。</p>
+<p>volatile读的内存语义如下：</p>
+<ul>
+<li>当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主内存中读取共享变量。</li>
+</ul>
+<p>下面是线程B读同一个volatile变量后，共享变量的状态示意图：</p>
+<p><img alt="" src="4-volatile/3.png"></p>
+<p>如上图所示，在读flag变量后，本地内存B已经被置为无效。此时，线程B必须从主内存中读取共享变量。线程B的读取操作将导致本地内存B与主内存中的共享变量的值也变成一致的了。</p>
+<p>如果我们把volatile写和volatile读这两个步骤综合起来看的话，在读线程B读一个volatile变量后，写线程A在写这个volatile变量之前所有可见的共享变量的值都将立即变得对读线程B可见。</p>
+<p>下面对volatile写和volatile读的内存语义做个总结：</p>
+<ul>
+<li>线程A写一个volatile变量，实质上是线程A向接下来将要读这个volatile变量的某个线程发出了（其对共享变量所在修改的）消息。</li>
+<li>线程B读一个volatile变量，实质上是线程B接收了之前某个线程发出的（在写这个volatile变量之前对共享变量所做修改的）消息。</li>
+<li>线程A写一个volatile变量，随后线程B读这个volatile变量，这个过程实质上是线程A通过主内存向线程B发送消息。</li>
+</ul>
+<p><!--more--></p>
+<h2>volatile内存语义的实现</h2>
+<p>下面，让我们来看看JMM如何实现volatile写/读的内存语义。</p>
+<p>前文我们提到过重排序分为编译器重排序和处理器重排序。为了实现volatile内存语义，JMM会分别限制这两种类型的重排序类型。下面是JMM针对编译器制定的volatile重排序规则表：</p>
+<table border="1">
+<tbody>
+<tr>
+<td>是否能重排序</td>
+<td colspan="3">第二个操作</td>
+</tr>
+<tr>
+<td>第一个操作</td>
+<td>普通读/写</td>
+<td>volatile读</td>
+<td>volatile写</td>
+</tr>
+<tr>
+<td>普通读/写</td>
+<td></td>
+<td></td>
+<td>NO</td>
+</tr>
+<tr>
+<td>volatile读</td>
+<td>NO</td>
+<td>NO</td>
+<td>NO</td>
+</tr>
+<tr>
+<td>volatile写</td>
+<td></td>
+<td>NO</td>
+<td>NO</td>
+</tr>
+</tbody>
+</table>
+<p>举例来说，第三行最后一个单元格的意思是：在程序顺序中，当第一个操作为普通变量的读或写时，如果第二个操作为volatile写，则编译器不能重排序这两个操作。</p>
+<p>从上表我们可以看出：</p>
+<ul>
+<li>当第二个操作是volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保volatile写之前的操作不会被编译器重排序到volatile写之后。</li>
+<li>当第一个操作是volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保volatile读之后的操作不会被编译器重排序到volatile读之前。</li>
+<li>当第一个操作是volatile写，第二个操作是volatile读时，不能重排序。</li>
+</ul>
+<p>为了实现volatile的内存语义，编译器在生成字节码时，会在指令序列中插入内存屏障来禁止特定类型的处理器重排序。对于编译器来说，发现一个最优布置来最小化插入屏障的总数几乎不可能，为此，JMM采取保守策略。下面是基于保守策略的JMM内存屏障插入策略：</p>
+<ul>
+<li>在每个volatile写操作的前面插入一个StoreStore屏障。</li>
+<li>在每个volatile写操作的后面插入一个StoreLoad屏障。</li>
+<li>在每个volatile读操作的后面插入一个LoadLoad屏障。</li>
+<li>在每个volatile读操作的后面插入一个LoadStore屏障。</li>
+</ul>
+<p>上述内存屏障插入策略非常保守，但它可以保证在任意处理器平台，任意的程序中都能得到正确的volatile内存语义。</p>
+<p>下面是保守策略下，volatile写插入内存屏障后生成的指令序列示意图：</p>
+<p><img alt="" src="4-volatile/4.png"></p>
+<p>上图中的StoreStore屏障可以保证在volatile写之前，其前面的所有普通写操作已经对任意处理器可见了。这是因为StoreStore屏障将保障上面所有的普通写在volatile写之前刷新到主内存。</p>
+<p>这里比较有意思的是volatile写后面的StoreLoad屏障。这个屏障的作用是避免volatile写与后面可能有的volatile读/
+写操作重排序。因为编译器常常无法准确判断在一个volatile写的后面，是否需要插入一个StoreLoad屏障（比如，一个volatile写之后
+方法立即return）。为了保证能正确实现volatile的内存语义，JMM在这里采取了保守策略：在每个volatile写的后面或在每个
+volatile读的前面插入一个StoreLoad屏障。从整体执行效率的角度考虑，JMM选择了在每个volatile写的后面插入一个
+StoreLoad屏障。因为volatile写-读内存语义的常见使用模式是：一个写线程写volatile变量，多个读线程读同一个volatile
+变量。当读线程的数量大大超过写线程时，选择在volatile写之后插入StoreLoad屏障将带来可观的执行效率的提升。从这里我们可以看到JMM
+在实现上的一个特点：首先确保正确性，然后再去追求执行效率。</p>
+<p>下面是在保守策略下，volatile读插入内存屏障后生成的指令序列示意图：</p>
+<p><img alt="" src="4-volatile/5.png"></p>
+<p>上图中的LoadLoad屏障用来禁止处理器把上面的volatile读与下面的普通读重排序。LoadStore屏障用来禁止处理器把上面的volatile读与下面的普通写重排序。</p>
+<p>上述volatile写和volatile读的内存屏障插入策略非常保守。在实际执行时，只要不改变volatile写-读的内存语义，编译器可以根据具体情况省略不必要的屏障。下面我们通过具体的示例代码来说明：</p>
+<pre>class VolatileBarrierExample {
+    int a;
+    volatile int v1 = 1;
+    volatile int v2 = 2;
+
+    void readAndWrite() {
+        int i = v1;           //第一个volatile读
+        int j = v2;           // 第二个volatile读
+        a = i + j;            //普通写
+        v1 = i + 1;          // 第一个volatile写
+        v2 = j * 2;          //第二个 volatile写
+    }
+
+    …                    //其他方法
+}</pre>
+<p>针对readAndWrite()方法，编译器在生成字节码时可以做如下的优化：</p>
+<p><img alt="" src="4-volatile/6.png"></p>
+<p>注意，最后的StoreLoad屏障不能省略。因为第二个volatile写之后，方法立即return。此时编译器可能无法准确断定后面是否会有volatile读或写，为了安全起见，编译器常常会在这里插入一个StoreLoad屏障。</p>
+<p>上面的优化是针对任意处理器平台，由于不同的处理器有不同“松紧度”的处理器内存模型，内存屏障的插入还可以根据具体的处理器内存模型继续优化。以x86处理器为例，上图中除最后的StoreLoad屏障外，其它的屏障都会被省略。</p>
+<p>前面保守策略下的volatile读和写，在 x86处理器平台可以优化成：</p>
+<p><img alt="" src="4-volatile/7.png"></p>
+<p>前文提到过，x86处理器仅会对写-读操作做重排序。X86不会对读-读，读-写和写-写操作做重排序，因此在x86处理器中会省略掉这三种操作类
+型对应的内存屏障。在x86中，JMM仅需在volatile写后面插入一个StoreLoad屏障即可正确实现volatile写-读的内存语义。这意
+味着在x86处理器中，volatile写的开销比volatile读的开销会大很多（因为执行StoreLoad屏障开销会比较大）。</p>
+<h2>JSR-133为什么要增强volatile的内存语义</h2>
+<p>在JSR-133之前的旧Java内存模型中，虽然不允许volatile变量之间重排序，但旧的Java内存模型允许volatile变量与普通变量之间重排序。在旧的内存模型中，VolatileExample示例程序可能被重排序成下列时序来执行：</p>
+<p><img alt="" src="4-volatile/8.png"></p>
+<p>在旧的内存模型中，当1和2之间没有数据依赖关系时，1和2之间就可能被重排序（3和4类似）。其结果就是：读线程B执行4时，不一定能看到写线程A在执行1时对共享变量的修改。</p>
+<p>因此在旧的内存模型中 
+，volatile的写-读没有锁的释放-获所具有的内存语义。为了提供一种比锁更轻量级的线程之间通信的机制，JSR-133专家组决定增强
+volatile的内存语义：严格限制编译器和处理器对volatile变量与普通变量的重排序，确保volatile的写-读和锁的释放-获取一样，具
+有相同的内存语义。从编译器重排序规则和处理器内存屏障插入策略来看，只要volatile变量与普通变量之间的重排序可能会破坏volatile的内存
+语意，这种重排序就会被编译器重排序规则和处理器内存屏障插入策略禁止。</p>
+<p>由于volatile仅仅保证对单个volatile变量的读/写具有原子性，而锁的互斥执行的特性可以确保对整个临界区代码的执行具有原子性。在
+功能上，锁比volatile更强大；在可伸缩性和执行性能上，volatile更有优势。如果读者想在程序中用volatile代替监视器锁，请一定谨
+慎，具体细节请参阅参考文献5。。</p>
+<h2>作者简介</h2>
+<p><strong>程晓明</strong>，Java软件工程师，国家认证的系统分析师、信息项目管理师。专注于并发编程。个人邮箱：<a href="mailto:asst2003@163.com">asst2003@163.com</a>。</p>
+<h2>参考文献</h2>
+<ol>
+<li><a href="http://www.amazon.com/Concurrent-Programming-Java-Principles-Pattern/dp/0201310090/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1341416393&amp;sr=1-1&amp;keywords=Concurrent+Programming+in+Java+Design+Principles+and+Patterns">Concurrent Programming in Java™: Design Principles and Pattern</a></li>
+<li><a href="http://www.cs.umd.edu/users/pugh/java/memoryModel/jsr-133-faq.html">JSR 133 (Java Memory Model) FAQ</a></li>
+<li><a href="http://www.cs.umd.edu/%7Epugh/java/memoryModel/jsr133.pdf">JSR-133: Java Memory Model and Thread Specification</a></li>
+<li><a href="http://gee.cs.oswego.edu/dl/jmm/cookbook.html">The JSR-133 Cookbook for Compiler Writers</a></li>
+<li><a href="http://www.ibm.com/developerworks/cn/java/j-jtp06197.html">Java 理论与实践: 正确使用 Volatile 变量</a></li>
+<li><a href="http://www.ibm.com/developerworks/java/library/j-jtp03304/index.html">Java theory and practice: Fixing the Java Memory Model, Part 2</a></li>
+</ol>
+<div style="margin-top: 15px; font-style: italic">
+<p><strong>原创文章，转载请注明：</strong> 转载自<a href="http://ifeve.com/">并发编程网 – ifeve.com</a><strong>本文链接地址:</strong> <a href="http://ifeve.com/java-memory-model-4/">深入理解Java内存模型（四）——volatile</a></p>
+<p> <a href="http://pro.badouxueyuan.cn/ifeve/"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/IMG_2351.jpg"></a>
+</p></div>
+<div style="clear:both; margin-top:5px; margin-bottom:5px;"></div><div style="float:left"><!-- JiaThis Button BEGIN -->
+<div id="jiathis_style_32x32">
+	<a class="jiathis_button_qzone" title="分享到QQ空间"><span class="jiathis_txt jtico jtico_qzone"></span></a>
+	<a class="jiathis_button_tsina" title="分享到微博"><span class="jiathis_txt jtico jtico_tsina"></span></a>
+	<a class="jiathis_button_tqq" title="分享到腾讯微博"><span class="jiathis_txt jtico jtico_tqq"></span></a>
+	<a class="jiathis_button_renren" title="分享到人人网"><span class="jiathis_txt jtico jtico_renren"></span></a>
+	<a class="jiathis_button_kaixin001" title="分享到开心网"><span class="jiathis_txt jtico jtico_kaixin001"></span></a>
+	<a href="http://www.jiathis.com/share/" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"><span class="jiathis_button_expanded jiathis_counter jiathis_bubble_style" id="jiathis_counter_75" title="累计分享8次">8</span></a>
+</div>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jia.js" charset="utf-8"></script><script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/plugin.js" charset="utf-8"></script>
+<!-- JiaThis Button END --></div><div style="clear:both; margin-top:5px; margin-bottom:5px;"></div>
+                         <div class="abh_box abh_box_down abh_box_"><ul class="abh_tabs"> <li class="abh_about abh_active"><a href="#abh_about">About</a></li> <li class="abh_posts"><a href="#abh_posts">Latest Posts</a></li></ul><div class="abh_tab_content"><section class="vcard abh_about_tab abh_tab" style="display:block"><div class="abh_image"><a href="http://ifeve.com/author/25622818/" class="url" title="程晓明"><img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-80" height="80" width="80"></a></div><div class="abh_social"> </div><div class="abh_text"><h3 class="fn name"><a href="http://ifeve.com/author/25622818/" class="url">程晓明</a></h3><div class="abh_job"></div><div class="description note abh_description">程晓明，Java软件工程师，专注于并发编程，就职于富士通南大。个人邮箱：asst2003@163.com。</div></div> </section><section class="abh_posts_tab abh_tab"><div class="abh_image"><a href="http://ifeve.com/author/25622818/" class="url" title="程晓明"><img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-80" height="80" width="80"></a></div><div class="abh_social"> </div><div class="abh_text"><h4>Latest posts by 程晓明 <span class="abh_allposts">(<a href="http://ifeve.com/author/25622818/">see all</a>)</span></h4><div class="abh_description note"><ul>				<li>					<a href="http://ifeve.com/double-checked-locking-with-delay-initialization/">双重检查锁定与延迟初始化</a><span> - 2013年10月10日</span>				</li>				<li>					<a href="http://ifeve.com/java-memory-model-7/">深入理解Java内存模型（七）——总结</a><span> - 2013年3月16日</span>				</li>				<li>					<a href="http://ifeve.com/java-memory-model/">深入理解Java内存模型（六）——final</a><span> - 2013年3月10日</span>				</li></ul></div></div> </section></div> </div><span class="wpfp-span"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/star.png" alt="Favorite" title="Favorite" class="wpfp-img"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/loading.gif" alt="Loading" title="Loading" class="wpfp-hide wpfp-img"><a class="wpfp-link" href="http://ifeve.com/java-memory-model-4/?wpfpaction=add&amp;postid=2976" title="添加本文到我的收藏" rel="nofollow">添加本文到我的收藏</a></span><div class="yarpp-related">
+<h3>Related posts:</h3><ol>
+<li><a href="http://ifeve.com/syn-jmm-volatile/" rel="bookmark" title="同步和Java内存模型（五）Volatile">同步和Java内存模型（五）Volatile </a></li>
+<li><a href="http://ifeve.com/java-memory-model/" rel="bookmark" title="深入理解Java内存模型（六）——final">深入理解Java内存模型（六）——final </a></li>
+<li><a href="http://ifeve.com/java-memory-model-5/" rel="bookmark" title="深入理解Java内存模型（五）——锁">深入理解Java内存模型（五）——锁 </a></li>
+<li><a href="http://ifeve.com/java-memory-model-2/" rel="bookmark" title="深入理解Java内存模型（二）——重排序">深入理解Java内存模型（二）——重排序 </a></li>
+<li><a href="http://ifeve.com/java-memory-model-3/" rel="bookmark" title="深入理解Java内存模型（三）——顺序一致性">深入理解Java内存模型（三）——顺序一致性 </a></li>
+<li><a href="http://ifeve.com/java-memory-model-7/" rel="bookmark" title="深入理解Java内存模型（七）——总结">深入理解Java内存模型（七）——总结 </a></li>
+<li><a href="http://ifeve.com/java-memory-model-1/" rel="bookmark" title="深入理解Java内存模型（一）——基础">深入理解Java内存模型（一）——基础 </a></li>
+<li><a href="http://ifeve.com/java-memory-model-0/" rel="bookmark" title="深入理解java内存模型系列文章">深入理解java内存模型系列文章 </a></li>
+<li><a href="http://ifeve.com/how-to-do-timeout/" rel="bookmark" title="您还有心跳吗？超时机制分析">您还有心跳吗？超时机制分析 </a></li>
+<li><a href="http://ifeve.com/jmm-faq-volatile/" rel="bookmark" title="Java内存模型FAQ（十）volatile是干什么用的">Java内存模型FAQ（十）volatile是干什么用的 </a></li>
+<li><a href="http://ifeve.com/talk-to-my-understanding-of-the-java-memory-model/" rel="bookmark" title="聊聊我对Java内存模型的理解">聊聊我对Java内存模型的理解 </a></li>
+<li><a href="http://ifeve.com/how-to-use-volatile/" rel="bookmark" title="Java并发中正确使用volatile">Java并发中正确使用volatile </a></li>
+<li><a href="http://ifeve.com/jmm-faq-old-mm/" rel="bookmark" title="Java内存模型FAQ（五）旧的内存模型有什么问题？">Java内存模型FAQ（五）旧的内存模型有什么问题？ </a></li>
+<li><a href="http://ifeve.com/memory-model/" rel="bookmark" title="Java内存模型FAQ（一） 什么是内存模型">Java内存模型FAQ（一） 什么是内存模型 </a></li>
+<li><a href="http://ifeve.com/qiu-yizhe/" rel="bookmark" title="并发译文翻译计划（一）">并发译文翻译计划（一） </a></li>
+</ol>
+</div>
+           </div><!-- END .post_content -->
+    </div>
+    <div class="meta">
+          <ul>
+      <li class="post_date clearfix">
+       <span class="date">07</span>
+       <span class="month">Feb</span>
+       <span class="year">2013</span>
+      </li>
+      
+<li class="post_comment">
+18,582 人阅读</li>
+
+      <li class="post_author"><a href="http://ifeve.com/author/25622818/" title="Posts by 程晓明" rel="author">程晓明</a></li>      <li class="post_category"><a href="http://ifeve.com/category/talk-concurrent/" rel="category tag">本站原创</a></li>       <li class="post_category"><div id="post-ratings-2976" class="post-ratings" itemscope="" itemtype="http://schema.org/Article" data-nonce="5a325095d2"><img id="rating_2976_1" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rating_on.gif" alt="好烂啊" title="好烂啊" onmouseover="current_rating(2976, 1, '好烂啊');" onmouseout="ratings_off(4.9, 5, 0);" onclick="rate_post();" onkeypress="rate_post();" style="cursor: pointer; border: 0px;"><img id="rating_2976_2" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rating_on.gif" alt="没价值" title="没价值" onmouseover="current_rating(2976, 2, '没价值');" onmouseout="ratings_off(4.9, 5, 0);" onclick="rate_post();" onkeypress="rate_post();" style="cursor: pointer; border: 0px;"><img id="rating_2976_3" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rating_on.gif" alt="凑合看看" title="凑合看看" onmouseover="current_rating(2976, 3, '凑合看看');" onmouseout="ratings_off(4.9, 5, 0);" onclick="rate_post();" onkeypress="rate_post();" style="cursor: pointer; border: 0px;"><img id="rating_2976_4" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rating_on.gif" alt="还不错" title="还不错" onmouseover="current_rating(2976, 4, '还不错');" onmouseout="ratings_off(4.9, 5, 0);" onclick="rate_post();" onkeypress="rate_post();" style="cursor: pointer; border: 0px;"><img id="rating_2976_5" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/rating_half.gif" alt="超赞" title="超赞" onmouseover="current_rating(2976, 5, '超赞');" onmouseout="ratings_off(4.9, 5, 0);" onclick="rate_post();" onkeypress="rate_post();" style="cursor: pointer; border: 0px;"> (<strong>8</strong> votes, average: <strong>4.88</strong> out of 5)<br><span class="post-ratings-text" id="ratings_2976_text"></span><meta itemprop="headline" content="深入理解Java内存模型（四）——volatile"><meta itemprop="description" content="本文属于作者原创，原文发表于InfoQ：http://www.infoq.com/cn/articles/java-memory-model-4
+volatile的特性
+当我们声明共享变量为volatile后，对这个变量的读/写将会很特别。理解volatile特性的一个好方法是：把对volatile变量的单个读/写，看成是使用同一个锁对这些单个读/写操作做了同步。下面我们通过具体的示例来说明，..."><meta itemprop="datePublished" content="2013-02-07T00:15:34+00:00"><meta itemprop="dateModified" content="2013-02-07T18:25:07+00:00"><meta itemprop="url" content="http://ifeve.com/java-memory-model-4/"><meta itemprop="author" content="程晓明"><meta itemprop="mainEntityOfPage" content="http://ifeve.com/java-memory-model-4/"><div style="display: none;" itemprop="publisher" itemscope="" itemtype="https://schema.org/Organization"><meta itemprop="name" content="并发编程网 - ifeve.com"><div itemprop="logo" itemscope="" itemtype="https://schema.org/ImageObject"><meta itemprop="url" content=""></div></div><div style="display: none;" itemprop="aggregateRating" itemscope="" itemtype="http://schema.org/AggregateRating"><meta itemprop="bestRating" content="5"><meta itemprop="worstRating" content="1"><meta itemprop="ratingValue" content="4.88"><meta itemprop="ratingCount" content="8"></div></div><div id="post-ratings-2976-loading" class="post-ratings-loading">
+            <img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/loading_002.gif" class="post-ratings-image" height="16" width="16">Loading...</div></li>       <li class="post_comment"><a href="http://ifeve.com/java-memory-model-4/#comments">28 comments</a></li>           </ul>
+         </div>
+   </div><!-- END .post_wrap -->
+
+   
+      <div id="comments_wrapper">
+    
+
+
+
+
+<div id="comment_header" class="clearfix">
+
+ <ul id="comment_header_left">
+  <li id="add_comment"><a href="#respond">Write comment</a></li>
+  <li id="comment_feed"><a href="http://ifeve.com/comments/feed/" title="Comments RSS">Comments RSS</a></li>
+ </ul>
+
+ <ul id="comment_header_right">
+   <li id="trackback_closed">Trackback are closed</li>
+   <li id="comment_closed">Comments (28)</li>
+ </ul>
+
+
+</div><!-- END #comment_header -->
+
+<div id="comments">
+
+ <div id="comment_area">
+  <!-- start commnet -->
+  <ol class="commentlist">
+	
+ <li class="comment guest-comment" id="comment-270">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/b722231dea0c184d6061e27fd6b24f2b.jpg" srcset="http://2.gravatar.com/avatar/b722231dea0c184d6061e27fd6b24f2b?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-270">
+
+johnson
+</span>
+     </li>
+     <li class="comment-date">02/16. 2013 10:38am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-270', 'comment-270', 'comment-content-270', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-270">
+    <p>对于你提供的第一个例子，个人认为是有问题的，想拿出来大家聊一下</p>
+<p>public void getAndIncrement () {<br>
+        vl++;    //复合（多个）volatile变量的读/写<br>
+    }</p>
+<p>在我的印象中，volatile的语义，应该仅仅能保证变量的可见性而无法保证原子性，所以，你在第二段代码中把上面的代码翻译成<br>
+public void getAndIncrement () { //普通方法调用<br>
+        long temp = get();           //调用已同步的读方法<br>
+        temp += 1L;                  //普通写操作<br>
+        set(temp);                   //调用已同步的写方法<br>
+    }<br>
+是不对的，你觉得我说的对么？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment admin-comment" id="comment-290">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-290">
+
+程晓明
+</span>
+     </li>
+     <li class="comment-date">02/20. 2013 1:58am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-290', 'comment-290', 'comment-content-290', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-290">
+    <p>JSR-133内存模型规范规定，volatile变量的读/写具有原子性。<br>
+在《JSR-133: JavaTM Memory Model and Thread Specification》<br>
+的“12 Non-atomic Treatment of double and long”一章，有下面相关论述：<br>
+Write and reads of volatile long and double values are always atomic.<br>
+……<br>
+VM implementors are encouraged to avoid splitting their 64-bit values where possible. Programmers<br>
+are encouraged to declare shared 64-bit values as volatile or synchronize their programs<br>
+correctly to avoid possible complications.</p>
+<p>上面这段话的大意是说：<br>
+写和读 volatile long和volatile double 总是具有原子性。<br>
+……<br>
+鼓励虚拟机的具体实现，不要把64位变量的读/写分割为2个32位的读/写操作。鼓励程序员把（在多线程之间共享的）64位变量声明为为volatile ，或者对程序做正确的同步处理。通过这两种方式来避免可能出现的并发问题。</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-23116">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/a_002.jpg" srcset="http://1.gravatar.com/avatar/?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo avatar-default" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-23116">
+
+luo
+</span>
+     </li>
+     <li class="comment-date">07/31. 2014 12:28pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-23116', 'comment-23116', 'comment-content-23116', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-23116">
+    <p>是不是想这种和当前有关的变量是不是最好不好使用volatile来使其同步(也不能提供原子性吧)？</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-300">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/97dfebf4098c0f5c16bca61e2b76c373.jpg" srcset="http://0.gravatar.com/avatar/97dfebf4098c0f5c16bca61e2b76c373?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<a id="commentauthor-300" class="url guest-url" href="http://1mypaydayloan.com/" rel="external nofollow">
+
+buy steroids
+</a>
+     </li>
+     <li class="comment-date">02/21. 2013 1:10am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-300', 'comment-300', 'comment-content-300', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-300">
+    <p>Nice! How can I sign up for RSS to your blog? Thanks!</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-566">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/578633fa40c035cdd446ed5a1b1218c5.jpg" srcset="http://2.gravatar.com/avatar/578633fa40c035cdd446ed5a1b1218c5?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-566">
+
+Marvin
+</span>
+     </li>
+     <li class="comment-date">03/13. 2013 1:28am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-566', 'comment-566', 'comment-content-566', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-566">
+    <p>非常好的文章，但你的例子用的都是 基本类型，对于引用类型会怎样呢？按链接 <a href="http://ifeve.com/volatile-array-visiblity/" rel="nofollow">http://ifeve.com/volatile-array-visiblity/</a> 描述，数组引用可以保证可见性，但此数组元素不可以无法保证。那么 其他引用类型 也和数组情况一样吗？</p>
+<p>问题描述如下：<br>
+volatile v 包含很多 fields(f1, f2, f3)</p>
+<p>当线程访问 v 时，肯定总是可以访问到 最新的 v对象。我现在问题是，v里面的fx也总是可以访问到最新的嘛？<br>
+假设<br>
+v.f2是 hashMap1，线程A v.f2=hashMap2；则线程B 访问 v.f2，能保证看到 hashMap2 嘛，能看到 hashMap2中的最新对象嘛？</p>
+<p>v.f3是 boolean，线程A v.f3=true；则线程B 访问 v.f3，能保证看到 true 嘛？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment admin-comment" id="comment-578">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-578">
+
+程晓明
+</span>
+     </li>
+     <li class="comment-date">03/14. 2013 12:41am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-578', 'comment-578', 'comment-content-578', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-578">
+    <p>兄弟，由于一些事情要处理，到现在才能回复你，不好意思阿。</p>
+<p>那么 其他引用类型 也和数组情况一样吗？<br>
+–对</p>
+<p>v里面的fx也总是可以访问到最新的嘛？<br>
+–不一定能访问到最新的值</p>
+<p>能保证看到 hashMap2 嘛，能看到 hashMap2中的最新对象嘛？<br>
+–不能保证</p>
+<p>v.f3是 boolean，线程A v.f3=true；则线程B 访问 v.f3，能保证看到 true 嘛？<br>
+–不能保证</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-596">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/578633fa40c035cdd446ed5a1b1218c5.jpg" srcset="http://2.gravatar.com/avatar/578633fa40c035cdd446ed5a1b1218c5?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-596">
+
+Marvin
+</span>
+     </li>
+     <li class="comment-date">03/14. 2013 6:14pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-596', 'comment-596', 'comment-content-596', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-596">
+    <p>有时候我觉得发现了真相，但，接下来却又是迷雾重重 🙂<br>
+感谢回复啊，谢谢。不过又出来 new question 啦</p>
+<p>Doug Lea 说：ConcurrentHashMap的readValueUnderLock()在 new JMM 下 不会 
+被调用；但，按着你上面的解释（即：只有volatile v 引用本身可以保证被 线程B 看到，v的field（假设为v.fx）是不能保证被 
+线程B 看到的），此方法却依然是需要的。</p>
+<p>我来描述下<br>
+在ConcurrentHashMap的代码实现中，readValueUnderLock()出现的原因应该和我们这里讨论的一样，即：volatile v 可以保证被 线程B 看到，但是，v的某个field（假设v.f），并不能保证被 线程B 看到。</p>
+<p>先看这个：http://hi.baidu.com/jeffeyliu/item/06881101d3bd1d11cc34ea9a<br>
+再看下这个：<br>
+<a href="http://stackoverflow.com/questions/5002428/concurrenthashmap-reorder-instruction" rel="nofollow">http://stackoverflow.com/questions/5002428/concurrenthashmap-reorder-instruction</a></p>
+<p>我们只讨论 new JMM<br>
+Doug Lea的结论是：在 new JMM 中，get()永远用不到 readValueUnderLock()。<b>但我觉得不对</b><br>
+1. 线程A put()时，new HashEntry()被放入<br>
+2. 在 线程A 调用put()方法的 unlock()语句前，线程B 调用get()，<b>假设</b>新放入的 HashEntry引用 能被 线程B 看到，但是，HashEntry的 volatile value 不一定被看到啊，从而 readValueUnderLock()依然需要（可是，Doug Lea大神的结论是：此方法不需要）</p>
+<p>事实上，线程A 的 put() 将 新的 HashEntry放入 tab时，tab是volatile的，tab保证能被 线程B 
+看到，但是，新的 HashEntry怎么就保证被 线程B 看到了呢（HashEntry应该也不保证会被 线程B 看到的，因为 volatile 
+tab数组的元素 是不能保证被 线程B 看到的）</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment admin-comment" id="comment-604">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-604">
+
+程晓明
+</span>
+     </li>
+     <li class="comment-date">03/14. 2013 11:47pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-604', 'comment-604', 'comment-content-604', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-604">
+    <p>我有两点看法：<br>
+1：Doug Lea的结论的原始出处在哪里？或者有什么证据能证明这就是Doug Lea说的？我印象中，Doug Lea说话一般很谨慎。stackoverflow上网友的回复无法证明这是Doug Lea说的话。<br>
+2：我们假设1是成立的，那么我们需要知道Doug Lea说这个话的上下文。ConcurrentHashMap不同版本之间的代码会有变化，比如JDK5和JDK7中的源代码实现有比较大的差异。他这个结论是针对那个版本？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-619">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/578633fa40c035cdd446ed5a1b1218c5.jpg" srcset="http://2.gravatar.com/avatar/578633fa40c035cdd446ed5a1b1218c5?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-619">
+
+Marvin
+</span>
+     </li>
+     <li class="comment-date">03/15. 2013 5:53pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-619', 'comment-619', 'comment-content-619', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-619">
+    <p>stackoverflow上网友的回答是带有链接的<br>
+<b>It can all be viewed here</b>, here指向 Doug Lea 的帖子</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment admin-comment" id="comment-629">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-629">
+
+程晓明
+</span>
+     </li>
+     <li class="comment-date">03/16. 2013 11:05pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-629', 'comment-629', 'comment-content-629', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-629">
+    <p>下面仅代表我个人的观点，供你参考。</p>
+<p>综合Doug Lea 的回答和ConcurrentHashMap的源代码注释，Doug Lea 
+说:ConcurrentHashMap的readValueUnderLock()在 new JMM 下 不会 
+被调用。原因并非是你说的“tab是volatile”。<br>
+Doug Lea在源代码注释和论坛的回复中，都没有提到“tab是volatile”。</p>
+<p>Doug Lea在论坛上的答复，意思大致如下：<br>
+这个方法可能从来不会被调用（注意Doug Lea的用词），JLS/JMM 没有绝对禁止ConcurrentHashMap会去调用这个方法。<br>
+processor/compiler 没有真实存在的漏洞会导致读线程读取到null值。<br>
+而且null值读现象，可能会被查明不可能真实存在（也许有一天，JLS/JMM 的修订版会填补这个空白来澄清这一点）。<br>
+Bill Pugh 建议Doug Lea谨慎，保守的对待这个问题。<br>
+所以Doug Lea增加了readValueUnderLock（）方法。</p>
+<p>简单来说，这是JLS/JMM的疏忽导致的问题。<br>
+JLS/JMM没有明确定义：当一个写线程构造一个包含volatile的对象时，另一个读线程读到对象时，是否也一定能读到这个对象包含的volatile域的值。<br>
+Doug Lea个人认为，processor/compiler 没有任何漏洞，会导致读线程看不到volatile被写线程在构造函数中写入后的值。<br>
+但由于JLS/JMM没有明确定义这种情形，所以他做了防御性的编程（添加一个可能从来不会被调用的readValueUnderLock（）方法）。</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-1302">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100_003.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-1302">
+
+flyingpig
+</span>
+     </li>
+     <li class="comment-date">06/01. 2013 9:40pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-1302', 'comment-1302', 'comment-content-1302', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-1302">
+    <p>我的理解是ConcurrentHashMap中的readValueUnderLock()是实际没有机会执行的。<br>
+根据JMM针对编译器制定的volatile重排序规则表，第一个操作是volatile写，第二个操作是普通读写，是可以重排序的，那么如下面的源
+码，value的值有可能读到null；但是为了实现JMM规定的volatile的内存语义，编译器在生成字节码时采取了保守的内存屏障插入策略：在每
+个volatile写操作的后面插入一个StoreLoad屏障。<br>
+StoreLoad 
+Barriers是一个“全能型”的屏障，它同时具有其他三个屏障的效果。执行该屏障开销会很昂贵，因为当前处理器通常要把写缓冲区中的数据全部刷新到内
+存中（buffer fully flush）。所以value无论如何都不会读到null，readValueUnderLock()是没有机会执行的</p>
+<p>static final class HashEntry {<br>
+        final K key;<br>
+        final int hash;<br>
+        volatile V value;<br>
+        final HashEntry next;</p>
+<p>        HashEntry(K key, int hash, HashEntry next, V value) {<br>
+            this.key = key;<br>
+            this.hash = hash;<br>
+            this.next = next;<br>
+            this.value = value;<br>
+        }<br>
+对value的赋值是第一个volatile写操作；<br>
+把构造出来的对象赋给引用是第二个普通写操作。</p>
+<p>根据文章中的理论</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-25659">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="4-volatile/100.png" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<a id="commentauthor-25659" class="url guest-url" href="http://www.zhanggc.name/" rel="external nofollow">
+
+zhanggc
+</a>
+     </li>
+     <li class="comment-date">10/14. 2014 11:00pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-25659', 'comment-25659', 'comment-content-25659', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-25659">
+    <blockquote cite="#comment-content-629"><p>
+事实上，线程A 的 put() 将 新的 HashEntry放入 tab时，tab是volatile的，tab保证能被 线程B 看到，但是，新的
+ HashEntry怎么就保证被 线程B 看到了呢（HashEntry应该也不保证会被 线程B 看到的，因为 volatile tab数组的元素
+ 是不能保证被 线程B 看到的）
+  </p></blockquote>
+<p>我对上面您的描述发表下自己个人观点：</p>
+<p>1. volatile 修饰 tab 数组，只保证tab 该引用 对其他线程可见，并且tab数组里面元素引用 对其他线程不可见。（这描述是正确地）</p>
+<p>2. 在ConcurrentHashMap的put()方法里面 将新的 HashEntryv放入tab数组，而新的 HashEntry引用
+ 对其他线程可见，原因是：put() 里面lock(),使tab 引用并且包括里面元素引用 都对其他线程可见(注：此时Lock 比 
+volatile 的可见性更广/宽)。</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-659">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/dad412d4b02e9b5da678697f821f2573.jpg" srcset="http://1.gravatar.com/avatar/dad412d4b02e9b5da678697f821f2573?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-659">
+
+读了文章，我有一个疑惑
+</span>
+     </li>
+     <li class="comment-date">03/19. 2013 9:07am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-659', 'comment-659', 'comment-content-659', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-659">
+    <p>在上面VolatileExample中，线程A执行writer()方法，线程B执行reader()方法，加上两个线程同时对volatile变量flag进行内存访问，一个是写，一个是读，那么哪个先执行呢，这个时候和happen before有关系吗？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment admin-comment" id="comment-674">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-674">
+
+程晓明
+</span>
+     </li>
+     <li class="comment-date">03/20. 2013 7:34pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-674', 'comment-674', 'comment-content-674', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-674">
+    <p>根据你的假设，哪个先执行是不确定的。</p>
+<p>我在文章中假设：线程A执行writer()方法之后，线程B执行reader()方法。<br>
+在这种情况下，1,2,3,4之间的happen before关系就建立了。</p>
+<p>根据你的假设，这里不外乎两种执行时序：<br>
+1：线程A先写volatile变量后，线程B再读这个volatile变量。<br>
+   这种情况，和我上面给的假设一致。<br>
+2：线程B先读volatile变量后，线程A再写这个volatile变量。<br>
+   这种情况，是程序语义层面需要处理的问题。<br>
+   比如VolatileExample中，可以这样：<br>
+if (flag){…}<br>
+else {…}</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-4227">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/71af63a437c7a744b747c1b1cfbae415.jpg" srcset="http://1.gravatar.com/avatar/71af63a437c7a744b747c1b1cfbae415?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-4227">
+
+wangzhx
+</span>
+     </li>
+     <li class="comment-date">11/19. 2013 7:22pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-4227', 'comment-4227', 'comment-content-4227', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-4227">
+    <p>你好：<br>
+    如果读和写有先后顺序，那么不使用volatile修饰flag，效果也会是一样的吧？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-5170">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/a.jpg" srcset="http://1.gravatar.com/avatar/?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo avatar-default" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-5170">
+
+cnc-猫猫
+</span>
+     </li>
+     <li class="comment-date">01/15. 2014 2:23pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-5170', 'comment-5170', 'comment-content-5170', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-5170">
+    <p>不一定了.本地内存可能还没同步回主存,你看到的是旧值.这个例子好像不是很好.</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26046">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/68db2c59cdb96d7e20df629bb289b59b.jpg" srcset="http://0.gravatar.com/avatar/68db2c59cdb96d7e20df629bb289b59b?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26046">
+
+fxstiandi
+</span>
+     </li>
+     <li class="comment-date">01/16. 2015 5:50pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26046', 'comment-26046', 'comment-content-26046', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26046">
+    <p>非常好的文章，已经看过好几遍了，收益颇多。<br>
+现在有个问题想请教下，之前在其他文章上看到从jdk1.5开始，对于vloatile AClass v = new AClass();可以确保将AClass实例域的数据写回到主内存的动作在将实例赋值给v动作之前发生。<br>
+是这样么？如果是的话，不是和之前说的“不保证volatile变量所指对象的实例域的内存可见性”矛盾了么？<br>
+期待你的解答，谢谢！</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26086">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100_002.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26086">
+
+大巴气
+</span>
+     </li>
+     <li class="comment-date">03/05. 2015 11:27am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26086', 'comment-26086', 'comment-content-26086', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26086">
+    <p>说来说去，感觉spring的ioc都有问题了，bean之间的依赖关系基于赋值完成，那么线程1完成了对象关系的依赖注射（写），线程2使用这个依赖对象（读）的时候，可能由于可见性的问题就看不到呀？</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26500">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/6a79e8dd22220014f0151c645ba8e43a.jpg" srcset="http://0.gravatar.com/avatar/6a79e8dd22220014f0151c645ba8e43a?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26500">
+
+renzhengzhi
+</span>
+     </li>
+     <li class="comment-date">11/14. 2015 1:34pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26500', 'comment-26500', 'comment-content-26500', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26500">
+    <p>class VolatileExample {<br>
+    int a = 0;<br>
+    volatile boolean flag = false;</p>
+<p>    public void writer() {<br>
+        a = 1;                   //1<br>
+        flag = true;               //2<br>
+    }</p>
+<p>    public void reader() {<br>
+        if (flag) {                //3<br>
+            int i =  a;           //4<br>
+            ……<br>
+        }<br>
+    }<br>
+}</p>
+<p>在看《Java并发编程艺术》，说到volatile变量的问题，请问，当A线程修改了volatile变量，会同时将变量i的新值也刷新到主内存中？如何得知的呢？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-26501">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/6a79e8dd22220014f0151c645ba8e43a.jpg" srcset="http://0.gravatar.com/avatar/6a79e8dd22220014f0151c645ba8e43a?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26501">
+
+renzhengzhi
+</span>
+     </li>
+     <li class="comment-date">11/14. 2015 1:44pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26501', 'comment-26501', 'comment-content-26501', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26501">
+    <p>B线程是在A线程修改了volatile变量flag之后才能拿到变量i的新值么？ 我写了下面的代码，在线程t2将flag修改为true之前，线程t1就拿到了a修改之后的值。<br>
+import org.junit.Test;</p>
+<p>import java.util.concurrent.CountDownLatch;</p>
+<p>/**<br>
+ * Created by zhengzhi.ren on 2015/11/14.<br>
+ */<br>
+public class VolatileTest {</p>
+<p>    private volatile boolean flag;</p>
+<p>    private int a;</p>
+<p>    @Test<br>
+    public void test(){<br>
+        final CountDownLatch semaphore = new CountDownLatch(1);</p>
+<p>        final CountDownLatch endSemaphore = new CountDownLatch(2);</p>
+<p>        Thread t1 = new Thread(){<br>
+            @Override<br>
+            public void run() {<br>
+                try {<br>
+                    semaphore.await();<br>
+                    System.out.println(“当前时间” + 
+System.currentTimeMillis() + “&gt;&gt;” + 
+Thread.currentThread().getName() + “a:” + a + “,flag:” + flag);<br>
+                    Thread.sleep(3000);<br>
+                    System.out.println(“当前时间” + 
+System.currentTimeMillis() + “&gt;&gt;” + 
+Thread.currentThread().getName() + “a:” + a + “,flag:” + flag);<br>
+                    endSemaphore.countDown();<br>
+                } catch (Exception e) {<br>
+                    e.printStackTrace();<br>
+                }<br>
+            }<br>
+        };<br>
+        t1.setName(“监控线程–“);</p>
+<p>        Thread t2 = new Thread(){<br>
+            @Override<br>
+            public void run() {<br>
+                try {<br>
+                    a = 2;<br>
+                    System.out.println(“当前时间” + 
+System.currentTimeMillis() + “&gt;&gt;” + 
+Thread.currentThread().getName() + “a:” + a + “,flag:” + flag);<br>
+                    semaphore.countDown();<br>
+                    Thread.sleep(2000);<br>
+                    flag = true;<br>
+                    System.out.println(“当前时间” + 
+System.currentTimeMillis() + “&gt;&gt;” + 
+Thread.currentThread().getName() + “a:” + a + “,flag:” + flag);<br>
+                    endSemaphore.countDown();<br>
+                } catch (Exception e) {<br>
+                    e.printStackTrace();<br>
+                }<br>
+            }<br>
+        };<br>
+        t2.setName(“执行线程–“);</p>
+<p>        t1.start();<br>
+        t2.start();<br>
+        try {<br>
+            endSemaphore.await();<br>
+        } catch (InterruptedException e) {<br>
+            e.printStackTrace();<br>
+        }<br>
+    }</p>
+<p>}</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26606">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100_002.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26606">
+
+大巴气
+</span>
+     </li>
+     <li class="comment-date">01/05. 2016 12:32pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26606', 'comment-26606', 'comment-content-26606', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26606">
+    <p>大概看了一下tomcat实例化servlet的源代码，和spring mvc的DispatcherServlet的源代码，现在问题来了,spring的DispatcherServlet不是线程安全的.</p>
+<p>我看的源代码版本是：tomcat 7.0.57   spring 3.0.5.  重点查看了org.apache.catalina.core.StandardWrapper和DispatcherServlet的源代码。</p>
+<p>为什么说DispatcherServlet不是线程安全（有可能不可见）现在问题如下：</p>
+<p>StandardWrapper是Servlet的包装类，其内有个protected volatile Servlet instance =
+ 
+null;属性，存放的servlet的实例，这个实例使用标准的双检查锁来实例化和初始化，初始化的时候在synchronized(this)的同步
+块内，调用 
+servlet.init(facade);因为在synchronized同步块内，其可以保证在同步块结束后所有对成员变量的修改都会刷新（写回）到
+主内存。</p>
+<p>说到上面的servlet.init(facade);我们现在来切换到DispatcherServlet类，这个类继承于
+FrameworkServlet -&gt; HttpServletBean -&gt; 
+HttpServlet，DispatcherServlet的initStrategies(ApplicationContext 
+context)，也是在servlet.init(facade)方法内的调用，因此也在synchronzied同步块内调用，因此其可以保证
+initStrategies方法对DispatcherServlet实例成员变量的修改后刷新到主内存。</p>
+<p>我们再来看看DispatcherServlet的一些成员变量的声明，都是普通的声明，前都没有用final和volatile修饰：</p>
+<p>	/** MultipartResolver used by this servlet */<br>
+	private MultipartResolver multipartResolver;</p>
+<p>	/** LocaleResolver used by this servlet */<br>
+	private LocaleResolver localeResolver;</p>
+<p>	/** ThemeResolver used by this servlet */<br>
+	private ThemeResolver themeResolver;</p>
+<p>	/** List of HandlerMappings used by this servlet */<br>
+	private List handlerMappings;</p>
+<p>	/** List of HandlerAdapters used by this servlet */<br>
+	private List handlerAdapters;</p>
+<p>	/** List of HandlerExceptionResolvers used by this servlet */<br>
+	private List handlerExceptionResolvers;</p>
+<p>	/** RequestToViewNameTranslator used by this servlet */<br>
+	private RequestToViewNameTranslator viewNameTranslator;</p>
+<p>	/** FlashMapManager used by this servlet */<br>
+	private FlashMapManager flashMapManager;</p>
+<p>	/** List of ViewResolvers used by this servlet */<br>
+	private List viewResolvers;</p>
+<p>现在就要问题的实质了，doDispatch(HttpServletRequest request, HttpServletResponse response)方法，在没有任何同步的情况下，使用上面这些属性的实例，可见性能保证吗？</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26610">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100_002.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26610">
+
+大巴气
+</span>
+     </li>
+     <li class="comment-date">01/06. 2016 9:08am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26610', 'comment-26610', 'comment-content-26610', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26610">
+    <p>package hello;</p>
+<p>import org.springframework.beans.factory.annotation.Autowired;<br>
+import org.springframework.stereotype.Component;</p>
+<p>@Component<br>
+public class MessagePrinter {</p>
+<p>    final private MessageService service;</p>
+<p>    @Autowired<br>
+    public MessagePrinter(MessageService service) {<br>
+        this.service = service;<br>
+    }</p>
+<p>    public void printMessage() {<br>
+        System.out.println(this.service.getMessage());<br>
+    }<br>
+}</p>
+<p>新的spring官网的例子，例子还是门面呀，特意使用了final，然后使用构造方法注入。怎么不使用set方法注射了呢？</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-26632">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/1091f4644a6be06daa930f802d7ba7c4.jpg" srcset="http://1.gravatar.com/avatar/1091f4644a6be06daa930f802d7ba7c4?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26632">
+
+minghzhang
+</span>
+     </li>
+     <li class="comment-date">01/18. 2016 3:19pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26632', 'comment-26632', 'comment-content-26632', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26632">
+    <p>final关键字用在Field上面，表示该Field一旦第一次被赋值之后，就不能再次被赋值，如果用set注入，表面可以多次赋值，这和final的设计初衷是矛盾的，编译器也检查通不过</p>
+  </div>
+
+
+
+<ul class="children">
+
+ <li class="comment guest-comment" id="comment-26633">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/100_002.jpg" class="avatar avatar-35" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26633">
+
+大巴气
+</span>
+     </li>
+     <li class="comment-date">01/18. 2016 3:53pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26633', 'comment-26633', 'comment-content-26633', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26633">
+    <p>我是想说，set注入，如果保证线程的可见性。A线程set注入，B线程使用，如果保证可见性。在不使用volatile的情况下。</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-26618">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/4705dac0c860efbd50ce672e3a6691c3.jpg" srcset="http://1.gravatar.com/avatar/4705dac0c860efbd50ce672e3a6691c3?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-26618">
+
+heqingbao
+</span>
+     </li>
+     <li class="comment-date">01/10. 2016 12:44am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-26618', 'comment-26618', 'comment-content-26618', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-26618">
+    <p>请教一下关于『StoreStore』『StoreLoad』『LoadStore』『LoadLoad』这几种屏障的理解。比如”在每个volatile写操作的后面插入一个StoreLoad屏障。”这一句，为什么是插入StoreLoad而不是其它 的？</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-27378">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/522b21477ce640652c9c8f9d805157ed.jpg" srcset="http://2.gravatar.com/avatar/522b21477ce640652c9c8f9d805157ed?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-27378">
+
+cindy_cao
+</span>
+     </li>
+     <li class="comment-date">01/13. 2017 3:50pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-27378', 'comment-27378', 'comment-content-27378', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-27378">
+    <p>当第二个操作是volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保volatile写之前的操作不会被编译器重排序到volatile写之后。<br>
+当第一个操作是volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保volatile读之后的操作不会被编译器重排序到volatile读之前。<br>
+当第一个操作是volatile写，第二个操作是volatile读时，不能重排序。<br>
+按照这种说法,那对于volatile写之前应该插入storestore屏障和loadstore屏障,但是其实只是插入了storestore屏障,为什么没有插入loadstore屏障呢?</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-27520">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/1a33a63689d685ee2fcb9e964f3f610c.jpg" srcset="http://1.gravatar.com/avatar/1a33a63689d685ee2fcb9e964f3f610c?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-27520">
+
+sagacioushugo
+</span>
+     </li>
+     <li class="comment-date">03/19. 2017 1:01am</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-27520', 'comment-27520', 'comment-content-27520', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-27520">
+    <p>有以下2个问题求教：<br>
+问题1：由原文”为了保证能正确实现volatile的内存语义，JMM在这里采取了保守策略：在每个volatile写的后面或在每个volatile读的前面插入一个StoreLoad屏障。”的说明，可以得出</p>
+<p>对于volatile读的屏障是下面所示（比原文中补充了StoreLoad）</p>
+<p>普通读1</p>
+<p>普通写2</p>
+<p>StoreLoad</p>
+<p>volatile读</p>
+<p>LoadLoad</p>
+<p>LoadStore</p>
+<p>普通读3</p>
+<p>普通写4</p>
+<p>这种情况下 普通写2被storeLoad屏障限制，不能和volatile读重排序，而上面表中说的第一个指令是普通读、写，是可以与第二个指令volatile读能够重排序的（因为空白没写NO，理解为YES），请问这里怎么理解？</p>
+<p>问题2，另外，原文“前文我们提到过，编译器不会对volatile读与volatile读后面的任意内存操作重排序；编译器不会对
+volatile写与volatile写前面的任意内存操作重排序。组合这两个条件，意味着为了同时实现volatile读和volatile写的内存语
+义，编译器不能对CAS与CAS前面和后面的任意内存操作重排序。” 
+来自http://ifeve.com/java-memory-model-5/#more-4015这一篇</p>
+<p>对于volatile写</p>
+<p>普通读1</p>
+<p>普通写2</p>
+<p>StoreStore</p>
+<p>volatile写</p>
+<p>StoreLoad</p>
+<p>普通读3</p>
+<p>普通写4</p>
+<p>这里普通读1并没有被storeStore限制，应该能和volatile写重排序（即变成StoreStore volatile写 普通读1 
+StoreLoad），而根据上述所引原文，“编译器不会对volatile写与volatile写前面的任意内存操作重排序”，这是否出现了矛盾？</p>
+<p>一直没想明白，求教</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+
+ <li class="comment guest-comment" id="comment-27726">
+  <div class="comment-meta">
+   <div class="comment-meta-left">
+  <img alt="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/80a8d8f512b3e3dcc38b2ba3c446e814.jpg" srcset="http://2.gravatar.com/avatar/80a8d8f512b3e3dcc38b2ba3c446e814?s=70&amp;d=mm&amp;r=g 2x" class="avatar avatar-35 photo" height="35" width="35">  
+    <ul class="comment-name-date">
+     <li class="comment-name">
+<span id="commentauthor-27726">
+
+lly835
+</span>
+     </li>
+     <li class="comment-date">05/19. 2017 1:55pm</li>
+    </ul>
+   </div>
+
+   <ul class="comment-act">
+    <li class="comment-reply"><a rel="nofollow" class="comment-reply-login" href="http://ifeve.com/wp-login.php?redirect_to=http%3A%2F%2Fifeve.com%2Fjava-memory-model-4%2F">Log in to Reply</a></li>
+    <li class="comment-quote"><a href="javascript:void(0);" onclick="MGJS_CMT.quote('commentauthor-27726', 'comment-27726', 'comment-content-27726', 'comment');">QUOTE</a></li>
+       </ul>
+
+  </div>
+  <div class="comment-content" id="comment-content-27726">
+    <p>图挂了</p>
+  </div>
+
+
+
+</li><!-- #comment-## -->
+  </ol>
+  <!-- comments END -->
+
+  
+ </div><!-- #comment-list END -->
+
+
+ <div id="trackback_area">
+ <!-- start trackback -->
+  <!-- trackback end -->
+ </div><!-- #trackbacklist END -->
+
+ 
+
+
+ 
+ <div class="comment_form_wrapper" id="respond">
+    You must be <a href="http://ifeve.com/wp-login.php">logged in</a> to post a comment. </div>
+
+ </div><!-- #comment end -->   </div>
+   
+      <div id="previous_next_post_single">
+    <div class="clearfix">
+     <p id="previous_post"><a href="http://ifeve.com/disruptor-dsl/" rel="prev">LMAX Disruptor——一个高性能、低延迟且简单的框架</a></p>     <p id="next_post"><a href="http://ifeve.com/disruptor-2-change/" rel="next">Disruptor 2.0更新摘要</a></p>    </div>
+   </div>
+   
+
+  </div><!-- END #left_col -->
+
+  <div id="container"></div>
+
+    <div id="right_col">
+   
+
+<div class="side_box clearfix" id="side_meta_content">
+
+  <ul id="social_link" class="clearfix">
+    <li class="rss_button"><a class="target_blank" href="http://ifeve.com/feed/">rss</a></li>
+       </ul>
+ 
+  <div id="search_area">
+    <form method="get" id="searchform" action="http://ifeve.com/">
+   <div><input id="search_button" class="rollover" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/search_button.gif" alt="SEARCH" title="SEARCH" type="image"></div>
+   <div><input id="search_input" value="SEARCH" name="s" onfocus="if (this.value == 'SEARCH') this.value = '';" onblur="if (this.value == '') this.value = 'SEARCH';" type="text"></div>
+  </form>
+   </div>
+ 
+</div>
+
+
+<div id="side_top">
+
+ <div class="side_box widget_text" id="text-17">
+			<div class="textwidget"><p><a href="http://pro.badouxueyuan.cn/ifeve/" target="_blank" rel="noopener"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/IMG_2352.jpg"></a></p>
+<p><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script><br>
+<!-- 首页－右上－2 --><br>
+<ins class="adsbygoogle" style="display: inline-block; width: 336px; height: 280px;" data-ad-client="ca-pub-9394337417063147" data-ad-slot="8872369516" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><ins id="aswift_0_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;width:336px;height:280px;" height="280" frameborder="0" width="336"></iframe></ins></ins></ins><br>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script></p>
+</div>
+		</div>
+		<div class="side_box widget_recent_entries" id="recent-posts-2">
+		<h3 class="side_title">Recent Posts</h3>
+		<ul>
+					<li>
+				<a href="http://ifeve.com/alithink-smiling-face-failure/">《阿里感悟》不忘初心-写给晋升失败的同学</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/alithink-how-to-lean/">《阿里感悟 》如何学习一项新技术</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/jdk%e5%8a%a8%e6%80%81%e4%bb%a3%e7%90%86%e4%bb%a3%e7%90%86%e4%b8%8ecglib%e4%bb%a3%e7%90%86%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/">JDK动态代理代理与Cglib代理原理探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/lockfreehashmap/">LockFreeHashMap:无阻塞代码技巧</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/jeps-201/">《JAVA9模块化项目》JEP 201 模块化源代码</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/get_started_with_tensorflow/">《TensorFlow官方文档》入门指南</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e5%b9%b6%e5%8f%91%e9%98%9f%e5%88%97-%e6%97%a0%e7%95%8c%e9%98%bb%e5%a1%9e%e5%bb%b6%e8%bf%9f%e9%98%9f%e5%88%97delayqueue%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/">并发队列-无界阻塞延迟队列DelayQueue原理探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/33981-2/">Java中调度线程池ScheduledThreadPoolExecutor原理探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/jeps-200/">JEP 200：模块化JDK</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e5%b8%b8%e7%94%a8%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6%e6%89%a9%e5%b1%95%e6%b8%85%e5%8d%95%e4%b9%8b%e5%8e%9f%e7%90%86/">常用开源框架扩展清单之原理</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/classloader%e8%a7%a3%e6%83%91/">ClassLoader解惑</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/guide-wagon-providers/">《Maven官方文档》选择可移植的Wagon提供者</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/java-jigsaw/">《JAVA模块化系统》翻译邀请</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/guide-encryption/">《Maven官方文档》密码加密</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e5%b8%b8%e7%94%a8%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6%e4%b8%ad%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f%e4%bd%bf%e7%94%a8%e5%88%86%e6%9e%90/">常用开源框架中设计模式使用分析</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/uml-intro/">UML建模图实战笔记</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/java%e4%ba%92%e6%96%a5%e9%94%81synchronizedlock%ef%bc%9a%e8%a1%8c%e4%b8%ba%e5%88%86%e6%9e%90%e5%8f%8a%e6%ba%90%e7%a0%81/">JAVA互斥锁(synchronized&amp;Lock)：行为分析及源码</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e5%b9%b6%e5%8f%91%e9%98%9f%e5%88%97%e4%b8%ad%e8%bf%ad%e4%bb%a3%e5%99%a8%e5%bc%b1%e4%b8%80%e8%87%b4%e6%80%a7%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/">并发队列中迭代器弱一致性原理探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/java-nio-path-2/">Java NIO系列教程（十 五）Java NIO Path</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/maven-index-2/">《Maven官方文档》目录指南</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/guide-mirror-settings/">《Maven官方文档》使用镜像仓库</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e3%80%8aspring-5-%e5%ae%98%e6%96%b9%e6%96%87%e6%a1%a3%e3%80%8b22-websocket-support/">《Spring 5 官方文档》22. WebSocket Support</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/tensorflow/">《TensorFlow官方文档》翻译邀请</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/spring-17-xml/">《Spring官方文档》17.利用O/X映射器编组XML</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/java-nio-path/">《Java NIO教程》Java NIO Path</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/velocity%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/">Velocity原理探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e5%ad%90%e7%ba%bf%e7%a8%8b%e4%bc%98%e9%9b%85%e8%b0%83%e7%94%a8%e7%88%b6%e7%ba%bf%e7%a8%8brequestscope%e4%bd%9c%e7%94%a8%e5%9f%9fbean%e9%97%ae%e9%a2%98%e7%9a%84%e6%8e%a2%e7%a9%b6/">子线程优雅调用父线程RequestScope作用域Bean问题的探究</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/maven-settings/">《Maven官方指南》Maven 配置</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/%e9%ab%98%e5%b9%b6%e5%8f%91%e7%bc%96%e7%a8%8b%e5%bf%85%e5%a4%87%e5%9f%ba%e7%a1%80/">高并发编程必备基础</a>
+						</li>
+					<li>
+				<a href="http://ifeve.com/java%e4%b8%ad%e7%ba%bf%e7%a8%8b%e6%b1%a0threadpoolexecutor%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/">Java中线程池ThreadPoolExecutor原理探究</a>
+						</li>
+				</ul>
+		</div>
+		<div class="side_box widget_text" id="text-10">
+			<div class="textwidget"><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script>
+<!-- 首页－右上－2 -->
+<ins class="adsbygoogle" style="display:inline-block;width:336px;height:280px" data-ad-client="ca-pub-9394337417063147" data-ad-slot="8872369516" data-adsbygoogle-status="done"><ins id="aswift_1_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><ins id="aswift_1_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;width:336px;height:280px;" height="280" frameborder="0" width="336"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script></div>
+		</div>
+<div class="side_box widget_views" id="views-4">
+<h3 class="side_title">热门文章</h3>
+<ul>
+<li><a href="http://ifeve.com/java-memory-model-4/" title="Google Guava官方教程（中文版）">Google Guava官方教程（中文版）</a> 462,034 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（一） Java NIO 概述">Java NIO系列教程（一） Java NIO 概述</a> 295,938 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java并发性和多线程介绍目录">Java并发性和多线程介绍目录</a> 199,619 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO 系列教程">Java NIO 系列教程</a> 185,148 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（十二） Java NIO与IO">Java NIO系列教程（十二） Java NIO与IO</a> 164,052 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（六） Selector">Java NIO系列教程（六） Selector</a> 153,443 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="《Storm入门》中文版">《Storm入门》中文版</a> 149,089 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（三） Buffer">Java NIO系列教程（三） Buffer</a> 146,417 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（二） Channel">Java NIO系列教程（二） Channel</a> 146,322 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java8初体验（二）Stream语法详解">Java8初体验（二）Stream语法详解</a> 140,902 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="69道Spring面试题和答案">69道Spring面试题和答案</a> 130,966 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Netty 5用户指南">Netty 5用户指南</a> 120,865 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java 7 并发编程指南中文版">Java 7 并发编程指南中文版</a> 117,653 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="并发框架Disruptor译文">并发框架Disruptor译文</a> 105,956 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（八） SocketChannel">Java NIO系列教程（八） SocketChannel</a> 98,657 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Java NIO系列教程（七） FileChannel">Java NIO系列教程（七） FileChannel</a> 89,433 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="[Google Guava] 1.1-使用和避免null">[Google Guava] 1.1-使用和避免null</a> 89,069 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Storm入门之第一章">Storm入门之第一章</a> 88,663 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="Netty-Mina深入学习与对比（一）">Netty-Mina深入学习与对比（一）</a> 85,949 人阅读 </li><li><a href="http://ifeve.com/java-memory-model-4/" title="[Google Guava] 2.3-强大的集合工具类：ja...">[Google Guava] 2.3-强大的集合工具类：ja...</a> 85,806 人阅读 </li></ul>
+</div>
+<div class="side_box widget_text" id="text-7">
+			<div class="textwidget"><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script>
+<ins class="adsbygoogle" style="display:inline-block;width:336px;height:280px" data-ad-client="ca-pub-9394337417063147" data-ad-slot="4721371513" data-adsbygoogle-status="done"><ins id="aswift_2_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><ins id="aswift_2_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;width:336px;height:280px;" height="280" frameborder="0" width="336"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</div>
+		</div>
+<div class="side_box widget_recent_comments" id="recent-comments-2">
+<h3 class="side_title">Recent Comments</h3>
+<ul id="recentcomments"><li class="recentcomments"><span class="comment-author-link"><a href="http://weyo.me/" rel="external nofollow" class="url">魏 勇</a></span> on <a href="http://ifeve.com/flink/comment-page-1/#comment-27859">《Flink官方文档》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link">加多</span> on <a href="http://ifeve.com/jdk%e5%8a%a8%e6%80%81%e4%bb%a3%e7%90%86%e4%bb%a3%e7%90%86%e4%b8%8ecglib%e4%bb%a3%e7%90%86%e5%8e%9f%e7%90%86%e6%8e%a2%e7%a9%b6/comment-page-1/#comment-27857">JDK动态代理代理与Cglib代理原理探究</a></li><li class="recentcomments"><span class="comment-author-link">reed7</span> on <a href="http://ifeve.com/java-jigsaw/comment-page-1/#comment-27856">《JAVA模块化系统》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link">Subfire</span> on <a href="http://ifeve.com/static-factory-methods-vs-traditional-constructors/comment-page-1/#comment-27855">静态工厂方法VS构造器</a></li><li class="recentcomments"><span class="comment-author-link">reed7</span> on <a href="http://ifeve.com/java-jigsaw/comment-page-1/#comment-27854">《JAVA模块化系统》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link">volshell</span> on <a href="http://ifeve.com/introduce-abstractqueuedsynchronizer/comment-page-1/#comment-27853">AbstractQueuedSynchronizer的介绍和原理分析</a></li><li class="recentcomments"><span class="comment-author-link">volshell</span> on <a href="http://ifeve.com/introduce-abstractqueuedsynchronizer/comment-page-1/#comment-27852">AbstractQueuedSynchronizer的介绍和原理分析</a></li><li class="recentcomments"><span class="comment-author-link">reed7</span> on <a href="http://ifeve.com/java-jigsaw/comment-page-1/#comment-27851">《JAVA模块化系统》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link">杨忠洋</span> on <a href="http://ifeve.com/basic-thread-synchronization-6/comment-page-1/#comment-27850">基本线程同步（六）使用读/写锁同步数据访问</a></li><li class="recentcomments"><span class="comment-author-link">青峰</span> on <a href="http://ifeve.com/classloader%e8%a7%a3%e6%83%91/comment-page-1/#comment-27849">ClassLoader解惑</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.wiloon.com/wordpress/?p=8475" rel="external nofollow" class="url">Java CAS 实现 – w1100n</a></span> on <a href="http://ifeve.com/atomic-operation/comment-page-1/#comment-27847">聊聊并发（五）原子操作的实现原理</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.carvendy.com/" rel="external nofollow" class="url">魔术师Carvendy</a></span> on <a href="http://ifeve.com/%e5%b8%b8%e7%94%a8%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6%e6%89%a9%e5%b1%95%e6%b8%85%e5%8d%95%e4%b9%8b%e5%8e%9f%e7%90%86/comment-page-1/#comment-27846">常用开源框架扩展清单之原理</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.carvendy.com/" rel="external nofollow" class="url">魔术师Carvendy</a></span> on <a href="http://ifeve.com/java-jigsaw/comment-page-1/#comment-27845">《JAVA模块化系统》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.carvendy.com/" rel="external nofollow" class="url">魔术师Carvendy</a></span> on <a href="http://ifeve.com/java-jigsaw/comment-page-1/#comment-27844">《JAVA模块化系统》翻译邀请</a></li><li class="recentcomments"><span class="comment-author-link">悟空的毛毛</span> on <a href="http://ifeve.com/java-7-concurrency-cookbook/comment-page-1/#comment-27837">Java 7 并发编程指南中文版</a></li><li class="recentcomments"><span class="comment-author-link">frinds</span> on <a href="http://ifeve.com/need-you/comment-page-1/#comment-27836">2017并发网招募主编和译者</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.carvendy.com/" rel="external nofollow" class="url">魔术师Carvendy</a></span> on <a href="http://ifeve.com/%e9%ab%98%e5%b9%b6%e5%8f%91%e7%bc%96%e7%a8%8b%e5%bf%85%e5%a4%87%e5%9f%ba%e7%a1%80/comment-page-1/#comment-27835">高并发编程必备基础</a></li><li class="recentcomments"><span class="comment-author-link">加多</span> on <a href="http://ifeve.com/%e5%b8%b8%e7%94%a8%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6%e6%89%a9%e5%b1%95%e6%b8%85%e5%8d%95%e4%b9%8b%e5%8e%9f%e7%90%86/comment-page-1/#comment-27833">常用开源框架扩展清单之原理</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://www.carvendy.com/" rel="external nofollow" class="url">魔术师Carvendy</a></span> on <a href="http://ifeve.com/%e5%b8%b8%e7%94%a8%e5%bc%80%e6%ba%90%e6%a1%86%e6%9e%b6%e6%89%a9%e5%b1%95%e6%b8%85%e5%8d%95%e4%b9%8b%e5%8e%9f%e7%90%86/comment-page-1/#comment-27832">常用开源框架扩展清单之原理</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://open2me.com/2017/05/26/%e8%81%8a%e8%81%8a%e5%b9%b6%e5%8f%91%ef%bc%88%e4%ba%8c%ef%bc%89java-se1-6%e4%b8%ad%e7%9a%84synchronized/" rel="external nofollow" class="url">聊聊并发（二）Java SE1.6中的Synchronized | 编程之美</a></span> on <a href="http://ifeve.com/java-synchronized/comment-page-1/#comment-27831">聊聊并发（二）Java SE1.6中的Synchronized</a></li></ul></div>
+<div class="side_box widget_tag_cloud" id="tag_cloud-4">
+<h3 class="side_title">Tags</h3>
+<div class="tagcloud"><a href="http://ifeve.com/tag/actor/" class="tag-cloud-link tag-link-226 tag-link-position-1" style="font-size: 12.710280373832pt;" aria-label="actor (17 items)">actor</a>
+<a href="http://ifeve.com/tag/basic/" class="tag-cloud-link tag-link-213 tag-link-position-2" style="font-size: 11.663551401869pt;" aria-label="Basic (14 items)">Basic</a>
+<a href="http://ifeve.com/tag/book/" class="tag-cloud-link tag-link-243 tag-link-position-3" style="font-size: 8pt;" aria-label="book (7 items)">book</a>
+<a href="http://ifeve.com/tag/classes/" class="tag-cloud-link tag-link-251 tag-link-position-4" style="font-size: 8.6542056074766pt;" aria-label="classes (8 items)">classes</a>
+<a href="http://ifeve.com/tag/collections/" class="tag-cloud-link tag-link-260 tag-link-position-5" style="font-size: 10.355140186916pt;" aria-label="collections (11 items)">collections</a>
+<a href="http://ifeve.com/tag/concurrency/" class="tag-cloud-link tag-link-111 tag-link-position-6" style="font-size: 20.560747663551pt;" aria-label="concurrency (71 items)">concurrency</a>
+<a href="http://ifeve.com/tag/concurrent/" class="tag-cloud-link tag-link-214 tag-link-position-7" style="font-size: 10.747663551402pt;" aria-label="Concurrent (12 items)">Concurrent</a>
+<a href="http://ifeve.com/tag/concurrent-data-structure/" class="tag-cloud-link tag-link-322 tag-link-position-8" style="font-size: 11.271028037383pt;" aria-label="concurrent data structure (13 items)">concurrent data structure</a>
+<a href="http://ifeve.com/tag/customizing/" class="tag-cloud-link tag-link-250 tag-link-position-9" style="font-size: 8.6542056074766pt;" aria-label="Customizing (8 items)">Customizing</a>
+<a href="http://ifeve.com/tag/executor/" class="tag-cloud-link tag-link-177 tag-link-position-10" style="font-size: 13.495327102804pt;" aria-label="Executor (20 items)">Executor</a>
+<a href="http://ifeve.com/tag/executor-framework/" class="tag-cloud-link tag-link-231 tag-link-position-11" style="font-size: 12.710280373832pt;" aria-label="Executor framework (17 items)">Executor framework</a>
+<a href="http://ifeve.com/tag/false-sharing/" class="tag-cloud-link tag-link-119 tag-link-position-12" style="font-size: 8pt;" aria-label="False Sharing (7 items)">False Sharing</a>
+<a href="http://ifeve.com/tag/faq/" class="tag-cloud-link tag-link-39 tag-link-position-13" style="font-size: 11.271028037383pt;" aria-label="faq (13 items)">faq</a>
+<a href="http://ifeve.com/tag/fork/" class="tag-cloud-link tag-link-232 tag-link-position-14" style="font-size: 10.355140186916pt;" aria-label="fork (11 items)">fork</a>
+<a href="http://ifeve.com/tag/forkjoin/" class="tag-cloud-link tag-link-224 tag-link-position-15" style="font-size: 9.3084112149533pt;" aria-label="Fork/Join (9 items)">Fork/Join</a>
+<a href="http://ifeve.com/tag/fork-join/" class="tag-cloud-link tag-link-53 tag-link-position-16" style="font-size: 8.6542056074766pt;" aria-label="fork join (8 items)">fork join</a>
+<a href="http://ifeve.com/tag/framework/" class="tag-cloud-link tag-link-1018 tag-link-position-17" style="font-size: 14.018691588785pt;" aria-label="Framework (22 items)">Framework</a>
+<a href="http://ifeve.com/tag/functional-programming/" class="tag-cloud-link tag-link-460 tag-link-position-18" style="font-size: 9.8317757009346pt;" aria-label="Functional Programming (10 items)">Functional Programming</a>
+<a href="http://ifeve.com/tag/guava/" class="tag-cloud-link tag-link-309 tag-link-position-19" style="font-size: 11.92523364486pt;" aria-label="Guava (15 items)">Guava</a>
+<a href="http://ifeve.com/tag/io/" class="tag-cloud-link tag-link-129 tag-link-position-20" style="font-size: 14.934579439252pt;" aria-label="IO (26 items)">IO</a>
+<a href="http://ifeve.com/tag/java/" class="tag-cloud-link tag-link-1016 tag-link-position-21" style="font-size: 22pt;" aria-label="JAVA (92 items)">JAVA</a>
+<a href="http://ifeve.com/tag/java8/" class="tag-cloud-link tag-link-342 tag-link-position-22" style="font-size: 11.271028037383pt;" aria-label="java8 (13 items)">java8</a>
+<a href="http://ifeve.com/tag/jmm/" class="tag-cloud-link tag-link-31 tag-link-position-23" style="font-size: 15.981308411215pt;" aria-label="jmm (31 items)">jmm</a>
+<a href="http://ifeve.com/tag/join/" class="tag-cloud-link tag-link-233 tag-link-position-24" style="font-size: 10.355140186916pt;" aria-label="join (11 items)">join</a>
+<a href="http://ifeve.com/tag/jvm/" class="tag-cloud-link tag-link-1019 tag-link-position-25" style="font-size: 12.710280373832pt;" aria-label="JVM (17 items)">JVM</a>
+<a href="http://ifeve.com/tag/lock/" class="tag-cloud-link tag-link-17 tag-link-position-26" style="font-size: 14.280373831776pt;" aria-label="lock (23 items)">lock</a>
+<a href="http://ifeve.com/tag/memory-barriers/" class="tag-cloud-link tag-link-75 tag-link-position-27" style="font-size: 9.8317757009346pt;" aria-label="Memory Barriers (10 items)">Memory Barriers</a>
+<a href="http://ifeve.com/tag/netty/" class="tag-cloud-link tag-link-1027 tag-link-position-28" style="font-size: 13.233644859813pt;" aria-label="Netty (19 items)">Netty</a>
+<a href="http://ifeve.com/tag/nio/" class="tag-cloud-link tag-link-1021 tag-link-position-29" style="font-size: 12.317757009346pt;" aria-label="NIO (16 items)">NIO</a>
+<a href="http://ifeve.com/tag/oauth-2-0/" class="tag-cloud-link tag-link-380 tag-link-position-30" style="font-size: 8.6542056074766pt;" aria-label="OAuth 2.0 (8 items)">OAuth 2.0</a>
+<a href="http://ifeve.com/tag/pattern-matching/" class="tag-cloud-link tag-link-167 tag-link-position-31" style="font-size: 8.6542056074766pt;" aria-label="pattern-matching (8 items)">pattern-matching</a>
+<a href="http://ifeve.com/tag/ringbuffer/" class="tag-cloud-link tag-link-91 tag-link-position-32" style="font-size: 8pt;" aria-label="RingBuffer (7 items)">RingBuffer</a>
+<a href="http://ifeve.com/tag/scala/" class="tag-cloud-link tag-link-1023 tag-link-position-33" style="font-size: 14.018691588785pt;" aria-label="Scala (22 items)">Scala</a>
+<a href="http://ifeve.com/tag/slf4j/" class="tag-cloud-link tag-link-813 tag-link-position-34" style="font-size: 8.6542056074766pt;" aria-label="slf4j (8 items)">slf4j</a>
+<a href="http://ifeve.com/tag/spark/" class="tag-cloud-link tag-link-634 tag-link-position-35" style="font-size: 12.710280373832pt;" aria-label="spark (17 items)">spark</a>
+<a href="http://ifeve.com/tag/spark%e5%ae%98%e6%96%b9%e6%96%87%e6%a1%a3/" class="tag-cloud-link tag-link-635 tag-link-position-36" style="font-size: 12.710280373832pt;" aria-label="spark官方文档 (17 items)">spark官方文档</a>
+<a href="http://ifeve.com/tag/stm/" class="tag-cloud-link tag-link-199 tag-link-position-37" style="font-size: 10.747663551402pt;" aria-label="stm (12 items)">stm</a>
+<a href="http://ifeve.com/tag/storm/" class="tag-cloud-link tag-link-351 tag-link-position-38" style="font-size: 17.158878504673pt;" aria-label="Storm (39 items)">Storm</a>
+<a href="http://ifeve.com/tag/synchronization/" class="tag-cloud-link tag-link-216 tag-link-position-39" style="font-size: 11.92523364486pt;" aria-label="synchronization (15 items)">synchronization</a>
+<a href="http://ifeve.com/tag/synchronized/" class="tag-cloud-link tag-link-15 tag-link-position-40" style="font-size: 9.8317757009346pt;" aria-label="Synchronized (10 items)">Synchronized</a>
+<a href="http://ifeve.com/tag/thread/" class="tag-cloud-link tag-link-11 tag-link-position-41" style="font-size: 17.551401869159pt;" aria-label="thread (42 items)">thread</a>
+<a href="http://ifeve.com/tag/tomcat/" class="tag-cloud-link tag-link-347 tag-link-position-42" style="font-size: 8.6542056074766pt;" aria-label="tomcat (8 items)">tomcat</a>
+<a href="http://ifeve.com/tag/volatile/" class="tag-cloud-link tag-link-25 tag-link-position-43" style="font-size: 10.747663551402pt;" aria-label="volatile (12 items)">volatile</a>
+<a href="http://ifeve.com/tag/%e5%a4%9a%e7%ba%bf%e7%a8%8b/" class="tag-cloud-link tag-link-197 tag-link-position-44" style="font-size: 8.6542056074766pt;" aria-label="多线程 (8 items)">多线程</a>
+<a href="http://ifeve.com/tag/%e5%b9%b6%e5%8f%91%e8%af%91%e6%96%87%ef%bc%8cjava-%ef%bc%8cmaven/" class="tag-cloud-link tag-link-1034 tag-link-position-45" style="font-size: 16.11214953271pt;" aria-label="并发译文，Java ，Maven (32 items)">并发译文，Java ，Maven</a></div>
+</div>
+<div class="side_box widget_text" id="text-9">
+			<div class="textwidget"><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script>
+<ins class="adsbygoogle" style="display:inline-block;width:336px;height:280px" data-ad-client="ca-pub-9394337417063147" data-ad-slot="6198104715" data-adsbygoogle-status="done"><ins id="aswift_3_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><ins id="aswift_3_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_3" name="aswift_3" style="left:0;position:absolute;top:0;width:336px;height:280px;" height="280" frameborder="0" width="336"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+</div>
+		</div>
+</div>
+<div id="side_middle" class="clearfix">
+ <div id="side_left">
+  <div class="side_box_short widget_archive" id="archives-2">
+<h3 class="side_title">Archives</h3>
+		<ul>
+			<li><a href="http://ifeve.com/2017/07/">July 2017</a>&nbsp;(16)</li>
+	<li><a href="http://ifeve.com/2017/06/">June 2017</a>&nbsp;(37)</li>
+	<li><a href="http://ifeve.com/2017/05/">May 2017</a>&nbsp;(59)</li>
+	<li><a href="http://ifeve.com/2017/04/">April 2017</a>&nbsp;(17)</li>
+	<li><a href="http://ifeve.com/2017/03/">March 2017</a>&nbsp;(30)</li>
+	<li><a href="http://ifeve.com/2017/02/">February 2017</a>&nbsp;(9)</li>
+	<li><a href="http://ifeve.com/2017/01/">January 2017</a>&nbsp;(7)</li>
+	<li><a href="http://ifeve.com/2016/12/">December 2016</a>&nbsp;(12)</li>
+	<li><a href="http://ifeve.com/2016/11/">November 2016</a>&nbsp;(27)</li>
+	<li><a href="http://ifeve.com/2016/10/">October 2016</a>&nbsp;(16)</li>
+	<li><a href="http://ifeve.com/2016/09/">September 2016</a>&nbsp;(11)</li>
+	<li><a href="http://ifeve.com/2016/08/">August 2016</a>&nbsp;(6)</li>
+	<li><a href="http://ifeve.com/2016/07/">July 2016</a>&nbsp;(9)</li>
+	<li><a href="http://ifeve.com/2016/06/">June 2016</a>&nbsp;(7)</li>
+	<li><a href="http://ifeve.com/2016/05/">May 2016</a>&nbsp;(20)</li>
+	<li><a href="http://ifeve.com/2016/04/">April 2016</a>&nbsp;(28)</li>
+	<li><a href="http://ifeve.com/2016/03/">March 2016</a>&nbsp;(8)</li>
+	<li><a href="http://ifeve.com/2016/02/">February 2016</a>&nbsp;(7)</li>
+	<li><a href="http://ifeve.com/2016/01/">January 2016</a>&nbsp;(10)</li>
+	<li><a href="http://ifeve.com/2015/12/">December 2015</a>&nbsp;(15)</li>
+	<li><a href="http://ifeve.com/2015/11/">November 2015</a>&nbsp;(24)</li>
+	<li><a href="http://ifeve.com/2015/10/">October 2015</a>&nbsp;(17)</li>
+	<li><a href="http://ifeve.com/2015/09/">September 2015</a>&nbsp;(29)</li>
+	<li><a href="http://ifeve.com/2015/08/">August 2015</a>&nbsp;(44)</li>
+	<li><a href="http://ifeve.com/2015/07/">July 2015</a>&nbsp;(20)</li>
+	<li><a href="http://ifeve.com/2015/06/">June 2015</a>&nbsp;(21)</li>
+	<li><a href="http://ifeve.com/2015/05/">May 2015</a>&nbsp;(15)</li>
+	<li><a href="http://ifeve.com/2015/04/">April 2015</a>&nbsp;(27)</li>
+	<li><a href="http://ifeve.com/2015/03/">March 2015</a>&nbsp;(13)</li>
+	<li><a href="http://ifeve.com/2015/02/">February 2015</a>&nbsp;(11)</li>
+	<li><a href="http://ifeve.com/2015/01/">January 2015</a>&nbsp;(13)</li>
+	<li><a href="http://ifeve.com/2014/12/">December 2014</a>&nbsp;(26)</li>
+	<li><a href="http://ifeve.com/2014/11/">November 2014</a>&nbsp;(61)</li>
+	<li><a href="http://ifeve.com/2014/10/">October 2014</a>&nbsp;(33)</li>
+	<li><a href="http://ifeve.com/2014/09/">September 2014</a>&nbsp;(47)</li>
+	<li><a href="http://ifeve.com/2014/08/">August 2014</a>&nbsp;(27)</li>
+	<li><a href="http://ifeve.com/2014/07/">July 2014</a>&nbsp;(13)</li>
+	<li><a href="http://ifeve.com/2014/06/">June 2014</a>&nbsp;(32)</li>
+	<li><a href="http://ifeve.com/2014/05/">May 2014</a>&nbsp;(45)</li>
+	<li><a href="http://ifeve.com/2014/04/">April 2014</a>&nbsp;(41)</li>
+	<li><a href="http://ifeve.com/2014/03/">March 2014</a>&nbsp;(34)</li>
+	<li><a href="http://ifeve.com/2014/02/">February 2014</a>&nbsp;(38)</li>
+	<li><a href="http://ifeve.com/2014/01/">January 2014</a>&nbsp;(19)</li>
+	<li><a href="http://ifeve.com/2013/12/">December 2013</a>&nbsp;(10)</li>
+	<li><a href="http://ifeve.com/2013/11/">November 2013</a>&nbsp;(4)</li>
+	<li><a href="http://ifeve.com/2013/10/">October 2013</a>&nbsp;(20)</li>
+	<li><a href="http://ifeve.com/2013/09/">September 2013</a>&nbsp;(38)</li>
+	<li><a href="http://ifeve.com/2013/08/">August 2013</a>&nbsp;(48)</li>
+	<li><a href="http://ifeve.com/2013/07/">July 2013</a>&nbsp;(26)</li>
+	<li><a href="http://ifeve.com/2013/06/">June 2013</a>&nbsp;(16)</li>
+	<li><a href="http://ifeve.com/2013/05/">May 2013</a>&nbsp;(9)</li>
+	<li><a href="http://ifeve.com/2013/04/">April 2013</a>&nbsp;(17)</li>
+	<li><a href="http://ifeve.com/2013/03/">March 2013</a>&nbsp;(41)</li>
+	<li><a href="http://ifeve.com/2013/02/">February 2013</a>&nbsp;(25)</li>
+	<li><a href="http://ifeve.com/2013/01/">January 2013</a>&nbsp;(57)</li>
+	<li><a href="http://ifeve.com/2012/12/">December 2012</a>&nbsp;(9)</li>
+	<li><a href="http://ifeve.com/2012/10/">October 2012</a>&nbsp;(1)</li>
+	<li><a href="http://ifeve.com/2012/08/">August 2012</a>&nbsp;(1)</li>
+		</ul>
+		</div>
+ </div>
+ <div id="side_right">
+  <div class="side_box_short widget_links" id="linkcat-2">
+<h3 class="side_title">友情链接</h3>
+
+	<ul class="xoxo blogroll">
+<li><a href="http://coolshell.cn/" rel="co-worker" target="_blank">coolshell</a></li>
+<li><a href="http://blog.91gaoqing.com/" target="_blank">Programer. 大猫</a></li>
+<li><a href="http://hugozhu.myalert.info/" rel="co-worker" target="_blank">一粟的博客</a></li>
+<li><a href="http://blog.csdn.net/cutesource/" rel="acquaintance co-worker" target="_blank">志俊的博客</a></li>
+<li><a href="http://www.zuidaima.com/">最代码</a></li>
+<li><a href="http://diandianzhe.com/">点点折</a></li>
+<li><a href="http://www.656463.com/">领悟书生</a></li>
+
+	</ul>
+</div>
+
+<div class="side_box_short widget_categories" id="categories-2">
+<h3 class="side_title">Categories</h3>
+		<ul>
+	<li class="cat-item cat-item-387"><a href="http://ifeve.com/category/framework/akka/">akka</a> (20)
+</li>
+	<li class="cat-item cat-item-415"><a href="http://ifeve.com/category/android/">Android</a> (3)
+</li>
+	<li class="cat-item cat-item-289"><a href="http://ifeve.com/category/c/">C++</a> (12)
+</li>
+	<li class="cat-item cat-item-366"><a href="http://ifeve.com/category/cpu-2/">CPU</a> (2)
+</li>
+	<li class="cat-item cat-item-73"><a href="http://ifeve.com/category/framework/">Framework</a> (52)
+</li>
+	<li class="cat-item cat-item-458"><a href="http://ifeve.com/category/go/">GO</a> (6)
+</li>
+	<li class="cat-item cat-item-617"><a href="http://ifeve.com/category/groovy/">groovy</a> (6)
+</li>
+	<li class="cat-item cat-item-310"><a href="http://ifeve.com/category/guava-2/">guava</a> (23)
+</li>
+	<li class="cat-item cat-item-69"><a href="http://ifeve.com/category/java/">JAVA</a> (677)
+</li>
+	<li class="cat-item cat-item-127"><a href="http://ifeve.com/category/jvm/">JVM</a> (37)
+</li>
+	<li class="cat-item cat-item-300"><a href="http://ifeve.com/category/linux/">linux</a> (8)
+</li>
+	<li class="cat-item cat-item-280"><a href="http://ifeve.com/category/netty/">Netty</a> (31)
+</li>
+	<li class="cat-item cat-item-632"><a href="http://ifeve.com/category/react/">react</a> (6)
+</li>
+	<li class="cat-item cat-item-623"><a href="http://ifeve.com/category/redis/">redis</a> (21)
+</li>
+	<li class="cat-item cat-item-166"><a href="http://ifeve.com/category/scala/">Scala</a> (11)
+</li>
+	<li class="cat-item cat-item-672"><a href="http://ifeve.com/category/spark/">spark</a> (19)
+</li>
+	<li class="cat-item cat-item-1011"><a href="http://ifeve.com/category/spring/">Spring</a> (13)
+</li>
+	<li class="cat-item cat-item-388"><a href="http://ifeve.com/category/storm/">storm</a> (44)
+</li>
+	<li class="cat-item cat-item-620"><a href="http://ifeve.com/category/thinking/">thinking</a> (3)
+</li>
+	<li class="cat-item cat-item-485"><a href="http://ifeve.com/category/velocity/">Velocity</a> (10)
+</li>
+	<li class="cat-item cat-item-279"><a href="http://ifeve.com/category/web/">Web</a> (18)
+</li>
+	<li class="cat-item cat-item-980"><a href="http://ifeve.com/category/zookeeper/">zookeeper</a> (1)
+</li>
+	<li class="cat-item cat-item-148"><a href="http://ifeve.com/category/notice/">公告</a> (5)
+</li>
+	<li class="cat-item cat-item-378"><a href="http://ifeve.com/category/bigdata/">大数据</a> (33)
+</li>
+	<li class="cat-item cat-item-138"><a href="http://ifeve.com/category/%e5%a5%bd%e6%96%87%e6%8e%a8%e8%8d%90/">好文推荐</a> (31)
+</li>
+	<li class="cat-item cat-item-244"><a href="http://ifeve.com/category/%e5%b9%b6%e5%8f%91%e4%b9%a6%e7%b1%8d/">并发书籍</a> (96)
+</li>
+	<li class="cat-item cat-item-29"><a href="http://ifeve.com/category/concurrency-translation/" title="发布国外并发编程相关文献译文。">并发译文</a> (391)
+</li>
+	<li class="cat-item cat-item-979"><a href="http://ifeve.com/category/%e6%84%9f%e6%82%9f/">感悟</a> (3)
+</li>
+	<li class="cat-item cat-item-7"><a href="http://ifeve.com/category/ask/" title="可以在这里发表并发编程的问题。如何发表？用QQ登陆，然后点击“新建文章”，管理员审核后就可以发表。">技术问答</a> (12)
+</li>
+	<li class="cat-item cat-item-147"><a href="http://ifeve.com/category/%e6%95%8f%e6%8d%b7%e7%ae%a1%e7%90%86/">敏捷管理</a> (6)
+</li>
+	<li class="cat-item cat-item-1"><a href="http://ifeve.com/category/talk-concurrent/">本站原创</a> (84)
+</li>
+	<li class="cat-item cat-item-367"><a href="http://ifeve.com/category/%e6%9e%b6%e6%9e%84/">架构</a> (28)
+</li>
+	<li class="cat-item cat-item-305"><a href="http://ifeve.com/category/%e6%b4%bb%e5%8a%a8/">活动</a> (6)
+</li>
+	<li class="cat-item cat-item-414"><a href="http://ifeve.com/category/%e7%bd%91%e7%bb%9c/">网络</a> (6)
+</li>
+		</ul>
+</div>
+ </div>
+</div>
+<div id="side_bottom">
+ <div class="side_box widget_text" id="text-15">
+			<div class="textwidget"><script async="" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/adsbygoogle.js"></script>
+<!-- 摩天大楼 -->
+<ins class="adsbygoogle" style="display:inline-block;width:300px;height:600px" data-ad-client="ca-pub-9394337417063147" data-ad-slot="6358703113" data-adsbygoogle-status="done"><ins id="aswift_4_expand" style="display:inline-table;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent"><ins id="aswift_4_anchor" style="display:block;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_4" name="aswift_4" style="left:0;position:absolute;top:0;width:300px;height:600px;" height="600" frameborder="0" width="300"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<!-- 
+<script type="text/javascript">
+    /*自适应 创建于 June 30, 2016*/
+    var cpro_id = "u2690738";
+
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/i.js"></script>
+ -->
+
+<!-- CNZZ -->
+<script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/stat.php" language="JavaScript"></script><script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/core.php" charset="utf-8" type="text/javascript"></script><a href="http://www.cnzz.com/stat/website.php?web_id=5003572" target="_blank" title="站长统计"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/pic.gif" border="0" hspace="0" vspace="0"></a>
+</div>
+		</div>
+</div>
+
+  </div>
+  
+  <div id="footer">
+
+<ul id="copyright">
+    <li>Copyright ©&nbsp; <a href="http://ifeve.com/">并发编程网 – ifeve.com</a></li>
+    <li>ICP号: <a href="http://www.miibeian.gov.cn/" target="_blank">浙ICP备12046809号</a></li>
+ <li>	
+<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602005873" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;"><img src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/a_006.html" style="float:left;">浙公网安备 33010602005873号</a></li>
+   </ul>
+		 
+		 
+
+ </div>
+
+	
+ </div><!-- END #main_content -->
+
+  <p id="return_top"><a href="#header">return top</a></p>
+ 
+<link rel="stylesheet" id="yarppRelatedCss-css" href="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/related.css" type="text/css" media="all">
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/comment-reply.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var ratingsL10n = {"plugin_url":"http:\/\/ifeve.com\/wp-content\/plugins\/wp-postratings","ajax_url":"http:\/\/ifeve.com\/wp-admin\/admin-ajax.php","text_wait":"Please rate only 1 item at a time.","image":"stars_crystal","image_ext":"gif","max":"5","show_loading":"1","show_fading":"1","custom":"0"};
+var ratings_mouseover_image=new Image();ratings_mouseover_image.src="http://ifeve.com/wp-content/plugins/wp-postratings/images/stars_crystal/rating_over.gif";;
+/* ]]> */
+</script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/postratings-js.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var viewsCacheL10n = {"admin_ajax_url":"http:\/\/ifeve.com\/wp-admin\/admin-ajax.php","post_id":"2976"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/postviews-cache.js"></script>
+<script type="text/javascript" src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/wp-embed.js"></script>
+
+
+
+<script src="%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%88%E5%9B%9B%EF%BC%89%E2%80%94%E2%80%94volatile%20%7C%20%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E7%BD%91%20%E2%80%93%20ifeve.com_files/jquery.html"></script></body></html>

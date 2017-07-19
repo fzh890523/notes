@@ -1,0 +1,657 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱 - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="开个帖大家来讨论下自己遇到过的情况吧？我在顶楼举几个例子。 开这帖的目的是想让大家了解到，所谓“标准参数”是件很微妙的事情。确实有许多前辈经过多年开发积累下了许多有用的调优经验，但向他们问“标准参数”并照单全收是件危险的事情。 前辈们提供的“标准参数”或许适用于他们的应用场景，他们或许也知道这些参数里隐含的陷阱；但听众却不一定知道各种参数背后的缘由。 原则上说，在生产环境使用非标准参数（这里指的是在 ..." />
+    <meta name="keywords" content="[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670872" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://rednaxelafx.iteye.com" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/27945/post/new">发表回复</a></div>
+  <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/group/topic/27945?page=2" rel="next">2</a> <a href="/group/topic/27945?page=3">3</a> <a href="/group/topic/27945?page=2" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/27945">[HotSpot VM] JVM调优的&quot;标准参数&quot;的各种陷阱</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-201984">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-10-23
+    </div>
+    <div class="post_body"> 
+      开个帖大家来讨论下自己遇到过的情况吧？我在顶楼举几个例子。<br /><br />开这帖的目的是想让大家了解到，所谓“标准参数”是件很微妙的事情。确实有许多前辈经过多年开发积累下了许多有用的调优经验，但向他们问“标准参数”并照单全收是件危险的事情。<br /><br />前辈们提供的“标准参数”或许适用于他们的应用场景，他们或许也知道这些参数里隐含的陷阱；但听众却不一定知道各种参数背后的缘由。<br /><br />原则上说，在生产环境使用非标准参数（这里指的是在各JDK/JRE实现特有的、相互之间不通用的参数）应该尽量避免。这些参数与具体实现密切相关，不是光了解很抽象的“JVM原理”就足以理解的；即便在同一系列的JDK/JRE实现中，非标准参数也不保证在各版本间有一样的作用；而且许多人只看名字就猜想参数的左右，做“调优”却适得其反。<br /><br />非标准参数的默认值在不同版本间或许会悄然发生变化。这些变化的背后多半有合理的理由。设了一大堆非标准参数、不明就里的同学在升级JDK/JRE的时候也容易掉坑里。<br /><br />下面用<strong><span style="color: darkred;">Oracle/Sun JDK 6</span></strong>来举几个例子。这帖顶楼里的讨论如果没明确指出JDK版本的都是指Oracle/Sun JDK 6（OpenJDK 6也可以算在内）。<br />经验不一定适用于Sun JDK 1.4.2、Sun JDK 5、Oracle JDK 7。<br /><br />更新：之前用.hotspotrc和.hotspot_compiler参数来配置HotSpot VM的默认参数的同学们留意：在较新版本的Oracle JDK6/7/8上需要显式用-XX:Flags=.hotspotrc与-XX:CompileCommandFile=.hotspot_compiler才可以使用这俩配置文件，否则会忽略它们。<br /><br />======================================================================<br /><br />0、各参数的默认值<br /><br />在讨论HotSpot VM的各参数的陷阱前，大家应该先了解HotSpot VM到底有哪些参数可以设置，这些参数的默认值都是什么。<br /><br />有几种办法可以帮助大家获取参数的信息。首先为了大致了解都有些什么参数可以设置，可以参考HotSpot VM里的各个globals.hpp文件：（以下链接取自HotSpot 20.0，与JDK 6 update 25对应）<br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/runtime/globals.hpp">globals.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/runtime/globals_extension.hpp">globals_extension.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/c1/c1_globals.hpp">c1_globals.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/linux/vm/c1_globals_linux.hpp">c1_globals_linux.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/solaris/vm/c1_globals_solaris.hpp">c1_globals_solaris.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/sparc/vm/c1_globals_sparc.hpp">c1_globals_sparc.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/windows/vm/c1_globals_windows.hpp">c1_globals_windows.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/x86/vm/c1_globals_x86.hpp">c1_globals_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/opto/c2_globals.hpp">c2_globals.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/linux/vm/c2_globals_linux.hpp">c2_globals_linux.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/solaris/vm/c2_globals_solaris.hpp">c2_globals_solaris.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/sparc/vm/c2_globals_sparc.hpp">c2_globals_sparc.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/windows/vm/c2_globals_windows.hpp">c2_globals_windows.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/x86/vm/c2_globals_x86.hpp">c2_globals_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/gc_implementation/g1/g1_globals.hpp">g1_globals.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/linux/vm/globals_linux.hpp">globals_linux.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/linux_sparc/vm/globals_linux_sparc.hpp">globals_linux_sparc.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/linux_x86/vm/globals_linux_x86.hpp">globals_linux_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/linux_zero/vm/globals_linux_zero.hpp">globals_linux_zero.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/solaris/vm/globals_solaris.hpp">globals_solaris.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/solaris_sparc/vm/globals_solaris_sparc.hpp">globals_solaris_sparc.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/solaris_x86/vm/globals_solaris_x86.hpp">globals_solaris_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/sparc/vm/globals_sparc.hpp">globals_sparc.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os/windows/vm/globals_windows.hpp">globals_windows.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/os_cpu/windows_x86/vm/globals_windows_x86.hpp">globals_windows_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/x86/vm/globals_x86.hpp">globals_x86.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/zero/vm/globals_zero.hpp">globals_zero.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/shark/shark_globals.hpp">shark_globals.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/cpu/zero/vm/shark_globals_zero.hpp">shark_globals_zero.hpp</a><br /><a target="_blank" href="http://hg.openjdk.java.net/hsx/hsx20/master/file/f0f676c5a2c6/src/share/vm/runtime/arguments.cpp">arguments.cpp</a><br /><br />然后是 <strong>-XX:+PrintCommandLineFlags</strong> 。这个参数的作用是显示出VM初始化完毕后所有跟最初的默认值不同的参数及它们的值。<br />这个参数至少在Sun JDK 5上已经开始支持，Oracle/Sun JDK 6以及Oracle JDK 7上也可以使用。Sun JDK 1.4.2还不支持这个参数。<br />例子：<br /><pre class="command prompt" name="code">$ java -XX:+PrintCommandLineFlags
+VM option '+PrintCommandLineFlags'
+-XX:InitialHeapSize=57344000 -XX:MaxHeapSize=917504000 -XX:ParallelGCThreads=4 -XX:+PrintCommandLineFlags -XX:+UseCompressedOops -XX:+UseParallelGC </pre><br /><a target="_blank" href="http://book.douban.com/annotation/15146892/">《Java Performance》一书</a>主要是用这个参数来介绍HotSpot VM各参数的效果的。<br /><br />接着是 <strong>-XX:+PrintFlagsFinal</strong> 。前一个参数只显示跟默认值不同的，而这个参数则可以显示所有可设置的参数及它们的值。不过<span style="color: red;">这个参数本身只从JDK 6 update 21开始才可以用</span>，之前的Oracle/Sun JDK则用不了。<br />可以设置的参数默认是不包括diagnostic或experimental系的。要在-XX:+PrintFlagsFinal的输出里看到这两种参数的信息，分别需要显式指定<strong>-XX:+UnlockDiagnosticVMOptions</strong> / <strong>-XX:+UnlockExperimentalVMOptions</strong> 。<br /><br />再下来，<strong>-XX:+PrintFlagsInitial</strong> 。这个参数显示在处理参数之前所有可设置的参数及它们的值，<span style="color: red;">然后直接退出程序</span>。“参数处理”包括许多步骤，例如说检查参数之间是否有冲突，通过ergonomics调整某些参数的值，之类的。<br />结合-XX:+PrintFlagsInitial与-XX:+PrintFlagsFinal，对比两者的差异，就可以知道ergonomics对哪些参数做了怎样的调整。<br />这两个参数的例子：<br /><pre class="command prompt" name="code">$ java -version
+java version "1.6.0_29"
+Java(TM) SE Runtime Environment (build 1.6.0_29-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 20.4-b02, mixed mode)
+$ java -XX:+PrintFlagsInitial | grep UseCompressedOops
+     bool UseCompressedOops                         = false           {lp64_product}      
+$ java -XX:+PrintFlagsFinal | grep UseCompressedOops
+     bool UseCompressedOops                        := true            {lp64_product}      </pre><br /><a target="_blank" href="http://rednaxelafx.iteye.com/blog/1010079">Oracle/Sun JDK 6从update 23开始会由ergonomics在合适的条件下默认启用压缩指针功能</a>。这个例子演示的是UseCompressedOops的初始默认值是false，由PrintFlagsInitial的输出可以看到；然后经过ergonomics自动调整后，最终采用的默认值是true，由PrintFlagsFinal的输出可以看到。<br />输出里“=”表示使用的是初始默认值，而“:=”表示使用的不是初始默认值，可能是命令行传进来的参数、配置文件里的参数或者是ergonomics自动选择了别的值。<br /><br /><br />除了在VM启动时传些特殊的参数让它打印出自己的各参数外，<strong>jinfo -flag</strong> 可以用来查看某个参数的值，也可以用来设定manageable系参数的值。请参考这帖的例子：<a target="_blank" href="http://rednaxelafx.iteye.com/blog/1049240">通过jinfo工具在full GC前后做heap dump</a><br /><br />之前发过<a target="_blank" href="http://rednaxelafx.iteye.com/blog/906807">某些环境中HotSpot VM的各参数的默认值</a>，可以参考一下。<br /><br />======================================================================<br /><br />1、-XX:+DisableExplicitGC 与 NIO的direct memory<br /><br />很多人都见过JVM调优建议里使用这个参数，对吧？但是为什么要用它，什么时候应该用而什么时候用了会掉坑里呢？<br /><br />首先要了解的是这个参数的作用。在Oracle/Sun JDK这个具体实现上，System.gc()的默认效果是引发一次stop-the-world的full GC，对整个GC堆做收集。有几个参数可以改变默认行为，之前<a target="_blank" href="http://rednaxelafx.iteye.com/blog/1042471">发过一帖简单描述</a>过，这里就不重复了。关键点是，用了-XX:+DisableExplicitGC参数后，System.gc()的调用就会变成一个空调用，完全不会触发任何GC（但是“函数调用”本身的开销还是存在的哦～）。<br /><br />为啥要用这个参数呢？最主要的原因是为了防止某些手贱的同学在代码里到处写System.gc()的调用而干扰了程序的正常运行吧。有些应用程序本来可能正常跑一天也不会出一次full GC，但就是因为有人在代码里调用了System.gc()而不得不间歇性被暂停。也有些时候这些调用是在某些库或框架里写的，改不了它们的代码但又不想被这些调用干扰也会用这参数。<br /><br />OK。看起来这参数应该总是开着嘛。有啥坑呢？<br /><br />其中一种情况是下述三个条件同时满足时会发生的：<br /><span style="color: red;">1、应用本身在GC堆内的对象行为良好，正常情况下很久都不发生full GC；<br />2、应用大量使用了NIO的direct memory，经常、反复的申请DirectByteBuffer<br />3、使用了-XX:+DisableExplicitGC</span><br />能观察到的现象是：<br /><pre class="log" name="code">java.lang.OutOfMemoryError: Direct buffer memory
+	at java.nio.Bits.reserveMemory(Bits.java:633)
+	at java.nio.DirectByteBuffer.&lt;init&gt;(DirectByteBuffer.java:98)
+	at java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:288)
+...</pre><br /><br />做个简单的例子来演示这现象：<br /><pre class="java" name="code">import java.nio.*;
+
+public class DisableExplicitGCDemo {
+  public static void main(String[] args) {
+    for (int i = 0; i &lt; 100000; i++) {
+      ByteBuffer.allocateDirect(128);
+    }
+    System.out.println("Done");
+  }
+}
+</pre><br />然后编译、运行之：<br /><pre class="command prompt" name="code">$ java -version
+java version "1.6.0_25"
+Java(TM) SE Runtime Environment (build 1.6.0_25-b06)
+Java HotSpot(TM) 64-Bit Server VM (build 20.0-b11, mixed mode)
+$ javac DisableExplicitGCDemo.java 
+$ java -XX:MaxDirectMemorySize=10m -XX:+PrintGC -XX:+DisableExplicitGC DisableExplicitGCDemo
+Exception in thread "main" java.lang.OutOfMemoryError: Direct buffer memory
+	at java.nio.Bits.reserveMemory(Bits.java:633)
+	at java.nio.DirectByteBuffer.&lt;init&gt;(DirectByteBuffer.java:98)
+	at java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:288)
+	at DisableExplicitGCDemo.main(DisableExplicitGCDemo.java:6)
+$ java -XX:MaxDirectMemorySize=10m -XX:+PrintGC DisableExplicitGCDemo
+[GC 10996K-&gt;10480K(120704K), 0.0433980 secs]
+[Full GC 10480K-&gt;10415K(120704K), 0.0359420 secs]
+Done
+</pre><br />可以看到，同样的程序，不带-XX:+DisableExplicitGC时能正常完成运行，而带上这个参数后却出现了OOM。<br />例子里用-XX:MaxDirectMemorySize=10m限制了DirectByteBuffer能分配的空间的限额，以便问题更容易展现出来。不用这个参数就得多跑一会儿了。<br /><br />在这个例子里，main()里的循环不断申请DirectByteBuffer但并没有引用、使用它们，所以这些DirectByteBuffer应该刚创建出来就已经满足被GC的条件，等下次GC运行的时候就应该可以被回收。<br /><br />实际上却没这么简单。DirectByteBuffer是种典型的“冰山”对象，也就是说它的Java对象虽然很小很无辜，但它背后却会关联着一定量的native memory资源，而这些资源并不在GC的控制之下，需要自己注意控制好。对JVM如何使用native memory不熟悉的同学可以参考去年JavaOne上IBM的一个演讲，“Where Does All the Native Memory Go”。<br /><br />Oracle/Sun JDK的实现里，DirectByteBuffer有几处值得注意的地方。<br />1、DirectByteBuffer没有finalizer，它的native memory的清理工作是通过sun.misc.Cleaner自动完成的。<br /><br />2、sun.misc.Cleaner是一种基于PhantomReference的清理工具，比普通的finalizer轻量些。对PhantomReference不熟悉的同学请参考Bob Lee最近几年在JavaOne上做的演讲，<a target="_blank" href="http://www.parleys.com/d/2657">"The Ghost in the Virtual Machine: A Reference to References"</a>。<a target="_blank" href="https://oracleus.wingateweb.com/scheduler/eventcatalog/eventCatalogJavaOne.do">今年的JavaOne</a>上他也讲了同一个主题，内容比前几年的稍微更新了些。PPT可以从链接里的页面下载到。<br /><pre class="java" name="code">/**
+ * General-purpose phantom-reference-based cleaners.
+ *
+ * &lt;p&gt; Cleaners are a lightweight and more robust alternative to finalization.
+ * They are lightweight because they are not created by the VM and thus do not
+ * require a JNI upcall to be created, and because their cleanup code is
+ * invoked directly by the reference-handler thread rather than by the
+ * finalizer thread.  They are more robust because they use phantom references,
+ * the weakest type of reference object, thereby avoiding the nasty ordering
+ * problems inherent to finalization.
+ *
+ * &lt;p&gt; A cleaner tracks a referent object and encapsulates a thunk of arbitrary
+ * cleanup code.  Some time after the GC detects that a cleaner's referent has
+ * become phantom-reachable, the reference-handler thread will run the cleaner.
+ * Cleaners may also be invoked directly; they are thread safe and ensure that
+ * they run their thunks at most once.
+ *
+ * &lt;p&gt; Cleaners are not a replacement for finalization.  They should be used
+ * only when the cleanup code is extremely simple and straightforward.
+ * Nontrivial cleaners are inadvisable since they risk blocking the
+ * reference-handler thread and delaying further cleanup and finalization.
+ *
+ *
+ * @author Mark Reinhold
+ * @version %I%, %E%
+ */</pre><br />重点是这两句："A cleaner tracks a referent object and encapsulates a thunk of arbitrary cleanup code.&nbsp; Some time after the GC detects that a cleaner's referent has become phantom-reachable, the reference-handler thread will run the cleaner."<br />Oracle/Sun JDK 6中的HotSpot VM只会在old gen GC（full GC/major GC或者concurrent GC都算）的时候才会对old gen中的对象做reference processing，而在young GC/minor GC时只会对young gen里的对象做reference processing。<br />（死在young gen中的DirectByteBuffer对象会在young GC时被处理的例子，请参考这里：<a target="_blank" href="https://gist.github.com/1614952">https://gist.github.com/1614952</a>）<br />也就是说，做full GC的话会对old gen做reference processing，进而能触发Cleaner对已死的DirectByteBuffer对象做清理工作。而如果很长一段时间里没做过GC或者只做了young GC的话则不会在old gen触发Cleaner的工作，那么就可能让本来已经死了的、但已经晋升到old gen的DirectByteBuffer关联的native memory得不到及时释放。<br /><br />3、为DirectByteBuffer分配空间过程中会显式调用System.gc()，以期通过full GC来强迫已经无用的DirectByteBuffer对象释放掉它们关联的native memory：<br /><pre class="java" name="code">// These methods should be called whenever direct memory is allocated or
+// freed.  They allow the user to control the amount of direct memory
+// which a process may access.  All sizes are specified in bytes.
+static void reserveMemory(long size) {
+
+    synchronized (Bits.class) {
+        if (!memoryLimitSet &amp;&amp; VM.isBooted()) {
+            maxMemory = VM.maxDirectMemory();
+            memoryLimitSet = true;
+        }
+        if (size &lt;= maxMemory - reservedMemory) {
+            reservedMemory += size;
+            return;
+        }
+    }
+
+    System.gc();
+    try {
+        Thread.sleep(100);
+    } catch (InterruptedException x) {
+        // Restore interrupt status
+        Thread.currentThread().interrupt();
+    }
+    synchronized (Bits.class) {
+        if (reservedMemory + size &gt; maxMemory)
+            throw new OutOfMemoryError("Direct buffer memory");
+        reservedMemory += size;
+    }
+
+}</pre><br /><br />这几个实现特征使得Oracle/Sun JDK 6依赖于System.gc()触发GC来保证DirectByteMemory的清理工作能及时完成。如果打开了-XX:+DisableExplicitGC，清理工作就可能得不到及时完成，于是就有机会见到direct memory的OOM，也就是上面的例子演示的情况。我们这边在实际生产环境中确实遇到过这样的问题。<br /><br /><span style="color: red;">教训是：如果你在使用Oracle/Sun JDK 6，应用里有任何地方用了direct memory，那么使用-XX:+DisableExplicitGC要小心。如果用了该参数而且遇到direct memory的OOM，可以尝试去掉该参数看是否能避开这种OOM。如果担心System.gc()调用造成full GC频繁，可以尝试下面提到 -XX:+ExplicitGCInvokesConcurrent 参数</span><br /><br />======================================================================<br /><br />2、-XX:+DisableExplicitGC 与 Remote Method Invocation (RMI) 与 -Dsun.rmi.dgc.{server|client}.gcInterval=<br /><br />看了上一个例子有没有觉得-XX:+DisableExplicitGC参数用起来很危险？那干脆完全不要用这个参数吧。又有什么坑呢？<br /><br />前段时间有个应用的开发来抱怨，说某次升级JDK之前那应用的GC状况都很好，很长时间都不会发生full GC，但升级后发现每一小时左右就会发生一次。经过对比发现，升级的同时也吧启动参数改了，把原本有的-XX:+DisableExplicitGC给去掉了。<br /><br />观察到的日志有明显特征。一位同事表示：<br /><div class="quote_title">引用</div><div class="quote_div">线上机器出现一个场景；每隔1小时出现一次Full GC,用btrace看了一下调用地：<br />who call system.gc :<br />sun.misc.GC$Daemon.run(GC.java:92)<br /><br />预发机没什么流量，也会每一小时一次Full GC<br />频率正好是一小时一次<br /><br /><pre class="GC log" name="code">2011-09-23T10:49:38.071+0800: 327692.227: [Full GC (System) 327692.227: [CMS: 75793K-&gt;75759K(2097152K), 0.6923690 secs] 430298K-&gt;75759K(3984640K), [CMS Perm : 104136K-&gt;104124K(173932K)], 0.6925570 secs]</pre><br /></div><br /><br />实际上这里在做的是分布式GC。Sun JDK的分布式GC是用纯Java实现的，为RMI服务。<br />RMI DGC相关参数的介绍文档：<a target="_blank" href="http://docs.oracle.com/javase/6/docs/technotes/guides/rmi/sunrmiproperties.html">http://docs.oracle.com/javase/6/docs/technotes/guides/rmi/sunrmiproperties.html</a><br /><br />（后面回头再补…先睡觉去了）<br /><br />资料：<br /><a target="_blank" href="http://java.sun.com/developer/onlineTraining/rmi/exercises/DistributedGarbageCollector/index.html">jGuru: Distributed Garbage Collection</a><br /><a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-dev/2011-December/004909.html">http://mail.openjdk.java.net/pipermail/hotspot-dev/2011-December/004909.html</a><br /><div class="quote_title">Tony Printezis 写道</div><div class="quote_div">RMI has a distributed GC that relies on reference processing to allow <br />each node to recognize that some objects are unreachable so it can <br />notify a remote node (or nodes) that some remote references to them do <br />not exist any more. The remote node might then be able to reclaim <br />objects that are only remotely reachable. (Or this is how I understood <br />it at least.)<br /><br />RMI used to call System.gc() once a minute (!!!) but after some <br />encouragement from yours truly they changed the default to once an hour <br />(this is configurable using a property). Note that a STW Full GC is not <br />really required as long as references are processed. So, in CMS (and <br />G1), a concurrent cycle is fine which is why we recommend to use <br />-XX:+ExplicitGCInvokesConcurrent in this case.<br /><br />I had been warned by the RMI folks against totally disabling those <br />System.gc()'s (e.g., using -XX:+DisableExplicitGC) given that if Full <br />GCs / concurrent cycles do not otherwise happen at a reasonable <br />frequency then remote nodes might experience memory leaks since they <br />will consider that some otherwise unreachable remote references are <br />still live. I have no idea how severe such memory leaks would be. I <br />guess they'd be very application-dependent.<br /><br />An additional thought that just occurred to me: instead of calling <br />System.gc() every hour what RMI should really be doing is calling <br />System.gc() every hour provided no old gen GC has taken place during the <br />last hour. This would be relatively easy to implement by accessing the <br />old GC counter through the GC MXBeans.<br /><br />Tony</div><br />再加俩链接：<a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-dev/2012-January/004929.html">http://mail.openjdk.java.net/pipermail/hotspot-dev/2012-January/004929.html</a><br /><a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-dev/2012-January/004946.html">http://mail.openjdk.java.net/pipermail/hotspot-dev/2012-January/004946.html</a><br /><br />《Java Performance》的303和411页正好也提到了-XX:+DisableExplicitGC与RMI之间的干扰的事情，有兴趣可以读一下，虽然只有一小段。<br /><br />======================================================================<br /><br />3、-XX:+ExplicitGCInvokesConcurrent 或 -XX:+ExplicitGCInvokesConcurrentAndUnloadsClasses<br /><br /><pre class="c++" name="code">product(bool, ExplicitGCInvokesConcurrent, false,                  \
+  "A System.gc() request invokes a concurrent collection;"         \
+  " (effective only when UseConcMarkSweepGC)")                     \
+								   \
+product(bool, ExplicitGCInvokesConcurrentAndUnloadsClasses, false, \
+  "A System.gc() request invokes a concurrent collection and "     \
+  "also unloads classes during such a concurrent gc cycle "        \
+  "(effective only when UseConcMarkSweepGC)")                      \</pre><br /><br />跟上面的第一个例子的-XX:+DisableExplicitGC一样，这两个参数也是用来改变System.gc()的默认行为用的；不同的是这两个参数只能配合CMS使用（-XX:+UseConcMarkSweepGC），而且System.gc()还是会触发GC的，只不过不是触发一个完全stop-the-world的full GC，而是一次并发GC周期。<br /><br />CMS GC周期中也会做reference processing。所以<span style="color: blue;">如果用这两个参数的其中一个，而不是用-XX:+DisableExplicitGC的话，就避开了由full GC带来的长GC pause，同时NIO direct memory的OOM也不会那么容易发生。</span><br /><br />做了个跟第一个例子类似的例子，在这里：<a target="_blank" href="https://gist.github.com/1344251">https://gist.github.com/1344251</a><br /><br />《Java Performance》的303页有讲到这俩参数。<br /><br />相关bug：<a target="_blank" href="http://bugs.sun.com/view_bug.do?bug_id=6919638">6919638 CMS: ExplicitGCInvokesConcurrent misinteracts with gc locker</a><br />&lt;&lt; JDK6u23修复了这个问题<br /><br />======================================================================<br /><br />4、-XX:+GCLockerInvokesConcurrent<br /><br /><pre class="c++" name="code">product(bool, GCLockerInvokesConcurrent, false,        \
+  "The exit of a JNI CS necessitating a scavenge also" \
+  " kicks off a bkgrd concurrent collection")          \</pre><br /><br />（内容回头补…）<br /><br />======================================================================<br /><br />5、MaxDirectMemorySize 与 NIO direct memory 的默认上限<br /><br /><strong>-XX:MaxDirectMemorySize</strong> 是用来配置NIO direct memory上限用的VM参数。<br /><pre class="c++" name="code">product(intx, MaxDirectMemorySize, -1,                         \
+        "Maximum total size of NIO direct-buffer allocations") \</pre><br />但如果不配置它的话，direct memory默认最多能申请多少内存呢？这个参数默认值是-1，显然不是一个“有效值”。所以真正的默认值肯定是从别的地方来的。<br /><br />在Sun JDK 6和OpenJDK 6里，有这样一段代码，sun.misc.VM：<br /><pre class="java" name="code">// A user-settable upper limit on the maximum amount of allocatable direct
+// buffer memory.  This value may be changed during VM initialization if
+// "java" is launched with "-XX:MaxDirectMemorySize=&lt;size&gt;".
+//
+// The initial value of this field is arbitrary; during JRE initialization
+// it will be reset to the value specified on the command line, if any,
+// otherwise to Runtime.getRuntime().maxMemory().
+//
+private static long directMemory = 64 * 1024 * 1024;
+
+// If this method is invoked during VM initialization, it initializes the
+// maximum amount of allocatable direct buffer memory (in bytes) from the
+// system property sun.nio.MaxDirectMemorySize.  The system property will
+// be removed when it is accessed.
+//
+// If this method is invoked after the VM is booted, it returns the
+// maximum amount of allocatable direct buffer memory.
+//
+public static long maxDirectMemory() {
+    if (booted)
+        return directMemory;
+
+    Properties p = System.getProperties();
+    String s = (String)p.remove("sun.nio.MaxDirectMemorySize");
+    System.setProperties(p);
+
+    if (s != null) {
+        if (s.equals("-1")) {
+            // -XX:MaxDirectMemorySize not given, take default
+            directMemory = Runtime.getRuntime().maxMemory();
+        } else {
+            long l = Long.parseLong(s);
+            if (l &gt; -1)
+                directMemory = l;
+        }
+    }
+
+    return directMemory;
+}</pre><br />（代码里原本的注释有个写错的地方，上面有修正）<br />当MaxDirectMemorySize参数没被显式设置时它的值就是-1，在Java类库初始化时maxDirectMemory()被java.lang.System的静态构造器调用，走的路径就是这条：<br /><pre class="java" name="code">if (s.equals("-1")) {
+    // -XX:MaxDirectMemorySize not given, take default
+    directMemory = Runtime.getRuntime().maxMemory();
+}</pre><br />而Runtime.maxMemory()在HotSpot VM里的实现是：<br /><pre class="c++" name="code">JVM_ENTRY_NO_ENV(jlong, JVM_MaxMemory(void))
+  JVMWrapper("JVM_MaxMemory");
+  size_t n = Universe::heap()-&gt;max_capacity();
+  return convert_size_t_to_jlong(n);
+JVM_END</pre><br />这个max_capacity()实际返回的是 -Xmx减去一个survivor space的预留大小（G1除外）。<br /><br /><span style="color: red;">结论：MaxDirectMemorySize没显式配置的时候，NIO direct memory可申请的空间的上限就是<strong>-Xmx减去一个survivor space的预留大小</strong>。</span><br />大家感兴趣的话可以试试在不同的-Xmx的条件下不设置MaxDirectMemorySize，并且调用一下sun.misc.VM.maxDirectMemory()看得到的值的相关性。<br /><br />该行为在JDK7里没变，虽然具体实现的代码有些变化。请参考<a target="_blank" href="http://hg.openjdk.java.net/jdk7/jdk7/jdk/rev/b444f86c4abe">http://hg.openjdk.java.net/jdk7/jdk7/jdk/rev/b444f86c4abe</a><br /><br />======================================================================<br /><br />6、-verbose:gc 与 -XX:+PrintGCDetails<br /><br />经常能看到在推荐的标准参数里这两个参数一起出现。实际上它们有啥关系？<br /><br />在Oracle/Sun JDK 6里，"java"这个启动程序遇到"-verbosegc"会将其转换为"-verbose:gc"，将启动参数传给HotSpot VM后，HotSpot VM遇到"-verbose:gc"则会当作"-XX:+PrintGC"来处理。<br /><span style="color: blue;">也就是说 -verbosegc、-verbose:gc、-XX:+PrintGC 三者的作用是完全一样的。</span><br /><br />而当HotSpot VM遇到 -XX:+PrintGCDetails 参数时，会顺带把 -XX:+PrintGC 给设置上。<br /><span style="color: blue;">也就是说 -XX:+PrintGCDetails 包含 -XX:+PrintGC，进而也就包含 -verbose:gc。</span><br /><br />既然 -verbose:gc 都被包含了，何必在命令行参数里显式设置它呢？<img src="/images/smiles/icon_lol.gif" /> <br /><br />======================================================================<br /><br />7、-XX:+UseFastEmptyMethods 与 -XX:+UseFastAccessorMethods<br /><br />虽然不常见，但偶尔也会见到推荐的标准参数上有这俩的身影。<br /><br />empty method顾名思义就是空方法，也就是方法体只包含一条return指令、返回值类型为void的Java方法。<br />accessor method在这里则有很具体的定义：<br /><pre class="c++" name="code">bool methodOopDesc::is_accessor() const {
+  if (code_size() != 5) return false;
+  if (size_of_parameters() != 1) return false;
+  if (java_code_at(0) != Bytecodes::_aload_0 ) return false;
+  if (java_code_at(1) != Bytecodes::_getfield) return false;
+  if (java_code_at(4) != Bytecodes::_areturn &amp;&amp;
+      java_code_at(4) != Bytecodes::_ireturn ) return false;
+  return true;
+}</pre><br />如果从Java源码的角度来理解，accessor method就是形如这样的：<br /><pre class="Java" name="code">public class Foo {
+  private int value;
+  
+  public int getValue() {
+    return this.value;
+  }
+}</pre><br />关键点是：<br />1、必须是成员方法；静态方法不行<br />2、返回值类型必须是引用类型或者int，其它都不算<br />3、方法体的代码必须满足aload_0; getfield #index; areturn或ireturn这样的模式。<br />留意：方法名是什么都没关系，是不是get、is、has开头都不重要。<br /><br />那么这俩有啥问题？<br /><br />取自JDK 6 update 27：<br /><pre class="c++" name="code">product(bool, UseFastEmptyMethods, true,                   \
+        "Use fast method entry code for empty methods")    \
+                                                           \
+product(bool, UseFastAccessorMethods, true,                \
+        "Use fast method entry code for accessor methods") \</pre><br />看到这俩参数的默认值都是true了么？也就是说，在Oracle/Sun JDK 6上设置这参数其实也是没意义的，跟默认一样，一直到最新的JDK 6 update 29都是如此。<br /><br />不过在Oracle/Sun JDK 7里，情况有变化。<br /><a target="_blank" href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6385687">Bug ID: 6385687 UseFastEmptyMethods/UseFastAccessorMethods considered harmful</a><br />在<a target="_blank" href="http://hg.openjdk.java.net/jdk7/hotspot-comp/hotspot/rev/c2323e2ea62b">上述bug对应的代码变更</a>后，这俩参数的默认值改为了false。<br /><br />本来想多写点这块的…算，还是长话短说。<br /><br />Oracle JDK 7里的HotSpot VM已经开始有比较好的<a target="_blank" href="http://rednaxelafx.iteye.com/blog/1022095">多层编译（tiered compilation）支持</a>，可以预见在不久的将来该模式将成为HotSpot VM默认的执行模式。当前该模式尚未默认开启；可以通过 <strong>-XX:+TieredCompilation</strong> 来开启。<br /><br />有趣的是，在使用多层编译模式时，如果UseFastAccessorMethods/UseFastEmptyMethods是开着的，有些多态方法调用点的性能反而会显著下降。所以，<span style="color: blue;">为了适应多层编译模式，JDK 7里这两个参数的默认值就被改为false了。</span><br />在邮件列表上有过相关讨论：<a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-compiler-dev/2011-March/005057.html">review for 6385687: UseFastEmptyMethods/UseFastAccessorMethods	considered harmful</a><br /><br />======================================================================<br /><br />8、-XX:+UseCMSCompactAtFullCollection<br /><br />这个参数在Oracle/Sun JDK 6里一直都默认是true，完全没必要显式设置，设了也不会有啥不同的效果。<br /><pre class="c++" name="code">product(bool, UseCMSCompactAtFullCollection, true,    \
+        "Use mark sweep compact at full collections") \</pre><br />我不认为显式设置一个跟默认值相同的参数有什么维护上的好处。要维护的参数多了反而更容易成为维护的噩梦吧。后面的人会不知道到底当初为什么要设置这个参数。<br /><br />相关的有个 <strong>CMSFullGCsBeforeCompaction</strong> 参数，请参考另一帖里的讨论：<a target="_blank" href="http://hllvm.group.iteye.com/group/topic/28854#209294">http://hllvm.group.iteye.com/group/topic/28854#209294</a><br /><br />同样，在Oracle/Sun JDK 6和OpenJDK 6里，<span style="color: darkred;"><strong>CMSParallelRemarkEnabled</strong></span> 也一直默认是true，没必要显式设置-XX:+CMSParallelRemarkEnabled。<br />有很多bool类型的参数默认都是true，显式设置它们之前最好先用这帖开头介绍的办法看看默认值是否已经是想要的值了。<br /><br /><pre class="c++" name="code">  product(bool, CMSScavengeBeforeRemark, false,          \
+          "Attempt scavenge before the CMS remark step") \</pre><br />这个默认倒是false。如果一个应用统计到的young GC时间都比较短而CMS remark的时间比较长，那么可以试试打开这个参数，在做remark之前先做一次young GC。是否能有效缩短remark的时间视应用情况而异，所以开这个参数的话请一定做好测试。<br /><br />======================================================================<br /><br />9、-XX:CMSMaxAbortablePrecleanTime=5000<br /><br />同上…默认就是5000<br /><pre class="c++" name="code">product(intx, CMSMaxAbortablePrecleanTime, 5000,    \
+        "(Temporary, subject to experimentation)"   \
+        "Maximum time in abortable preclean in ms") \</pre><br />还是不要设跟默认值一样的参数了吧。<br /><br />======================================================================<br /><br />10、-Xss 与 -XX:ThreadStackSize<br /><br />参考我之前发过的两帖：<br /><a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-dev/2011-June/004272.html">What the difference between -Xss and -XX:ThreadStackSize is?</a><br /><a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-dev/2011-July/004288.html">Inconsistency between -Xss and -XX:ThreadStackSize in the java launcher</a><br /><br />（详情回头补～）<br /><br />======================================================================<br /><br />11、-Xmn 与 -XX:NewSize、-XX:MaxNewSize<br /><br />如果同时设置了-XX:NewSize与-XX:MaxNewSize遇到“Could not reserve enough space for object heap”错误的话，请看看是不是<a target="_blank" href="http://hllvm.group.iteye.com/group/topic/28467#206341">这帖所说的问题</a>。早期JDK 6似乎都受这问题影响，一直到JDK 6 update 14才修复。<br /><br />======================================================================<br /><br />12、-Xmn 与 -XX:NewRatio<br /><br />======================================================================<br /><br />13、-XX:NewRatio 与 -XX:NewSize、-XX:OldSize<br /><br />======================================================================<br /><br />14、jmap -heap看到的参数值与实际起作用的参数的关系？<br /><br />发了几个例子在这里：<a target="_blank" href="https://gist.github.com/1363195">https://gist.github.com/1363195</a><br />其中有个看起来很恐怖的值：<br /><pre class="java" name="code">MaxNewSize       = 17592186044415 MB</pre><br />这是啥来的？<br /><br /><pre class="c++" name="code">product(uintx, MaxNewSize, max_uintx,                                  \
+        "Maximum new generation size (in bytes), max_uintx means set " \
+        "ergonomically")   </pre><br /><br />在HotSpot VM里，intx是跟平台字长一样宽的带符号整型，uintx是其无符号版。<br />max_uintx是(uintx) -1，也就是说在32位平台上是无符号的0xFFFFFFFF，64位平台上则是0xFFFFFFFFFFFFFFFF。<br /><br />jmap -heap显示的部分参数是以MB为单位来显示的，而MaxNewSize的单位是byte。我跑例子的平台是64位的，于是算一下 0xFFFFFFFFFFFFFFFF / 1024 / 1024 = 17592186044415 MB 。<br /><br />参数的说明告诉我们，当MaxNewSize的值等于max_uintx时，意思就是交由ergonomics来自动选择young gen的最大大小。<strong>并不是说young gen的最大大小真的有0xFFFFFFFFFFFFFFFF这么大</strong>。<br /><br /><span style="color: red;">要注意的是，HotSpot VM有大量可调节的参数，并不是所有参数在某次运行的时候都有效。</span><br /><br />例如说设置了-Xmn的话，NewRatio就没作用了。<br />又例如说，<br /><pre class="c++" name="code">product(uintx, OldSize, ScaleForWordSize(4*M),        \
+        "Initial tenured generation size (in bytes)") \</pre><br />-XX:OldSize参数的默认值在32位平台上是4M，在64位平台上是5M多。但如果这个参数没有被显式设置过，那它实际上是没作用的；old gen的大小会通过Java heap的整体大小与young gen的大小配置计算出来，但OldSize参数却没有被更新（因为根本没用它）。于是这个参数的值与实际运行的状况就可能会不相符。<br />一种例外的情况是，如果-Xmx非常小，比NewSize+OldSize的默认值还小，那这个OldSize的默认值就会起作用，把MaxHeapSize给撑大。<br /><pre class="c++" name="code">void TwoGenerationCollectorPolicy::initialize_flags() {
+  GenCollectorPolicy::initialize_flags();
+
+  OldSize = align_size_down(OldSize, min_alignment());
+  if (NewSize + OldSize &gt; MaxHeapSize) {
+    MaxHeapSize = NewSize + OldSize;
+  }
+  MaxHeapSize = align_size_up(MaxHeapSize, max_alignment());
+//...
+}</pre><br />可以看这边的一个例子：<a target="_blank" href="https://gist.github.com/1375782">https://gist.github.com/1375782</a><br /><br />======================================================================<br /><br />15、-XX:+AlwaysTenure、-XX:+NeverTenure、-XX:MaxTenuringThreshold=0 或 "-XX:MaxTenuringThreshold=markOopDesc::max_age + 1"<br /><br />ParNew的时候，设定-XX:+AlwaysTenure隐含-XX:MaxTenuringThreshold=0；不过-XX:+NeverTenure却没啥特别的作用。<br /><br />-XX:+AlwaysTenure 与 -XX:+NeverTenure 是互斥的，最后一个出现的那个会同时决定这两个参数的值。<br /><br />======================================================================<br /><br />16、-XX:MaxTenuringThreshold 的默认值？<br /><br /><pre class="c++" name="code">product(intx, MaxTenuringThreshold,    15, \
+  "Maximum value for tenuring threshold")  \</pre><br />Oracle/Sun JDK 6中，选择CMS之外的GC时，MaxTenuringThreshold（以下简称MTT）的默认值是15；而选择了CMS的时候，MTT的默认值是4而不是15。设定是在 Arguments::set_cms_and_parnew_gc_flags() 里做的。<br /><br />在Sun JDK 6之前（1.4.2、5），选择CMS的时候MTT的默认值则是0，也就是等于设定了-XX:+AlwaysTenure——所有eden里的活对象在经历第一次minor GC的时候就会直接晋升到old gen，而survivor space直接就没用了。<br /><br /><pre class="command prompt" name="code">$ java -version
+java version "1.6.0_25"
+Java(TM) SE Runtime Environment (build 1.6.0_25-b06)
+Java HotSpot(TM) 64-Bit Server VM (build 20.0-b11, mixed mode)
+$ java -XX:+PrintFlagsFinal | egrep 'MaxTenuringThreshold|UseParallelGC|UseConcMarkSweepGC'
+     intx MaxTenuringThreshold                      = 15              {product}           
+     bool UseConcMarkSweepGC                        = false           {product}           
+     bool UseParallelGC                            := true            {product}           
+$ java -XX:+PrintFlagsFinal -XX:+UseConcMarkSweepGC | egrep 'MaxTenuringThreshold|UseParallelGC|UseConcMarkSweepGC'
+     intx MaxTenuringThreshold                     := 4               {product}           
+     bool UseConcMarkSweepGC                       := true            {product}           
+     bool UseParallelGC                             = false           {product}           </pre><br /><br />======================================================================<br /><br />17、-XX:+CMSClassUnloadingEnabled<br /><br />CMS remark暂停时间会增加，所以如果类加载并不频繁、String的intern也没有大量使用的话，这个参数还是不开的好。<br /><br />======================================================================<br /><br />18、-XX:+AggressiveHeap<br /><br />======================================================================<br /><br />19、-XX:+UseCompressedOops 有益？有害？<br /><br />先把微博上回复别人问题的解答放这边。<br /><br />本来如果功能没bug的话，Oracle/Sun JDK 6的64位HotSpot上，GC堆在26G以下（-Xmx + -XX:MaxPermSize）的时候用多数都是有益的。<br />开启压缩指针后，从代码路径（code path）和CPI（cycles per instruction）两个角度看，情况是不一样的：<br />·开启压缩指针会使代码路径变长，因为所有在GC堆里的、指向GC堆内对象的指针都会被压缩，这些指针的访问就需要更多的代码才可以实现。不要以为只是读写字段才受影响，其实实例方法调用、子类型检查等操作也受影响——“klass”也是一个指针，也被压缩了。<br />·但从CPI的角度看，由于压缩指针使需要拷贝的数据量变小了，cache miss的几率随之降低，结果CPI可能会比压缩前降低。综合来看，开了压缩指针通常能大幅降低GC堆内存的消耗，同时维持或略提高Java程序的速度。<br /><br />但，JDK6u23之前那个参数的bug实在太多，最好别用；而6u23之后它就由ergonomics自动开启了，不用自己设。如果在6u23或更高版本碰到压缩指针造成的问题的话，显式设置 <strong>-XX:-UseCompressedOops</strong> 。<br /><br /><span style="color: blue;">我能做的建议是如果在64位Oracle/Sun JDK 6/7上，那个参数不要显式设置。</span><br /><br />关于HotSpot VM的ergonomics自动开启压缩指针功能，请参考<a target="_blank" href="http://rednaxelafx.iteye.com/blog/1010079">之前的一帖</a>。<br /><br />有些库比较“聪明”，会自行读取VM参数来调整自己的一些参数，例如<a target="_blank" href="http://www.oracle.com/technetwork/database/berkeleydb/overview/index-093405.html">Berkeley DB Java Edition</a>。但这些库实现得不好的时候反而会带来一些麻烦：BDB JE要求<strong>显式指定-XX:+UseCompressedOops</strong>才能有效的调整它的缓存大小。所以在用BDB JE并且Java堆+PermGen大小小于32GB的时候，请显式指定-XX:+UseCompressedOops吧。参考<a target="_blank" href="https://forums.oracle.com/forums/thread.jspa?messageID=10017916">Warning on Compressed Oops</a><br /><br />======================================================================<br /><br />20、-XX:LargePageSizeInBytes=128m ？<br /><br />或者是 -XX:LargePageSizeInBytes=256m ？<br />其实这个参数的值是多少不是问题，问题是这个参数到底有没有起作用。<br /><br />或许有人读过很老的调优建议资料，例如这个：<br /><a target="_blank" href="http://java.sun.com/performance/reference/whitepapers/tuning.html#section4.2.3">(2005) Java Tuning White Paper - 4.2.3 Tuning Example 3: Try 256 MB pages</a><br />或者是别的一些内容很老的资料。它们提到了-XX:LargePageSizeInBytes=参数。这些老资料也没说错，在Sun JDK 5里 -XX:LargePageSizeInBytes= 参数只在Solaris上有效，使用的时候没有别的参数保护。<br /><br />但是，实际上这个参数在Oracle/Sun JDK 6里不配合-XX:+UseLargePages的话是不会起任何作用的。<br /><br />JDK 6里的JVM的Linux版上初始化large page的地方：<br /><pre class="c++" name="code">bool os::large_page_init() {
+  if (!UseLargePages) return false;
+
+  if (LargePageSizeInBytes) {
+    _large_page_size = LargePageSizeInBytes;
+  } else {
+    // ...
+  }
+  
+  // ...
+
+  // Large page support is available on 2.6 or newer kernel, some vendors
+  // (e.g. Redhat) have backported it to their 2.4 based distributions.
+  // We optimistically assume the support is available. If later it turns out
+  // not true, VM will automatically switch to use regular page size.
+  return true;
+}</pre><br />看到了么，没有将UseLargePages设置为true的话，LargePageSizeInBytes根本没机会被用上。<br /><br />对应的，Solaris版：<br /><pre class="c++" name="code">bool os::large_page_init() {
+  if (!UseLargePages) {
+    UseISM = false;
+    UseMPSS = false;
+    return false;
+  }
+
+  // ...
+}</pre><br /><br />以及Windows版：<br /><pre class="c++" name="code">bool os::large_page_init() {
+  if (!UseLargePages) return false;
+
+  // ...
+}</pre><br /><br /><span style="color: blue;">在Oracle/Sun JDK 6以及Oracle JDK 7上要使用 -XX:LargePageSizeInBytes= 的话，请务必也设置上 -XX:+UseLargePages 。使用这两个参数之前最好先确认操作系统是否真的只是large pages；操作系统不支持的话，设置这两个参数也没作用，只会退回到使用regular pages而已。</span><br /><br />======================================================================<br /><br />21、-XX:+AlwaysPreTouch<br /><br />会把commit的空间跑循环赋值为0以达到“pretouch”的目的。开这个参数会增加VM初始化时的开销，但后面涉及虚拟内存的开销可能降低。<br /><br />在另一个讨论帖里有讲该参数：<a target="_blank" href="http://hllvm.group.iteye.com/group/topic/28839#209144">http://hllvm.group.iteye.com/group/topic/28839#209144</a><br /><br />======================================================================<br /><br />22、-XX:+UseTLAB 与 Runtime.freeMemory()<br /><br />======================================================================<br /><br />23、-XX:+ParallelRefProcEnabled<br /><br />这个功能可以加速reference processing，但在JDK6u25和6u26上不要使用，有bug：<br /><a target="_blank" href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7028845">Bug ID 7028845: CMS: 6984287 broke parallel reference processing in CMS</a><br /><br />======================================================================<br /><br />24、-XX:+UseConcMarkSweepGC 与 -XX:+UseAdaptiveSizePolicy<br /><br />这两个选项在现有的Oracle/Sun JDK 6和Oracle JDK 7上都不要搭配在一起使用——CMS用的adaptive size policy还没实现完，用的话可能会crash。<br /><br />目前HotSpot VM上只有ParallelScavenge系的GC才可以配合-XX:+UseAdaptiveSizePolicy使用；也就是只有-XX:+UseParallelGC或者-XX:+UseParallelOldGC。<a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-gc-use/2011-November/000954.html">Jon Masamitsu在邮件列表上提到过</a>。<br /><br />题外话：开着UseAdaptiveSizePolicy的ParallelScavenge会动态调整各空间的大小，有可能会造成两个survivor space的大小被调整得不一样大。Jon Masamitsu在<a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-gc-use/2012-October/001390.html">这封邮件</a>里解释了原因。<br /><br />追加：JDK9里CMS终于要彻底不支持adaptive size policy了：<a target="_blank" href="https://bugs.openjdk.java.net/browse/JDK-8034246">https://bugs.openjdk.java.net/browse/JDK-8034246</a><br /><br />======================================================================<br /><br />25、-XX:+UseAdaptiveGCBoundary<br /><br />JDK 6里不要用这个选项，有bug。<br /><br />======================================================================<br /><br />26、-XX:HeapDumpPath 与 -XX:+HeapDumpBeforeFullGC、-XX:+HeapDumpAfterFullGC、-XX:+HeapDumpOnOutOfMemoryError<br /><br />-XX:+HeapDumpBeforeFullGC、-XX:+HeapDumpAfterFullGC、-XX:+HeapDumpOnOutOfMemoryError 这几个参数可以在不同条件下做出HPROF格式的heap dump。但很多人都会疑惑：做出来的heap dump存到哪里去了？<br /><br />如果不想费神去摸索到底各种环境被配置成什么样、“working directory”到底在哪里的话，就在VM启动参数里加上 <strong>-XX:HeapDumpPath=一个绝对路径</strong> 吧。这样，自动做出的heap dump就会被存到指定的目录里去。<br />当然相对路径也支持，不过用了相对路径就又得弄清楚当前的“working directory”在哪里了。<br /><br />======================================================================<br /><br />26、UseDepthFirstScavengeOrder<br /><br />以前有过这样一个参数可以设置young gen遍历对象图的顺序，深度还是广度优先不过高于JDK 6 update 22就没用了，ParallelScavenge变为只用深度优先而不用广度优先。<br />具体的changeset在这里：<a target="_blank" href="http://hg.openjdk.java.net/hsx/hotspot-main/hotspot/rev/9d7a8ab3736b">http://hg.openjdk.java.net/hsx/hotspot-main/hotspot/rev/9d7a8ab3736b</a><br /><br />HotSpot VM里的arguments.cpp文件里有obsolete_jvm_flags数组，那边声明的参数都要留意是已经没用的。<br /><br />OpenJDK邮件列表上有个有趣的讨论跟扫描顺序相关：<a target="_blank" href="http://mail.openjdk.java.net/pipermail/hotspot-gc-dev/2013-September/008217.html">Parallel GC and array object layout: way off the base and laid	out in reverse?</a><br /><br />======================================================================<br /><br />-XX:CMSScheduleRemarkEdenPenetration=0<br />Schedule the remark pause immediately after the<br />next young collection.<br />-XX:CMSScheduleRemarkEdenSizeThreshold=0<br />Any sized eden should allow scheduling of the remark<br />pause.&nbsp; That is, no eden is too small to schedule.<br />-XX:CMSMaxAbortablePrecleanTime=30000<br /> <br />Wait up to 30 seconds for the remark to be scheduled<br />after a young collection.&nbsp; Otherwise, wait only up to <br />the default of 5 seconds.<br /><br />（下文待续～）
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-201985">
+  <td class="post_author"><div class="logo"><a href='http://learnworld.iteye.com' target='_blank'><img alt="learnworld的博客" class="logo" src="http://www.iteye.com/upload/logo/user/504650/25b3c42c-de6c-3394-b32c-5372bda9ce75-thumb.jpg?1309011046" title="learnworld的博客: 一路远行" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://learnworld.iteye.com' target='_blank' title='learnworld'>learnworld</a>
+      2011-10-23
+    </div>
+    <div class="post_body"> 
+      好贴，坐等下文。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202030">
+  <td class="post_author"><div class="logo"><a href='http://jolestar.iteye.com' target='_blank'><img alt="jolestar的博客" class="logo" src="http://www.iteye.com/upload/logo/user/52046/22bf8551-2b19-4de1-b017-bacf6324296a-thumb.gif?1236835358" title="jolestar的博客: 午夜咖啡" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://jolestar.iteye.com' target='_blank' title='jolestar'>jolestar</a>
+      2011-10-23
+    </div>
+    <div class="post_body"> 
+      lz不厚道，说了个半句话就闪了。太吊胃口了。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202035">
+  <td class="post_author"><div class="logo"><a href='http://boy00fly.iteye.com' target='_blank'><img alt="boy00fly的博客" class="logo" src="http://www.iteye.com/upload/logo/user/530140/7f1d7b15-76f1-352c-b767-3ca210bfb709-thumb.jpg?1312374081" title="boy00fly的博客: 石头边的老牛" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://boy00fly.iteye.com' target='_blank' title='boy00fly'>boy00fly</a>
+      2011-10-24
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">jolestar 写道</div><div class="quote_div">lz不厚道，说了个半句话就闪了。太吊胃口了。</div><br />哈哈，确实吊胃口。。下文呢？
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202039">
+  <td class="post_author"><div class="logo"><a href='http://icanfly.iteye.com' target='_blank'><img alt="icanfly的博客" class="logo" src="http://www.iteye.com/upload/logo/user/456588/737bb67c-d1ef-3f27-af28-3318f3d97c18-thumb.jpg?1302248031" title="icanfly的博客: 老罗宣言" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://icanfly.iteye.com' target='_blank' title='icanfly'>icanfly</a>
+      2011-10-24
+    </div>
+    <div class="post_body"> 
+      好文。<img src="/images/smiles/icon_biggrin.gif" /> 
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202126">
+  <td class="post_author"><div class="logo"><a href='http://liuyes.iteye.com' target='_blank'><img alt="liuyes的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="liuyes的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://liuyes.iteye.com' target='_blank' title='liuyes'>liuyes</a>
+      2011-10-24
+    </div>
+    <div class="post_body"> 
+      楼主人呢？这发文的也有坑<img src="/images/smiles/icon_redface.gif" /> 
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202130">
+  <td class="post_author"><div class="logo"><a href='http://khotyn.iteye.com' target='_blank'><img alt="khotyn的博客" class="logo" src="http://www.iteye.com/upload/logo/user/598653/3dd36961-4911-37b0-8f79-fe6e8b025b71-thumb.png?1322747631" title="khotyn的博客: 码工作坊" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://khotyn.iteye.com' target='_blank' title='khotyn'>khotyn</a>
+      2011-10-24
+    </div>
+    <div class="post_body"> 
+      坐等R大把坑填上～～
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202134">
+  <td class="post_author"><div class="logo"><a href='http://furturestrategist.iteye.com' target='_blank'><img alt="程序新手的博客" class="logo" src="http://www.iteye.com/upload/logo/user/327946/ad55f743-af31-3b5f-a575-889116a5bfff-thumb.gif?1286616255" title="程序新手的博客: HappyProgramme" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://furturestrategist.iteye.com' target='_blank' title='程序新手'>程序新手</a>
+      2011-10-24
+    </div>
+    <div class="post_body"> 
+      内容受益、风格简洁，期待下文<br /><br />&nbsp; 另外大胆猜测从日志中获取的信息是部分FULL GC由System.gc()引发的<br /><br />&nbsp; Full GC (System) 
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-202197">
+  <td class="post_author"><div class="logo"><a href='http://furturestrategist.iteye.com' target='_blank'><img alt="程序新手的博客" class="logo" src="http://www.iteye.com/upload/logo/user/327946/ad55f743-af31-3b5f-a575-889116a5bfff-thumb.gif?1286616255" title="程序新手的博客: HappyProgramme" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://furturestrategist.iteye.com' target='_blank' title='程序新手'>程序新手</a>
+      2011-10-25
+    </div>
+    <div class="post_body"> 
+      又受益了&nbsp;<img src="/images/smiles/icon_idea.gif" /> ..想了解大大收集这些知识点的方法~
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-203672">
+  <td class="post_author"><div class="logo"><a href='http://hittyt.iteye.com' target='_blank'><img alt="hittyt的博客" class="logo" src="http://www.iteye.com/upload/logo/user/344115/776e7f35-d25d-30ca-b4a6-1a3117715b8c-thumb.jpg?1289024422" title="hittyt的博客: 笨小孩" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://hittyt.iteye.com' target='_blank' title='hittyt'>hittyt</a>
+      2011-11-08
+    </div>
+    <div class="post_body"> 
+      本人的java环境如下：<br /><pre class="Command line" name="code">java -version
+java version "1.6.0_18"
+Java(TM) SE Runtime Environment (build 1.6.0_18-b07)
+Java HotSpot(TM) 64-Bit Server VM (build 16.0-b13, mixed mode)</pre><br />但使用PrintFlagsFinal时得到的输出却是下面的结果：<br /><pre class="Command line" name="code">java -XX:+PrintFlagsFinal
+Unrecognized VM option '+PrintFlagsFinal'
+Could not create the Java virtual machine.</pre><br />求LZ解答问题在哪里呢？
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/27945/post/new">发表回复</a></div>
+  <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/group/topic/27945?page=2" rel="next">2</a> <a href="/group/topic/27945?page=3">3</a> <a href="/group/topic/27945?page=2" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '[HotSpot VM] JVM调优的"标准参数"的各种陷阱');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/212967" target="_blank">一次Java垃圾收集调优实战</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/894148" target="_blank">HotSpot VM 内存堆的两个Servivor区</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/802638" target="_blank">JVM内存管理：深入垃圾收集器与内存分配策略</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/756538" target="_blank">优化JVM参数提高eclipse运行速度</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/473874" target="_blank">CMS gc实践总结</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

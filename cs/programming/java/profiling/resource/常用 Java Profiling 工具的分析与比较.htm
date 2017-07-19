@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://www.ibm.com/developerworks/cn/java/j-lo-profiling/ -->
+<html lang="zh-CN" class="applicationcache geolocation history postmessage svg websockets localstorage sessionstorage websqldatabase webworkers hashchange pointerevents canvas audio canvastext video webgl cssgradients multiplebgs opacity rgba inlinesvg hsla supports svgclippaths smil no-touchevents fontface generatedcontent textshadow cssanimations backgroundsize borderimage borderradius boxshadow csscolumns csscolumns-width csscolumns-span csscolumns-fill csscolumns-gap csscolumns-rule csscolumns-rulecolor csscolumns-rulestyle csscolumns-rulewidth csscolumns-breakbefore csscolumns-breakafter csscolumns-breakinside flexbox flexboxlegacy cssreflections csstransforms csstransforms3d csstransitions indexeddb indexeddb-deletedatabase hires js mac chrome chrome5 webkit webkit5 ibm-grid-large greater-china-imt"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+<meta name="viewport" content="width=device-width, initial-scale=1">      
+<link rel="icon" href="https://www.ibm.com/favicon.ico">
+<link rel="canonical" href="http://www.ibm.com/developerworks/cn/java/j-lo-profiling/index.html">
+<meta name="geo.country" content="CN">
+<meta name="dcterms.rights" content="© Copyright IBM Corporation 2010">
+<meta name="dcterms.date" content="2010-08-13">
+<meta name="description" content="Java Profiler 工具能帮助开发人员快速、有效地定位这些问题。目前市场上的 Java Profiler 工具种类繁多，本文将对目前比较常见的几种工具进行简要介绍，并从功能、性能等角度作比较，从而帮助 Java 程序员选择合适的 Java Profiler 工具。">	
+<meta name="keywords" content="Java, Profiling, Java Profiler，工具， TPTP, YourKit, tttjca, tttosca">
+<meta name="robots" content="index,follow">
+<title>常用 Java Profiling 工具的分析与比较</title>
+    
+<script type="text/javascript" async="" charset="utf-8" id="ebOneTagUrlId" src="./常用 Java Profiling 工具的分析与比较_files/ebOneTag.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_27" src="./常用 Java Profiling 工具的分析与比较_files/up_loader.1.1.0.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_53" src="./常用 Java Profiling 工具的分析与比较_files/js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_cormetrics2" src="./常用 Java Profiling 工具的分析与比较_files/eluminate.js"></script><script type="text/javascript" async="" charset="utf-8" id="dle_api_bfd41f439f6ff7639e7fc16d261e3f4eb8b4bc33b1fd4185f183850dbd14734d" src="./常用 Java Profiling 工具的分析与比较_files/p_bfd41f439f6ff7639e7fc16d261e3f4eb8b4bc33b1fd4185f183850dbd14734d.js"></script><script type="text/javascript" async="" defer="" src="./常用 Java Profiling 工具的分析与比较_files/piwik.js"></script><script src="./常用 Java Profiling 工具的分析与比较_files/utag.js" type="text/javascript" async=""></script><script> 
+    digitalData = {
+        "page":{
+            "category":{
+                "primaryCategory":"SOFDCJVACN"
+            },
+            "pageInfo":{
+                "effectiveDate":"2010-08-13",
+                "language":"zh-CN",
+                "publishDate":"2010-08-13",
+                "publisher":"IBM Corporation",
+                "version":"v18",
+                "ibm":{ 
+                    "contentDelivery":"IBM developerWorks template",
+                    "contentProducer":"IBM developerWorks",
+                    "country":"CN",
+                    "owner":"developerWorks/China/IBM",
+                    "subject":"TT300",
+                    "type":"CT316",
+                    "topic":"调试,调试/测试/调优,Java 技术",
+                    "topicId":"27,590,9",
+                    "contentArea":"java,opensource",
+                    "contentAreaId":"1,7",
+                    "contentType":"article",
+                    "contentId":"507487",
+                },
+                "keywords":"Java, Profiling, Java Profiler，工具， TPTP, YourKit, tttjca, tttosca",
+                "description":"Java Profiler 工具能帮助开发人员快速、有效地定位这些问题。目前市场上的 Java Profiler 工具种类繁多，本文将对目前比较常见的几种工具进行简要介绍，并从功能、性能等角度作比较，从而帮助 Java 程序员选择合适的 Java Profiler 工具。"
+            }
+        }
+    };
+    window._analytics = {
+        "segment_key":'HU3dbkAG5wE0F1IkRf9S1RexlAqo3jby'
+    };
+</script>
+	
+    <meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@developerworks">
+<meta property="og:title" content="常用 Java Profiling 工具的分析与比较">
+<meta property="og:description" content="Java Profiler 工具能帮助开发人员快速、有效地定位这些问题。目前市场上的 Java Profiler 工具种类繁多，本文将对目前比较常见的几种工具进行简要介绍，并从功能、性能等角度作比较，从而帮助 Java 程序员选择合适的 Java Profiler 工具。">
+    <meta property="og:image" content="http://www.ibm.com/developerworks/i/dw-social-201508.png">
+<!-- Segment meta tag -->
+<meta name="segment" property="Java Chinese (developerWorks)" producttitle="developerWorks" value="常用 Java Profiling 工具的分析与比较">
+<!-- SITE MON : START (DO NOT DELETE) -->
+<!-- developerWorks monitoring token -->
+<!-- SITE MON : END (DO NOT DELETE) -->
+
+<!-- HEADER_SCRIPTS_AND_CSS_INCLUDE -->
+<!-- <script src="//cdn.optimizely.com/js/5399420604.js"></script> -->
+<!-- BEGIN: Use this section to set page specific variables for the Page Tag -->
+<script language="JavaScript">var NTPT_PGEXTRA="ibmSkillLevel=2&ibmCmaId=507487&ibmContentAreas=java,opensource";</script>
+<!--END -->
+<script src="./常用 Java Profiling 工具的分析与比较_files/ida_stats.js"></script>
+<link href="./常用 Java Profiling 工具的分析与比较_files/www.css" rel="stylesheet">
+<link href="./常用 Java Profiling 工具的分析与比较_files/syntaxhighlighter.css" rel="stylesheet">
+<script src="./常用 Java Profiling 工具的分析与比较_files/www.js"></script><style></style>
+<script src="./常用 Java Profiling 工具的分析与比较_files/syntaxhighlighter.js"></script>    
+<link href="./常用 Java Profiling 工具的分析与比较_files/tables.css" rel="stylesheet">
+<script src="./常用 Java Profiling 工具的分析与比较_files/tables.js"></script>   
+<!--  Masthead/footer  -->
+<link href="./常用 Java Profiling 工具的分析与比较_files/dw-mf-v18.css" rel="stylesheet">
+<!-- <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/alt-signedin-ux.css" rel="stylesheet" /> -->   
+<!--[if lt IE 9]>
+    <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/dw-mf-ie8fix.css?v=022216" rel="stylesheet" />
+<![endif]-->
+<link href="./常用 Java Profiling 工具的分析与比较_files/dw-article.css" rel="stylesheet">
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-auth-properties.js"></script>
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-auth.js"></script>
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-mf.js"></script>
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-auto-links.js"></script> 
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-include.js"></script>     
+<script src="./常用 Java Profiling 工具的分析与比较_files/dw-article.js"></script>
+<script src="./常用 Java Profiling 工具的分析与比较_files/tactic.js"></script>
+<script src="./常用 Java Profiling 工具的分析与比较_files/tacticbindlinks.js"></script>
+
+<!-- 
+<PageMap>
+    <DataObject type="document">
+        <Attribute name="topic">调试,调试/测试/调优,Java 技术</Attribute>
+        <Attribute name="topicId">27,590,9</Attribute>
+        <Attribute name="contentArea">java,opensource</Attribute>
+        <Attribute name="contentAreaId">1,7</Attribute>
+        <Attribute name="abstract">Java Profiler 工具能帮助开发人员快速、有效地定位这些问题。目前市场上的 Java Profiler 工具种类繁多，本文将对目前比较常见的几种工具进行简要介绍，并从功能、性能等角度作比较，从而帮助 Java 程序员选择合适的 Java Profiler 工具。</Attribute>
+        <Attribute name="pub.date">2010-08-13</Attribute>
+        <Attribute name="contentType">article</Attribute>
+    </DataObject>
+</PageMap>
+-->        
+
+<style id="ibm-sitenav-menu-hidelinks">@media screen and (max-width: 622px) { .ibm-sitenav-menu-list{display:none} } @media screen and (min-width: 623px) { .ibm-mobilemenu-sitenavmenu {display:none} }</style><style id="ibm-masthead-hidelinks">@media screen and (max-width: 557px) { .ibm-masthead-categories,#ibm-megamenu-sections{display:none} }@media screen and (max-width: 557px) { .ibm-mh-marketplace-link{display:none} }</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_53" src="./常用 Java Profiling 工具的分析与比较_files/utag.53.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_44" src="./常用 Java Profiling 工具的分析与比较_files/utag.44.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_46" src="./常用 Java Profiling 工具的分析与比较_files/utag.46.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_45" src="./常用 Java Profiling 工具的分析与比较_files/utag.45.js"></script><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation li.active:after {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation ul.dropdown li.active {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-background {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font {color: #2793e6 !important;}</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font-bold {color: #2793e6 !important;font-weight: bold;}</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_27" src="./常用 Java Profiling 工具的分析与比较_files/utag.27.js"></script><script type="text/javascript" async="" charset="utf-8" id="LOTCC_10026" src="./常用 Java Profiling 工具的分析与比较_files/cc.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_52" src="./常用 Java Profiling 工具的分析与比较_files/utag.52.js"></script><script language="javascript" type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/50200000.js"></script><script language="javascript" type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/rules_50200000.js"></script><script language="javascript" type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/dispatcher-v3.js"></script><script src="./常用 Java Profiling 工具的分析与比较_files/yahoo-min.js" type="text/javascript"></script><script src="./常用 Java Profiling 工具的分析与比较_files/cp-v3.js" type="text/javascript"></script><script src="./常用 Java Profiling 工具的分析与比较_files/json-min.js" type="text/javascript"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./常用 Java Profiling 工具的分析与比较_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./常用 Java Profiling 工具的分析与比较_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./常用 Java Profiling 工具的分析与比较_files/015a6a839457000d606a0ffb81ed04078006807000bd0"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./常用 Java Profiling 工具的分析与比较_files/015a6a839457000d606a0ffb81ed04078006807000bd0(1)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./常用 Java Profiling 工具的分析与比较_files/015a6a839457000d606a0ffb81ed04078006807000bd0(2)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./常用 Java Profiling 工具的分析与比较_files/015a6a839457000d606a0ffb81ed04078006807000bd0(3)"></script></head>
+<body id="ibm-com" class="ibm-type ibm-sitenav-menu ibm-masthead-sticky">
+	
+<div id="ibm-top" class="ibm-landing-page dw-sitenav">
+
+<!-- MASTHEAD_BEGIN -->
+<div id="ibm-masthead" role="banner" aria-label="IBM" class="ibm-mhtype-minimal hastransition">
+    <div id="ibm-universal-nav" class="">    
+  
+        <nav role="navigation" aria-label="IBM">
+            <div id="ibm-home"><a href="https://www.ibm.com/cn/zh/?lnk=m">IBM®</a></div>
+            <ul id="ibm-menu-links" role="toolbar" aria-label="Site map" class="ibm-hide">
+                <li><a href="https://www.ibm.com/sitemap/cn/zh/">站点地图</a></li>
+            </ul><div class="ibm-masthead-rightside"><p class="ibm-mh-marketplace-link ibm-button-link ibm-fleft ibm-padding-bottom-0"><a class="ibm-btn-small ibm-btn-sec ibm-btn-blue-50" href="http://www.ibm.com/marketplace/?lnk=mp">市场</a></p><div id="ibm-search-module" role="search" aria-labelledby="ibm-masthead" class="ibm-has-scope">
+            <div class="ibm-masthead-search-close"><p class="ibm-ind-link ibm-icononly ibm-padding-bottom-0"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#" class="ibm-close-link ibm-nospacing">关闭</a></p></div><form id="ibm-search-form" action="https://www.ibm.com/Search/" method="get">
+                <p>
+                    <label for="q">IBM</label>
+                    <input type="text" maxlength="100" value="" placeholder="搜索" name="q" id="q" aria-label="搜索 developerWorks" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-owns="ibm-search-typeahead-container"><input name="lnk" type="hidden" value="mhsrch">
+                    <input type="hidden" value="18" name="v">
+                    <input type="hidden" value="utf" name="en">
+                    <input type="hidden" value="zh" name="lang">
+                    <input type="hidden" value="cn" name="cc">
+                    <input type="hidden" name="sn" value="dw">
+                    <input type="hidden" name="dws" value="cndw">
+                    <input type="hidden" name="hpp" value="20">
+                    <span class="ibm-search-scope ibm-fadeout"><input class="ibm-styled-checkbox" data-init="false" type="checkbox" name="sn" value="" id="ibm-mh-scopeoption"> <label for="ibm-mh-scopeoption">In Marketplace</label></span><button role="button" type="submit" id="ibm-search" class="ibm-search-link" value="提交"><span class="ibm-access">提交</span></button>
+                </p>
+            </form><form class="ibm-hide" id="ibm-default-scope-form" action="https://www.ibm.com/marketplace/search/cn/zh-cn/" method="get"><input name="terms" type="text"><input name="lnk" type="hidden" value="mhmpsrch"></form>
+        </div><div id="ibm-search-typeahead-container" class="ibm-search-typeahead-container ibm-fadeout"></div><ul aria-label="Tools" role="menubar" class="ibm-masthead-iconsonly"><li role="presentation" class="ibm-masthead-item-signin"><button role="menubutton" class="ibm-profile-link">我的 IBM</button><ul id="ibm-signin-minimenu-container" role="menu" aria-label="Profile" class="ibm-dropdown-menu">		<li class="ibm-dropdown-menu-primary" role="presentation" data-linktype="notifications"> 			<a class="" href="https://myibm.ibm.com/dashboard/?lnk=mmi" tabindex="0">我的 IBM</a> 		</li>		<li class="ibm-dropdown-menu-primary menu-heading" role="presentation">				<span tabindex="0">developerWorks</span>			</li>		<li class="ibm-dropdown-menu-primary ibm-signin-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssologin.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2F&amp;lang=zh&amp;a=dwmav" role="menuitem">登录</a>		</li>		<li class="ibm-dropdown-menu-primary dw-register-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssoregister.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2F&amp;lang=zh&amp;a=dwmav" role="menuitem">注册</a>		</li></ul></li><li role="presentation" class="ibm-masthead-item-menu"><button role="menubutton" class="ibm-menu-link">站点导航</button></li></ul></div> 
+        </nav>
+  
+        
+       
+    </div>
+</div><div class="ibm-mobilemenu ibm-hide" aria-labelledby="ibm-burgermenu-a11y" role="dialog" tabindex="0"><p class="ibm-hide" id="ibm-burgermenu-a11y">站点导航</p><div class="ibm-mobilemenu-close"><p class="ibm-icononly ibm-fright ibm-ind-link ibm-nospacing"><a class="ibm-close-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/?lnk=hm#">关闭</a></p></div><div class="ibm-mobilemenu-section ibm-mobilemenu-sitenavmenu"><ul role="menubar"><li class="ibm-mobile-section-heading ibm-mobile-sitename">
+        <a href="https://www.ibm.com/developerworks/cn/?lnk=hm">
+            <img width="186" height="24" alt="developerWorks®" src="./常用 Java Profiling 工具的分析与比较_files/dw-mf-wordmark.svg">
+        </a>
+    </li>
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/?lnk=hm" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/?lnk=hm" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/?lnk=hm" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul></div><div class="ibm-mobilemenu-section"><ul class="ibm-mobilemenu-mhlinks" aria-label="发现 IBM"><li><a href="http://www.ibm.com/marketplace/?lnk=hmmp">市场</a></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">产品</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/products/cn/zh/?lnk=hmhmpr_cnzh"><span>所有产品</span></a></li><li><a href="https://www.ibm.com/analytics/cn/zh/?lnk=hmmpr_bua_cnzh&amp;lnk2=learn"><span>大数据与分析</span></a></li><li><a href="https://www.ibm.com/cloud-computing/cn/zh?lnk=hmmpr_bucl_cnzh&amp;lnk2=learn"><span>云计算</span></a></li><li><a href="https://www.ibm.com/ibm/cn/cognitive/outthink/?lnk=hmmpr_buce_cnzh&amp;lnk2=learn"><span>认知</span></a></li><li><a href="https://www.ibm.com/commerce/cn-zh/?lnk=hmmpr_bucom_cnzh&amp;lnk2=learn"><span>商务</span></a></li><li><a href="https://www.ibm.com/internet-of-things/cn-zh/?lnk=hmmpr_iot_cnzh&amp;lnk2=learn"><span>物联网</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/it-infrastructure/cn-zh/?lnk=hmmpr_buit_cnzh&amp;lnk2=learn"><span>IT 基础架构</span></a></li><li><a href="https://www.ibm.com/mobilefirst/cn/zh/?lnk=hmmpr_bumf_cnzh&amp;lnk2=learn"><span>移动</span></a></li><li><a href="https://www.ibm.com/security/cn-zh/?lnk=hmmpr_buse_cnzh&amp;lnk2=learn"><span>安全</span></a></li><li><a href="https://www.ibm.com/social-business/cn-zh/?lnk=hm"><span>社交协作与人才管理</span></a></li><li><a href="https://www.ibm.com/services/cn/zh/watson/explorer.html?lnk=hm"><span>Watson</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">服务</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/services/cn/gbs/consulting/?lnk=hmmse_bc_cnzh&amp;lnk2=learn"><span>业务咨询</span></a></li><li><a href="https://www.ibm.com/technologyservices/cn/zh/?lnk=hmmse_ts_cnzh&amp;lnk2=learn"><span>技术服务</span></a></li><li><a href="https://www.ibm.com/financing/cn/zh/index.html?lnk=hmmse_fin_cnzh&amp;lnk2=learn"><span>融资</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/training/?lnk=hm"><span>培训与技能 (US)</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">开发人员</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/developerworks/cn/?lnk=hmmdev_dw_cnzh&amp;lnk2=learn"><span>developerWorks</span></a></li><li><a href="https://www.ibm.com/partnerworld?lnk=hmmdev_pw_cnzh&amp;lnk2=learn"><span>PartnerWorld</span></a></li></ul></div></div></li><li><a href="https://www.ibm.com/support/cn/zh/?lnk=hmmsu_cnzh">支持</a></li><li><a href="https://www.ibm.com/employment/cn/?lnk=hmmca_cnzh">工作机会</a></li></ul></div></div><div class="ibm-mhplaceholder"></div><!-- MASTHEAD_END -->
+	    
+<!-- LAYOUT -->
+<div id="ibm-content-wrapper">
+    <!-- LEADSPACE_BEGIN -->
+    <header role="banner" aria-labelledby="ibm-pagetitle-h1">
+        
+        <!-- MASTHEAD_SITENAV_BEGIN -->
+        <div class="ibm-sitenav-menu-container" data-widgetprocessed="true">
+    <div class="ibm-sitenav-menu-name">
+        <a href="https://www.ibm.com/developerworks/cn/">
+            <img width="186" height="24" alt="developerWorks®" src="./常用 Java Profiling 工具的分析与比较_files/dw-mf-wordmark.svg">
+        </a>
+    </div>
+    <div class="ibm-sitenav-menu-list">
+        <ul role="menubar">
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul>
+    </div>
+</div>        <!-- MASTHEAD_SITENAV_END -->
+        
+        <!-- NAVIGATION_TRAIL_BEGIN -->
+        <div id="ibm-leadspace-head" class="ibm-alternate">
+            <div id="ibm-leadspace-body">
+                <nav aria-label="Breadcrumb" role="navigation">                     
+                            <ul id="dw-navigation-trail" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/topics/"><span itemprop="name">学习</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/java/"><span itemprop="name">Java technology</span></a><meta itemprop="position" content="2"></li></ul>
+                </nav>
+            </div>
+        </div>
+        <!-- NAVIGATION_TRAIL_END -->
+        
+    </header>
+    <!-- LEADSPACE_END -->
+    
+    <!-- MAIN_CONTENT_BEGIN -->
+    <main role="main" aria-label=""> 
+        <div id="ibm-pcon">
+            <!-- BEGIN_IBM-CONTENT -->
+            <div id="ibm-content">
+                <!-- BEGIN_IBM-CONTENT-BODY -->
+                <div id="ibm-content-body">
+                    <!-- BEGIN_IBM-CONTENT-MAIN -->
+                    <div id="ibm-content-main" class="dw-article">                        
+                        <!-- BEGIN_INTERIOR-COLUMNS -->
+                                <div class="ibm-columns dw-article-toc">
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_BEGIN -->  
+                                    <div id="dw-article-toc-container" class="ibm-col-6-2">
+                                        <div id="dw-article-toc-body" data-widget="scrollable" data-height="602" style="width: 300px; height: 602px;" class=""><div class="nano-content" tabindex="-1">
+                                            <h2>内容</h2><div class="ibm-alternate-rule"><hr></div><ul role="directory" aria-label="内容" class="ibm-plain-list"><li class=""><a onclick="tocLink(&#39;#ibm-pagetitle-h1&#39;)" role="link" tabindex="0">概览</a></li><li><a onclick="tocLink(&#39;#major1&#39;)" role="link" tabindex="0">Java Profiler 工具功能简介</a></li><li class="dw-highlight"><a onclick="tocLink(&#39;#major2&#39;)" role="link" tabindex="0">Java Profiler 工具介绍</a></li><li><a onclick="tocLink(&#39;#major3&#39;)" role="link" tabindex="0">Java Profiler 工具比较</a></li><li><a onclick="tocLink(&#39;#major4&#39;)" role="link" tabindex="0">结论</a></li><li class=""><a onclick="tocLink(&#39;#artrelatedtopics&#39;)" role="link" tabindex="0">相关主题</a></li><li><a onclick="tocLink(&#39;#icomments&#39;)" role="link" tabindex="0">评论</a></li></ul>
+                                        </div><div class="nano-pane" style="display: none; opacity: 1; visibility: visible;"><div class="nano-slider" style="height: 602px; transform: translate(0px, 0px);"></div></div></div>
+                                    </div>
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_END -->
+                                    
+                                    <!-- CENTER_6_4_CONTENT_COLUMN_BEGIN -->
+                                    <div class="ibm-col-6-4">
+                                        <h1 id="ibm-pagetitle-h1" class="ibm-h1">常用 Java Profiling 工具的分析与比较</h1>
+                                        <!-- Article Top Bar -->
+                                                <div class="ibm-columns dw-article-topbar">
+                                                    <!-- Author and article info. -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 dw-article-metadata">
+                                                        <div class="dw-article-authordate">周 鹏 和 徐 晓琴<br><span class="dw-article-pubdate">2010 年 8 月 13 日发布</span></div>
+                                                    </div>
+                                                    <!-- Social -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 ibm-col-small-6-2 dw-article-social">
+                                                        <!-- Sharing links -->
+                                                        <div id="dw-article-share-inline">
+                                                            <div class="dw-article-sharelink-inline">
+                                                                <div class="ibm-sharethispage"><h4 class="ibm-bold">分享此页面</h4><p class="ibm-icononly"><a class="ibm-weibo-encircled-link" href="http://service.weibo.com/share/share.php?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2Findex.html%&amp;title=%E5%B8%B8%E7%94%A8%20Java%20Profiling%20%E5%B7%A5%E5%85%B7%E7%9A%84%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83&amp;language=zh_cn" data-id="weibo" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Weibo</a><a class="ibm-googleplus-encircled-link" href="https://plus.google.com/share?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2Findex.html&amp;t=%E5%B8%B8%E7%94%A8%20Java%20Profiling%20%E5%B7%A5%E5%85%B7%E7%9A%84%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83" data-id="googleplus" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Google+</a><a class="ibm-email-encircled-link" href="mailto:?subject=%E5%B8%B8%E7%94%A8%20Java%20Profiling%20%E5%B7%A5%E5%85%B7%E7%9A%84%E5%88%86%E6%9E%90%E4%B8%8E%E6%AF%94%E8%BE%83&amp;body=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2Findex.html" data-id="email" onclick="">用电子邮件发送本页面</a></p></div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Number of comments and link to comments -->
+                                                        <div id="dw-article-cmts">
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#icomments" role="link" tabindex="0" aria-label="Comments">
+                                                                    <img src="./常用 Java Profiling 工具的分析与比较_files/dw-article-cmt-icon.png" width="29" height="29" alt="Comments">
+                                                                </a>
+                                                            </div>
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#icomments" role="link" tabindex="0">
+                                                                    <div id="nCmts">1</div>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                        <!-- Article Body -->
+                                        
+                                        <p>相对于静态代码分析，Profiling 是通过收集程序运行时的信息来研究程序行为的动态分析方法。其目的在于定位程序需要被优化的部分，从而提高程序的运行速度或是内存使用效率。收集程序运行时信息的方法主要有以下三种：</p><ul class="ibm-bullet-list"><li>事件方法：对于 Java，可以采用 JVMTI（JVM Tools Interface）API 来捕捉诸如方法调用、类载入、类卸载、进入 / 离开线程等事件，然后基于这些事件进行程序行为的分析。</li><li>统计抽样方法（sampling）: 该方法每隔一段时间调用系统中断，然后收集当前的调用栈（call stack）信息，记录调用栈中出现的函数及这些函数的调用结构，基于这些信息得到函数的调用关系图及每个函数的 CPU 使用信息。由于调用栈的信息是每隔一段时间来获取的，因此不是非常精确的，但由于该方法对目标程序的干涉比较少，目标程序的运行速度几乎不受影响。</li><li>植入附加指令方法（BCI）: 该方法在目标程序中插入指令代码，这些指令代码将记录 profiling 所需的信息，包括运行时间、计数器的值等，从而给出一个较为精确的内存使用情况、函数调用关系及函数的 CPU 使用信息。该方法对程序执行速度会有一定的影响，因此给出的程序执行时间有可能不准确。但是该方法在统计程序的运行轨迹方面有一定的优势。</li></ul><p>目前市面上的 Java Profiler 工具采用的信息收集方法通常是以上三种方法的任意组合。</p><h2 id="major1" class="ibm-h2">Profiler 工具功能简介</h2><p>虽然市场上的 Java Profiler 工具有不少，但是基本功能大多相似，本节首先对这些基本功能进行介绍。</p><ul class="ibm-bullet-list"><li>遥测（Telemetry）：遥测是一种用来查看应用程序运行行为的最简单的方法。通常会有多个视图（View）分别实时地显示 CPU 使用情况、内存使用情况、线程状态以及其他一些有用的信息，以便用户能很快地发现问题的关键所在。
+				
+<ul class="ibm-bullet-list"><li>CPU Telemetry 视图一般用于显示整个应用程序的 CPU 使用情况，有些工具还能显示应用程序中每个线程的 CPU 使用情况。</li><li>Memory Telemetry 视图一般用于显示堆内存和非堆内存的分配和使用情况。</li><li>Garbage Collection Telemetry 视图显示了 JVM 中垃圾收集器的详细信息。</li><li>Threads Telemetry 视图一般用于显示当前运行线程的个数、守护进程的个数等信息。</li><li>Classes Telemetry 视图一般用于显示已经载入和还没有载入的类的数量。</li></ul></li><li>快照（snapshot）：应用程序启动后，profiler 工具开始收集各种执行数据，其中一些数据直接显示在遥测视图中，而另外大部分数据被保存在内部，直到用户要求获取快照，基于这些保存的数据的统计信息才被显示出来。快照包含了应用程序在一段时间内的执行信息，通常有两种类型的快照：CPU 快照和内存快照。
+				
+<ul class="ibm-bullet-list"><li>CPU 快照主要包含了应用程序中函数的调用关系及运行时间，这些信息通常可以在 CPU 快照视图中进行查看。</li><li>内存快照则主要包含了内存的分配和使用情况、载入的所有类、存在的对象信息及对象间的引用关系。这些信息通常可以在内存快照视图中进行查看。</li></ul></li><li>CPU Profiling：CPU Profiling 的主要目的是统计函数的调用情况及执行时间，或者更简单的情况就是统计应用程序的 CPU 使用情况。通常有两种方式来显示 CPU Profiling 结果：CPU 遥测和 CPU 快照。</li><li>内存 Profiling：内存 Profiling 的主要目的是通过统计内存使用情况检测可能存在的内存泄露问题及确定优化内存使用的方向。通常有两种方式来显示内存 Profiling 结果：内存遥测和内存快照</li><li>线程 Profiling：线程 Profiling 主要用于在多线程应用程序中确定内存的问题所在。 一般包括三个方面的信息：
+					
+<ul class="ibm-bullet-list"><li>某个线程的状态变化情况</li><li>死锁情况</li><li>某个线程在线程生命期内状态的分布情况</li></ul></li><li>Profiling 的启动设置：类似于 eclipse 中 Run 和 Debug 的启动设置，进行 Profiling 之前也需要进行启动设置，包括：profiling 的模式 (CPU profiling 或内存 profiling)，信息获取类型（遥测 , 抽样统计或者 BCI ) 等等。</li><li>Profiler Preference 设置：主要用于 Profiler 过滤器（选择需要关注的包、类）、取样间隔时间的设置等。</li></ul><h2 id="major2" class="ibm-h2">Java Profiler 工具介绍</h2><p>本文接下来将对目前市场上常见的几种 Java Profiler 工具进行介绍。</p><h3 id="minor2.1" class="ibm-h3">TPTP</h3><p>TPTP（Test and Performance Tools Platform）是 eclipse 官方的 Profiling 工具插件。TPTP 提供了诸如测试，追踪（trace），性能测试，图形界面性能分析等功能。同时 TPTP 还是一个可扩展的开发平台框架，你可以对它加以扩展集成到你自己的产品中。TPTP 可以通过 Eclipse update Manager 或者是安装包进行安装，安装成功后会在 eclipse 中增加如下所示的按钮，另外一个专门的用于检查 TPTP profiling 结果的 perspective 也会添加进 eclipse 中，如下图所示：</p><h5 id="fig1" class="ibm-h5">图 1. TPTP</h5><img src="./常用 Java Profiling 工具的分析与比较_files/TPTP.gif" class="ibm-downsize" alt="图 1. TPTP" height="333" width="553"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N1009B&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#N1009B">点击查看大图</a></p><div class="overlayrp"></div><h3 id="minor2.2" class="ibm-h3">CodePro Profiler</h3><p>CodePro Profiler 是由 instantiations 公司推出的一款商用 eclipse 插件，它可以通过 Eclipse update Manager 进行安装或者是将安装包直接解压缩后保存在 eclipse 的指定目录下。与 TPTP 类似，安装成功后，有一个专门的用于查看 CodePro profiling 结果的 perspective 会添加进 eclipse 中，如下图所示：</p><h5 id="fig2" class="ibm-h5">图 2. CodePro</h5><img src="./常用 Java Profiling 工具的分析与比较_files/CodePro.gif" class="ibm-downsize" alt="图 2. CodePro" height="461" width="554"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N100AC&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#N100AC">点击查看大图</a></p><div class="overlayrp"></div><h3 id="minor2.3" class="ibm-h3">YourKit Profiler</h3><p>YourKit Java Profiler 也是一款商用软件，支持的操作系统包括：Windows, Linux, FreeBSD, Mac OS X, Solaris 以及 HP-UX；支持的 IDE 包括：Eclipse, JBuilder, JDeveloper, NetBeans 以及 Intellij IDEA。安装成功且首次启动 YourKit Java Profiler 后，会弹出一个对话框，让用户选择 YourKit Java Profiler 要集成进的 IDE，并指定该 IDE 的安装路径，点击”Install Plugin”按钮并集成成功之后，Eclipse 中会出现如下图标，用户就可以从 Eclipse 中启动 Profiling，但是 profiling 的结果需要在 YourKit Java Profiler 中进行查询，如下图所示：</p><h5 id="fig3" class="ibm-h5">图 3. YourKit</h5><img src="./常用 Java Profiling 工具的分析与比较_files/Yourkit.gif" class="ibm-downsize" alt="图 3. YourKit" height="389" width="553"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N100BD&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#N100BD">点击查看大图</a></p><div class="overlayrp"></div><h3 id="minor2.4" class="ibm-h3">JProfiler</h3><p>JProfiler 是由 ej-technologies 推出的一款商用软件，支持的操作系统有：Windows, Linux, Mac OS X, FreeBSD, Solaris, AIX 以及 HP-UX；支持的 IDE 包括：Eclipse, NetBeans, Intellij IDEA, JBuiler 以及 JDeveloper。安装成功并首次启动 JProfiler 后，会弹出一个设置界面，当完成左栏所示的那些步骤后，Eclipse 中就会出现如下图标，用户就可以从 Eclipse 中启动 Profiling。与 YourKit Java Profiler 类似，profiling 的结果需要在 JProfiler 中进行查询，如下图所示：</p><h5 id="fig4" class="ibm-h5">图 4. JProfiler</h5><img src="./常用 Java Profiling 工具的分析与比较_files/JProfiler.gif" class="ibm-downsize" alt="图 4. JProfiler" height="389" width="553"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N100CE&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#N100CE">点击查看大图</a></p><div class="overlayrp"></div><h2 id="major3" class="ibm-h2">Java Profiler 工具比较</h2><p>本章节将从如下几个方面对上述工具进行比较：</p><ul class="ibm-bullet-list"><li>与 Eclipse 的集成性
+				
+<ul class="ibm-bullet-list"><li>TPTP：是一款基于 Eclipse 开发的插件，因此与 eclipse 的集成性很好。安装成功后，对 TPTP 的一切设置与操控都可以在 eclipse 中完成；另外，profiling 的结果也可以在 eclipse 中进行查询。</li><li>CodePro Profiler: 与 TPTP 类似，CodePro Profiler 也是一款基于 eclipse 开发的插件，因此与 eclipse 的集成性很好好。用户在 eclipse 中就可以完成对 profiling 的所有操作。</li><li>YourKit Java Profiler: YourKit Java Profiler 可以说是一个比较独立的工具，安装成功后，用户可以直接在 eclipse 中启动 YourKit Java Profiler 并对 profiling 选项进行配置，但是用户必须在 YourKit Java Profiler 工具中对 Profiling preferrence 进行配置，而且 profiling 信息必须在 YourKit Java Profiler 中进行查看。因此和 Eclipse 的集成度一般。</li><li>JProfiler: JProfiler 也是一款比较独立的工具，安装成功后，用户可以直接在 eclipse 中启动 JProfiler，其他所有操作必须回到 JProfiler 工具中进行。因此和 Eclipse 的集成性不好。</li></ul></li><li>遥测种类 
+				
+<ul class="ibm-bullet-list"><li>TPTP：目前使用的 4.6.2 的版本只提供了线程 Telemetry。</li><li>CodePro Profiler: 总共有五个类型：CPU, 内存 , 线程 , 载入的类以及垃圾收集。</li><li>YourKit Java Profiler: 与 CodePro Profiler 相比，缺少载入类的监测。</li><li>JProfiler: 与 CodePro Profiler 一样，总共有五个类型的监测方法。</li></ul></li><li>CPU 快照包含的统计数据类型 
+				
+<ul class="ibm-bullet-list"><li>TPTP： CPU 快照包含的统计数据有：
+					
+<ul class="ibm-bullet-list"><li>包的组成关系，细化到包含的类及类中的方法。</li><li>方法的调用关系：以每个线程为根节点的方法调用信息，对于树中出现的代表方法的每个节点，列出了该方法的运行时间或运行时间百分比，以及该方法被调用的次数。</li><li>方法被调用情况：列出了直接调用某方法的其他方法，以及这些方法调用该方法的次数及相关运行时间。</li><li>热点列表：包含了 CPU 占用时间排列前十的方法、类或包。</li></ul></li><li>CodePro Profiler: CPU 快照包含的统计数据类型有：
+					
+<ul class="ibm-bullet-list"><li>包的组成关系，细化到包含的类及类中的方法。</li><li>方法的调用关系。以树结构表示，根据根节点表示的对象的不同，分为三种类型：以每个线程为根节点的方法调用关系，以整个线程为根节点的方法调用关系，以及以每个方法为根节点的方法调用关系。对于树中出现的代表方法的每个节点，列出了该方法的运行时间或运行时间百分比，以及由该方法生成的对象个数和为这些对象分配的内存大小。</li><li>方法的被调用关系。该关系以树结构表示，其中根节点为某个指定的方法，每个节点的子节点为父节点的调用者。</li><li>热点列表：包含了 CPU 占用时间排前的一些方法。</li></ul></li><li>YourKit Java Profiler：CPU 快照包含的统计数据类型与 CodePro Profiler 类似；</li><li>JProfiler：与 CodePro Profiler 相比，缺少以每个方法为根节点的方法调用关系。因此当要查看以某个方法为调用起点的调用关系时，需要到以线程为根的树结构当中去查找。另外，方法的被调用关系不是以树结构来表示的，而是以图的方式来显示的，当调用关系比较复杂的时候，很难在一个屏幕中看到一个全局关系图。</li></ul></li><li>内存快照包含的统计数据类型 
+				
+<ul class="ibm-bullet-list"><li>TPTP：包含了类实例的内存分配情况，包括实例化的对象个数，以及这些对象的本身占用内存的大小。相对于其它 Java Profiler 工具，TPTP 的内存快照包含的统计数据类型比较少。</li><li>CodePro Profiler: 包含的统计数据有 
+					
+<ul class="ibm-bullet-list"><li>类实例的内存分配情况，包括实例化的对象个数，以及这些对象的 shallow 和 retained 大小。（Shallow size 就是对象本身占用内存的大小，不包含对其他对象的引用；Retained size 是该对象自己的 shallow size，加上从该对象能直接或间接访问到的 shallow size 之和，即该对象被 GC 之后所能回收到内存的总和）。</li><li>最大对象列表：包含了 retained 大小排前的一些对象。</li><li>有可能存在内存泄漏的对象列表：包含了有可能存在内存泄漏的对象以及可能性大小。</li></ul></li><li>YourKit Java Profiler：与 CodePro Profiler 相比，缺少内存泄露对象列表这一项。</li><li>JProfiler：与 CodePro Profiler 相比，缺少 retained size 统计数据及内存泄露对象列表。</li></ul></li><li>源代码定位功能，即在快照中选中某个类、成员变量或者方法时，可以在源代码中定位到对应的定义。
+				
+<ul class="ibm-bullet-list"><li>TPTP：只能定位到某个类，无法定位到方法或其中的成员变量。</li><li>CodePro Profiler: 拥有该功能，但是只能定位到类及成员变量，无法定位到方法。</li><li>YourKit Java Profiler：可以定位到类、成员变量及方法。</li><li>JProfiler：与 CodePro Profiler 类似。</li></ul></li><li>快照操作，主要从快照的获取、快照的保存及快照的比较这三方面进行比较。
+<ul class="ibm-bullet-list"><li>TPTP：当应用程序启动后，用户可以选择在适当的时候进行快照获取；这些快照不会自动保存，因此当 eclipse 关闭后，这些快照数据将会消失，但是用户可以通过 export 的方式将需要的快照保存下来。</li><li>CodePro Profiler: 当应用程序启动后，用户可以选择在适当的时候进行快照获取；这些快照会被自动保存在 Eclipse Workspace 之外的一个临时的空间，当 eclipse 关闭后，这些快照将会消失，用户可以通过 export 的方式将需要的快照保存下来；CodePro Profiler 还提供了快照的比较功能，不过前提是这两个快照的类型必须相同（例如：都是以 sampling 模式或 BCI 模式运行的）。</li><li>YourKit Java Profiler：当应用程序启动后，用户可以选择在适当的时候进行快照获取，针对内存快照，YourKit Java Profiler 还提供了自动获取快照的功能；这些快照会被自动保存到一个临时的文件夹中，eclipse 关闭后，这些文件不会消失；另外，YourKit Java Profiler 也提供了快照比较功能。</li><li>JProfiler：工具会要求你指定一个目录来保存该 snapshot。</li></ul></li><li>性能，在 sampling 模式下，这些工具的性能相差不大，这里主要比较在 BCI 模式下的性能。
+			
+<ul class="ibm-bullet-list"><li>TPTP：目前使用的 4.6.2 的版本没有 BCI 模式。</li><li>CodePro Profiler：当程序比较大的情况下，采用 BCI 模式进行 profiling 的速度比较慢；另外，在获取内存泄露候选者的时候，速度也是相当慢。（当程序代码量 5 万行时，用 CodePro Profiler 进行 Profiling 需要 5 分钟，在获取内存泄露候选者时，需要花费 20 分钟）</li><li>YourKit Java Profiler：BCI 模式下的运行速度还可以。（当程序代码量为 5 万行时，需要 1 分钟）</li><li>JProfiler：感觉不出程序运行速度受影响。（当程序代码量为 5 万行时，需要半分钟）</li></ul></li><li>健壮性，采用 CodePro Profiler 对比较大的应用程序进行 profiling 时，很容易出现栈溢出的错误。</li></ul><h2 id="major4" class="ibm-h2">结论</h2><p>TPTP 是一款基于 eclipse 的开源软件，且提供的功能比较简单，因此适用于基于 eclipse 开发的应用程序，且该应用程序比较简单的情况；Codepro Profiler 提供的功能相对来说比较丰富，且与 eclipse 的集成性很好，但是在性能方面有待改善，因此适用于基于 eclipse 开发的应用程序，且对性能要求不高的情况；YourKit Java Profiler，JProfiler 与 Eclipse 的集成性都属于一般，提供的功能也比较丰富，且性能不错，因此适用于对 eclipse 集成度要求不高，且对性能要求较高的情况。</p><!--CMA ID: 507487--><!--Site ID: 10--><!--XSLT stylesheet used to transform this file: dw-document-html-8.0.xsl--> 
+                                        <!-- Article Resources -->
+                                        <div class="ibm-alternate-rule"><hr></div><h4 id="artrelatedtopics" class="ibm-h4">相关主题</h4><ul><li>
+				参考：<a href="http://en.wikipedia.org/wiki/Profiling_(computer_programming)">Profiling 原理</a>。
+			</li><li>
+				参考：<a href="http://www.eclipse.org/tptp/">TPTP 介绍</a>。
+			</li><li>
+				参考：<a href="http://www.instantiations.com/codepro/profiler/index.html">CodePro Profiler 介绍</a>。
+			</li><li>
+				参考：<a href="http://www.yourkit.com/">YourKit Java Profiler 介绍</a>。
+			</li><li>
+				参考：<a href="http://www.ej-technologies.com/products/jprofiler/resources.html">JProfiler 介绍</a>。
+			</li><li>“<a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-tptpplugin/">使用 TPTP 对 Eclipse 插件进行性能剖析和调优</a>”（developerWorks，2010 年 3 月）：TPTP(Eclipse Test &amp; Performance Tools Platform Project) 是 Eclipse 基金下的一个子项目，用于提供基于 Eclipse 的软件辅助工具，从测试到运行监控，几乎涵盖了软件开发的各个阶段。本文主要介绍其中的性能分析工具并给出一个实例介绍如何在 Eclipse 插件开发项目中使用性能剖析工具进行性能分析及调优。</li><li><a href="http://www.ibm.com/developerworks/cn/java/">developerWorks Java 技术专区</a>：数百篇关于 Java 编程各个方面的文章。</li></ul>
+                                        <!-- Commenting -->
+<!-- INLINE_COMMENTS_BEGIN: -->
+<div class="ibm-alternate-rule"><hr></div>
+<div id="dw-article-cmts-top" class="ibm-columns">
+    <div class="ibm-col-6-2">
+        <h4 id="icomments" class="ibm-h4">评论</h4>
+        <div id="dw-article-cmts-login">
+            <p>添加或订阅评论，请先<a onclick="window.location=userLinks[0].url;" tabindex="0" role="link">登录</a>或<a onclick="window.location=userLinks[1].url;" tabindex="0" role="link">注册</a>。</p>
+        </div>
+    </div>    
+    <div class="ibm-col-6-2" id="dw-notify"> 
+        <input type="checkbox" value="1" name="comment_notification" id="comment_notification" disabled="">
+        <label for="comment_notification" style="color: rgb(204, 204, 204);">有新评论时提醒我</label>	   
+    </div>
+</div>
+
+<div class="dw-article-cmts-container">       
+    <div class="ibm-no-print jquery-comments read-only" id="dw-icomments-container"><div class="commenting-field main"><img src="./常用 Java Profiling 工具的分析与比较_files/user-icon.png" alt="" class="profile-picture round by-current-user"><div class="textarea-wrapper"><span class="close" style="display: none;"><span class="left"></span><span class="right"></span></span><div class="textarea" data-placeholder="添加评论" contenteditable="true" style="height: 3.65em;"></div><div class="control-row" style="display: none;"><span class="send save highlight-background">提交</span></div></div></div><ul class="navigation"><div class="navigation-wrapper"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></div><div class="navigation-wrapper responsive"><li class="title active"><header>最新的</header></li><ul class="dropdown"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></ul></div></ul><div class="data-container" data-container="comments"><ul id="comment-list" class="main"><li data-id="15883" class="comment"><div class="comment-wrapper"><img src="./常用 Java Profiling 工具的分析与比较_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1282896000000">2010 年 08 月 27 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/javafuns">javafuns</a></div><div class="wrapper"><div class="content">就用jvisualvm也不错</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-profiling%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E5%B0%B1%E7%94%A8jvisualvm%E4%B9%9F%E4%B8%8D%E9%94%99%0D%E7%94%B1%20javafuns%20%20%E4%BA%8E%202010%20%E5%B9%B4%2008%20%E6%9C%88%2027%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li></ul><div class="no-comments no-data"><i class="fa fa-comments fa-2x"></i><br>第一个评论</div></div></div>
+</div>
+<!-- INLINE_COMMENTS_END -->                                        <!-- CENTER_6_4_CONTENT_COLUMN_END -->
+                                    </div>   
+                                </div>
+                        <!--Rating_Meta_BEGIN--><div class="metavalue">static.content.url=http://www.ibm.com/developerworks/js/artrating/</div><div class="metavalue">SITE_ID=10</div><div class="metavalue">Zone=Java technology, Open source</div><div class="metavalue">ArticleID=507487</div><div class="metavalue">ArticleTitle=常用 Java Profiling 工具的分析与比较</div><div class="metavalue">publish-date=08132010</div><script language="javascript" type="text/javascript">document.write('<div class="metavalue">url='+location.href.replace(/</g,  '%3C')+'</div>');</script><div class="metavalue">url=https://www.ibm.com/developerworks/cn/java/j-lo-profiling/</div><!--Rating_Meta_END-->
+                    <p class="ibm-ind-link ibm-nospacing ibm-icononly ibm-btt-auto ibm-hidden-small ibm-active"><a class="ibm-nospacing ibm-chevron-up-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#top" tabindex="0">回页首</a></p></div>
+                    <!-- END_IBM-CONTENT-MAIN -->
+                </div>
+                <!-- END_IBM-CONTENT-BODY -->
+            </div>
+            <!-- END_IBM-CONTENT -->
+        </div>
+        <!-- END_IBM-PCON -->
+    </main>
+    <!-- MAIN_CONTENT_END -->
+    
+    <!-- END_CONTENT-WRAPPER -->	
+</div>
+<!-- FOOTER_BEGIN -->
+<footer role="contentinfo" aria-label="IBM developerWorks">
+    <div id="dw-footer-module" class="dw-footer-home">
+        <section aria-label="参考资料" role="contentinfo">
+            <div class="ibm-columns">
+                <div class="ibm-col-6-1 dw-footer-col-1">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="developerWorks">developerWorks</li>
+                        <li><a href="https://www.ibm.com/developerworks/secure/feedback.jsp?domain=dwchina">站点反馈</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/secure/myideas2.jsp?domain=dwchina">我要投稿</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/author/">投稿指南</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/community/report?lang=zh">报告滥用</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/community/terms/thirdparty/">第三方提示</a></li>
+                    </ul>
+                    <ul>
+                        <li class="dw-footer-newline"><a href="https://weibo.com/ibmdw/">关注微博</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-2">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="加入">加入</li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/partnerworld/isv/">ISV 资源 (英语)</a></li>
+                    </ul>
+                    <ul class="dw-footer-lang" aria-label="选择语言">
+                        <li class="dw-footer-heading">选择语言</li>
+                        <li><a href="https://www.ibm.com/developerworks/">English</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/cn/" lang="zh">中文</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/jp/" lang="ja">日本語</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ru/" lang="ru">Русский</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/br/" lang="pt">Português (Brasil)</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ssa/" lang="es">Español</a></li>
+                        <li><a href="https://developer.ibm.com/kr/" lang="kr">한글</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-3"> </div>
+                <div class="ibm-col-6-1 dw-footer-col-4">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/views/global/libraryview.jsp">技术文档库</a>
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/rss/">订阅源</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-5">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/community/">社区</a>  
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="http://ibmdeveloperworks.mkt6741.com/developerWorksChina-NewsletterSubscriptionPage/">dW 中国时事通讯</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-6">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/downloads/">软件下载</a>  
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="dw-footer" class="ibm-padding-normal ibm-alternate">
+        <div class="ibm-columns">
+            <div class="ibm-col-1-1">
+                <div class="dw-footer-corporate-links">
+                <ul>
+                    <li><a href="https://www.ibm.com/contact/cn/zh/">联系 IBM</a></li>
+                    <li><a href="https://www.ibm.com/privacy/cn/zh/">隐私条约</a></li>
+                    <li><a href="https://www.ibm.com/developerworks/community/terms?lang=zh">使用条款</a></li>
+                    <li><a href="https://www.ibm.com/accessibility/cn/zh/">信息无障碍选项</a></li>
+                    <li class="ibm-feedbacklink"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#">反馈</a></li>
+                    <li id="ibm-truste-cp"><a onclick="truste.eu.clickListener();return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-profiling/#">Cookie 首选项</a></li>
+                </ul>                 
+                </div>    
+            </div>
+        </div>
+    </div>        
+</footer> <!-- FOOTER_END -->
+
+<!-- END_IBM-TOP -->
+</div>
+
+<!-- SCRIPTS_INCLUDE_BEGIN -->
+<!-- Styles -->
+<link rel="stylesheet" type="text/css" href="./常用 Java Profiling 工具的分析与比较_files/jquery-comments.css">
+<link rel="stylesheet" href="./常用 Java Profiling 工具的分析与比较_files/font-awesome.min.css">
+
+<!-- Libraries -->
+<script type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/jquery-comments.min.js"></script>
+<script type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/moment-with-locales.js"></script>
+<script type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/ContentComments.js"></script>
+<script type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/ContentCommentsFormatter.js"></script>
+<script type="text/javascript" language="JavaScript">
+
+	IBMCore.common.module.masthead.subscribe("ready", "customjs", setupCommentsPlugin).runAsap(setupCommentsPlugin);
+
+	function setupCommentsPlugin(){
+		//debugger;
+			//alert(userLinks);
+			var commentsInitInfo = {
+				contentId : $("div[class=metavalue]:contains('ArticleID=')").text().split("=")[1],
+				siteId :  $("div[class=metavalue]:contains('SITE_ID=')").text().split("=")[1],
+				pluginDivId : '#dw-icomments-container',
+				notifyElementId : "#comment_notification",
+				loginMessageDivId : "#dw-article-cmts-login",
+				totalCommentsDivId : "#nCmts"
+			};				
+								
+			ContentComments.Setup(commentsInitInfo);
+	}
+</script>
+<!-- Piwik -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    _paq.push(["setDomains", ["*.www.ibm.com/developerworks","*.www.ibm.com/developerworks"]]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+    var u="//developer.ibm.com/piwik/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<noscript>&lt;p&gt;&lt;img src="//developer.ibm.com/piwik/piwik.php?idsite=7" style="border:0;" alt="" /&gt;&lt;/p&gt;</noscript>
+<!-- End Piwik Code -->
+<!-- SCRIPTS_INCLUDE_END -->
+
+
+
+<div id="ibm-overlay-backdrop"></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N1009B" role="dialog" aria-describedby="ibm-overlaywidget-N1009B-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N1009B-content" class="content"><div class="" data-widget="overlay" id="N1009B"><img alt="图 1. TPTP" src="./常用 Java Profiling 工具的分析与比较_files/TPTP.gif" width="553"></div></div></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N100AC" role="dialog" aria-describedby="ibm-overlaywidget-N100AC-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N100AC-content" class="content"><div class="" data-widget="overlay" id="N100AC"><img alt="图 2. CodePro" src="./常用 Java Profiling 工具的分析与比较_files/CodePro.gif" width="554"></div></div></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N100BD" role="dialog" aria-describedby="ibm-overlaywidget-N100BD-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N100BD-content" class="content"><div class="" data-widget="overlay" id="N100BD"><img alt="图 3. YourKit" src="./常用 Java Profiling 工具的分析与比较_files/Yourkit.gif" width="553"></div></div></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N100CE" role="dialog" aria-describedby="ibm-overlaywidget-N100CE-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N100CE-content" class="content"><div class="" data-widget="overlay" id="N100CE"><img alt="图 4. JProfiler" src="./常用 Java Profiling 工具的分析与比较_files/JProfiler.gif" width="553"></div></div></div><div id="ibm-mobilemenu-screen"></div><script src="./常用 Java Profiling 工具的分析与比较_files/js(1)" id="mm_pp_background"></script><div id="ttdUniversalPixelTag14a49df88763436db0795df4fc90e6a7" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./常用 Java Profiling 工具的分析与比较_files/up.html"></iframe></div><div id="ttdUniversalPixelTagaf477d928c164ae0b8f3e1717b910617" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./常用 Java Profiling 工具的分析与比较_files/up(1).html"></iframe></div><script type="text/javascript" src="./常用 Java Profiling 工具的分析与比较_files/Serving" async=""></script><iframe id="LOTCCFrameWed Jul 19 2017 11:04:26 GMT+0800 (CST)" src="./常用 Java Profiling 工具的分析与比较_files/rt=ifr.html" title="empty" tabindex="-1" role="presentation" style="border: 0px; width: 0px; height: 0px; display: block;"></iframe></body></html>
