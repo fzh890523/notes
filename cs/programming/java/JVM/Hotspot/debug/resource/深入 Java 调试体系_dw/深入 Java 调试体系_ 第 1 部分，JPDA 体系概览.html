@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html -->
+<html lang="zh-CN" class="applicationcache geolocation history postmessage svg websockets localstorage sessionstorage websqldatabase webworkers hashchange pointerevents canvas audio canvastext video webgl cssgradients multiplebgs opacity rgba inlinesvg hsla supports svgclippaths smil no-touchevents fontface generatedcontent textshadow cssanimations backgroundsize borderimage borderradius boxshadow csscolumns csscolumns-width csscolumns-span csscolumns-fill csscolumns-gap csscolumns-rule csscolumns-rulecolor csscolumns-rulestyle csscolumns-rulewidth csscolumns-breakbefore csscolumns-breakafter csscolumns-breakinside flexbox flexboxlegacy cssreflections csstransforms csstransforms3d csstransitions indexeddb indexeddb-deletedatabase hires js mac chrome chrome5 webkit webkit5 ibm-grid-xlarge greater-china-imt"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+<meta name="viewport" content="width=device-width, initial-scale=1">      
+<link rel="icon" href="https://www.ibm.com/favicon.ico">
+<link rel="canonical" href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html">
+<meta name="geo.country" content="CN">
+<meta name="dcterms.rights" content="© Copyright IBM Corporation 2008">
+<meta name="dcterms.date" content="2008-09-03">
+<meta name="description" content="JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的第一篇，将会着重从整体上介绍 JPDA 的各个组成，阐述它们彼此之间的内在关联。">	
+<meta name="keywords" content="Java, JPDA, JDWP, JDI, JVMTI, 调试, tttjca, tttosca">
+<meta name="robots" content="index,follow">
+<title>深入 Java 调试体系: 第 1 部分，JPDA 体系概览</title>
+    
+<script type="text/javascript" async="" charset="utf-8" id="ebOneTagUrlId" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/ebOneTag.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_27" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/up_loader.1.1.0.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_53" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_cormetrics2" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/eluminate.js"></script><script type="text/javascript" async="" charset="utf-8" id="dle_api_66694d409bf9fca66c40862225c9c20984775746fde4fb4999a111edc267f2c3" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/p_66694d409bf9fca66c40862225c9c20984775746fde4fb4999a111edc267f2c3.js"></script><script type="text/javascript" async="" defer="" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/piwik.js"></script><script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.js" type="text/javascript" async=""></script><script> 
+    digitalData = {
+        "page":{
+            "category":{
+                "primaryCategory":"SOFDCJVACN"
+            },
+            "pageInfo":{
+                "effectiveDate":"2008-09-03",
+                "language":"zh-CN",
+                "publishDate":"2008-09-03",
+                "publisher":"IBM Corporation",
+                "version":"v18",
+                "ibm":{ 
+                    "contentDelivery":"IBM developerWorks template",
+                    "contentProducer":"IBM developerWorks",
+                    "country":"CN",
+                    "owner":"developerWorks/China/IBM",
+                    "subject":"TT300",
+                    "type":"CT316",
+                    "topic":"API,体系架构,调试",
+                    "topicId":"125,61,27",
+                    "contentArea":"java,opensource",
+                    "contentAreaId":"1,7",
+                    "contentType":"article",
+                    "contentId":"335291",
+                },
+                "keywords":"Java, JPDA, JDWP, JDI, JVMTI, 调试, tttjca, tttosca",
+                "description":"JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的第一篇，将会着重从整体上介绍 JPDA 的各个组成，阐述它们彼此之间的内在关联。"
+            }
+        }
+    };
+    window._analytics = {
+        "segment_key":'HU3dbkAG5wE0F1IkRf9S1RexlAqo3jby'
+    };
+</script>
+	
+    <meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@developerworks">
+<meta property="og:title" content="第 1 部分，JPDA 体系概览">
+<meta property="og:description" content="JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的第一篇，将会着重从整体上介绍 JPDA 的各个组成，阐述它们彼此之间的内在关联。">
+    <meta property="og:image" content="http://www.ibm.com/developerworks/i/dw-social-201508.png">
+<!-- Segment meta tag -->
+<meta name="segment" property="Java Chinese (developerWorks)" producttitle="developerWorks" value="深入 Java 调试体系: 第 1 部分，JPDA 体系概览">
+<!-- SITE MON : START (DO NOT DELETE) -->
+<!-- developerWorks monitoring token -->
+<!-- SITE MON : END (DO NOT DELETE) -->
+
+<!-- HEADER_SCRIPTS_AND_CSS_INCLUDE -->
+<!-- <script src="//cdn.optimizely.com/js/5399420604.js"></script> -->
+<!-- BEGIN: Use this section to set page specific variables for the Page Tag -->
+<script language="JavaScript">var NTPT_PGEXTRA="ibmSkillLevel=3&ibmCmaId=335291&ibmContentAreas=java,opensource";</script>
+<!--END -->
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/ida_stats.js"></script>
+<link href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/www.css" rel="stylesheet">
+<link href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/syntaxhighlighter.css" rel="stylesheet">
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/www.js"></script><style></style>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/syntaxhighlighter.js"></script>    
+<link href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/tables.css" rel="stylesheet">
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/tables.js"></script>   
+<!--  Masthead/footer  -->
+<link href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-mf-v18.css" rel="stylesheet">
+<!-- <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/alt-signedin-ux.css" rel="stylesheet" /> -->   
+<!--[if lt IE 9]>
+    <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/dw-mf-ie8fix.css?v=022216" rel="stylesheet" />
+<![endif]-->
+<link href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-article.css" rel="stylesheet">
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-auth-properties.js"></script>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-auth.js"></script>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-mf.js"></script>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-auto-links.js"></script> 
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-include.js"></script>     
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-article.js"></script>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/tactic.js"></script>
+<script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/tacticbindlinks.js"></script>
+
+<!-- 
+<PageMap>
+    <DataObject type="document">
+        <Attribute name="topic">API,体系架构,调试</Attribute>
+        <Attribute name="topicId">125,61,27</Attribute>
+        <Attribute name="contentArea">java,opensource</Attribute>
+        <Attribute name="contentAreaId">1,7</Attribute>
+        <Attribute name="abstract">JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的第一篇，将会着重从整体上介绍 JPDA 的各个组成，阐述它们彼此之间的内在关联。</Attribute>
+        <Attribute name="pub.date">2008-09-03</Attribute>
+        <Attribute name="contentType">article</Attribute>
+    </DataObject>
+</PageMap>
+-->        
+
+<style id="ibm-masthead-hidelinks">@media screen and (max-width: 557px) { .ibm-masthead-categories,#ibm-megamenu-sections{display:none} }@media screen and (max-width: 557px) { .ibm-mh-marketplace-link{display:none} }</style><style id="ibm-sitenav-menu-hidelinks">@media screen and (max-width: 602px) { .ibm-sitenav-menu-list{display:none} } @media screen and (min-width: 603px) { .ibm-mobilemenu-sitenavmenu {display:none} }</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_53" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.53.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_44" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.44.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_46" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.46.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_45" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.45.js"></script><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation li.active:after {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation ul.dropdown li.active {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-background {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font {color: #2793e6 !important;}</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font-bold {color: #2793e6 !important;font-weight: bold;}</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_27" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.27.js"></script><script type="text/javascript" async="" charset="utf-8" id="LOTCC_10026" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/cc.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_52" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/utag.52.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/rules_50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dispatcher-v3.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/015a6a839457000d606a0ffb81ed04078006807000bd0"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/015a6a839457000d606a0ffb81ed04078006807000bd0(1)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/015a6a839457000d606a0ffb81ed04078006807000bd0(2)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/015a6a839457000d606a0ffb81ed04078006807000bd0(2)"></script><script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/yahoo-min.js" type="text/javascript"></script><script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/cp-v3.js" type="text/javascript"></script><script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/json-min.js" type="text/javascript"></script></head>
+<body id="ibm-com" class="ibm-type ibm-sitenav-menu ibm-sitenav-menu-sticky ibm-masthead-sticky">
+	
+<div id="ibm-top" class="ibm-landing-page dw-sitenav">
+
+<!-- MASTHEAD_BEGIN -->
+<div id="ibm-masthead" role="banner" aria-label="IBM" class="ibm-mhtype-minimal hastransition">
+    <div id="ibm-universal-nav" class="">    
+  
+        <nav role="navigation" aria-label="IBM">
+            <div id="ibm-home"><a href="https://www.ibm.com/cn/zh/?lnk=m">IBM®</a></div>
+            <ul id="ibm-menu-links" role="toolbar" aria-label="Site map" class="ibm-hide">
+                <li><a href="https://www.ibm.com/sitemap/cn/zh/">站点地图</a></li>
+            </ul><div class="ibm-masthead-rightside"><p class="ibm-mh-marketplace-link ibm-button-link ibm-fleft ibm-padding-bottom-0"><a class="ibm-btn-small ibm-btn-sec ibm-btn-blue-50" href="http://www.ibm.com/marketplace/?lnk=mp">市场</a></p><div id="ibm-search-module" role="search" aria-labelledby="ibm-masthead" class="ibm-has-scope">
+            <div class="ibm-masthead-search-close"><p class="ibm-ind-link ibm-icononly ibm-padding-bottom-0"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#" class="ibm-close-link ibm-nospacing">关闭</a></p></div><form id="ibm-search-form" action="https://www.ibm.com/Search/" method="get">
+                <p>
+                    <label for="q">IBM</label>
+                    <input type="text" maxlength="100" value="" placeholder="搜索" name="q" id="q" aria-label="搜索 developerWorks" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-owns="ibm-search-typeahead-container"><input name="lnk" type="hidden" value="mhsrch">
+                    <input type="hidden" value="18" name="v">
+                    <input type="hidden" value="utf" name="en">
+                    <input type="hidden" value="zh" name="lang">
+                    <input type="hidden" value="cn" name="cc">
+                    <input type="hidden" name="sn" value="dw">
+                    <input type="hidden" name="dws" value="cndw">
+                    <input type="hidden" name="hpp" value="20">
+                    <span class="ibm-search-scope ibm-fadeout"><input class="ibm-styled-checkbox" data-init="false" type="checkbox" name="sn" value="" id="ibm-mh-scopeoption"> <label for="ibm-mh-scopeoption">In Marketplace</label></span><button role="button" type="submit" id="ibm-search" class="ibm-search-link" value="提交"><span class="ibm-access">提交</span></button>
+                </p>
+            </form><form class="ibm-hide" id="ibm-default-scope-form" action="https://www.ibm.com/marketplace/search/cn/zh-cn/" method="get"><input name="terms" type="text"><input name="lnk" type="hidden" value="mhmpsrch"></form>
+        </div><div id="ibm-search-typeahead-container" class="ibm-search-typeahead-container ibm-fadeout"></div><ul aria-label="Tools" role="menubar" class="ibm-masthead-iconsonly"><li role="presentation" class="ibm-masthead-item-signin"><button role="menubutton" class="ibm-profile-link">我的 IBM</button><ul id="ibm-signin-minimenu-container" role="menu" aria-label="Profile" class="ibm-dropdown-menu">		<li class="ibm-dropdown-menu-primary" role="presentation" data-linktype="notifications"> 			<a class="" href="https://myibm.ibm.com/dashboard/?lnk=mmi" tabindex="0">我的 IBM</a> 		</li>		<li class="ibm-dropdown-menu-primary menu-heading" role="presentation">				<span tabindex="0">developerWorks</span>			</li>		<li class="ibm-dropdown-menu-primary ibm-signin-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssologin.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html&amp;lang=zh&amp;a=dwmav" role="menuitem">登录</a>		</li>		<li class="ibm-dropdown-menu-primary dw-register-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssoregister.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html&amp;lang=zh&amp;a=dwmav" role="menuitem">注册</a>		</li></ul></li><li role="presentation" class="ibm-masthead-item-menu"><button role="menubutton" class="ibm-menu-link">站点导航</button></li></ul></div> 
+        </nav>
+  
+        
+       
+    </div>
+</div><div class="ibm-mobilemenu ibm-hide" aria-labelledby="ibm-burgermenu-a11y" role="dialog" tabindex="0"><p class="ibm-hide" id="ibm-burgermenu-a11y">站点导航</p><div class="ibm-mobilemenu-close"><p class="ibm-icononly ibm-fright ibm-ind-link ibm-nospacing"><a class="ibm-close-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html?lnk=hm#">关闭</a></p></div><div class="ibm-mobilemenu-section ibm-mobilemenu-sitenavmenu"><ul role="menubar"><li class="ibm-mobile-section-heading ibm-mobile-sitename">
+        <a href="https://www.ibm.com/developerworks/cn/?lnk=hm">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-mf-wordmark.svg">
+        </a>
+    </li>
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/?lnk=hm" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/?lnk=hm" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/?lnk=hm" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul></div><div class="ibm-mobilemenu-section"><ul class="ibm-mobilemenu-mhlinks" aria-label="发现 IBM"><li><a href="http://www.ibm.com/marketplace/?lnk=hmmp">市场</a></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">产品</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/products/cn/zh/?lnk=hmhmpr_cnzh"><span>所有产品</span></a></li><li><a href="https://www.ibm.com/analytics/cn/zh/?lnk=hmmpr_bua_cnzh&amp;lnk2=learn"><span>大数据与分析</span></a></li><li><a href="https://www.ibm.com/cloud-computing/cn/zh?lnk=hmmpr_bucl_cnzh&amp;lnk2=learn"><span>云计算</span></a></li><li><a href="https://www.ibm.com/ibm/cn/cognitive/outthink/?lnk=hmmpr_buce_cnzh&amp;lnk2=learn"><span>认知</span></a></li><li><a href="https://www.ibm.com/commerce/cn-zh/?lnk=hmmpr_bucom_cnzh&amp;lnk2=learn"><span>商务</span></a></li><li><a href="https://www.ibm.com/internet-of-things/cn-zh/?lnk=hmmpr_iot_cnzh&amp;lnk2=learn"><span>物联网</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/it-infrastructure/cn-zh/?lnk=hmmpr_buit_cnzh&amp;lnk2=learn"><span>IT 基础架构</span></a></li><li><a href="https://www.ibm.com/mobilefirst/cn/zh/?lnk=hmmpr_bumf_cnzh&amp;lnk2=learn"><span>移动</span></a></li><li><a href="https://www.ibm.com/security/cn-zh/?lnk=hmmpr_buse_cnzh&amp;lnk2=learn"><span>安全</span></a></li><li><a href="https://www.ibm.com/social-business/cn-zh/?lnk=hm"><span>社交协作与人才管理</span></a></li><li><a href="https://www.ibm.com/services/cn/zh/watson/explorer.html?lnk=hm"><span>Watson</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">服务</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/services/cn/gbs/consulting/?lnk=hmmse_bc_cnzh&amp;lnk2=learn"><span>业务咨询</span></a></li><li><a href="https://www.ibm.com/technologyservices/cn/zh/?lnk=hmmse_ts_cnzh&amp;lnk2=learn"><span>技术服务</span></a></li><li><a href="https://www.ibm.com/financing/cn/zh/index.html?lnk=hmmse_fin_cnzh&amp;lnk2=learn"><span>融资</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/training/?lnk=hm"><span>培训与技能 (US)</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">开发人员</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/developerworks/cn/?lnk=hmmdev_dw_cnzh&amp;lnk2=learn"><span>developerWorks</span></a></li><li><a href="https://www.ibm.com/partnerworld?lnk=hmmdev_pw_cnzh&amp;lnk2=learn"><span>PartnerWorld</span></a></li></ul></div></div></li><li><a href="https://www.ibm.com/support/cn/zh/?lnk=hmmsu_cnzh">支持</a></li><li><a href="https://www.ibm.com/employment/cn/?lnk=hmmca_cnzh">工作机会</a></li></ul></div></div><div class="ibm-mhplaceholder"></div><!-- MASTHEAD_END -->
+	    
+<!-- LAYOUT -->
+<div id="ibm-content-wrapper">
+    <!-- LEADSPACE_BEGIN -->
+    <header role="banner" aria-labelledby="ibm-pagetitle-h1">
+        
+        <!-- MASTHEAD_SITENAV_BEGIN -->
+        <div class="ibm-sitenav-menu-container" data-widgetprocessed="true">
+    <div class="ibm-sitenav-menu-name">
+        <a href="https://www.ibm.com/developerworks/cn/">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-mf-wordmark.svg">
+        </a>
+    </div>
+    <div class="ibm-sitenav-menu-list">
+        <ul role="menubar">
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul>
+    </div>
+</div>        <!-- MASTHEAD_SITENAV_END -->
+        
+        <!-- NAVIGATION_TRAIL_BEGIN -->
+        <div id="ibm-leadspace-head" class="ibm-alternate">
+            <div id="ibm-leadspace-body">
+                <nav aria-label="Breadcrumb" role="navigation">                     
+                            <ul id="dw-navigation-trail" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/topics/"><span itemprop="name">学习</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/java/"><span itemprop="name">Java technology</span></a><meta itemprop="position" content="2"></li></ul>
+                </nav>
+            </div>
+        </div>
+        <!-- NAVIGATION_TRAIL_END -->
+        
+    </header>
+    <!-- LEADSPACE_END -->
+    
+    <!-- MAIN_CONTENT_BEGIN -->
+    <main role="main" aria-label=""> 
+        <div id="ibm-pcon">
+            <!-- BEGIN_IBM-CONTENT -->
+            <div id="ibm-content">
+                <!-- BEGIN_IBM-CONTENT-BODY -->
+                <div id="ibm-content-body">
+                    <!-- BEGIN_IBM-CONTENT-MAIN -->
+                    <div id="ibm-content-main" class="dw-article">                        
+                        <!-- BEGIN_INTERIOR-COLUMNS -->
+                                <div class="ibm-columns dw-article-toc">
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_BEGIN -->  
+                                    <div id="dw-article-toc-container" class="ibm-col-6-2">
+                                        <div id="dw-article-toc-body" data-widget="scrollable" data-height="502" style="width: 380px; height: 502px;" class=""><div class="nano-content" tabindex="-1">
+                                            <h2>内容</h2><div class="ibm-alternate-rule"><hr></div><ul role="directory" aria-label="内容" class="ibm-plain-list"><li class=""><a onclick="tocLink(&#39;#ibm-pagetitle-h1&#39;)" role="link" tabindex="0">概览</a></li><li class=""><a onclick="tocLink(&#39;#N1005F&#39;)" role="link" tabindex="0">JPDA 概述</a></li><li class="dw-highlight"><a onclick="tocLink(&#39;#N1007E&#39;)" role="link" tabindex="0">JPDA 组成模块</a></li><li class=""><a onclick="tocLink(&#39;#N100E9&#39;)" role="link" tabindex="0">JPDA 实现</a></li><li class=""><a onclick="tocLink(&#39;#N100FD&#39;)" role="link" tabindex="0">Java 调试接口的特点</a></li><li class=""><a onclick="tocLink(&#39;#N10111&#39;)" role="link" tabindex="0">结束语</a></li><li><a onclick="tocLink(&#39;#artrelatedtopics&#39;)" role="link" tabindex="0">相关主题</a></li><li><a onclick="tocLink(&#39;#icomments&#39;)" role="link" tabindex="0">评论</a></li></ul>
+                                        </div><div class="nano-pane" style="display: none; opacity: 1; visibility: visible;"><div class="nano-slider" style="height: 502px; transform: translate(0px, 0px);"></div></div></div>
+                                    </div>
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_END -->
+                                    
+                                    <!-- CENTER_6_4_CONTENT_COLUMN_BEGIN -->
+                                    <div class="ibm-col-6-4">
+                                            <p class="dw-article-series-head">深入 Java 调试体系</p>
+                                        <h1 id="ibm-pagetitle-h1" class="ibm-h1">第 1 部分，JPDA 体系概览</h1>
+                                        <!-- Article Top Bar -->
+                                                <div class="ibm-columns dw-article-topbar">
+                                                    <!-- Author and article info. -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 dw-article-metadata">
+                                                        <div class="dw-article-authordate">邱 小侠 和 吕 晶<br><span class="dw-article-pubdate">2008 年 9 月 03 日发布</span></div>
+                                                    </div>
+                                                    <!-- Social -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 ibm-col-small-6-2 dw-article-social">
+                                                        <!-- Sharing links -->
+                                                        <div id="dw-article-share-inline">
+                                                            <div class="dw-article-sharelink-inline">
+                                                                <div class="ibm-sharethispage"><h4 class="ibm-bold">分享此页面</h4><p class="ibm-icononly"><a class="ibm-weibo-encircled-link" href="http://service.weibo.com/share/share.php?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html%&amp;title=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%3A%20%E7%AC%AC%201%20%E9%83%A8%E5%88%86%EF%BC%8CJPDA%20%E4%BD%93%E7%B3%BB%E6%A6%82%E8%A7%88&amp;language=zh_cn" data-id="weibo" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Weibo</a><a class="ibm-googleplus-encircled-link" href="https://plus.google.com/share?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html&amp;t=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%3A%20%E7%AC%AC%201%20%E9%83%A8%E5%88%86%EF%BC%8CJPDA%20%E4%BD%93%E7%B3%BB%E6%A6%82%E8%A7%88" data-id="googleplus" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Google+</a><a class="ibm-email-encircled-link" href="mailto:?subject=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%3A%20%E7%AC%AC%201%20%E9%83%A8%E5%88%86%EF%BC%8CJPDA%20%E4%BD%93%E7%B3%BB%E6%A6%82%E8%A7%88&amp;body=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html" data-id="email" onclick="">用电子邮件发送本页面</a></p></div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Number of comments and link to comments -->
+                                                        <div id="dw-article-cmts">
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#icomments" role="link" tabindex="0" aria-label="Comments">
+                                                                    <img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/dw-article-cmt-icon.png" width="29" height="29" alt="Comments">
+                                                                </a>
+                                                            </div>
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#icomments" role="link" tabindex="0">
+                                                                    <div id="nCmts">2</div>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+<div id="dw-series-container" style="display: block;"><h3 class="ibm-h3" id="dw-series-heading">系列内容：</h3><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2 id="dw-series-show-hide"><a href="javascript:void();">此内容是该系列的一部分：<span id="dw-series-title-alt">深入 Java 调试体系</span></a></h2><div class="ibm-container-body" id="dw-series-links" style="display: none;"><ul id="dw-series-list"><li class="dw-series-item"> 第 1 部分，JPDA 体系概览</li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda2/index.html?ca=drs-" class="dw-series-article-link">第 2 部分: JVMTI 和 Agent 实现</a></li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda3/index.html?ca=drs-" class="dw-series-article-link">第 3 部分: JDWP 协议及实现</a></li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html?ca=drs-" class="dw-series-article-link">第 4 部分: Java 调试接口（JDI）</a></li></ul></div></div></div>
+                                        <!-- Article Body -->
+                                        
+                                        <h2 id="N1005F" class="ibm-h2">JPDA 概述</h2><p>所有的程序员都会遇到 bug，对于运行态的错误，我们往往需要一些方法来观察和测试运行态中的环境。在 Java 程序中，最简单的，您是否尝试过使用 <code>System.out.println()</code> 来输出您的 Java 程序的执行中的各种变量状态来发现您的 Java 程序运行时的问题？这种方式方便易用，在一些简单的情况下能够解决您的问题，但是如果当您的程序运行在远程环境上，或者当前环境不允许控制台终端输出（比如，考虑一下虚拟机初始化之时），您无法获取终端输出的时候呢？或者，如果您根本无法本地修改运行您的程序？</p><p>无须担心，您可以通过很多的调试工具来帮助您解决这个问题，常见的 IDE 都附带一个非常直观简单的调试工具，比如 Eclipse（图 1）就提供一个功能非常全面，操作非常简单的调试器。</p><h5 id="module" class="ibm-h5">图 1. 使用 Eclipse 调试 Java 程序</h5><img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/hellojpda.jpg" class="ibm-downsize" alt="使用 Eclipse调试 Java 程序" height="378" width="520"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N10071&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#N10071">点击查看大图</a></p><div class="overlayrp"></div><p>其他的一些常见的 Java IDE，比如 Netbeans 和 IntelliJ 等等也都提供了类似的功能，您甚至能不用 IDE 提供的图形界面，使用 JDK 自带的 jdb 工具，以文本命令的形式来调试您的 Java 程序。这些形形色色的调试器都支持本地和远程的程序调试，那么它们是如何被开发的？它们之间存在着什么样的联系呢？我们不得不提及 Java 的调试体系—— JPDA 。</p><p>我们知道，Java 程序都是运行在 Java 虚拟机上的，我们要调试 Java 程序，事实上就需要向 Java 虚拟机请求当前运行态的状态，并对虚拟机发出一定的指令，设置一些回调等等，那么 Java 的调试体系，就是虚拟机的一整套用于调试的工具和接口。</p><p>对于 Java 虚拟机接口熟悉的人来说，您一定还记得 Java 提供了两个接口体系，JVMPI（Java Virtual Machine Profiler Interface）和 JVMDI（Java Virtual Machine Debug Interface），而它们，以及在 Java SE 5 中准备代替它们的 JVMTI（Java Virtual Machine Tool Interface），都是 Java 平台调试体系（Java Platform Debugger Architecture，JPDA）的重要组成部分。 Java SE 自 1.2.2 版就开始推出 Java 平台调试体系结构（JPDA）工具集，而从 JDK 1.3.x 开始，Java SDK 就提供了对 Java 平台调试体系结构的直接支持。顾名思义，这个体系为开发人员提供了一整套用于调试 Java 程序的 API，是一套用于开发 Java 调试工具的接口和协议。本质上说，它是我们通向虚拟机，考察虚拟机运行态的一个通道，一套工具。理解这一点对于学习 JPDA 非常重要。</p><p>换句话说，通过 JPDA 这套接口，我们就可以开发自己的调试工具。通过这些 JPDA 提供的接口和协议，调试器开发人员就能根据特定开发者的需求，扩展定制 Java 调试应用程序，开发出吸引开发人员使用的调试工具。前面我们提到的 IDE 调试工具都是基于 JPDA 体系开发的，区别仅仅在于它们可能提供了不同的图形界面、具有一些不同的自定义功能。另外，我们要注意的是，JPDA 是一套标准，任何的 JDK 实现都必须完成这个标准，因此，通过 JPDA 开发出来的调试工具先天具有跨平台、不依赖虚拟机实现、JDK 版本无关等移植优点，因此大部分的调试工具都是基于这个体系的。</p><h2 id="N1007E" class="ibm-h2">JPDA 组成模块</h2><p>JPDA 定义了一个完整独立的体系，它由三个相对独立的层次共同组成，而且规定了它们三者之间的交互方式，或者说定义了它们通信的接口。这三个层次由低到高分别是 Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP）以及 Java 调试接口（JDI）。这三个模块把调试过程分解成几个很自然的概念：调试者（debugger）和被调试者（debuggee），以及他们中间的通信器。被调试者运行于我们想调试的 Java 虚拟机之上，它可以通过 JVMTI 这个标准接口，监控当前虚拟机的信息；调试者定义了用户可使用的调试接口，通过这些接口，用户可以对被调试虚拟机发送调试命令，同时调试者接受并显示调试结果。在调试者和被调试着之间，调试命令和调试结果，都是通过 JDWP 的通讯协议传输的。所有的命令被封装成 JDWP 命令包，通过传输层发送给被调试者，被调试者接收到 JDWP 命令包后，解析这个命令并转化为 JVMTI 的调用，在被调试者上运行。类似的，JVMTI 的运行结果，被格式化成 JDWP 数据包，发送给调试者并返回给 JDI 调用。而调试器开发人员就是通过 JDI 得到数据，发出指令。图 2 展示了这个过程：</p><h5 id="N10087" class="ibm-h5">图 2. JPDA 模块层次</h5><img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/jdwp.jpg" class="ibm-downsize" alt="JPDA 模块层次" height="323" width="481"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N1008B&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#N1008B">点击查看大图</a></p><div class="overlayrp"></div><p>当然，开发人员完全可以不使用完整的三个层次，而是基于其中的某一个层次开发自己的应用。比如您完全可以仅仅依靠通过 JVMTI 函数开发一个调试工具，而不使用 JDWP 和 JDI，只使用自己的通讯和命令接口。当然，除非是有特殊的需求，利用已有的实现会使您事半功倍，避免重复发明轮子。</p><p>这三个模块我们会在后续文章中分别详细介绍，这里我们简单介绍它们的主要功能：</p><h3 id="N10094" class="ibm-h3">Java 虚拟机工具接口（JVMTI）</h3><p>JVMTI（Java Virtual Machine Tool Interface）即指 Java 虚拟机工具接口，它是一套由虚拟机直接提供的 native 接口，它处于整个 JPDA 体系的最底层，所有调试功能本质上都需要通过 JVMTI 来提供。通过这些接口，开发人员不仅调试在该虚拟机上运行的 Java 程序，还能查看它们运行的状态，设置回调函数，控制某些环境变量，从而优化程序性能。我们知道，JVMTI 的前身是 JVMDI 和 JVMPI，它们原来分别被用于提供调试 Java 程序以及 Java 程序调节性能的功能。在 J2SE 5.0 之后 JDK 取代了 JVMDI 和 JVMPI 这两套接口，JVMDI 在最新的 Java SE 6 中已经不提供支持，而 JVMPI 也计划在 Java SE 7 后被彻底取代。</p><h3 id="N1009C" class="ibm-h3">Java 调试线协议（JDWP）</h3><p>JDWP（Java Debug Wire Protocol）是一个为 Java 调试而设计的一个通讯交互协议，它定义了调试器和被调试程序之间传递的信息的格式。在 JPDA 体系中，作为前端（front-end）的调试者（debugger）进程和后端（back-end）的被调试程序（debuggee）进程之间的交互数据的格式就是由 JDWP 来描述的，它详细完整地定义了请求命令、回应数据和错误代码，保证了前端和后端的 JVMTI 和 JDI 的通信通畅。比如在 Sun 公司提供的实现中，它提供了一个名为 jdwp.dll（jdwp.so）的动态链接库文件，这个动态库文件实现了一个 Agent，它会负责解析前端发出的请求或者命令，并将其转化为 JVMTI 调用，然后将 JVMTI 函数的返回值封装成 JDWP 数据发还给后端。</p><p>另外，这里需要注意的是 JDWP 本身并不包括传输层的实现，传输层需要独立实现，但是 JDWP 包括了和传输层交互的严格的定义，就是说，JDWP 协议虽然不规定我们是通过 EMS 还是快递运送货物的，但是它规定了我们传送的货物的摆放的方式。在 Sun 公司提供的 JDK 中，在传输层上，它提供了 socket 方式，以及在 Windows 上的 shared memory 方式。当然，传输层本身无非就是本机内进程间通信方式和远端通信方式，用户有兴趣也可以按 JDWP 的标准自己实现。</p><h3 id="N100A6" class="ibm-h3">Java 调试接口（JDI）</h3><p>JDI（Java Debug Interface）是三个模块中最高层的接口，在多数的 JDK 中，它是由 Java 语言实现的。 JDI 由针对前端定义的接口组成，通过它，调试工具开发人员就能通过前端虚拟机上的调试器来远程操控后端虚拟机上被调试程序的运行，JDI 不仅能帮助开发人员格式化 JDWP 数据，而且还能为 JDWP 数据传输提供队列、缓存等优化服务。从理论上说，开发人员只需使用 JDWP 和 JVMTI 即可支持跨平台的远程调试，但是直接编写 JDWP 程序费时费力，而且效率不高。因此基于 Java 的 JDI 层的引入，简化了操作，提高了开发人员开发调试程序的效率。</p><p>表 1 总结了三个模块的不同点：</p><h5 id="N100B8" class="ibm-h5">表 1. JPDA 层次比较</h5><div id="DataTables_Table_0_wrapper" class="dataTables_wrapper no-footer"><table border="0" cellpadding="0" cellspacing="0" class="ibm-data-table display dataTable no-footer dtr-inline" data-widget="datatable" summary="" width="80%" id="DataTables_Table_0" role="grid" style="width: 80%;"><thead xmlns:dw="http://www.ibm.com/developerWorks/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr role="row"><th class="ibm-background-neutral-white-30 sorting_disabled" scope="col" rowspan="1" colspan="1" style="width: 75px;">模块</th><th class="ibm-background-neutral-white-30 sorting_disabled" scope="col" rowspan="1" colspan="1" style="width: 74px;">层次</th><th class="ibm-background-neutral-white-30 sorting_disabled" scope="col" rowspan="1" colspan="1" style="width: 95px;">编程语言</th><th class="ibm-background-neutral-white-30 sorting_disabled" scope="col" rowspan="1" colspan="1" style="width: 376px;">作用</th></tr></thead><tbody xmlns:dw="http://www.ibm.com/developerWorks/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr role="row" class="odd"><th tabindex="0">JVMTI</th><td>底层</td><td>C</td><td>获取及控制当前虚拟机状态</td></tr><tr role="row" class="even"><th tabindex="0">JDWP</th><td>中介层</td><td>C</td><td>定义 JVMTI 和 JDI 交互的数据格式</td></tr><tr role="row" class="odd"><th tabindex="0">JDI</th><td>高层</td><td>Java</td><td>提供 Java API 来远程控制被调试虚拟机</td></tr></tbody></table></div><h2 id="N100E9" class="ibm-h2">JPDA 实现</h2><div class="dw-article-sidebar ibm-background-cool-white-20"><h5>关于 Apache Harmony 项目</h5><p><a href="http://harmony.apache.org/">Apache Harmony</a> 旨在开发出一个独立且与现有 JDK 兼容的 Java SE 5 实现，它以 Apache 软件许可证 2.0 版发行。它建立了一个开放的模块化运行时架构，包括虚拟机和类库之间及其内部的模块化，通过这个平台，社区能在已有实现的基础上自由定制自己的 Java 实现，或者对某个模块单独进行创新。</p></div><p>每一个虚拟机都应该实现 JVMTI 接口，但是 JDWP 和 JDI 本身与虚拟机并非是不可分的，这三个层之间是通过标准所定义的交互的接口和协议联系起来的，因此它们可以被独立替换或取代，但不会影响到整体调试工具的开发和使用。因此，开发和使用自己的 JDWP 和 JDI 接口实现是可能的。</p><p>Java 软件开发包（SDK）标准版里提供了 JPDA 三个层次的标准实现，事实上，调试工具开发人员还有很多其他开源实现可以选择，比如 Apache Harmony 提供了 JDWP 的实现。而 JDI，我们可以在 Eclipse 一个子项目 org.eclipse.jdt.debug 里找到其完整的实现（Harmony 也使用了这套实现，作为其 J2SE 类库的一部分）。通过标准协议，Eclipse IDE 的调试工具就可以完全在 Harmony 的环境上运行。</p><h2 id="N100FD" class="ibm-h2">Java 调试接口的特点</h2><p>Java 语言是第一个使用虚拟机概念的流行的编程语言，正是因为虚拟机的存在，使很多事情变得简单而轻松，掌握了虚拟机，就掌握了内存分配、线程管理、即时优化等等运行态。同样的，Java 调试的本质，就是和虚拟机打交道，通过操作虚拟机来达到观察调试我们自己代码的目的。这个特点决定了 Java 调试接口和以前其他编程语言的巨大区别。</p><p>以 C/C++ 的调试为例，目前比较流行的调试工具是 GDB 和微软的 Visual Studio 自带的 debugger，在这种 debugger 中，首先，我们必须编译一个“ debug ”模式的程序，这个会比实际的 release 模式程序大很多。其次，在调试过程中，debugger 将会深层接入程序的运行，掌握和控制运行态的一些信息，并将这些信息及时返回。这种介入对运行的效率和内存占用都有一定的需求。基于这些需求，这些 Debugger 本身事实上是提供了，或者说，创建和管理了一个运行态，因此他们的程序算法比较复杂，个头都比较大。对于远端的调试，GDB 也没有很好的默认实现，当然，C/C++ 在这方面也没有特别大的需求。</p><p>而 Java 则不同，由于 Java 的运行态已经被虚拟机所很好地管理，因此作为 Java 的 Debugger 无需再自己创造一个可控的运行态，而仅仅需要去操作虚拟机就可以了。 Java 的 JPDA 就是一套为调试和优化服务的虚拟机的操作工具，其中，JVMTI 是整合在虚拟机中的接口，JDWP 是一个通讯层，而 JDI 是前端为开发人员准备好的工具和运行库。</p><p>从构架上说，我们可以把 JPDA 看作成是一个 C/S 体系结构的应用，在这个构架下，我们可以方便地通过网络，在任意的地点调试另外一个虚拟机上的程序，这个就很好地解决了部署和测试的问题，尤其满足解决了很多网络时代中的开发应用的需求。前端和后端的分离，也方便用户开发适合于自己的调试工具。</p><p>从效率上看，由于 Java 程序本身就是编译成字节码，运行在虚拟机上的，因此调试前后的程序、内存占用都不会有大变化（仅仅是启动一个 JDWP 所需要的内存），任意程度都可以很好地调试，非常方便。而 JPDA 构架下的几个组成部分，JDWP 和 JDI 都比较小，主要的工作可以让虚拟机自己完成。</p><p>从灵活性上，Java 调试工具是建立在强大的虚拟机上的，因此，很多前沿的应用，比如动态编译运行，字节码的实时替换等等，都可以通过对虚拟机的改进而得到实现。随着虚拟机技术的逐步发展和深入，各种不同种类，不同应用领域中虚拟机的出现，各种强大的功能的加入，给我们的调试工具也带来很多新的应用。</p><p>总而言之，一个先天的，可控的运行态给 Java 的调试工作，给 Java 调试接口带来了极大的优势和便利。通过 JPDA 这个标准，我们可以从虚拟机中得到我们所需要的信息，完成我们所希望的操作，更好地开发我们的程序。</p><h2 id="N10111" class="ibm-h2">结束语</h2><p>本文简单介绍了 JPDA 的三个模块以及它们如何和其它层次交互，让读者在整体上对 JPDA 体系有了一个直观的了解，从而方便后面针对每个模块具体介绍的学习，这里我们学习到：</p><ul class="ibm-bullet-list"><li>JPDA 定义了一套如何开发调试工具的接口和规范。</li><li>JPDA 由三个独立的模块 JVMTI、JDWP、JDI 组成。
+<ul class="ibm-bullet-list"><li>调试者通过 JDI 发送接受调试命令。</li><li>JDWP 定义调试者和被调试者交流数据的格式。</li><li>JVMTI 可以控制当前虚拟机运行状态。</li></ul></li><li>除了标准实现，JPDA 还有许多开源实现供使用。</li><li>Java 调试工具的优点。</li></ul><!--CMA ID: 335291--><!--Site ID: 10--><!--XSLT stylesheet used to transform this file: dw-document-html-8.0.xsl--> 
+                                        <!-- Article Resources -->
+                                        <div class="ibm-alternate-rule"><hr></div><h4 id="artrelatedtopics" class="ibm-h4">相关主题</h4><ul><li>
+				在 <a href="http://java.sun.com/javase/technologies/core/toolsapis/jpda/">JPDA 官方的主页</a> 上，您可以查看关于 JPDA 标准实现的细节。
+			</li><li><a href="http://www.eclipse.org/">Eclipse IDE</a> 是一个非常受欢迎的开源开发工具，它集成了对 JPDA 的支持。
+			</li><li><a href="http://harmony.apache.org/subcomponents/drlvm/index.html">Apache Harmony DRLVM</a> 提供了 JVMTI 的开源实现。
+			</li><li>
+				通过 <a href="http://harmony.apache.org/subcomponents/drlvm/index.html">JDWP</a> 提供了 JVMTI 的开源实现。
+			</li><li>“<a href="http://www.ibm.com/developerworks/cn/webservices/ws-xml-rpc/">使用 XML-RPC 为 C++ 应用程序启用 Web 服务</a>”（developerWorks 中国，2006 年 9 月）介绍了将 C++ 方法暴露为 Web 服务的详细指南。</li><li>在 <a href="http://www.ibm.com/developerworks/cn/architecture/">developerWorks 中国网站 Architecture 专区</a> 中学习更多体系结构方面的知识。</li></ul>
+                                        <!-- Commenting -->
+<!-- INLINE_COMMENTS_BEGIN: -->
+<div class="ibm-alternate-rule"><hr></div>
+<div id="dw-article-cmts-top" class="ibm-columns">
+    <div class="ibm-col-6-2">
+        <h4 id="icomments" class="ibm-h4">评论</h4>
+        <div id="dw-article-cmts-login">
+            <p>添加或订阅评论，请先<a onclick="window.location=userLinks[0].url;" tabindex="0" role="link">登录</a>或<a onclick="window.location=userLinks[1].url;" tabindex="0" role="link">注册</a>。</p>
+        </div>
+    </div>    
+    <div class="ibm-col-6-2" id="dw-notify"> 
+        <input type="checkbox" value="1" name="comment_notification" id="comment_notification" disabled="">
+        <label for="comment_notification" style="color: rgb(204, 204, 204);">有新评论时提醒我</label>	   
+    </div>
+</div>
+
+<div class="dw-article-cmts-container">       
+    <div class="ibm-no-print jquery-comments read-only" id="dw-icomments-container"><div class="commenting-field main"><img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/user-icon.png" alt="" class="profile-picture round by-current-user"><div class="textarea-wrapper"><span class="close" style="display: none;"><span class="left"></span><span class="right"></span></span><div class="textarea" data-placeholder="添加评论" contenteditable="true" style="height: 3.65em;"></div><div class="control-row" style="display: none;"><span class="send save highlight-background">提交</span></div></div></div><ul class="navigation"><div class="navigation-wrapper"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></div><div class="navigation-wrapper responsive"><li class="title active"><header>最新的</header></li><ul class="dropdown"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></ul></div></ul><div class="data-container" data-container="comments"><ul id="comment-list" class="main"><li data-id="26830" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1493887006658">2017 年 05 月 04 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/Subfire">Subfire</a></div><div class="wrapper"><div class="content">厉害！</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E5%8E%89%E5%AE%B3%EF%BC%81%0D%E7%94%B1%20Subfire%20%20%E4%BA%8E%202017%20%E5%B9%B4%2005%20%E6%9C%88%2004%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="1129" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1303804800000">2011 年 04 月 26 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/fakeid">fakeid</a></div><div class="wrapper"><div class="content">很好。很强大</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda1%2Findex.html&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E5%BE%88%E5%A5%BD%E3%80%82%E5%BE%88%E5%BC%BA%E5%A4%A7%0D%E7%94%B1%20fakeid%20%20%E4%BA%8E%202011%20%E5%B9%B4%2004%20%E6%9C%88%2026%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li></ul><div class="no-comments no-data"><i class="fa fa-comments fa-2x"></i><br>第一个评论</div></div></div>
+</div>
+<!-- INLINE_COMMENTS_END -->                                        <!-- CENTER_6_4_CONTENT_COLUMN_END -->
+                                    </div>   
+                                </div>
+                        <!--Rating_Meta_BEGIN--><div class="metavalue">static.content.url=http://www.ibm.com/developerworks/js/artrating/</div><div class="metavalue">SITE_ID=10</div><div class="metavalue">Zone=Java technology, Open source</div><div class="metavalue">ArticleID=335291</div><div class="metavalue">ArticleTitle=深入 Java 调试体系: 第 1 部分，JPDA 体系概览</div><div class="metavalue">publish-date=09032008</div><script language="javascript" type="text/javascript">document.write('<div class="metavalue">url='+location.href.replace(/</g,  '%3C')+'</div>');</script><div class="metavalue">url=https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html</div><!--Rating_Meta_END-->
+                    <p class="ibm-ind-link ibm-nospacing ibm-icononly ibm-btt-auto ibm-hidden-small ibm-active"><a class="ibm-nospacing ibm-chevron-up-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#top" tabindex="0">回页首</a></p></div>
+                    <!-- END_IBM-CONTENT-MAIN -->
+                </div>
+                <!-- END_IBM-CONTENT-BODY -->
+            </div>
+            <!-- END_IBM-CONTENT -->
+        </div>
+        <!-- END_IBM-PCON -->
+    </main>
+    <!-- MAIN_CONTENT_END -->
+    
+    <!-- END_CONTENT-WRAPPER -->	
+</div>
+<!-- FOOTER_BEGIN -->
+<footer role="contentinfo" aria-label="IBM developerWorks">
+    <div id="dw-footer-module" class="dw-footer-home">
+        <section aria-label="参考资料" role="contentinfo">
+            <div class="ibm-columns">
+                <div class="ibm-col-6-1 dw-footer-col-1">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="developerWorks">developerWorks</li>
+                        <li><a href="https://www.ibm.com/developerworks/secure/feedback.jsp?domain=dwchina">站点反馈</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/secure/myideas2.jsp?domain=dwchina">我要投稿</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/author/">投稿指南</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/community/report?lang=zh">报告滥用</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/community/terms/thirdparty/">第三方提示</a></li>
+                    </ul>
+                    <ul>
+                        <li class="dw-footer-newline"><a href="https://weibo.com/ibmdw/">关注微博</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-2">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="加入">加入</li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/partnerworld/isv/">ISV 资源 (英语)</a></li>
+                    </ul>
+                    <ul class="dw-footer-lang" aria-label="选择语言">
+                        <li class="dw-footer-heading">选择语言</li>
+                        <li><a href="https://www.ibm.com/developerworks/">English</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/cn/" lang="zh">中文</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/jp/" lang="ja">日本語</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ru/" lang="ru">Русский</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/br/" lang="pt">Português (Brasil)</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ssa/" lang="es">Español</a></li>
+                        <li><a href="https://developer.ibm.com/kr/" lang="kr">한글</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-3"> </div>
+                <div class="ibm-col-6-1 dw-footer-col-4">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/views/global/libraryview.jsp">技术文档库</a>
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/rss/">订阅源</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-5">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/community/">社区</a>  
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="http://ibmdeveloperworks.mkt6741.com/developerWorksChina-NewsletterSubscriptionPage/">dW 中国时事通讯</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-6">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/downloads/">软件下载</a>  
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="dw-footer" class="ibm-padding-normal ibm-alternate">
+        <div class="ibm-columns">
+            <div class="ibm-col-1-1">
+                <div class="dw-footer-corporate-links">
+                <ul>
+                    <li><a href="https://www.ibm.com/contact/cn/zh/">联系 IBM</a></li>
+                    <li><a href="https://www.ibm.com/privacy/cn/zh/">隐私条约</a></li>
+                    <li><a href="https://www.ibm.com/developerworks/community/terms?lang=zh">使用条款</a></li>
+                    <li><a href="https://www.ibm.com/accessibility/cn/zh/">信息无障碍选项</a></li>
+                    <li class="ibm-feedbacklink"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#">反馈</a></li>
+                    <li id="ibm-truste-cp"><a onclick="truste.eu.clickListener();return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html#">Cookie 首选项</a></li>
+                </ul>                 
+                </div>    
+            </div>
+        </div>
+    </div>        
+</footer> <!-- FOOTER_END -->
+
+<!-- END_IBM-TOP -->
+</div>
+
+<!-- SCRIPTS_INCLUDE_BEGIN -->
+<!-- Styles -->
+<link rel="stylesheet" type="text/css" href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/jquery-comments.css">
+<link rel="stylesheet" href="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/font-awesome.min.css">
+
+<!-- Libraries -->
+<script type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/jquery-comments.min.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/moment-with-locales.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/ContentComments.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/ContentCommentsFormatter.js"></script>
+<script type="text/javascript" language="JavaScript">
+
+	IBMCore.common.module.masthead.subscribe("ready", "customjs", setupCommentsPlugin).runAsap(setupCommentsPlugin);
+
+	function setupCommentsPlugin(){
+		//debugger;
+			//alert(userLinks);
+			var commentsInitInfo = {
+				contentId : $("div[class=metavalue]:contains('ArticleID=')").text().split("=")[1],
+				siteId :  $("div[class=metavalue]:contains('SITE_ID=')").text().split("=")[1],
+				pluginDivId : '#dw-icomments-container',
+				notifyElementId : "#comment_notification",
+				loginMessageDivId : "#dw-article-cmts-login",
+				totalCommentsDivId : "#nCmts"
+			};				
+								
+			ContentComments.Setup(commentsInitInfo);
+	}
+</script>
+<!-- Piwik -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    _paq.push(["setDomains", ["*.www.ibm.com/developerworks","*.www.ibm.com/developerworks"]]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+    var u="//developer.ibm.com/piwik/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<noscript>&lt;p&gt;&lt;img src="//developer.ibm.com/piwik/piwik.php?idsite=7" style="border:0;" alt="" /&gt;&lt;/p&gt;</noscript>
+<!-- End Piwik Code -->
+<!-- SCRIPTS_INCLUDE_END -->
+
+
+
+<div id="ibm-overlay-backdrop"></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N10071" role="dialog" aria-describedby="ibm-overlaywidget-N10071-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N10071-content" class="content"><div class="" data-widget="overlay" id="N10071"><img alt="使用 Eclipse调试 Java 程序" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/hellojpda.jpg" width="520"></div></div></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N1008B" role="dialog" aria-describedby="ibm-overlaywidget-N1008B-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N1008B-content" class="content"><div class="" data-widget="overlay" id="N1008B"><img alt="JPDA 模块层次" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/jdwp.jpg" width="481"></div></div></div><div id="ibm-mobilemenu-screen"></div><iframe id="LOTCCFrameWed Jul 19 2017 19:16:32 GMT+0800 (CST)" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/rt=ifr.html" title="empty" tabindex="-1" role="presentation" style="border: 0px; width: 0px; height: 0px; display: block;"></iframe><div id="ttdUniversalPixelTag14a49df88763436db0795df4fc90e6a7" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/up.html"></iframe></div><div id="ttdUniversalPixelTagaf477d928c164ae0b8f3e1717b910617" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/up(1).html"></iframe></div><script src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/js(1)" id="mm_pp_background"></script><script type="text/javascript" src="./深入 Java 调试体系_ 第 1 部分，JPDA 体系概览_files/Serving" async=""></script></body></html>

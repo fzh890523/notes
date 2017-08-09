@@ -1,0 +1,872 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁） - FenixSoft 3.0 - ITeye博客</title>
+    <meta name="description" content="　　高效并发是JDK 1.6的一个重要主题，HotSpot虚拟机开发团队在这个版本上花费了大量的精力去实现各种锁优化技术，如适应性自旋（Adaptive Spinning）、� ...">
+    <meta name="keywords" content="虚拟机, 多线程, JDK, ITeye, 数据结构 虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）">
+    <link rel="shortcut icon" href="http://icyfenix.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://icyfenix.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://icyfenix.iteye.com/rss" rel="alternate" title="FenixSoft 3.0" type="application/rss+xml">
+    <link href="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blue.css" media="screen" rel="stylesheet" type="text/css">
+    <script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/application.js" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hotkey.js" type="text/javascript"></script>
+  <script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/code_favorites.js" type="text/javascript"></script>
+<script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/weiboshare.js" type="text/javascript"></script>
+
+    
+  <style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style></head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://icyfenix.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://icyfenix.iteye.com/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://icyfenix.iteye.com/">FenixSoft 3.0</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://icyfenix.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://icyfenix.iteye.com/weibo">微博</a></li>
+            <li><a href="http://icyfenix.iteye.com/album">相册</a></li>
+            <li><a href="http://icyfenix.iteye.com/link">收藏</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text">
+              <input class="submit_search" value="" type="submit">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://icyfenix.iteye.com/" class="p-author" target="_blank">IcyFenix</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="http://icyfenix.iteye.com/blog/1018932">虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）</a>
+      <em class="actions">      </em>
+    </h3>
+    
+        <div class="news_tag"><a href="http://www.iteye.com/blogs/tag/%E8%99%9A%E6%8B%9F%E6%9C%BA">虚拟机</a><a href="http://www.iteye.com/blogs/tag/%E5%A4%9A%E7%BA%BF%E7%A8%8B">多线程</a><a href="http://www.iteye.com/blogs/tag/JDK">JDK</a><a href="http://www.iteye.com/blogs/tag/ITeye">ITeye</a><a href="http://www.iteye.com/blogs/tag/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84">数据结构</a></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    　　高效并发是JDK 
+1.6的一个重要主题，HotSpot虚拟机开发团队在这个版本上花费了大量的精力去实现各种锁优化技术，如适应性自旋（Adaptive 
+Spinning）、锁削除（Lock Elimination）、锁膨胀（Lock Coarsening）、轻量级锁（Lightweight 
+Locking）、偏向锁（Biased 
+Locking）等，这些技术都是为了在线程之间更高效地共享数据，以及解决竞争问题，从而提高程序的执行效率。
+<br>
+<br><strong>13.3.1 自旋锁与自适应自旋</strong>
+<br>
+<br>　　前面我们讨论互斥同步的时候，提到了互斥同步对性能最大的影响是阻塞的实现，挂起线程和恢复线程的操作都需要转入内核态中完成，这些操作给系
+统的并发性能带来了很大的压力。同时，虚拟机的开发团队也注意到在许多应用上，共享数据的锁定状态只会持续很短的一段时间，为了这段时间去挂起和恢复线程
+并不值得。如果物理机器有一个以上的处理器，能让两个或以上的线程同时并行执行，我们就可以让后面请求锁的那个线程“稍等一会”，但不放弃处理器的执行时
+间，看看持有锁的线程是否很快就会释放锁。为了让线程等待，我们只须让线程执行一个忙循环（自旋），这项技术就是所谓的自旋锁。
+<br>　　自旋锁在JDK 1.4.2中就已经引入，只不过默认是关闭的，可以使用-XX:+UseSpinning参数来开启，在JDK 
+1.6中就已经改为默认开启了。自旋等待不能代替阻塞，且先不说对处理器数量的要求，自旋等待本身虽然避免了线程切换的开销，但它是要占用处理器时间的，
+所以如果锁被占用的时间很短，自旋等待的效果就会非常好，反之如果锁被占用的时间很长，那么自旋的线程只会白白消耗处理器资源，而不会做任何有用的工作，
+反而会带来性能的浪费。因此自旋等待的时间必须要有一定的限度，如果自旋超过了限定的次数仍然没有成功获得锁，就应当使用传统的方式去挂起线程了。自旋次
+数的默认值是10次，用户可以使用参数-XX:PreBlockSpin来更改。
+<br>　　在JDK 
+1.6中引入了自适应的自旋锁。自适应意味着自旋的时间不再固定了，而是由前一次在同一个锁上的自旋时间及锁的拥有者的状态来决定。如果在同一个锁对象
+上，自旋等待刚刚成功获得过锁，并且持有锁的线程正在运行中，那么虚拟机就会认为这次自旋也很有可能再次成功，进而它将允许自旋等待持续相对更长的时间，
+比如100个循环。另一方面，如果对于某个锁，自旋很少成功获得过，那在以后要获取这个锁时将可能省略掉自旋过程，以避免浪费处理器资源。有了自适应自
+旋，随着程序运行和性能监控信息的不断完善，虚拟机对程序锁的状况预测就会越来越准确，虚拟机就会变得越来越“聪明”了。
+<br>
+<br><strong>13.3.2 锁削除</strong>
+<br>
+<br>　　锁削除是指虚拟机即时编译器在运行时，对一些代码上要求同步，但是被检测到不可能存在共享数据竞争的锁进行削除。锁削除的主要判定依据来源于
+逃逸分析的数据支持（第11章已经讲解过逃逸分析技术），如果判断到一段代码中，在堆上的所有数据都不会逃逸出去被其他线程访问到，那就可以把它们当作栈
+上数据对待，认为它们是线程私有的，同步加锁自然就无须进行。
+<br>　　也许读者会有疑问，变量是否逃逸，对于虚拟机来说需要使用数据流分析来确定，但是程序员自己应该是很清楚的，怎么会在明知道不存在数据争用的
+情况下要求同步呢？答案是有许多同步措施并不是程序员自己加入的，同步的代码在Java程序中的普遍程度也许超过了大部分读者的想象。我们来看看下面代码
+清单13-6中的例子，这段非常简单的代码仅仅是输出三个字符串相加的结果，无论是源码字面上还是程序语义上都没有同步。
+<br>
+<br><span style="font-size: x-small;"><strong>　　代码清单 13-6 一段看起来没有同步的代码</strong></span>
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=public%20String%20concatString(String%20s1%2C%20String%20s2%2C%20String%20s3)%20%7B%0A%09return%20s1%20%2B%20s2%20%2B%20s3%3B%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;String&nbsp;concatString(String&nbsp;s1,&nbsp;String&nbsp;s2,&nbsp;String&nbsp;s3)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span><span>&nbsp;s1&nbsp;+&nbsp;s2&nbsp;+&nbsp;s3;&nbsp;&nbsp;</span></span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="" codeable_type="BlogComment" source_url="http://icyfenix.iteye.com/blog/1018932#" pre_index="0" title="虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）">public String concatString(String s1, String s2, String s3) {
+	return s1 + s2 + s3;
+}</pre>　　我们也知道，由于String是一个不可变的类，对字符串的连接操作总是通过生成新的String对象来进行的，因此Javac编译器
+会对String连接做自动优化。在JDK 1.5之前，会转化为StringBuffer对象的连续append()操作，在JDK 
+1.5及以后的版本中，会转化为StringBuilder对象的连续append()操作。即代码清单13-6中的代码可能会变成代码清单13-7的样
+子 。
+<br>
+<br><span style="font-size: x-small;"><strong>　　代码清单 13-7 Javac转化后的字符串连接操作</strong></span>
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=public%20String%20concatString(String%20s1%2C%20String%20s2%2C%20String%20s3)%20%7B%0A%20%20%20%20StringBuffer%20sb%20%3D%20new%20StringBuffer()%3B%0A%20%20%20%20sb.append(s1)%3B%0A%20%20%20%20sb.append(s2)%3B%0A%20%20%20%20sb.append(s3)%3B%0A%20%20%20%20return%20sb.toString()%3B%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;String&nbsp;concatString(String&nbsp;s1,&nbsp;String&nbsp;s2,&nbsp;String&nbsp;s3)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;StringBuffer&nbsp;sb&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;StringBuffer();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;sb.append(s1);&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;sb.append(s2);&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;sb.append(s3);&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span><span>&nbsp;sb.toString();&nbsp;&nbsp;</span></span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="" codeable_type="BlogComment" source_url="http://icyfenix.iteye.com/blog/1018932#" pre_index="1" title="虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）">public String concatString(String s1, String s2, String s3) {
+    StringBuffer sb = new StringBuffer();
+    sb.append(s1);
+    sb.append(s2);
+    sb.append(s3);
+    return sb.toString();
+}</pre><span style="color: gray;">（注1：实事求是地说，既然谈到锁削除与逃逸分析，那虚拟机就不可能是JDK 1.5之前的版本，所以实际上会转化为非线程安全的StringBuilder来完成字符串拼接，并不会加锁。但是这也不影响笔者用这个例子证明Java对象中同步的普遍性。）</span>
+<br>
+<br>　　现在大家还认为这段代码没有涉及同步吗？每个StringBuffer.append()方法中都有一个同步块，锁就是sb对象。虚拟机观察
+变量sb，很快就会发现它的动态作用域被限制在concatString()方法内部。也就是sb的所有引用永远不会“逃逸”到
+concatString()方法之外，其他线程无法访问到它，所以这里虽然有锁，但是可以被安全地削除掉，在即时编译之后，这段代码就会忽略掉所有的同
+步而直接执行了。
+<br>
+<br><strong>13.3.3 锁膨胀</strong>
+<br>
+<br>　　原则上，我们在编写代码的时候，总是推荐将同步块的作用范围限制得尽量小——只在共享数据的实际作用域中才进行同步，这样是为了使得需要同步的操作数量尽可能变小，如果存在锁竞争，那等待锁的线程也能尽快地拿到锁。
+<br>　　大部分情况下，上面的原则都是正确的，但是如果一系列的连续操作都对同一个对象反复加锁和解锁，甚至加锁操作是出现在循环体中的，那即使没有线程竞争，频繁地进行互斥同步操作也会导致不必要的性能损耗。
+<br>　　上面代码清单13-7中连续的append()方法就属于这类情况。如果虚拟机探测到有这样一串零碎的操作都对同一个对象加锁，将会把加锁同
+步的范围扩展（膨胀）到整个操作序列的外部，以代码清单13-7为例，就是扩展到第一个append()操作之前直至最后一个append()操作之后，
+这样只需要加锁一次就可以了。
+<br>
+<br><strong>13.3.4 轻量级锁</strong>
+<br>
+<br>　　轻量级锁是JDK 
+1.6之中加入的新型锁机制，它名字中的“轻量级”是相对于使用操作系统互斥量来实现的传统锁而言的，因此传统的锁机制就被称为“重量级”锁。首先需要强
+调一点的是，轻量级锁并不是用来代替重量级锁的，它的本意是在没有多线程竞争的前提下，减少传统的重量级锁使用操作系统互斥量产生的性能消耗。
+<br>　　要理解轻量级锁，以及后面会讲到的偏向锁的原理和运作过程，必须从HotSpot虚拟机的对象（对象头部分）的内存布局开始介绍。
+HotSpot虚拟机的对象头（Object 
+Header）分为两部分信息，第一部分用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄（Generational GC 
+Age）等，这部分数据的长度在32位和64位的虚拟机中分别为32个和64个Bits，官方称它为“Mark 
+Word”，它是实现轻量级锁和偏向锁的关键。另外一部分用于存储指向方法区对象类型数据的指针，如果是数组对象的话，还会有一个额外的部分用于存储数组
+长度。
+<br>　　对象头信息是与对象自身定义的数据无关的额外存储成本，考虑到虚拟机的空间效率，Mark 
+Word被设计成一个非固定的数据结构以便在极小的空间内存储尽量多的信息，它会根据对象的状态复用自己的存储空间。例如在32位的HotSpot虚拟机
+中对象未被锁定的状态下，Mark 
+Word的32个Bits空间中的25Bits用于存储对象哈希码（HashCode），4Bits用于存储对象分代年龄，2Bits用于存储锁标志
+位，1Bit固定为0，在其他状态（轻量级锁定、重量级锁定、GC标记、可偏向）下对象的存储内容如表13-1所示。
+<br>
+<br><span style="font-size: x-small;"><strong>　　表13-1 HotSpot虚拟机对象头Mark Word</strong></span><table class="bbcode"><tbody><tr><td><strong>存储内容</strong></td><td><strong>标志位</strong></td><td><strong>状态</strong></td></tr><tr><td>对象哈希码、对象分代年龄</td><td>01</td><td>未锁定</td></tr><tr><td>指向锁记录的指针</td><td>00</td><td>轻量级锁定</td></tr><tr><td>指向重量级锁的指针</td><td>10</td><td>膨胀（重量级锁定）</td></tr><tr><td>空，不需要记录信息</td><td>11</td><td>GC标记</td></tr><tr><td>偏向线程ID、偏向时间戳、对象分代年龄</td><td>01</td><td>可偏向</td></tr></tbody></table>
+<br>　　简单地介绍完了对象的内存布局，我们把话题返回到轻量级锁的执行过程上。在代码进入同步块的时候，如果此同步对象没有被锁定（锁标志位为
+“01”状态），虚拟机首先将在当前线程的栈帧中建立一个名为锁记录（Lock Record）的空间，用于存储锁对象目前的Mark 
+Word的拷贝（官方把这份拷贝加了一个Displaced前缀，即Displaced Mark 
+Word），这时候线程堆栈与对象头的状态如图13-3所示。
+<br>
+<br><div style="text-align: center;"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e9a97c8d-72d2-30a8-88be-ab07bf3b0a4a.png">
+<br><span style="font-size: x-small;"><strong>　　图13-3 轻量级锁CAS操作之前堆栈与对象的状态 </strong></span></div>
+<br>
+<br>　　然后，虚拟机将使用CAS操作尝试将对象的Mark Word更新为指向Lock 
+Record的指针。如果这个更新动作成功了，那么这个线程就拥有了该对象的锁，并且对象Mark Word的锁标志位（Mark 
+Word的最后两个Bits）将转变为“00”，即表示此对象处于轻量级锁定状态，这时候线程堆栈与对象头的状态如图13-4所示。
+<br>
+<br><div style="text-align: center;"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/858dafa2-f81d-3942-9519-2f8a8b8e005d.png">
+<br><span style="font-size: x-small;"><strong>　　图13-4 轻量级锁CAS操作之后堆栈与对象的状态</strong></span></div>
+<br>（<span style="color: gray;">注2：图13-3和图13-4来源于HotSpot虚拟机的一位Senior Staff Engineer——Paul Hohensee所写的PPT《The Hotspot Java Virtual Machine》</span>）
+<br>
+<br>　　如果这个更新操作失败了，虚拟机首先会检查对象的Mark 
+Word是否指向当前线程的栈帧，如果是就说明当前线程已经拥有了这个对象的锁，那就可以直接进入同步块继续执行，否则说明这个锁对象已经被其他线程抢占
+了。如果有两条以上的线程争用同一个锁，那轻量级锁就不再有效，要膨胀为重量级锁，锁标志的状态值变为“10”，Mark 
+Word中存储的就是指向重量级锁（互斥量）的指针，后面等待锁的线程也要进入阻塞状态。
+<br>　　上面描述的是轻量级锁的加锁过程，它的解锁过程也是通过CAS操作来进行的，如果对象的Mark 
+Word仍然指向着线程的锁记录，那就用CAS操作把对象当前的Mark Word和线程中复制的Displaced Mark 
+Word替换回来，如果替换成功，整个同步过程就完成了。如果替换失败，说明有其他线程尝试过获取该锁，那就要在释放锁的同时，唤醒被挂起的线程。
+<br>　　轻量级锁能提升程序同步性能的依据是“对于绝大部分的锁，在整个同步周期内都是不存在竞争的”，这是一个经验数据。如果没有竞争，轻量级锁使
+用CAS操作避免了使用互斥量的开销，但如果存在锁竞争，除了互斥量的开销外，还额外发生了CAS操作，因此在有竞争的情况下，轻量级锁会比传统的重量级
+锁更慢。
+<br>
+<br><strong>13.3.5 偏向锁</strong>
+<br>
+<br>　　偏向锁也是JDK 
+1.6中引入的一项锁优化，它的目的是消除数据在无竞争情况下的同步原语，进一步提高程序的运行性能。如果说轻量级锁是在无竞争的情况下使用CAS操作去
+消除同步使用的互斥量，那偏向锁就是在无竞争的情况下把整个同步都消除掉，连CAS操作都不做了。
+<br>　　偏向锁的“偏”，就是偏心的“偏”、偏袒的“偏”。它的意思是这个锁会偏向于第一个获得它的线程，如果在接下来的执行过程中，该锁没有被其他的线程获取，则持有偏向锁的线程将永远不需要再进行同步。
+<br>　　如果读者读懂了前面轻量级锁中关于对象头Mark 
+Word与线程之间的操作过程，那偏向锁的原理理解起来就会很简单。假设当前虚拟机启用了偏向锁（启用参数-XX:+UseBiasedLocking，
+这是JDK 
+1.6的默认值），那么，当锁对象第一次被线程获取的时候，虚拟机将会把对象头中的标志位设为“01”，即偏向模式。同时使用CAS操作把获取到这个锁的
+线程的ID记录在对象的Mark 
+Word之中，如果CAS操作成功，持有偏向锁的线程以后每次进入这个锁相关的同步块时，虚拟机都可以不再进行任何同步操作（例如Locking、
+Unlocking及对Mark Word的Update等）。
+<br>　　当有另外一个线程去尝试获取这个锁时，偏向模式就宣告结束。根据锁对象目前是否处于被锁定的状态，撤销偏向（Revoke 
+Bias）后恢复到未锁定（标志位为“01”）或轻量级锁定（标志位为“00”）的状态，后续的同步操作就如上面介绍的轻量级锁那样执行。偏向锁、轻量级
+锁的状态转化及对象Mark Word的关系如图13-5所示。
+<br>
+<br><div style="text-align: center;"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/143a2781-7c38-3fe5-9ac2-eb1eb46acc14.png">
+<br><span style="font-size: x-small;"><strong>　　图13-5 偏向锁、轻量级锁的状态转化及对象Mark Word的关系</strong></span></div>
+<br>
+<br>　　偏向锁可以提高带有同步但无竞争的程序性能。它同样是一个带有效益权衡（Trade 
+Off）性质的优化，也就是说它并不一定总是对程序运行有利，如果程序中大多数的锁都总是被多个不同的线程访问，那偏向模式就是多余的。在具体问题具体分
+析的前提下，有时候使用参数-XX:-UseBiasedLocking来禁止偏向锁优化反而可以提升性能。
+<br>
+<br><strong>原创文章，转载请注明以下信息：</strong>
+<br>作者：icyfenix@gmail.com
+<br>来源：<a target="_blank" href="http://icyfenix.iteye.com/blog/975047">《深入理解Java虚拟机：JVM高级特性与最佳实践》</a>
+  </div>
+
+  
+  <div class="attachments">
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0047/1323/143a2781-7c38-3fe5-9ac2-eb1eb46acc14.png" target="_blank"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/143a2781-7c38-3fe5-9ac2-eb1eb46acc14-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 21.7 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0047/1325/e9a97c8d-72d2-30a8-88be-ab07bf3b0a4a.png" target="_blank"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e9a97c8d-72d2-30a8-88be-ab07bf3b0a4a-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 36.5 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0047/1327/858dafa2-f81d-3942-9519-2f8a8b8e005d.png" target="_blank"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/858dafa2-f81d-3942-9519-2f8a8b8e005d-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 51.8 KB</li>
+        </ul>
+      
+    
+    
+      <ul>
+        <li><a href="#" onclick="$$('div.attachments ul').invoke('show');$(this).up(1).hide();return false;">查看图片附件</a></li>
+      </ul>
+    
+  </div>
+
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://icyfenix.iteye.com/blog/1021949" class="next" title="Java语法糖的味道：泛型与类型擦除">Java语法糖的味道：泛型与类型擦除</a>
+      |
+      <a href="http://icyfenix.iteye.com/blog/1005366" class="pre" title="跟风，分享一下，我常去的中文技术网站">跟风，分享一下，我常去的中文技术网站</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2011-04-26 21:21</li>
+      <li>浏览 8023</li>
+      <li><a href="#comments">评论(41)</a></li>
+       <li>论坛回复 / <a href="http://icyfenix.iteye.com/topic/1018932">浏览</a> (37 / 13095)</li> 
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/1018932" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1455589744328_328.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36074</em>&nbsp;&nbsp;关注 <i>|</i> <em>3137</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1465887837340_340.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3055</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1479972981201_201.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>14935</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1453701371636_636.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>30845</em>&nbsp;&nbsp;关注 <i>|</i> <em>3747</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2394254">
+  <div class="comment_title">
+    41 楼
+    <a href="http://somefuture.iteye.com/" target="_blank" title="somefuture">somefuture</a>
+    2016-10-21&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">偏向模式和未锁定都是01&nbsp; 怎么区分呢</div>
+</div>
+
+<div id="bc2374736">
+  <div class="comment_title">
+    40 楼
+    <a href="http://harim.iteye.com/" target="_blank" title="harim">harim</a>
+    2015-07-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">好文章！！</div>
+</div>
+
+<div id="bc2370781">
+  <div class="comment_title">
+    39 楼
+    <a href="http://dsxwjhf.iteye.com/" target="_blank" title="dsxwjhf">dsxwjhf</a>
+    2015-04-21&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">AlwenS 写道</div><div class="quote_div"><div class="quote_title">AlwenS 写道</div><div class="quote_div"><div class="quote_title"> 写道</div><div class="quote_div">楼主太猛了，我一直想搞清楚JVM的东西，请问你都是从哪里学来的，给小弟点指引吧</div><br><br><span style="color: red;">虚拟机将使用CAS操作尝试将对象的Mark Word更新为指向Lock Record的指针</span><br><br>如果这个<span style="color: red;">更新操作失败</span>了，虚拟机首先会检查对象的Mark Word是否指向当前线程的栈帧，如果是就说明当前线程<span style="color: red;">已经拥有了这个对象</span>的锁，那就可以直接进入同步块继续执行<img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_arrow.gif"> </div><br><br>是不是漏说了些啥？既然已经更新失败了,Mark Word为啥还会指向线程栈帧？ <br><br>而且CAS是对根据什么状态做CAS啊？<br></div><br><br>第一个问题，我也是百撕不得骑姐。。4年过去了，大哥能不能指教一下？<br><br>第二个问题，加锁时的 CAS ，应该是比较对象的 Mark Word 和 栈帧上的副本 Mark Word ；解锁时的 CAS ，估计是预先把刚刚加锁后的 Mark Word 记下来了，然后和当前的 Mark Word 比较。。</div>
+</div>
+
+<div id="bc2369441">
+  <div class="comment_title">
+    38 楼
+    <a href="http://851228082.iteye.com/" target="_blank" title="851228082">851228082</a>
+    2015-03-26&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">轻量级锁和偏向锁中，CAS分别作了什么？读了好几遍文章，也没看出来具体是干了什么？<br>compare，比较，比较的谁和谁，比较的什么字段？<br>swap，交换，交换的谁和谁，交换的什么字段？</div>
+</div>
+
+<div id="bc2324343">
+  <div class="comment_title">
+    37 楼
+    <a href="http://hanmiao.iteye.com/" target="_blank" title="hanmiao">hanmiao</a>
+    2013-09-03&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">linux1689 写道</div><div class="quote_div">最新预告，书今天已经排版完毕了，有谍照在新浪围脖上：@出版人杨福川</div>已经改名叫@华章杨福川 了，链接在此：<a rel="nofollow" target="_blank" href="http://weibo.com/p/1005051642711683">http://weibo.com/p/1005051642711683</a></div>
+</div>
+
+<div id="bc2095135">
+  <div class="comment_title">
+    36 楼
+    <a href="http://linux1689.iteye.com/" target="_blank" title="linux1689">linux1689</a>
+    2011-05-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">最新预告，书今天已经排版完毕了，有谍照在新浪围脖上：@出版人杨福川</div>
+</div>
+
+<div id="bc2076423">
+  <div class="comment_title">
+    35 楼
+    <a href="http://linux1689.iteye.com/" target="_blank" title="linux1689">linux1689</a>
+    2011-04-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">本书将与2011年5月底上市。</div>
+</div>
+
+<div id="bc2076313">
+  <div class="comment_title">
+    34 楼
+    <a href="http://kanny.iteye.com/" target="_blank" title="kanny87929">kanny87929</a>
+    2011-04-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">好帖，我喜欢</div>
+</div>
+
+<div id="bc2076255">
+  <div class="comment_title">
+    33 楼
+    <a href="http://blognojava.iteye.com/" target="_blank" title="悲剧了">悲剧了</a>
+    2011-04-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">早点出吧，等着购买</div>
+</div>
+
+<div id="bc2076100">
+  <div class="comment_title">
+    32 楼
+    <a href="http://linux1689.iteye.com/" target="_blank" title="linux1689">linux1689</a>
+    2011-04-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">大家不要沮丧啊，等这本书出版了，大家好好看看，不久懂了么，呵呵。</div>
+</div>
+
+<div id="bc2075724">
+  <div class="comment_title">
+    31 楼
+    <a href="http://xn--caedmon-ze14b.iteye.com/" target="_blank" title="Caedmon">Caedmon</a>
+    2011-04-29&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">JVM这个东西很是蛋疼啊，找的书都不是很好理解，英文太差劲，纠结啊 纠结啊。。。</div>
+</div>
+
+<div id="bc2071905">
+  <div class="comment_title">
+    30 楼
+    <a href="http://szhnet.iteye.com/" target="_blank" title="szhnet">szhnet</a>
+    2011-04-28&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">如果能对当一个线程已经获得了偏向锁，之后另一个线程也尝试获取锁的时候，发生的事情进行详细的描述就更好了</div>
+</div>
+
+<div id="bc2070183">
+  <div class="comment_title">
+    29 楼
+    <a href="http://peterwei.iteye.com/" target="_blank" title="peterwei">peterwei</a>
+    2011-04-28&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">melin 写道</div><div class="quote_div">这本书一出，会引起更多人关注jvm、</div>
+<br>这也不一定，关注的人已经关注了。不关注的人，也不一定肯花时间关注。</div>
+</div>
+
+<div id="bc2070145">
+  <div class="comment_title">
+    28 楼
+    <a href="http://melin.iteye.com/" target="_blank" title="melin">melin</a>
+    2011-04-28&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">这本书一出，会引起更多人关注jvm、</div>
+</div>
+
+<div id="bc2069522">
+  <div class="comment_title">
+    27 楼
+    <a href="http://wkoffee.iteye.com/" target="_blank" title="wkoffee">wkoffee</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">如果lz有兴趣的话可以再看看hotspot中重量级锁的实现，个人认为在hotspot中几种锁的实现里面，重量级锁的技术含量是最高的。我自己的看代码心得里面，其他几种锁的实现还能看懂，重量级锁只能是一知半解。</div>
+</div>
+
+<div id="bc2069520">
+  <div class="comment_title">
+    26 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">BruceXX 写道</div><div class="quote_div"><div class="quote_title">引用</div><div class="quote_div"> 
+<br>不知道别人如何，自己写VM（改造VM）是我工作的一部分…也是我的娱乐的一部分<img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_arrow.gif"> 
+<br></div>
+<br>
+<br>这世间真难得。。。曾经是因为破解才让我去看汇编的东西，看雪论坛里能写VM的人也是比较少见的。。
+<br>看来还是需要继续深入学习。。。</div>
+<br>“写VM”和“写高可靠高性能VM”是两种完全不同的概念…我还达不到后者的程度，只是娱乐啦
+<br>引用一篇论文，<a rel="nofollow" target="_blank" href="http://users.cecs.anu.edu.au/%7Esteveb/downloads/pdf/TR-CS-08-01.pdf">The Moxie JVM Experience</a>里说的：
+<br><div class="quote_title">引用</div><div class="quote_div">On one hand,
+ a JVM is a relatively simple system. Accomplished programmers have been
+ known to build working JVMs single-handedly from scratch in a matter of
+ months. On the other hand, the technology that underlies a modern high 
+performance JVM is enormously complex, far beyond the grasp of any 
+single person.</div></div>
+</div>
+
+<div id="bc2069501">
+  <div class="comment_title">
+    25 楼
+    <a href="http://brucexx.iteye.com/" target="_blank" title="BruceXX">BruceXX</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"> 
+<br>不知道别人如何，自己写VM（改造VM）是我工作的一部分…也是我的娱乐的一部分<img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_arrow.gif"> 
+<br>
+<br>
+<br>这世间真难得。。。曾经是因为破解才让我去看汇编的东西，看雪论坛里能写VM的人也是比较少见的。。
+<br>看来还是需要继续深入学习。。。</div>
+</div>
+
+<div id="bc2069433">
+  <div class="comment_title">
+    24 楼
+    <a href="http://peak.iteye.com/" target="_blank" title="peak">peak</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">出了书能免费分享出来就好了</div>
+</div>
+
+<div id="bc2069406">
+  <div class="comment_title">
+    23 楼
+    <a href="http://alwens.iteye.com/" target="_blank" title="AlwenS">AlwenS</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">AlwenS 写道</div><div class="quote_div"><div class="quote_title"> 写道</div><div class="quote_div">楼主太猛了，我一直想搞清楚JVM的东西，请问你都是从哪里学来的，给小弟点指引吧</div>
+<br>
+<br><span style="color: red;">虚拟机将使用CAS操作尝试将对象的Mark Word更新为指向Lock Record的指针</span>
+<br>
+<br>如果这个<span style="color: red;">更新操作失败</span>了，虚拟机首先会检查对象的Mark Word是否指向当前线程的栈帧，如果是就说明当前线程<span style="color: red;">已经拥有了这个对象</span>的锁，那就可以直接进入同步块继续执行<img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_arrow.gif"> </div>
+<br>
+<br>是不是漏说了些啥？既然已经更新失败了,Mark Word为啥还会指向线程栈帧？ 
+<br>
+<br>而且CAS是对根据什么状态做CAS啊？
+<br></div>
+</div>
+
+<div id="bc2069404">
+  <div class="comment_title">
+    22 楼
+    <a href="http://alwens.iteye.com/" target="_blank" title="AlwenS">AlwenS</a>
+    2011-04-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">风怒了~~~</div>
+</div>
+
+
+    
+    <div class="pagination"><span class="disabled prev_page">« 上一页</span> <span class="current">1</span> <a href="http://icyfenix.iteye.com/blog/1018932?page=2#comments" rel="next">2</a> <a href="http://icyfenix.iteye.com/blog/1018932?page=3#comments">3</a> <a href="http://icyfenix.iteye.com/blog/1018932?page=2#comments" class="next_page" rel="next">下一页 »</a></div>
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://icyfenix.iteye.com/login" style="background-color:white;"> <img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://icyfenix.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 1018932;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '虚拟机中的锁优化简介（适应性自旋/锁粗化/锁削除/轻量级锁/偏向锁）');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://icyfenix.iteye.com/"><img alt="IcyFenix的博客" class="logo" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6edbe3e9-9b1b-39ac-923f-e9a4155ad836.jpg" title="IcyFenix的博客: FenixSoft 3.0" width=""></a></div>
+  <div id="blog_owner_name">IcyFenix</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 243864 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 珠海</li>
+              <li><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://icyfenix.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://lei1985.iteye.com/" target="_blank"><img alt="LEI1985的博客" class="logo" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="LEI1985的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://lei1985.iteye.com/" target="_blank" title="LEI1985">LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://nicks.iteye.com/" target="_blank"><img alt="nicks的博客" class="logo" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="nicks的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://nicks.iteye.com/" target="_blank" title="nicks">nicks</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://luochuang.iteye.com/" target="_blank"><img alt="luochuang的博客" class="logo" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/aa5f543a-0920-3647-88fa-dc8bd2231a13-thumb.png" title="luochuang的博客: 罗闯的微博" width="48px"></a></div>
+                <div class="left"><a href="http://luochuang.iteye.com/" target="_blank" title="luochuang">luochuang</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://itnull.iteye.com/" target="_blank"><img alt="itnull的博客" class="logo" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="itnull的博客: itnull" width="48px"></a></div>
+                <div class="left"><a href="http://itnull.iteye.com/" target="_blank" title="itnull">itnull</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/">全部博客 (32)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="http://icyfenix.iteye.com/blog/post">我的论坛</a> (332)
+                </li>
+                <li><a href="http://icyfenix.iteye.com/blog/answered_problems">我的问答</a> (11)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2013-07">2013-07</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-05">2012-05</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-02">2012-02</a> (1)</li>
+                
+                <li><a href="http://icyfenix.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://chensixy.iteye.com/" target="_blank" title="chensixy">chensixy</a>： 
+                  周老师和Java认识也是鸡猿啊！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2398694">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://sophistica.iteye.com/" target="_blank" title="sophistica">sophistica</a>： 
+                  那个链接怎么无效了？<br>
+                  <a href="http://icyfenix.iteye.com/blog/1181634#bc2398676">征集《Java虚拟机规范（Java7版）》的译者</a>
+                </li>
+                
+                <li>
+                  <a href="http://zhangfeiyu2005.iteye.com/" target="_blank" title="zhangfeiyu2005">zhangfeiyu2005</a>： 
+                   膜拜大神<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2397152">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  致敬！！！您做什么都能做到一流，值得我学习！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1256329#bc2395857">发布《Java虚拟机规范 （Java SE 7 中文版）》</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  膜拜大神~~~<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2395856">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/a.gif" width="0" height="0">
+
+<script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking_002.js" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/async_new.js"></script>
+<script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/jquery-1.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/web-storage-cache.js" type="text/javascript"></script>
+	    <script src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%AD%E7%9A%84%E9%94%81%E4%BC%98%E5%8C%96%E7%AE%80%E4%BB%8B%EF%BC%88%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B_%E9%94%81%E7%B2%97%E5%8C%96_%E9%94%81%E5%89%8A%E9%99%A4_%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81_%E5%81%8F%E5%90%91%E9%94%81%EF%BC%89%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/replace.js" type="text/javascript"></script>
+    
+    
+  
+
+</body></html>

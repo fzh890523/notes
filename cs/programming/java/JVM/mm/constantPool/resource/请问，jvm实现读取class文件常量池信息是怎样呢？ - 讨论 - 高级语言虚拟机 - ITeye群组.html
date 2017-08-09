@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>请问，jvm实现读取class文件常量池信息是怎样呢？ - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="&lt;p&gt;在看class文件结构的时候，class文件中有一个常量池，我想问下 JVM实现 读取class文件常量池信息的时候，是不是根据class文件的常量池的tag信息分别读取到各个类型的常量表（比如CONSTANT_Utf8_info、CONSTANT_Class_info等等）中呢？&lt;/p&gt; &lt;p&gt;&nbsp;&lt;/p&gt;">
+    <meta name="keywords" content="请问，jvm实现读取class文件常量池信息是怎样呢？ 讨论 高级语言虚拟机">
+    <link rel="shortcut icon" href="http://hllvm.group.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link href="http://hllvm.group.iteye.com/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://hllvm.group.iteye.com/open_search.xml" title="ITeye">
+    <link href="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/group.css" media="screen" rel="stylesheet" type="text/css">
+<link href="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/blue.css" media="screen" rel="stylesheet" type="text/css">
+
+    <script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/hm.js"></script><script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/application.js" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/hotkey.js" type="text/javascript"></script>
+  <script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/code_favorites.js" type="text/javascript"></script>
+  <style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style></head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://hllvm.group.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://hllvm.group.iteye.com/login">登录</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com/"><img alt="ITeye3.0" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/logo.gif" title="ITeye-最棒的软件开发交流社区"></a>
+          </div>
+          <div id="gg"><iframe src="/iframe_ggbd/25" scrolling="no" class="eptpygegxungotahnlzw" height="90" frameborder="0" width="728"></iframe></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style="display:none">
+  <a href="http://all-wmh.iteye.com/" class="p-author" target="_blank">all_wmh</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">→</span>
+
+  <a href="http://hllvm.group.iteye.com/groups/category/language">编程语言</a>
+  <span class="arrow">→</span>
+
+<a href="http://hllvm.group.iteye.com/">高级语言虚拟机</a>
+ <span class="arrow">→</span> <a href="http://hllvm.group.iteye.com/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_plus.gif"> <a href="http://hllvm.group.iteye.com/group/topic/26412/post/new">发表回复</a></div>
+  
+</div>
+
+<h3><a href="http://hllvm.group.iteye.com/group/forum?tag_id=690">[讨论]</a> <a href="http://hllvm.group.iteye.com/group/topic/26412">请问，jvm实现读取class文件常量池信息是怎样呢？</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-187726">
+  <td class="post_author"><div class="logo"><a href="http://all-wmh.iteye.com/" target="_blank"><img alt="all_wmh的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/user-logo-thumb.gif" title="all_wmh的博客: 从零学起" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://all-wmh.iteye.com/" target="_blank" title="all_wmh">all_wmh</a>
+      2011-06-19
+    </div>
+    <div class="post_body"> 
+      <p>在看class文件结构的时候，class文件中有一个常量池，我想问下 JVM实现 
+读取class文件常量池信息的时候，是不是根据class文件的常量池的tag信息分别读取到各个类型的常量表（比如
+CONSTANT_Utf8_info、CONSTANT_Class_info等等）中呢？</p>
+<p>&nbsp;</p>
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-187861">
+  <td class="post_author"><div class="logo"><a href="http://rednaxelafx.iteye.com/" target="_blank"><img alt="RednaxelaFX的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+      2011-06-20
+    </div>
+    <div class="post_body"> 
+      具体实现么…
+<br>
+<br>================================================
+<br>
+<br>HotSpot VM的话，当前的版本是这样的：
+<br>
+<br>HotSpot VM用instanceKlass来记录类的元数据，每个Java类有一个对应的instanceKlass。
+<br>每个instanceKlass上引用着一个constantPoolOopDesc对象，然后间接引用着一个constantPoolCacheOopDesc对象。前者跟Class文件里记录的常量池的结构类似，而后者是为了让解释器运行得更高效的一个缓存。
+<br>
+<br>举例的话，用VisualVM里的<a target="_blank" href="http://rednaxelafx.iteye.com/blog/729214">SA Plugin</a>来演示，java.lang.String的状况。
+<br>这里我用JDK 7的一个预览版，build 96来运行VisualVM 1.3和一个groovysh，并且用VisualVM里的SA Plugin来观察groovysh的运行状态：
+<br>
+<br>图1：java.lang.String对应的一个instanceKlass
+<br><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/5351ec71-2920-3e0f-8481-cb94c8ab8d93.png" title="点击查看原始大小图片" class="magplus" height="465" width="600">
+<br>留意到instanceKlass里有个_constants字段，引用着一个constantPoolOopDesc对象（后面简称constantPool对象）。
+<br>
+<br>图2：观察constantPool对象的内容：
+<br><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/f11b4fbd-c557-36c9-aa74-09be6f454678.png" title="点击查看原始大小图片" class="magplus" height="465" width="600">
+<br>留意到它是一个类似数组的对象，里面有_length字段描述常量池内容的个数，后面就是常量池项了。
+<br>各个类型的常量是混在一起放在常量池里的，跟Class文件里的基本上一样。
+<br>最不同的是在这个运行时常量池里，symbol是在类之间共享的；而在Class文件的常量池里每个Class文件都有自己的一份symbol内容，没共享。
+<br>
+<br>图3：观察constantPool里其中一个Utf8常量的内容：
+<br><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/9dddae27-e3ea-3520-bd52-53532bee96a4.png" title="点击查看原始大小图片" class="magplus" height="465" width="600">
+<br>这张图的关注点是位于0x180188a8的一个symbol对象（内容是"intern"），它的结构跟数组类似，有_length来记录长度，后面是UTF-8编码的字节。
+<br>
+<br>这些Utf8常量在HotSpot 
+VM里以symbolOopDesc对象（下面简称symbol对象）来表现；它们可以通过一个全局的SymbolTable对象找到。注
+意：constantPool对象并不“包含”这些symbol对象，而只是引用着它们而已；或者说，constantPool对象只存了对symbol
+对象的引用，而没有存它们的内容。
+<br>
+<br>让我们来看看原本的Class文件里内容是怎样的：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Command prompt代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=D%3A%5Ctemp%5Cjdk7b96%5Cjdk1.7.0%5Cfastdebug%5Cbin%3Ejavap%20-verbose%20-private%20java.lang.String%20%7C%20more%0AClassfile%20jar%3Afile%3A%2FD%3A%2Ftemp%2Fjdk7b96%2Fjdk1.7.0%2Ffastdebug%2Fjre%2Flib%2Frt.jar!%2Fjava%2Flang%2FString.class%0A%20%20Last%20modified%202010-6-3%3B%20size%2023741%20bytes%0A%20%20MD5%20checksum%20293ab9f6781f6cd7d8f1dcaeabf1701c%0A%20%20Compiled%20from%20%22String.java%22%0Apublic%20final%20class%20java.lang.String%20extends%20java.lang.Object%20implements%20java.io.%0ASerializable%2C%20java.lang.Comparable%3Cjava.lang.String%3E%2C%20java.lang.CharSequence%0A%20%20Signature%3A%20%23405%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20Ljava%2Flang%2FObject%3BLjava%2Fio%2FSerializable%3BLjava%2Flang%2FComparable%3CLjava%2Flang%2FString%3B%3E%3BLjava%2Flang%2FCharSequence%3B%0A%20%20SourceFile%3A%20%22String.java%22%0A%20%20InnerClasses%3A%0A%20%20%20%20%20%20%20static%20%23134%20of%20%2340%3B%20%2F%2Fclass%20java%2Flang%2FString%241%20of%20class%20java%2Flang%2FString%0A%20%20%20%20%20%20%20private%20static%20%23137%3D%20%23128%20of%20%2340%3B%20%2F%2FCaseInsensitiveComparator%3Dclass%20java%2Flang%2FString%24CaseInsensitiveComparator%20of%20class%20java%2Flang%2FString%0A%20%20minor%20version%3A%200%0A%20%20major%20version%3A%2051%0A%20%20flags%3A%20ACC_PUBLIC%2C%20ACC_FINAL%2C%20ACC_SUPER%0AConstant%20pool%3A%0A%20%20%20%20%231%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23130.%23408%20%20%20%20%20%2F%2F%20%20java%2Flang%2FObject.%22%3Cinit%3E%22%3A()V%0A%20%20%20%20%232%20%3D%20Fieldref%20%20%20%20%20%20%20%20%20%20%20%2340.%23409%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FString.offset%3AI%0A%20%20%20%20%233%20%3D%20Fieldref%20%20%20%20%20%20%20%20%20%20%20%2340.%23410%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FString.count%3AI%0A%20%20%20%20%234%20%3D%20Fieldref%20%20%20%20%20%20%20%20%20%20%20%2340.%23411%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FString.value%3A%5BC%0A%20%20%20%20%235%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23412.%23413%20%20%20%20%20%2F%2F%20%20java%2Futil%2FArrays.copyOfRange%3A(%5BCII)%5BC%0A%20%20%20%20%236%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23412.%23414%20%20%20%20%20%2F%2F%20%20java%2Futil%2FArrays.copyOf%3A(%5BCI)%5BC%0A%20%20%20%20%237%20%3D%20Class%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23415%20%20%20%20%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FStringIndexOutOfBoundsException%0A%20%20%20%20%238%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%237.%23416%20%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FStringIndexOutOfBoundsException.%22%3Cinit%3E%22%3A(I)V%0A%20%20%20%20%239%20%3D%20Integer%20%20%20%20%20%20%20%20%20%20%20%2065536%0A%20%20%20%2310%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23417.%23418%20%20%20%20%20%2F%2F%20%20java%2Flang%2FCharacter.isSupplementaryCodePoint%3A(I)Z%0A%20%20%20%2311%20%3D%20Class%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23419%20%20%20%20%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FIllegalArgumentException%0A%20%20%20%2312%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23420.%23421%20%20%20%20%20%2F%2F%20%20java%2Flang%2FInteger.toString%3A(I)Ljava%2Flang%2FString%3B%0A%20%20%20%2313%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%2311.%23422%20%20%20%20%20%20%2F%2F%20%20java%2Flang%2FIllegalArgumentException.%22%3Cinit%3E%22%3A(Ljava%2Flang%2FString%3B)V%0A%0A..." quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>D:\temp\jdk7b96\jdk1.</span><span class="number">7.0</span><span>\fastdebug\bin&gt;javap&nbsp;-verbose&nbsp;-private&nbsp;java.lang.String&nbsp;|&nbsp;more&nbsp;&nbsp;</span></span></li><li><span>Classfile&nbsp;jar:file:/D:/temp/jdk7b96/jdk1.<span class="number">7.0</span><span>/fastdebug/jre/lib/rt.jar!/java/lang/String.class&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;Last&nbsp;modified&nbsp;<span class="number">2010</span><span>-</span><span class="number">6</span><span>-</span><span class="number">3</span><span>;&nbsp;size&nbsp;</span><span class="number">23741</span><span>&nbsp;bytes&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;MD5&nbsp;checksum&nbsp;293ab9f6781f6cd7d8f1dcaeabf1701c&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;Compiled&nbsp;from&nbsp;<span class="string">"String.java"</span><span>&nbsp;&nbsp;</span></span></li><li><span>public&nbsp;final&nbsp;class&nbsp;java.lang.String&nbsp;extends&nbsp;java.lang.Object&nbsp;implements&nbsp;java.io.&nbsp;&nbsp;</span></li><li><span>Serializable,&nbsp;java.lang.Comparable&lt;java.lang.String&gt;,&nbsp;java.lang.CharSequence&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;Signature:&nbsp;#<span class="number">405</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Ljava/lang/Object;Ljava/io/Serializable;Ljava/lang/Comparable&lt;Ljava/lang/String;&gt;;Ljava/lang/CharSequence;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;SourceFile:&nbsp;<span class="string">"String.java"</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;InnerClasses:&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;#<span class="number">134</span><span>&nbsp;of&nbsp;#</span><span class="number">40</span><span>;&nbsp;//class&nbsp;java/lang/String$</span><span class="number">1</span><span>&nbsp;of&nbsp;class&nbsp;java/lang/String&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;static&nbsp;#<span class="number">137</span><span>=&nbsp;#</span><span class="number">128</span><span>&nbsp;of&nbsp;#</span><span class="number">40</span><span>;&nbsp;//CaseInsensitiveComparator=class&nbsp;java/lang/String$CaseInsensitiveComparator&nbsp;of&nbsp;class&nbsp;java/lang/String&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;minor&nbsp;version:&nbsp;<span class="number">0</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;major&nbsp;version:&nbsp;<span class="number">51</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;flags:&nbsp;ACC_PUBLIC,&nbsp;ACC_FINAL,&nbsp;ACC_SUPER&nbsp;&nbsp;</span></li><li><span>Constant&nbsp;pool:&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">1</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">130</span><span>.#</span><span class="number">408</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/Object.</span><span class="string">"&lt;init&gt;"</span><span>:()V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">2</span><span>&nbsp;=&nbsp;Fieldref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">40</span><span>.#</span><span class="number">409</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/String.offset:I&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">3</span><span>&nbsp;=&nbsp;Fieldref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">40</span><span>.#</span><span class="number">410</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/String.count:I&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">4</span><span>&nbsp;=&nbsp;Fieldref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">40</span><span>.#</span><span class="number">411</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/String.value:[C&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">5</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">412</span><span>.#</span><span class="number">413</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/util/Arrays.copyOfRange:([CII)[C&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">6</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">412</span><span>.#</span><span class="number">414</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/util/Arrays.copyOf:([CI)[C&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">7</span><span>&nbsp;=&nbsp;Class&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">415</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/StringIndexOutOfBoundsException&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">8</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">7</span><span>.#</span><span class="number">416</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/StringIndexOutOfBoundsException.</span><span class="string">"&lt;init&gt;"</span><span>:(I)V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;#<span class="number">9</span><span>&nbsp;=&nbsp;Integer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="number">65536</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;#<span class="number">10</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">417</span><span>.#</span><span class="number">418</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/Character.isSupplementaryCodePoint:(I)Z&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;#<span class="number">11</span><span>&nbsp;=&nbsp;Class&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">419</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/IllegalArgumentException&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;#<span class="number">12</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">420</span><span>.#</span><span class="number">421</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/Integer.toString:(I)Ljava/lang/String;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;#<span class="number">13</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">11</span><span>.#</span><span class="number">422</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;java/lang/IllegalArgumentException.</span><span class="string">"&lt;init&gt;"</span><span>:(Ljava/lang/String;)V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>...&nbsp;&nbsp;</span></li></ol></div><pre class="command prompt" name="code" style="display: none;" codeable_id="post-187861" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-187861" pre_index="0" title="请问，jvm实现读取class文件常量池信息是怎样呢？">D:\temp\jdk7b96\jdk1.7.0\fastdebug\bin&gt;javap -verbose -private java.lang.String | more
+Classfile jar:file:/D:/temp/jdk7b96/jdk1.7.0/fastdebug/jre/lib/rt.jar!/java/lang/String.class
+  Last modified 2010-6-3; size 23741 bytes
+  MD5 checksum 293ab9f6781f6cd7d8f1dcaeabf1701c
+  Compiled from "String.java"
+public final class java.lang.String extends java.lang.Object implements java.io.
+Serializable, java.lang.Comparable&lt;java.lang.String&gt;, java.lang.CharSequence
+  Signature: #405                         // Ljava/lang/Object;Ljava/io/Serializable;Ljava/lang/Comparable&lt;Ljava/lang/String;&gt;;Ljava/lang/CharSequence;
+  SourceFile: "String.java"
+  InnerClasses:
+       static #134 of #40; //class java/lang/String$1 of class java/lang/String
+       private static #137= #128 of #40; //CaseInsensitiveComparator=class java/lang/String$CaseInsensitiveComparator of class java/lang/String
+  minor version: 0
+  major version: 51
+  flags: ACC_PUBLIC, ACC_FINAL, ACC_SUPER
+Constant pool:
+    #1 = Methodref          #130.#408     //  java/lang/Object."&lt;init&gt;":()V
+    #2 = Fieldref           #40.#409      //  java/lang/String.offset:I
+    #3 = Fieldref           #40.#410      //  java/lang/String.count:I
+    #4 = Fieldref           #40.#411      //  java/lang/String.value:[C
+    #5 = Methodref          #412.#413     //  java/util/Arrays.copyOfRange:([CII)[C
+    #6 = Methodref          #412.#414     //  java/util/Arrays.copyOf:([CI)[C
+    #7 = Class              #415          //  java/lang/StringIndexOutOfBoundsException
+    #8 = Methodref          #7.#416       //  java/lang/StringIndexOutOfBoundsException."&lt;init&gt;":(I)V
+    #9 = Integer            65536
+   #10 = Methodref          #417.#418     //  java/lang/Character.isSupplementaryCodePoint:(I)Z
+   #11 = Class              #419          //  java/lang/IllegalArgumentException
+   #12 = Methodref          #420.#421     //  java/lang/Integer.toString:(I)Ljava/lang/String;
+   #13 = Methodref          #11.#422      //  java/lang/IllegalArgumentException."&lt;init&gt;":(Ljava/lang/String;)V
+
+...</pre>
+<br>再对比图2看看，是不是正好对应上的？
+<br>
+<br>图2里constantPool的第一个常量池项的内容是：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=JVM_CONSTANT_Methodref%3A%2026738818" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>JVM_CONSTANT_Methodref:&nbsp;</span><span class="number">26738818</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-187861" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-187861" pre_index="1" title="请问，jvm实现读取class文件常量池信息是怎样呢？">JVM_CONSTANT_Methodref: 26738818</pre>
+<br>这个26738818数字是怎么来的呢？
+<br>实际上是：26738818 = 408 &lt;&lt; 16 | 130
+<br>而原本Class文件里常量池的第一项内容正是#130.#408，也就是由一个Class_index和一个NameAndType_index组成的Methodref。
+<br>
+<br>图2里还有个细节，可以看到原本Class文件里常量池第7项是一个Class，但在图2里显示的是一个“UnresolvedClass”。这
+正是动态类加载/链接的一个表现。这个项所指向的Class还没被String里的方法使用过，所以还没跟String链接起来，所以这里看到是
+unresolved。
+<br>我们可以故意在那个groovysh里执行一句：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Groovy代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard='abc'.charAt(5)" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span class="string">'abc'</span><span>.charAt(</span><span class="number">5</span><span>)&nbsp;&nbsp;</span></span></li></ol></div><pre class="Groovy" name="code" style="display: none;" codeable_id="post-187861" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-187861" pre_index="2" title="请问，jvm实现读取class文件常量池信息是怎样呢？">'abc'.charAt(5)</pre>
+<br>这样会引发String.charAt()方法执行的过程中抛出一个java.lang.StringIndexOutOfBoundsException异常，那么就必须要完成链接的步骤。
+<br>然后再去看看String的常量池的样子：
+<br><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/aa1c405a-eda7-32f6-a607-2e197b187ab8.png" title="点击查看原始大小图片" class="magplus" height="465" width="600">
+<br>就可以看到常量池的第7项已经解析（resolve）好了，从原本的符号引用变成了一个直接引用。
+<br>
+<br>================================================
+<br>
+<br>在JDK7以后的更新版中，HotSpot VM会逐渐去除PermGen，原本一些放在GC堆里的元数据会搬到GC管理之外的堆空间里。所以上面描述的实现会有些变化。具体会变成怎样还没真相。
+<br>
+<br>================================================
+<br>
+<br>至于其它JVM，其实运行时常量池想怎么组织都可以的，反正Java层面上看不出来JVM内部组织这些元数据的方式的差异。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-188677">
+  <td class="post_author"><div class="logo"><a href="http://xuhang1128.iteye.com/" target="_blank"><img alt="xuhang1128的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/user-logo-thumb.gif" title="xuhang1128的博客: I will never let you go" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://xuhang1128.iteye.com/" target="_blank" title="xuhang1128">xuhang1128</a>
+      2011-06-29
+    </div>
+    <div class="post_body"> 
+      这个visualvm是自带的吗，怎么功能好像强大很多啊
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-188678">
+  <td class="post_author"><div class="logo"><a href="http://rednaxelafx.iteye.com/" target="_blank"><img alt="RednaxelaFX的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+      2011-06-29
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">xuhang1128 写道</div><div class="quote_div">这个visualvm是自带的吗，怎么功能好像强大很多啊</div>
+<br>虽然我用来截图的这个确实不是JDK自带的那个，但其实功能一样，主要是要多装些插件。上面的截图都是VisualVM的SA Plugin插件的
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-189020">
+  <td class="post_author"><div class="logo"><a href="http://all-wmh.iteye.com/" target="_blank"><img alt="all_wmh的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/user-logo-thumb.gif" title="all_wmh的博客: 从零学起" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://all-wmh.iteye.com/" target="_blank" title="all_wmh">all_wmh</a>
+      2011-06-30
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">引用</div><div class="quote_div">这个26738818数字是怎么来的呢？ <br>实际上是：26738818 = 408 &lt;&lt; 16 | 130 </div><br>撒迦能否解释的更具体点呢？ 还是没看明白。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-189034">
+  <td class="post_author"><div class="logo"><a href="http://rednaxelafx.iteye.com/" target="_blank"><img alt="RednaxelaFX的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+      2011-06-30
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">all_wmh 写道</div><div class="quote_div"><div class="quote_title">引用</div><div class="quote_div">这个26738818数字是怎么来的呢？ 
+<br>实际上是：26738818 = 408 &lt;&lt; 16 | 130 </div>
+<br>撒迦能否解释的更具体点呢？ 还是没看明白。</div>
+<br>嗯，好啊。
+<br>
+<br>先看JVM规范里Class文件格式中，CONSTANT_Field_info的结构：
+<br><div class="quote_title">JVMS2 写道</div><div class="quote_div"><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=CONSTANT_Fieldref_info%20%7B%0A%20%20u1%20tag%3B%0A%20%20u2%20class_index%3B%0A%20%20u2%20name_and_type_index%3B%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>CONSTANT_Fieldref_info&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;u1&nbsp;tag;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;u2&nbsp;class_index;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;u2&nbsp;name_and_type_index;&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-189034" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-189034" pre_index="0" title="请问，jvm实现读取class文件常量池信息是怎样呢？">CONSTANT_Fieldref_info {
+  u1 tag;
+  u2 class_index;
+  u2 name_and_type_index;
+}</pre></div>
+<br>可以看到这个常量池项的结构就是一个字节的tag（= CONSTANT_Fieldref (9)），后面跟着两个字节的class_index，再跟着两个字节的name_and_type_index。
+<br>
+<br>javap在显示常量池项的时候，这例子对应的项是：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=%231%20%3D%20Methodref%20%20%20%20%20%20%20%20%20%20%23130.%23408%20%20%20%20%20%2F%2F%20%20java%2Flang%2FObject.%22%3Cinit%3E%22%3A()V" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>#</span><span class="number">1</span><span>&nbsp;=&nbsp;Methodref&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">130</span><span>.#</span><span class="number">408</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">//&nbsp;&nbsp;java/lang/Object."&lt;init&gt;":()V</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-189034" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-189034" pre_index="1" title="请问，jvm实现读取class文件常量池信息是怎样呢？">#1 = Methodref          #130.#408     //  java/lang/Object."&lt;init&gt;":()V</pre>
+<br>实际上在Class文件里的样子是（十六进制）：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=09%2000%2082%2001%2098" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="number">09</span><span>&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">82</span><span>&nbsp;</span><span class="number">01</span><span>&nbsp;</span><span class="number">98</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-189034" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-189034" pre_index="2" title="请问，jvm实现读取class文件常量池信息是怎样呢？">09 00 82 01 98</pre>
+<br>也就是：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=CONSTANT_Fieldref_info%20%7B%0A%20%20u1%20tag%20%3D%200x09%3B%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20CONSTANT_Fieldref%0A%20%20u2%20class_index%20%3D%200x0082%3B%20%20%20%20%20%20%20%20%20%2F%2F%20130%0A%20%20u2%20name_and_type_index%20%3D%200x0198%3B%20%2F%2F%20408%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>CONSTANT_Fieldref_info&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;u1&nbsp;tag&nbsp;=&nbsp;<span class="number">0x09</span><span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">//&nbsp;CONSTANT_Fieldref</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;u2&nbsp;class_index&nbsp;=&nbsp;<span class="number">0x0082</span><span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="comment">//&nbsp;130</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;u2&nbsp;name_and_type_index&nbsp;=&nbsp;<span class="number">0x0198</span><span>;&nbsp;</span><span class="comment">//&nbsp;408</span><span>&nbsp;&nbsp;</span></span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-189034" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-189034" pre_index="3" title="请问，jvm实现读取class文件常量池信息是怎样呢？">CONSTANT_Fieldref_info {
+  u1 tag = 0x09;                   // CONSTANT_Fieldref
+  u2 class_index = 0x0082;         // 130
+  u2 name_and_type_index = 0x0198; // 408
+}</pre>
+<br>
+<br>HotSpot VM加载了这个Class文件后，在constantPool对象里也存下了对应的内容。用SA Plugin我们可以看到显示的是：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/clipboard_new.swf" flashvars="clipboard=JVM_CONSTANT_Methodref%3A%2026738818" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>JVM_CONSTANT_Methodref:&nbsp;</span><span class="number">26738818</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="post-189034" codeable_type="GroupPost" source_url="http://hllvm.group.iteye.com/group/topic/26412#post-189034" pre_index="4" title="请问，jvm实现读取class文件常量池信息是怎样呢？">JVM_CONSTANT_Methodref: 26738818</pre>
+<br>实际上结构跟Class文件里原本的样子是一样的，也是有个tag来区分常量项的类型，后面指向别的常量项的索引号。
+<br>只不过SA 
+Plugin在显示常量项内容的时候，把class_index与name_and_type_index的存放顺序跟Class文件里的正好反了过来组
+合成一个整数显示了出来而已。实际上26738818 = 408 &lt;&lt; 16 | 
+130，也就是26738818作为一个4字节的整数，其中两字节是name_and_type_index，另外两字节是class_index，就这
+样。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-189163">
+  <td class="post_author"><div class="logo"><a href="http://all-wmh.iteye.com/" target="_blank"><img alt="all_wmh的博客" class="logo" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/user-logo-thumb.gif" title="all_wmh的博客: 从零学起" width="48px"></a></div></td>
+  <td>
+    <div>
+      <a href="http://all-wmh.iteye.com/" target="_blank" title="all_wmh">all_wmh</a>
+      2011-06-30
+    </div>
+    <div class="post_body"> 
+      感谢撒迦的细心指导，非常感谢。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/spinner_002.gif" style="vertical-align:bottom;margin-left:7px;display:none;">
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/icon_plus.gif"> <a href="http://hllvm.group.iteye.com/group/topic/26412/post/new">发表回复</a></div>
+  
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '请问，jvm实现读取class文件常量池信息是怎样呢？');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text">
+    <input value="搜索" class="submit" type="submit">
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="http://hllvm.group.iteye.com/">&gt;&gt;返回群组首页</a>
+  <div class="logo"><a href="http://hllvm.group.iteye.com/"><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/group-logo.gif" alt="高级语言虚拟机群组" title="高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。" height="48" width="48"></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/522167" target="_blank">【总结】String in Java</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/705359" target="_blank">asm解读</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/730461" target="_blank">借助HotSpot SA来一窥PermGen上的对象</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/774673" target="_blank">请别再拿“String s = new String("xyz");创建了多少个String实例”来面试了吧</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1120139" target="_blank">解析JDK 7的动态类型语言支持</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class="selected">群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net/">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="http://hllvm.group.iteye.com/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com/">ITeye黑板报</a></li>
+      <li><a href="http://hllvm.group.iteye.com/index/contactus">联系我们</a></li>
+      <li class="last"><a href="http://hllvm.group.iteye.com/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    © 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn/">京ICP证070598号</a>  京公网安备11010502027441 ]<br>
+    北京创新乐知信息技术有限公司 版权所有<br>
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/a.gif" height="0" width="0">
+
+<script src="%E8%AF%B7%E9%97%AE%EF%BC%8Cjvm%E5%AE%9E%E7%8E%B0%E8%AF%BB%E5%8F%96class%E6%96%87%E4%BB%B6%E5%B8%B8%E9%87%8F%E6%B1%A0%E4%BF%A1%E6%81%AF%E6%98%AF%E6%80%8E%E6%A0%B7%E5%91%A2%EF%BC%9F%20-%20%E8%AE%A8%E8%AE%BA%20-%20%E9%AB%98%E7%BA%A7%E8%AF%AD%E8%A8%80%E8%99%9A%E6%8B%9F%E6%9C%BA%20-%20ITeye%E7%BE%A4%E7%BB%84_files/tracking.js" type="text/javascript"></script>
+
+    
+  
+
+</body></html>

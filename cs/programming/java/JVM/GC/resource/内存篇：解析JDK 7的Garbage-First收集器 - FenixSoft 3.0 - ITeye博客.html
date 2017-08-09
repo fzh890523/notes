@@ -1,0 +1,645 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>内存篇：解析JDK 7的Garbage-First收集器 - FenixSoft 3.0 - ITeye博客</title>
+    <meta name="description" content="　　声明：本文为笔者原创，但首发于InfoQ中文站，详见文末声明。 　　Garbage-First（后文简称G1）收集器是当今收集器技术发展的最前沿成果，在Sun公司 ...">
+    <meta name="keywords" content=" 内存篇：解析JDK 7的Garbage-First收集器">
+    <link rel="shortcut icon" href="http://icyfenix.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://icyfenix.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://icyfenix.iteye.com/rss" rel="alternate" title="FenixSoft 3.0" type="application/rss+xml">
+    <link href="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blue.css" media="screen" rel="stylesheet" type="text/css">
+    <script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/application.js" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hotkey.js" type="text/javascript"></script>
+  <script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/code_favorites.js" type="text/javascript"></script>
+<script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/weiboshare.js" type="text/javascript"></script>
+
+    
+  </head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://icyfenix.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://icyfenix.iteye.com/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://icyfenix.iteye.com/">FenixSoft 3.0</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://icyfenix.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://icyfenix.iteye.com/weibo">微博</a></li>
+            <li><a href="http://icyfenix.iteye.com/album">相册</a></li>
+            <li><a href="http://icyfenix.iteye.com/link">收藏</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text">
+              <input class="submit_search" value="" type="submit">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://icyfenix.iteye.com/" class="p-author" target="_blank">IcyFenix</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="http://icyfenix.iteye.com/blog/1179673">内存篇：解析JDK 7的Garbage-First收集器</a>
+      <em class="actions">      </em>
+    </h3>
+    
+        <div class="news_tag"></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    　　声明：本文为笔者原创，但首发于<a href="http://www.infoq.com/cn/articles/jdk7-garbage-first-collector" target="_blank">InfoQ中文站</a>，详见文末声明。
+<br>
+<br>　　Garbage-First（后文简称G1）收集器是当今收集器技术发展的最前沿成果，在Sun公司给出的JDK 
+RoadMap里面，它被视作JDK 7的HotSpot VM 的一项重要进化特征。从JDK 6u14中开始就有Early 
+Access版本的G1收集器供开发人员实验、试用，虽然在JDK 
+7正式版发布时，G1收集器仍然没有摆脱“Experimental”的标签，但是相信不久后将会有一个成熟的商用版本跟随某个JDK 
+7的更新包发布出来。
+<br>　　因版面篇幅限制，笔者行文过程中假设读者对HotSpot其他收集器（例如CMS）及相关JVM内存模型已有基本的了解，涉及到基础概念时，没有再延伸介绍，读者可参考相关资料。
+<br>
+<br><strong><span style="font-size: large;">G1收集器的特点</span></strong>
+<br>　　G1是一款面向服务端应用的垃圾收集器，Sun（Oracle）赋予它的使命是（在比较长期的）未来可以替换掉JDK 5中发布的CMS（Concurrent Mark Sweep）收集器，与其他GC收集器相比，G1具备如下特点：
+<br><ul>
+<li>并行与并发：G1能充分利用多CPU、多核环境下的硬件优势，使用多个CPU（CPU或者CPU核心）来缩短Stop-The-World停顿的时间，部分其他收集器原本需要停顿Java线程执行的GC动作，G1收集器仍然可以通过并发的方式让Java程序继续执行。
+</li><li>分代收集：与其他收集器一样，分代概念在G1中依然得以保留。虽然G1可以不需其他收集器配合就能独立管理整个GC堆，但它能够采用不同的方式去处理新创建的对象和已经存活了一段时间、熬过多次GC的旧对象以获取更好的收集效果。
+</li><li>空间整合：与CMS的“标记-清理”算法不同，G1从整体看来是基于“标记-整理”算法实现的收集器，从局部（两个Region之间）
+上看是基于“复制”算法实现，无论如何，这两种算法都意味着G1运作期间不会产生内存空间碎片，收集后能提供规整的可用内存。这种特性有利于程序长时间运
+行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC。
+</li><li>可预测的停顿：这是G1相对于CMS的另外一大优势，降低停顿时间是G1和CMS共同的关注点，但G1除了追求低停顿外，还能建立可预
+测的停顿时间模型，能让使用者明确指定在一个长度为M毫秒的时间片段内，消耗在垃圾收集上的时间不得超过N毫秒，这几乎已经是实时Java（RTSJ）的
+垃圾收集器特征了。
+</li></ul>
+<br><strong><span style="font-size: large;">实现思路</span></strong>
+<br>　　在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代，而G1不再是这样。使用G1收集器时，Java堆的内存布局与就与其他收集
+器有很大差别，它将整个Java堆划分为多个大小相等的独立区域（Region），虽然还保留有新生代和老年代的概念，但新生代和老年代不再是物理隔离的
+了，它们都是一部分Region（不需要连续）的集合。
+<br>　　G1收集器之所以能建立可预测的停顿时间模型，是因为它可以有计划地避免在整个Java堆中进行全区域的垃圾收集。G1跟踪各个Region
+里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回价值最大的
+Region（这也就是Garbage-First名称的来由）。这种使用Region划分内存空间以及有优先级的区域回收方式，保证了G1收集器在有限
+的时间内获可以获取尽可能高的收集效率。
+<br>　　G1把内存“化整为零”的思路，理解起来似乎很容易理解，但其中的实现细节却远远没有现象中简单，否则也不会从04年Sun实验室发表第一篇
+G1的论文拖至今将近8年时间都还没有开发出G1的商用版。笔者举个一个细节为例：把Java堆分为多个Region后，垃圾收集是否就真的能以
+Region为单位进行了？听起来顺理成章，再仔细想想就很容易发现问题所在：Region不可能是孤立的。一个对象分配在某个Region中，它并非只
+能被本Region中的其他对象引用，而是可以与整个Java堆任意的对象发生引用关系。那在做可达性判定确定对象是否存活的时候，岂不是还得扫描整个
+Java堆才能保障准确性？这个问题其实并非在G1中才有，只是在G1中更加突出了而已。在以前的分代收集中，新生代的规模一般都比老年代要小许多，新生
+代的收集也比老年代要频繁许多，那回收新生代中的对象也面临过相同的问题，如果回收新生代时也不得不同时扫描老年代的话，Minor 
+GC的效率可能下降不少。
+<br>　　在G1收集器中Region之间的对象引用以及其他收集器中的新生代与老年代之间的对象引用，虚拟机都是使用Remembered 
+Set来避免全堆扫描的。G1中每个Region都有一个与之对应的Remembered 
+Set，虚拟机发现程序在对Reference类型的数据进行写操作时，会产生一个Write 
+Barrier暂时中断写操作，检查Reference引用的对象是否处于不同的Region之中（在分代的例子中就是检查引是否老年代中的对象引用了新
+生代中的对象），如果是，便通过CardTable把相关引用信息记录到被引用对象所属的Region的Remembered 
+Set之中。当进行内存回收时，GC根节点的枚举范围中加入Remembered Set即可保证不对全堆扫描也不会有遗漏。
+<br>
+<br><strong><span style="font-size: large;">运作过程</span></strong>
+<br>　　如果不计算维护Remembered Set的操作，G1收集器的运作大致可划分为以下几个步骤：
+<br><ul>
+<li>初始标记（Initial Marking）
+</li><li>并发标记（Concurrent Marking）
+</li><li>最终标记（Final Marking）
+</li><li>筛选回收（Live Data Counting and Evacuation）</li></ul>
+　　对CMS收集器运作过程熟悉的读者，一定已经发现G1的前几个步骤的运作过程和CMS有很多相似之处。初始标记阶段仅仅只是标记一下GC 
+Roots能直接关联到的对象，并且修改TAMS（Next Top at Mark 
+Start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这阶段需要停顿线程，但耗时很短。并发标记阶段是从GC 
+Root开始对堆中对象进行可达性分析，找出存活的对象，这阶段耗时较长，但可与用户程序并发执行。而最终标记阶段则是为了修正并发标记期间，因用户程序
+继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set 
+Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered 
+Set中，这阶段需要停顿线程，但是可并行执行。最后筛选回收阶段首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定
+回收计划，从Sun透露出来的信息来看，这个阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分Region，时间是用户可控制的，而且停
+顿用户线程将大幅提高收集效率。通过图1可以比较清楚地看到G1收集器的运作步骤中并发和需要停顿的阶段。
+<br>
+<br><div style="text-align: center;"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/81fa6933-ef9f-3365-a3dd-b7676cd588fd.png" title="点击查看原始大小图片" class="magplus" width="700" height="133">
+<br><strong><span style="font-size: x-small;">图1 G1收集器运行示意图</span></strong></div>
+<br><strong><span style="font-size: large;">G1收集器的实际性能</span></strong>
+<br>　　由于目前还没有成熟的版本，G1收集器几乎可以说还没有经过实际应用的考验，网上关于G1收集器的性能测试非常贫乏，笔者没有Google到
+有关的生产环境下的性能测试报告。强调“生产环境下的测试报告”是因为对于垃圾收集器来说，仅仅通过简单的Java代码写个Microbenchmark
+程序来创建、移除Java对象，再用-XX:+PrintGCDetails等参数来查看GC日志是很难做到准衡量其性能的（为何
+Microbenchmark的测试结果不准确可参见笔者这篇博客：http://icyfenix.iteye.com/blog/1110279 
+）。因此关于G1收集器的性能部分，笔者引用了Sun实验室的论文《Garbage-First Garbage 
+Collection》其中一段测试数据，以及一段在StackOverfall.com上同行们对G1在真实生产环境下的性能分享讨论。
+<br>　　Sun给出的Benchmark的执行硬件为Sun V880服务器（8×750MHz UltraSPARC III 
+CPU、32G内存、Solaris 
+10操作系统）。执行软件有两个，分别为SPECjbb（模拟商业数据库应用，堆中存活对象约为165MB，结果反映吐量和最长事务处理时间）和
+telco（模拟电话应答服务应用，堆中存活对象约为100MB，结果反映系统能支持的最大吞吐量）。为了便于对比，还收集了一组使用
+ParNew+CMS收集器的测试数据。所有测试都配置为与CPU数量相同的8条GC线程。
+<br>　　在反应停顿时间的软实时目标（Soft Real-Time 
+Goal）测试中，横向是两个测试软件的时间片段配置，单位是毫秒，以（X/Y）的形式表示，代表在Y毫秒内最大允许GC时间为X毫秒（对于CMS收集
+器，无法直接指定这个目标，通过调整分代大小的方式大致模拟）。纵向是两个软件在对应配置和不同的Java堆容量下的测试结果，V%、avgV%和wV%
+分别代表的含义为：
+<br><ul>
+<li>V%：表示测试过程中，软实时目标失败的概率，软实时目标失败即某个时间片段中实际GC时间超过了允许的最大GC时间。
+</li><li>avgV%：表示在所有实际GC时间超标的时间片段里，实际GC时间超过最大GC时间的平均百分比（实际GC时间减去允许最大GC时间，再除以总时间片段）。
+</li><li>wV%：表示在测试结果最差的时间片段里，实际GC时间占用执行时间的百分比。</li></ul>　测试结果如下表所示：
+
+<br><strong><span style="font-size: x-small;">　　表1：软实时目标测试结果</span></strong>
+<br><div style="text-align: center;"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e6105ddf-c4e0-3d4d-9ee2-ee10248162c2.png"></div>
+<br>　　从上面结果可见，对于telco来说，软实时目标失败的概率控制在0.5%~0.7%之间，SPECjbb就要差一些，但也控制在2%~5
+%之间，概率随着（X/Y）的比值减小而增加。另一方面，失败时超出允许GC时间的比值随着总时间片段增加而变小（分母变大了嘛），在（100
+/200）、512MB的配置下，G1收集器出现了某些时间片段下100%时间在进行GC的最坏情况。而相比之下，CMS收集器的测试结果对比之下就要差
+很多，3种Java堆容量下都出现了100%时间进行GC的情况，
+<br>　　在吞吐量测试中，测试数据取3次SPECjbb和15次telco的平均结果。在SPECjbb的应用下，各种配置下的G1收集器表现出了一
+致的行为，吞吐量看起来只与允许最大GC时间成正比关系，而在telco的应用中，不同配置对吞吐量的影响则显得很微弱。与CMS收集器的吞吐量对比可以
+看到，在SPECjbb测试中，在堆容量超过768M时，CMS收集器有5%~10%的优势，而在telco测试中CMS的优势则要小一些，只有3%~4
+%左右。
+<br>
+<br><div style="text-align: center;"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/0c4b2611-6d6a-32ca-bcc3-ce04610278f2.png">
+<br><strong><span style="font-size: x-small;">图2：吞吐量测试结果</span></strong></div>
+<br>　　在更大规模的生产环境下，笔者引用一段在StackOverflow.com上看到的经验分享：“我在一个真实的、较大规模的应用程序中使用
+过G1：大约分配有60~70GB内存，存活对象大约在20~50GB之间。服务器运行Linux操作系统，JDK版本为6u22。G1与PS/PS 
+Old相比，最大的好处是停顿时间更加可控、可预测，如果我在PS中设置一个很低的最大允许GC时间，譬如期望50毫秒内完成
+GC（-XX:MaxGCPauseMillis=50），但在65GB的Java堆下有可能得到的直接结果是一次长达30秒至2分钟的漫长的Stop-
+The-World过程；而G1与CMS相比，它们都立足于低停顿时间，CMS仍然是我现在的选择，但是随着Oracle对G1 
+的持续改进，我相信G1会是最终的胜利者。如果你现在采用的收集器没有出现问题，那就没有任何理由现在去选择G1，如果你的应用追求低停顿，那G1现在已
+经可以作为一个可尝试的选择，如果你的应用追求吞吐量，那G1并不会为你带来什么特别的好处。”
+<br>　　在这节笔者引了两段别人的测试结果、经验后，对于G1给出一个自己的建议：直到现在为止还没有一款“最好的”收集器出现，更加没有“万能的”
+收集器，所以我们选择的只是对具体应用最合适的收集器。对于不同的硬件环境、不同的软件应用、不同的参数配置、不同的调优目标都会对调优时的收集器选择产
+生影响，选择适合的收集器，除了理论和别人的数据经验作为指导外，最终还是应当建立在自己应用的实际测试之上，别人的测试，大可抱着“至于你信不信，反正
+我自己没测之前是不信的”的态度。
+<br>
+<br><strong><span style="font-size: large;">参考资料</span></strong>
+<br>　　本文撰写时主要参考了以下资料：
+<br><ul>
+<li>Sun实验室的论文《Garbage-First Garbage Collection》，作者为：David Detlefs、Christine Flood、Steve Heller、Tony Printezis：<a href="http://portal.acm.org/citation.cfm?id=1029879" target="_blank">http://portal.acm.org/citation.cfm?id=1029879</a>
+</li><li>《The Garbage-First Garbage Collector》：<a href="http://www.oracle.com/technetwork/java/javase/tech/g1-intro-jsp-135488.html" target="_blank">http://www.oracle.com/technetwork/java/javase/tech/g1-intro-jsp-135488.html</a>
+</li><li>《G1: Java's Garbage First Garbage Collector》：<a href="http://drdobbs.com/java/219401061?pgno=1" target="_blank">http://drdobbs.com/java/219401061?pgno=1</a>
+</li></ul><strong><span style="font-size: large;">声明：</span></strong>
+<br>　　本文已经首发于<a href="http://www.infoq.com/cn" target="_blank">InfoQ中文站</a>，版权所有，原文为<a href="http://www.infoq.com/cn/articles/jdk7-garbage-first-collector" target="_blank">《解析JDK 7的Garbage-First收集器》</a>，如需转载，请务必附带本声明，谢谢。 
+<br>　　<a href="http://www.infoq.com/cn" target="_blank">InfoQ中文站</a>是一个面向中高端技术人员的在线独立社区，为Java、.NET、Ruby、SOA、敏捷、架构等领域提供及时而有深度的资讯、高端技术大会如QCon 、线下技术交流活动QClub、免费迷你书下载如《架构师》等。
+<br>
+  </div>
+
+  
+  <div class="attachments">
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0055/9653/81fa6933-ef9f-3365-a3dd-b7676cd588fd.png" target="_blank"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/81fa6933-ef9f-3365-a3dd-b7676cd588fd-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 36.9 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0055/9655/0c4b2611-6d6a-32ca-bcc3-ce04610278f2.png" target="_blank"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/0c4b2611-6d6a-32ca-bcc3-ce04610278f2-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 51.8 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0055/9657/e6105ddf-c4e0-3d4d-9ee2-ee10248162c2.png" target="_blank"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e6105ddf-c4e0-3d4d-9ee2-ee10248162c2-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 23.3 KB</li>
+        </ul>
+      
+    
+    
+      <ul>
+        <li><a href="#" onclick="$$('div.attachments ul').invoke('show');$(this).up(1).hide();return false;">查看图片附件</a></li>
+      </ul>
+    
+  </div>
+
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://icyfenix.iteye.com/blog/1181634" class="next" title="征集《Java虚拟机规范（Java7版）》的译者">征集《Java虚拟机规范（Java7版）》的译者</a>
+      |
+      <a href="http://icyfenix.iteye.com/blog/1166660" class="pre" title="内存篇：JVM内存回收理论与实现">内存篇：JVM内存回收理论与实现</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2011-09-24 17:26</li>
+      <li>浏览 4687</li>
+      <li><a href="#comments">评论(3)</a></li>
+      
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/1179673" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1455589744328_328.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36074</em>&nbsp;&nbsp;关注 <i>|</i> <em>3137</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1465887837340_340.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3055</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1479972981201_201.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>14935</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1453701371636_636.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>30844</em>&nbsp;&nbsp;关注 <i>|</i> <em>3747</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2362682">
+  <div class="comment_title">
+    3 楼
+    <a href="http://lxyzhu.iteye.com/" target="_blank" title="lxyzhu">lxyzhu</a>
+    2014-11-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">您好，首先请原谅我从这么一个不太好的方式向您提问。。。。<br>&nbsp;&nbsp;&nbsp;
+ 
+是这样的，我最近在看您的书《深入理解Java虚拟机》，看到内存分配那一块儿的时候，对于gc时的空间分配担保机制有了一个小小的疑惑：新生代的对象会
+通过分配担保机制进入老年代，那么在新生代gc完成以后那些对象还会回到新生代吗？&nbsp; 
+回的话当然最好，若是不回到新生代的话那么那些进入老年代的对象岂不是只能在老年代GC的时候才能回收了？</div>
+</div>
+
+<div id="bc2224997">
+  <div class="comment_title">
+    2 楼
+    <a href="http://bonjoui.iteye.com/" target="_blank" title="bonjoui">bonjoui</a>
+    2011-10-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">good，发论文的风格体。</div>
+</div>
+
+<div id="bc2219018">
+  <div class="comment_title">
+    1 楼
+    <a href="http://hobitton.iteye.com/" target="_blank" title="hobitton">hobitton</a>
+    2011-09-24&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">赞……<img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_idea.gif">&nbsp;<img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_idea.gif">&nbsp;<img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_idea.gif"> </div>
+</div>
+
+
+    
+    
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://icyfenix.iteye.com/login" style="background-color:white;"> <img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://icyfenix.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 1179673;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '内存篇：解析JDK 7的Garbage-First收集器');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '内存篇：解析JDK 7的Garbage-First收集器');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://icyfenix.iteye.com/"><img alt="IcyFenix的博客" class="logo" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6edbe3e9-9b1b-39ac-923f-e9a4155ad836.jpg" title="IcyFenix的博客: FenixSoft 3.0" width=""></a></div>
+  <div id="blog_owner_name">IcyFenix</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 243857 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 珠海</li>
+              <li><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://icyfenix.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://lei1985.iteye.com/" target="_blank"><img alt="LEI1985的博客" class="logo" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="LEI1985的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://lei1985.iteye.com/" target="_blank" title="LEI1985">LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://nicks.iteye.com/" target="_blank"><img alt="nicks的博客" class="logo" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="nicks的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://nicks.iteye.com/" target="_blank" title="nicks">nicks</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://luochuang.iteye.com/" target="_blank"><img alt="luochuang的博客" class="logo" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/aa5f543a-0920-3647-88fa-dc8bd2231a13-thumb.png" title="luochuang的博客: 罗闯的微博" width="48px"></a></div>
+                <div class="left"><a href="http://luochuang.iteye.com/" target="_blank" title="luochuang">luochuang</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://itnull.iteye.com/" target="_blank"><img alt="itnull的博客" class="logo" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="itnull的博客: itnull" width="48px"></a></div>
+                <div class="left"><a href="http://itnull.iteye.com/" target="_blank" title="itnull">itnull</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/">全部博客 (32)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="http://icyfenix.iteye.com/blog/post">我的论坛</a> (332)
+                </li>
+                <li><a href="http://icyfenix.iteye.com/blog/answered_problems">我的问答</a> (11)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2013-07">2013-07</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-05">2012-05</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-02">2012-02</a> (1)</li>
+                
+                <li><a href="http://icyfenix.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://chensixy.iteye.com/" target="_blank" title="chensixy">chensixy</a>： 
+                  周老师和Java认识也是鸡猿啊！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2398694">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://sophistica.iteye.com/" target="_blank" title="sophistica">sophistica</a>： 
+                  那个链接怎么无效了？<br>
+                  <a href="http://icyfenix.iteye.com/blog/1181634#bc2398676">征集《Java虚拟机规范（Java7版）》的译者</a>
+                </li>
+                
+                <li>
+                  <a href="http://zhangfeiyu2005.iteye.com/" target="_blank" title="zhangfeiyu2005">zhangfeiyu2005</a>： 
+                   膜拜大神<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2397152">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  致敬！！！您做什么都能做到一流，值得我学习！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1256329#bc2395857">发布《Java虚拟机规范 （Java SE 7 中文版）》</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  膜拜大神~~~<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2395856">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/a.gif" width="0" height="0">
+
+<script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking_002.js" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/async_new.js"></script>
+<script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/jquery-1.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/web-storage-cache.js" type="text/javascript"></script>
+	    <script src="%E5%86%85%E5%AD%98%E7%AF%87%EF%BC%9A%E8%A7%A3%E6%9E%90JDK%207%E7%9A%84Garbage-First%E6%94%B6%E9%9B%86%E5%99%A8%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/replace.js" type="text/javascript"></script>
+    
+    
+  
+
+</body></html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html -->
+<html lang="zh-CN" class="applicationcache geolocation history postmessage svg websockets localstorage sessionstorage websqldatabase webworkers hashchange pointerevents canvas audio canvastext video webgl cssgradients multiplebgs opacity rgba inlinesvg hsla supports svgclippaths smil no-touchevents fontface generatedcontent textshadow cssanimations backgroundsize borderimage borderradius boxshadow csscolumns csscolumns-width csscolumns-span csscolumns-fill csscolumns-gap csscolumns-rule csscolumns-rulecolor csscolumns-rulestyle csscolumns-rulewidth csscolumns-breakbefore csscolumns-breakafter csscolumns-breakinside flexbox flexboxlegacy cssreflections csstransforms csstransforms3d csstransitions indexeddb indexeddb-deletedatabase hires js mac chrome chrome5 webkit webkit5 ibm-grid-xlarge greater-china-imt"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+<meta name="viewport" content="width=device-width, initial-scale=1">      
+<link rel="icon" href="https://www.ibm.com/favicon.ico">
+<link rel="canonical" href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html">
+<meta name="geo.country" content="CN">
+<meta name="dcterms.rights" content="© Copyright IBM Corporation 2009">
+<meta name="dcterms.date" content="2009-11-19">
+<meta name="description" content="JPDA(Java Platform Debugger Architecture) 是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的最后一篇，将会着重介绍 Java 调试接口 - JDI，以及如何使用 JDI 编写用户自定义的 Java 调试程序。">	
+<meta name="keywords" content="java,jpda,jdwp,jdi,jvmti, 调试, Java 调试接口, tttjca">
+<meta name="robots" content="index,follow">
+<title>深入 Java 调试体系，第 4 部分: Java 调试接口（JDI）</title>
+    
+<script type="text/javascript" async="" charset="utf-8" id="ebOneTagUrlId" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/ebOneTag.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_27" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/up_loader.1.1.0.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_53" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_cormetrics2" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/eluminate.js"></script><script type="text/javascript" async="" charset="utf-8" id="dle_api_9be6f86dfbb169c3a8ffe02b083b770ce49b65e8dca64b5ca5f38a505544018c" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/p_9be6f86dfbb169c3a8ffe02b083b770ce49b65e8dca64b5ca5f38a505544018c.js"></script><script type="text/javascript" async="" defer="" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/piwik.js"></script><script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.js" type="text/javascript" async=""></script><script> 
+    digitalData = {
+        "page":{
+            "category":{
+                "primaryCategory":"SOFDCJVACN"
+            },
+            "pageInfo":{
+                "effectiveDate":"2009-11-19",
+                "language":"zh-CN",
+                "publishDate":"2009-11-19",
+                "publisher":"IBM Corporation",
+                "version":"v18",
+                "ibm":{ 
+                    "contentDelivery":"IBM developerWorks template",
+                    "contentProducer":"IBM developerWorks",
+                    "country":"CN",
+                    "owner":"developerWorks/China/IBM",
+                    "subject":"TT300",
+                    "type":"CT316",
+                    "topic":"应用开发,调试",
+                    "topicId":"263,27",
+                    "contentArea":"java",
+                    "contentAreaId":"1",
+                    "contentType":"article",
+                    "contentId":"448035",
+                },
+                "keywords":"java,jpda,jdwp,jdi,jvmti, 调试, Java 调试接口, tttjca",
+                "description":"JPDA(Java Platform Debugger Architecture) 是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的最后一篇，将会着重介绍 Java 调试接口 - JDI，以及如何使用 JDI 编写用户自定义的 Java 调试程序。"
+            }
+        }
+    };
+    window._analytics = {
+        "segment_key":'HU3dbkAG5wE0F1IkRf9S1RexlAqo3jby'
+    };
+</script>
+	
+    <meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@developerworks">
+<meta property="og:title" content="Java 调试接口（JDI）">
+<meta property="og:description" content="JPDA(Java Platform Debugger Architecture) 是 Java 平台调试体系结构的缩写，通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java 调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA 的面纱。本文是该系列的最后一篇，将会着重介绍 Java 调试接口 - JDI，以及如何使用 JDI 编写用户自定义的 Java 调试程序。">
+    <meta property="og:image" content="http://www.ibm.com/developerworks/i/dw-social-201508.png">
+<!-- Segment meta tag -->
+<meta name="segment" property="Java Chinese (developerWorks)" producttitle="developerWorks" value="深入 Java 调试体系，第 4 部分: Java 调试接口（JDI）">
+<!-- SITE MON : START (DO NOT DELETE) -->
+<!-- developerWorks monitoring token -->
+<!-- SITE MON : END (DO NOT DELETE) -->
+
+<!-- HEADER_SCRIPTS_AND_CSS_INCLUDE -->
+<!-- <script src="//cdn.optimizely.com/js/5399420604.js"></script> -->
+<!-- BEGIN: Use this section to set page specific variables for the Page Tag -->
+<script language="JavaScript">var NTPT_PGEXTRA="ibmSkillLevel=3&ibmCmaId=448035&ibmContentAreas=java";</script>
+<!--END -->
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/ida_stats.js"></script>
+<link href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/www.css" rel="stylesheet">
+<link href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/syntaxhighlighter.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/www.js"></script><style></style>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/syntaxhighlighter.js"></script>    
+<link href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/tables.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/tables.js"></script>   
+<!--  Masthead/footer  -->
+<link href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-mf-v18.css" rel="stylesheet">
+<!-- <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/alt-signedin-ux.css" rel="stylesheet" /> -->   
+<!--[if lt IE 9]>
+    <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/dw-mf-ie8fix.css?v=022216" rel="stylesheet" />
+<![endif]-->
+<link href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-article.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-auth-properties.js"></script>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-auth.js"></script>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-mf.js"></script>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-auto-links.js"></script> 
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-include.js"></script>     
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-article.js"></script>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/tactic.js"></script>
+<script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/tacticbindlinks.js"></script>
+
+<!-- 
+<PageMap>
+    <DataObject type="document">
+        <Attribute name="topic">应用开发,调试</Attribute>
+        <Attribute name="topicId">263,27</Attribute>
+        <Attribute name="contentArea">java</Attribute>
+        <Attribute name="contentAreaId">1</Attribute>
+        <Attribute name="abstract">JPDA(Java Platform Debugger Architecture) 是 Java 平台调试体系结构的缩写，通过 JPDA 提供的
+            API，开发人员可以方便灵活的搭建 Java 调试应用程序。JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI），Java
+            调试线协议（JDWP），以及 Java 调试接口（JDI），本系列将会详细介绍这三个模块的内部细节、通过实例为读者揭开 JPDA
+            的面纱。本文是该系列的最后一篇，将会着重介绍 Java 调试接口 - JDI，以及如何使用 JDI 编写用户自定义的 Java
+            调试程序。</Attribute>
+        <Attribute name="pub.date">2009-11-19</Attribute>
+        <Attribute name="contentType">article</Attribute>
+    </DataObject>
+</PageMap>
+-->        
+
+<style id="ibm-masthead-hidelinks">@media screen and (max-width: 557px) { .ibm-masthead-categories,#ibm-megamenu-sections{display:none} }@media screen and (max-width: 557px) { .ibm-mh-marketplace-link{display:none} }</style><style id="ibm-sitenav-menu-hidelinks">@media screen and (max-width: 602px) { .ibm-sitenav-menu-list{display:none} } @media screen and (min-width: 603px) { .ibm-mobilemenu-sitenavmenu {display:none} }</style><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation li.active:after {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation ul.dropdown li.active {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-background {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font {color: #2793e6 !important;}</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font-bold {color: #2793e6 !important;font-weight: bold;}</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_53" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.53.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_44" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.44.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_46" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.46.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_45" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.45.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_27" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.27.js"></script><script type="text/javascript" async="" charset="utf-8" id="LOTCC_10026" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/cc.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_52" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/utag.52.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/rules_50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dispatcher-v3.js"></script><script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/yahoo-min.js" type="text/javascript"></script><script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/cp-v3.js" type="text/javascript"></script><script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/json-min.js" type="text/javascript"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/015a6a839457000d606a0ffb81ed04078006807000bd0"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/015a6a839457000d606a0ffb81ed04078006807000bd0(1)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/015a6a839457000d606a0ffb81ed04078006807000bd0(1)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/015a6a839457000d606a0ffb81ed04078006807000bd0(2)"></script></head>
+<body id="ibm-com" class="ibm-type ibm-sitenav-menu">
+	
+<div id="ibm-top" class="ibm-landing-page dw-sitenav">
+
+<!-- MASTHEAD_BEGIN -->
+<div id="ibm-masthead" role="banner" aria-label="IBM" class="ibm-mhtype-minimal">
+    <div id="ibm-universal-nav" class="">    
+  
+        <nav role="navigation" aria-label="IBM">
+            <div id="ibm-home"><a href="https://www.ibm.com/cn/zh/?lnk=m">IBM®</a></div>
+            <ul id="ibm-menu-links" role="toolbar" aria-label="Site map" class="ibm-hide">
+                <li><a href="https://www.ibm.com/sitemap/cn/zh/">站点地图</a></li>
+            </ul><div class="ibm-masthead-rightside"><p class="ibm-mh-marketplace-link ibm-button-link ibm-fleft ibm-padding-bottom-0"><a class="ibm-btn-small ibm-btn-sec ibm-btn-blue-50" href="http://www.ibm.com/marketplace/?lnk=mp">市场</a></p><div id="ibm-search-module" role="search" aria-labelledby="ibm-masthead" class="ibm-has-scope">
+            <div class="ibm-masthead-search-close"><p class="ibm-ind-link ibm-icononly ibm-padding-bottom-0"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#" class="ibm-close-link ibm-nospacing">关闭</a></p></div><form id="ibm-search-form" action="https://www.ibm.com/Search/" method="get">
+                <p>
+                    <label for="q">IBM</label>
+                    <input type="text" maxlength="100" value="" placeholder="搜索" name="q" id="q" aria-label="搜索 developerWorks" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-owns="ibm-search-typeahead-container"><input name="lnk" type="hidden" value="mhsrch">
+                    <input type="hidden" value="18" name="v">
+                    <input type="hidden" value="utf" name="en">
+                    <input type="hidden" value="zh" name="lang">
+                    <input type="hidden" value="cn" name="cc">
+                    <input type="hidden" name="sn" value="dw">
+                    <input type="hidden" name="dws" value="cndw">
+                    <input type="hidden" name="hpp" value="20">
+                    <span class="ibm-search-scope"><input class="ibm-styled-checkbox" data-init="false" type="checkbox" name="sn" value="" id="ibm-mh-scopeoption"> <label for="ibm-mh-scopeoption">In Marketplace</label></span><button role="button" type="submit" id="ibm-search" class="ibm-search-link" value="提交"><span class="ibm-access">提交</span></button>
+                </p>
+            </form><form class="ibm-hide" id="ibm-default-scope-form" action="https://www.ibm.com/marketplace/search/cn/zh-cn/" method="get"><input name="terms" type="text"><input name="lnk" type="hidden" value="mhmpsrch"></form>
+        </div><div id="ibm-search-typeahead-container" class="ibm-search-typeahead-container"></div><ul aria-label="Tools" role="menubar" class="ibm-masthead-iconsonly"><li role="presentation" class="ibm-masthead-item-signin"><button role="menubutton" class="ibm-profile-link">我的 IBM</button><ul id="ibm-signin-minimenu-container" role="menu" aria-label="Profile" class="ibm-dropdown-menu">		<li class="ibm-dropdown-menu-primary" role="presentation" data-linktype="notifications"> 			<a class="" href="https://myibm.ibm.com/dashboard/?lnk=mmi" tabindex="0">我的 IBM</a> 		</li>		<li class="ibm-dropdown-menu-primary menu-heading" role="presentation">				<span tabindex="0">developerWorks</span>			</li>		<li class="ibm-dropdown-menu-primary ibm-signin-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssologin.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html&amp;lang=zh&amp;a=dwmav" role="menuitem">登录</a>		</li>		<li class="ibm-dropdown-menu-primary dw-register-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssoregister.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html&amp;lang=zh&amp;a=dwmav" role="menuitem">注册</a>		</li></ul></li><li role="presentation" class="ibm-masthead-item-menu"><button role="menubutton" class="ibm-menu-link">站点导航</button></li></ul></div> 
+        </nav>
+  
+        
+       
+    </div>
+</div><div class="ibm-mobilemenu ibm-hide" aria-labelledby="ibm-burgermenu-a11y" role="dialog" tabindex="0"><p class="ibm-hide" id="ibm-burgermenu-a11y">站点导航</p><div class="ibm-mobilemenu-close"><p class="ibm-icononly ibm-fright ibm-ind-link ibm-nospacing"><a class="ibm-close-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html?lnk=hm#">关闭</a></p></div><div class="ibm-mobilemenu-section ibm-mobilemenu-sitenavmenu"><ul role="menubar"><li class="ibm-mobile-section-heading ibm-mobile-sitename">
+        <a href="https://www.ibm.com/developerworks/cn/?lnk=hm">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-mf-wordmark.svg">
+        </a>
+    </li>
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/?lnk=hm" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/?lnk=hm" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/?lnk=hm" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul></div><div class="ibm-mobilemenu-section"><ul class="ibm-mobilemenu-mhlinks" aria-label="发现 IBM"><li><a href="http://www.ibm.com/marketplace/?lnk=hmmp">市场</a></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">产品</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/products/cn/zh/?lnk=hmhmpr_cnzh"><span>所有产品</span></a></li><li><a href="https://www.ibm.com/analytics/cn/zh/?lnk=hmmpr_bua_cnzh&amp;lnk2=learn"><span>大数据与分析</span></a></li><li><a href="https://www.ibm.com/cloud-computing/cn/zh?lnk=hmmpr_bucl_cnzh&amp;lnk2=learn"><span>云计算</span></a></li><li><a href="https://www.ibm.com/ibm/cn/cognitive/outthink/?lnk=hmmpr_buce_cnzh&amp;lnk2=learn"><span>认知</span></a></li><li><a href="https://www.ibm.com/commerce/cn-zh/?lnk=hmmpr_bucom_cnzh&amp;lnk2=learn"><span>商务</span></a></li><li><a href="https://www.ibm.com/internet-of-things/cn-zh/?lnk=hmmpr_iot_cnzh&amp;lnk2=learn"><span>物联网</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/it-infrastructure/cn-zh/?lnk=hmmpr_buit_cnzh&amp;lnk2=learn"><span>IT 基础架构</span></a></li><li><a href="https://www.ibm.com/mobilefirst/cn/zh/?lnk=hmmpr_bumf_cnzh&amp;lnk2=learn"><span>移动</span></a></li><li><a href="https://www.ibm.com/security/cn-zh/?lnk=hmmpr_buse_cnzh&amp;lnk2=learn"><span>安全</span></a></li><li><a href="https://www.ibm.com/social-business/cn-zh/?lnk=hm"><span>社交协作与人才管理</span></a></li><li><a href="https://www.ibm.com/services/cn/zh/watson/explorer.html?lnk=hm"><span>Watson</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">服务</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/services/cn/gbs/consulting/?lnk=hmmse_bc_cnzh&amp;lnk2=learn"><span>业务咨询</span></a></li><li><a href="https://www.ibm.com/technologyservices/cn/zh/?lnk=hmmse_ts_cnzh&amp;lnk2=learn"><span>技术服务</span></a></li><li><a href="https://www.ibm.com/financing/cn/zh/index.html?lnk=hmmse_fin_cnzh&amp;lnk2=learn"><span>融资</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/training/?lnk=hm"><span>培训与技能 (US)</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">开发人员</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/developerworks/cn/?lnk=hmmdev_dw_cnzh&amp;lnk2=learn"><span>developerWorks</span></a></li><li><a href="https://www.ibm.com/partnerworld?lnk=hmmdev_pw_cnzh&amp;lnk2=learn"><span>PartnerWorld</span></a></li></ul></div></div></li><li><a href="https://www.ibm.com/support/cn/zh/?lnk=hmmsu_cnzh">支持</a></li><li><a href="https://www.ibm.com/employment/cn/?lnk=hmmca_cnzh">工作机会</a></li></ul></div></div><div class="ibm-hide ibm-mhplaceholder"></div><!-- MASTHEAD_END -->
+	    
+<!-- LAYOUT -->
+<div id="ibm-content-wrapper">
+    <!-- LEADSPACE_BEGIN -->
+    <header role="banner" aria-labelledby="ibm-pagetitle-h1">
+        
+        <!-- MASTHEAD_SITENAV_BEGIN -->
+        <div class="ibm-sitenav-menu-container" data-widgetprocessed="true">
+    <div class="ibm-sitenav-menu-name">
+        <a href="https://www.ibm.com/developerworks/cn/">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-mf-wordmark.svg">
+        </a>
+    </div>
+    <div class="ibm-sitenav-menu-list">
+        <ul role="menubar">
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul>
+    </div>
+</div>        <!-- MASTHEAD_SITENAV_END -->
+        
+        <!-- NAVIGATION_TRAIL_BEGIN -->
+        <div id="ibm-leadspace-head" class="ibm-alternate">
+            <div id="ibm-leadspace-body">
+                <nav aria-label="Breadcrumb" role="navigation">                     
+                            <ul id="dw-navigation-trail" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/topics/"><span itemprop="name">学习</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/java/"><span itemprop="name">Java technology</span></a><meta itemprop="position" content="2"></li></ul>
+                </nav>
+            </div>
+        </div>
+        <!-- NAVIGATION_TRAIL_END -->
+        
+    </header>
+    <!-- LEADSPACE_END -->
+    
+    <!-- MAIN_CONTENT_BEGIN -->
+    <main role="main" aria-label=""> 
+        <div id="ibm-pcon">
+            <!-- BEGIN_IBM-CONTENT -->
+            <div id="ibm-content">
+                <!-- BEGIN_IBM-CONTENT-BODY -->
+                <div id="ibm-content-body">
+                    <!-- BEGIN_IBM-CONTENT-MAIN -->
+                    <div id="ibm-content-main" class="dw-article">                        
+                        <!-- BEGIN_INTERIOR-COLUMNS -->
+                                <div class="ibm-columns dw-article-toc">
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_BEGIN -->  
+                                    <div id="dw-article-toc-container" class="ibm-col-6-2">
+                                        <div id="dw-article-toc-body" data-widget="scrollable" data-height="502" style="width: 380px; height: 502px;" class="nano"><div class="nano-content" tabindex="-1">
+                                            <h2>内容</h2><div class="ibm-alternate-rule"><hr></div><ul role="directory" aria-label="内容" class="ibm-plain-list"><li class="dw-highlight"><a onclick="tocLink(&#39;#ibm-pagetitle-h1&#39;)" role="link" tabindex="0">概览</a></li><li><a onclick="tocLink(&#39;#major1&#39;)" role="link" tabindex="0">JDI 简介</a></li><li><a onclick="tocLink(&#39;#major2&#39;)" role="link" tabindex="0">JDI 工作方式</a></li><li><a onclick="tocLink(&#39;#major3&#39;)" role="link" tabindex="0">JDI 数据模块</a></li><li><a onclick="tocLink(&#39;#major4&#39;)" role="link" tabindex="0">JDI 的链接模块</a></li><li><a onclick="tocLink(&#39;#major5&#39;)" role="link" tabindex="0">JDI 事件请求和处理模块</a></li><li><a onclick="tocLink(&#39;#major6&#39;)" role="link" tabindex="0">一个 JDI 的简单实例</a></li><li><a onclick="tocLink(&#39;#N102E6&#39;)" role="link" tabindex="0">结束语</a></li><li><a onclick="tocLink(&#39;#artrelatedtopics&#39;)" role="link" tabindex="0">相关主题</a></li><li><a onclick="tocLink(&#39;#icomments&#39;)" role="link" tabindex="0">评论</a></li></ul>
+                                        </div><div class="nano-pane" style="display: none; opacity: 1; visibility: visible;"><div class="nano-slider" style="height: 502px; transform: translate(0px, 0px);"></div></div></div>
+                                    </div>
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_END -->
+                                    
+                                    <!-- CENTER_6_4_CONTENT_COLUMN_BEGIN -->
+                                    <div class="ibm-col-6-4">
+                                            <p class="dw-article-series-head">深入 Java 调试体系，第 4
+            部分</p>
+                                        <h1 id="ibm-pagetitle-h1" class="ibm-h1">Java 调试接口（JDI）</h1>
+                                        <!-- Article Top Bar -->
+                                                <div class="ibm-columns dw-article-topbar">
+                                                    <!-- Author and article info. -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 dw-article-metadata">
+                                                        <div class="dw-article-authordate">周 凯 和 游 丁伟<br><span class="dw-article-pubdate">2009 年 11 月 19 日发布</span></div>
+                                                    </div>
+                                                    <!-- Social -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 ibm-col-small-6-2 dw-article-social">
+                                                        <!-- Sharing links -->
+                                                        <div id="dw-article-share-inline">
+                                                            <div class="dw-article-sharelink-inline">
+                                                                <div class="ibm-sharethispage"><h4 class="ibm-bold">分享此页面</h4><p class="ibm-icononly"><a class="ibm-weibo-encircled-link" href="http://service.weibo.com/share/share.php?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html%&amp;title=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%204%20%E9%83%A8%E5%88%86%3A%20Java%20%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3%EF%BC%88JDI%EF%BC%89&amp;language=zh_cn" data-id="weibo" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Weibo</a><a class="ibm-googleplus-encircled-link" href="https://plus.google.com/share?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html&amp;t=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%204%20%E9%83%A8%E5%88%86%3A%20Java%20%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3%EF%BC%88JDI%EF%BC%89" data-id="googleplus" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Google+</a><a class="ibm-email-encircled-link" href="mailto:?subject=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%204%20%E9%83%A8%E5%88%86%3A%20Java%20%E8%B0%83%E8%AF%95%E6%8E%A5%E5%8F%A3%EF%BC%88JDI%EF%BC%89&amp;body=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html" data-id="email" onclick="">用电子邮件发送本页面</a></p></div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Number of comments and link to comments -->
+                                                        <div id="dw-article-cmts">
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#icomments" role="link" tabindex="0" aria-label="Comments">
+                                                                    <img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/dw-article-cmt-icon.png" width="29" height="29" alt="Comments">
+                                                                </a>
+                                                            </div>
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#icomments" role="link" tabindex="0">
+                                                                    <div id="nCmts">2</div>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+<div id="dw-series-container" style="display: block;"><h3 class="ibm-h3" id="dw-series-heading">系列内容：</h3><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2 id="dw-series-show-hide"><a href="javascript:void();">此内容是该系列 <span id="dw-series-total">4</span> 部分中的第 <span id="dw-series-part">4</span> 部分： <span id="dw-series-title">深入 Java 调试体系</span></a></h2><div class="ibm-container-body" id="dw-series-links" style="display: none;"><ul id="dw-series-list"><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html?ca=drs-" class="dw-series-article-link"> 第 1 部分，JPDA 体系概览</a></li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda2/index.html?ca=drs-" class="dw-series-article-link">第 2 部分: JVMTI 和 Agent 实现</a></li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda3/index.html?ca=drs-" class="dw-series-article-link">第 3 部分: JDWP 协议及实现</a></li><li class="dw-series-item">第 4 部分: Java 调试接口（JDI）</li></ul></div></div></div>
+                                        <!-- Article Body -->
+                                        
+                                        <h2 id="major1" class="ibm-h2">JDI 简介</h2><p>JDI（Java Debug Interface）是 JPDA
+                三层模块中最高层的接口，定义了调试器（Debugger）所需要的一些调试接口。基于这些接口，调试器可以及时地了解目标虚拟机的状态，例如查看目标虚拟机上有哪些类和实例等。另外，调试者还可以控制目标虚拟机的执行，例如挂起和恢复目标虚拟机上的线程，设置断点等。</p><p>目前，大多数的 JDI 实现都是通过 Java 语言编写的。比如，Java 开发者再熟悉不过的 Eclipse
+                IDE，它的调试工具相信大家都使用过。它的两个插件 org.eclipse.jdt.debug.ui 和 org.eclipse.jdt.debug
+                与其强大的调试功能密切相关，其中 org.eclipse.jdt.debug.ui 是 Eclipse 调试工具界面的实现，而
+                org.eclipse.jdt.debug 则是 JDI 的一个完整实现。</p><h2 id="major2" class="ibm-h2">JDI 工作方式</h2><p>首先，调试器（Debuuger）通过 Bootstrap 获取唯一的虚拟机管理器，见 清单 1。</p><h5 id="listing1" class="ibm-h5">清单 1.
+                    获取虚拟机管理器（VirtualMachineManager）</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_58897" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">VirtualMachineManager virtualMachineManager </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">= Bootstrap.virtualMachineManager();</code></div></div></td></tr></tbody></table></div></div></div></span><p>虚拟机管理器将在第一次被调用时初始化可用的链接器。一般地，调试器会默认地采用启动型链接器进行链接，见 清单 2。</p><h5 id="listing2" class="ibm-h5">清单 2. 获取默认的链接器（Connector）</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_399857" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">LaunchingConnector defaultConnector = virtualMachineManager.defaultConnector();</code></div></div></td></tr></tbody></table></div></div></div></span><p>然后，调试器调用链接器的 launch () 来启动目标程序，并完成调试器与目标虚拟机的链接，见 清单 3。</p><h5 id="listing3" class="ibm-h5">清单 3.
+                    启动目标程序，连接调试器（Debuuger）与目标虚拟机（VirtualMachine）</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_683663" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">VirtualMachine targetVM = defaultConnector.launch(arguments);</code></div></div></td></tr></tbody></table></div></div></div></span><p>当链接完成后，调试器与目标虚拟机便可以进行双向通信了。调试器将用户的操作转化为调试命令，命令通过链接被发送到前端运行目标程序的虚拟机上；然后，目标虚拟机根据接受的命令做出相应的操作，将调试的结果发回给后端的调试器；最后，调试器可视化数据信息反馈给用户。</p><p>从功能上，可以将 JDI
+                分成三个部分：数据模块，链接模块，以及事件请求与处理模块。数据模块负责调试器和目标虚拟机上的数据建模，链接模块建立调试器与目标虚拟机的沟通渠道，事件请求与处理模块提供调试器与目标虚拟机交互方式，下面将逐一地介绍它们。</p><h2 id="major3" class="ibm-h2">JDI 数据模块</h2><h3 id="minor3.1" class="ibm-h3">Mirror</h3><p>Mirror 接口是 JDI 最底层的接口，JDI
+                中几乎所有其他接口都继承于它。镜像机制是将目标虚拟机上的所有数据、类型、域、方法、事件、状态和资源，以及调试器发向目标虚拟机的事件请求等都映射成
+                Mirror 对象。例如，在目标虚拟机上，已装载的类被映射成 ReferenceType 镜像，对象实例被映射成 ObjectReference
+                镜像，基本类型的值（如 float 等）被映射成 PrimitiveValue（如 FloatValue
+                等）。被调试的目标程序的运行状态信息被映射到 StackFrame 镜像中，在调试过程中所触发的事件被映射成 Event 镜像（如
+                StepEvent 等），调试器发出的事件请求被映射成 EventRequest 镜像（如 StepRequest
+                等），被调试的目标虚拟机则被映射成 VirtualMachine 镜像。但是，JDI
+                并不保证目标虚拟机上的每份信息和资源都只有唯一的镜像与之对应，这是由 JDI 的具体实现所决定的。例如，目标虚拟机上的某个事件有可能存在多个
+                Event 镜像与之对应，例如 BreakpointEvent 等。</p><p>Mirror 实例或是由调试器创建，或是由目标虚拟机创建，调用 Mirror 实例 virtualMachine()
+                可以获取其虚拟机信息，如下所示。</p><h5 id="listing4" class="ibm-h5">清单 4. 获取 Mirror 对象实例的虚拟机</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_480491" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">VirtualMachine virtualMachine = mirror.virtualMachine();</code></div></div></td></tr></tbody></table></div></div></div></span><p>返回的目标虚拟机对象实现了 VirtualMachine
+                接口，该接口提供了一套方法，可以用来直接或间接地获取目标虚拟机上所有的数据和状态信息，也可以挂起、恢复、终止目标虚拟机，详情见 图 1。</p><h5 id="fig1" class="ibm-h5">图 1. 虚拟机接口</h5><img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/image001.png" class="ibm-downsize" alt="图 1. 虚拟机接口" height="177" width="245"><p>这样，调试器便可以获取目标虚拟机上的信息，维持与目标虚拟机间的通信，并且检查，修改和控制目标虚拟机上资源等。</p><h3 id="minor3.2" class="ibm-h3">Value 和 Type</h3><p>Value 和 Type 接口分别代表着目标虚拟机中对象、实例变量和方法变量的值和类型。通过 Value 接口的
+                type()，可以获取该值对应的类型。JDI
+                中定义了两种基本的数据类型：原始类型（PrimitiveType）和引用类型（ReferenceType）。与其对应的数值类型分别是原始值（PrimtiveValue）和对象引用（ObjectReference）。Value
+                和 Type 的具体对应关系，请参见 表 1。</p><h5 id="N100BC" class="ibm-h5">表 1. JDI 中 Value-Type 的对照表</h5><table border="1" cellpadding="0" cellspacing="0" class="ibm-data-table" summary=""><thead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><th class="ibm-background-neutral-white-30" colspan="2"><strong>(Value, Type)</strong></th><th class="ibm-background-neutral-white-30"><strong>说明</strong></th></tr></thead><tbody xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><td rowspan="8"> (PrimtiveValue, PrimtiveType) </td><td> (ByteValue, ByteType) </td><td> 表示一个字节 </td></tr><tr><td> (CharValue, CharType) </td><td> 表示一个字符 </td></tr><tr><td> (ShortValue, ShortType) </td><td> 表示一个短整型数据 </td></tr><tr><td> (IntegerValue, IntegerType) </td><td> 表示一个整型数据 </td></tr><tr><td> (LongValue, LongType) </td><td> 表示一个长整型数据 </td></tr><tr><td> (FloatValue, FloatType) </td><td> 表示一个浮点型数据 </td></tr><tr><td> (DoubleValue, DoubleType) </td><td> 表示一个双精度浮点型数据 </td></tr><tr><td> (BooleanValue, BooleanType) </td><td> 表示一个布尔型数据 </td></tr><tr><td rowspan="7"> (ObjectReference, ReferenceType) </td><td> (ObjectReference, ReferenceType) </td><td> 表示目标虚拟机上的一个对象 </td></tr><tr><td> (ArrayReference, ArrayType) </td><td> 表示目标虚拟机上的一个数组 </td></tr><tr><td> (StringReference, ClassType) </td><td> 表示目标虚拟机上的一个字符串对象 </td></tr><tr><td> (ThreadReference, ClassType) </td><td> 表示目标虚拟机上的一个线程对象，有一套方法可以获得当前设置的断点，堆栈，也能挂起和恢复该线程等 </td></tr><tr><td> (ThreadGroupReference, ClassType) </td><td> 表示目标虚拟机上的一个线程组对象 </td></tr><tr><td> (ClassObjectReference, ClassType) </td><td> 表示目标虚拟机上的一个类的 java.lang.Class 实例 </td></tr><tr><td> (ClassLoaderReference, ClassType) </td><td> 表示目标虚拟机上的一个 ClassLoader 对象 </td></tr><tr><td colspan="2"> (VoidValue, VoidType) </td><td> 表示 void 类型 </td></tr></tbody></table><p>PrimitiveType 包括 Java 的 8 种基本类型，ReferenceType
+                包括目标虚拟机中装载的类，接口和数组的类型（数组也是一种对象，有自己的对象类型）。ReferenceType 有三种子接口：ClassType
+                对应于加载的类，InterfaceType 对应于接口，ArrayType 对应于数组。另外，ReferenceType
+                还提供了一组方法，可以用来获取该类型中声明的所有变量、方法、静态变量的取值、内嵌类、运行实例、行号等信息。</p><p>PrimtiveValue 封装了 PrimitiveType 的值，它提供一组方法可将 PrimtiveValue 转化为 Java
+                原始数据。例如，IntegerValue 的 value () 将返回一个 int 型数据。对应地，VirtualMachine
+                也提供了一组方法，用以将 Java 原始数据转化为 PrimtiveValue 型数据。例如 mirrorOf(float value) 将给定的
+                float 数据转化为 FloatValue 型数据。</p><p>ObjectReference 封装了目标虚拟机中的对象，通过 getValue() 和 setValue() 方法可以访问和修改对象中变量的值，通过
+                invokeMethod() 可以调用该对象中的指定方法，通过 referringObjects() 可以获得直接引用该对象的其他对象，通过
+                enableCollection() 和 disableCollection() 可以允许和禁止 GC 回收该对象。</p><h3 id="minor3.3" class="ibm-h3">TypeComponent</h3><p>TypeComponent 接口表示 Class 或者 Interface 所声明的实体（Entity），它是 Field 和 Method
+                接口的基类。Field 表示一个类或者实例的变量，调用其 type() 可返回域的类型。Method 表示一个方法。TypeComponent
+                通过方法 declaredType() 获得声明该变量或方法的类或接口，通过 name() 获得该变量或者方法的名字（对于 Field
+                返回域名，对于一般方法返回方法名，对于类构造函数返回 &lt;init&gt;，对于静态初始化构造函数返回 &lt;clinit&gt;）。</p><h2 id="major4" class="ibm-h2">JDI 的链接模块</h2><p>链接是调试器与目标虚拟机之间交互的渠道，一次链接可以由调试器发起，也可以由被调试的目标虚拟机发起。一个调试器可以链接多个目标虚拟机，但一个目标虚拟机最多只能链接一个调试器。链接是由链接器（Connector）生成的，不同的链接器封装着不同的链接方式。JDI
+                中定义三种链接器接口，分别是依附型链接器（AttachingConnector）、监听型链接器（ListeningConnector）和启动型链接器（LaunchingConnector）。在调试过程中，实际使用的链接器必须实现其中一种接口。</p><p>根据调试器在链接过程中扮演的角色，可以将链接方式划分为主动链接和被动链接。主动链接是较常见一种链接方式，表示调试器主动地向目标虚拟机发起链接。下面将举两个主动链接的例子：</p><p>由调试器启动目标虚拟机的链接方式：这是最常见、最简单的一种链接方式。</p><ul class="ibm-bullet-list"><li>调试器调用 VirtualMachineManager 的 launchingConnectors()
+                    方法获取所有的启动型链接器实例；</li><li>根据传输方式或其他特征选择一个启动型链接器，调用其 launch() 方法启动和链接目标虚拟机；</li><li>启动后，返回目标虚拟机的实例。</li></ul><p>更高级的，当目标虚拟机已处于运行状态时，可以采用调试器 attach 到目标虚拟机的链接方式：</p><ul class="ibm-bullet-list"><li>目标虚拟机必须以 -agentlib:jdwp=transport=xxx,server=y
+                    参数启动，并根据传输方式生成监听地址；（其中，xxx 是传输方式，可以是 dt_socket 和 share_memory）</li><li>调试器启动，调用 VirtualMachineManager 的 attachingConnectors()
+                    方法获取所有的依附型链接器实例；</li><li>根据目标虚拟机采用的传输方式选择一个依附型链接器，调用其 attach() 方法依附到目标虚拟机上；</li><li>完成链接后，返回目标虚拟机的实例。</li></ul><p>被动链接表示调试器将被动地等待或者监听由目标虚拟机发起的链接，同样也举两个被动链接的例子：</p><p>目标虚拟机 attach 到已运行的调试器上的链接方式：</p><ul class="ibm-bullet-list"><li>调试器通过 VirtualMachineManager 的 listeningConnectors()
+                    方法获取所有的监听型链接器实例；</li><li>为每种传输类型分别选定一个链接器，然后调用链接器的 startListening() 方法让链接器进入监听状态；</li><li>通过 accept() 方法通知链接器开始等待正确的入站链接，该方法将返回调试器正在监听的地址描述符；</li><li>终端用户以 -agentlib:jdwp=transport=xxx,address=yyy 参数启动目标虚拟机（其中，yyy
+                    是调试器的监听地址）；</li><li>目标虚拟机会自动地 attach 到调试器上建立链接，然后返回目标虚拟机的实例。</li></ul><p>即时（Just-In-Time）链接方式：</p><ul class="ibm-bullet-list"><li>以 -agentlib:jdwp=launch=cmdline,onuncaught=y,transport=xxx,server=y
+                    参数启动目标虚拟机；</li><li>虚拟机将抛出一个未捕获的异常，同时生成特定于 xxx 传输方式的监听地址，用于确立一次链接；</li><li>目标虚拟机启动调试器，并告知调试器传输方式和监听地址；</li><li>启动后，调试器调用 VirtualMachineManager 的 attachingConnectors()
+                    方法获取所有依附型链接器实例；</li><li>根据指定的 xxx 传输方式，选择一个链接器；</li><li>调用链接器的 attach 方法依附到对应地址的目标虚拟机上；</li><li>完成链接后，返回目标虚拟机的实例。</li></ul><p>Connector.Argument 是 Connector
+                的内嵌接口，表示链接器的一个参数，不同类型的链接器支持不同的链接器参数，LaunchingConnector 支持
+                home，main，suspend 等，AttachingConnector 和 ListeningConnector 支持
+                timeout，hostname，port 等参数，见 表 2。</p><h5 id="N10175" class="ibm-h5">表 2. 常见的链接器参数</h5><table border="1" cellpadding="0" cellspacing="0" class="ibm-data-table" summary=""><thead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><th class="ibm-background-neutral-white-30"><strong>Connector 类型</strong></th><th class="ibm-background-neutral-white-30"><strong>参数名称</strong></th><th class="ibm-background-neutral-white-30"><strong>说明</strong></th></tr></thead><tbody xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr><td rowspan="4"> LaunchingConnector </td><td> home </td><td> 表示 java.home 的值，指向 JRE </td></tr><tr><td> main </td><td> 表示所要执行的 Java 类的类名 </td></tr><tr><td> options </td><td> 表示使用的 Java 命令行参数 </td></tr><tr><td> suspend </td><td> 表示是否在启动目标虚拟机后挂起虚拟机 </td></tr><tr><td rowspan="3"> AttachingConnector<br> ListeningConnector </td><td> hostname </td><td> 表示被链接一端的地址 </td></tr><tr><td> port </td><td> 表示被链接一端的端口 </td></tr><tr><td> timeout </td><td> 表示等待链接的时间 </td></tr></tbody></table><p>下面将举一个简单例子，描述如何设置 main 链接参数，并启动目标虚拟机。首先，调用链接器的 defaultArguments()
+                获取该链接器所支持的一组默认参数，见 清单 5。</p><h5 id="listing5" class="ibm-h5">清单 5. 获取链接器的默认参数</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_477480" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">Map&lt;</code><code class="htmlscript plain">String</code><code class="htmlscript plain">,Connector.Argument&gt; defaultArguments </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">= connector.defaultArguments();</code></div></div></td></tr></tbody></table></div></div></div></span><p>默认参数存储在一个 Key-Value 对的 Map 中，Key 是该链接器参数的唯一标识符（对终端用户不可见），Value 是对应的
+                Connector.Argument 实例（包括具体参数的信息和默认值）。返回的 Map 不能再新增或者删除元素，只能修改已有元素的值。</p><p>然后，从返回的 Map 中获取标识符为 main 的链接器参数，如 清单 6。</p><h5 id="listing6" class="ibm-h5">清单 6. 返回链接器的 main 参数</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_723710" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">Connector.Argument mainArgument = defaultArguments.get(“main”);</code></div></div></td></tr></tbody></table></div></div></div></span><p>最后，将 main 参数值设置为 com.ibm.jdi.test.HelloWorld，以修改后的参数启动目标虚拟机，见 清单 7。</p><h5 id="listing7" class="ibm-h5">清单 7. 设置 main 参数的值并启动虚拟机</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_871543" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">mainArgument.setValue(“com.ibm.jdi.test.HelloWorld”);</code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">VirtualMachine targetVM = connector.launch(defaultArguments);</code></div></div></td></tr></tbody></table></div></div></div></span><h2 id="major5" class="ibm-h2">JDI 事件请求和处理模块</h2><h3 id="minor5.1" class="ibm-h3">JDI 事件分类</h3><p>JDI 的 com.sun.jdi.event 包定义了 18 种事件类型，如 表 3 所示。其中，与 Class 相关的有
+                ClassPrepareEvent 和 ClassUnloadEvent；与 Method 相关的有 MethodEntryEvent 和
+                MethodExitEvent；与 Field 相关的有 AccessWatchpointEvent 和
+                ModificationWatchpointEvent；与虚拟机相关的有 VMDeathEvent，VMDisconnectEvent 和
+                VMStartEvent 等。</p><h5 id="N101E5" class="ibm-h5">表 3. JDI 中的事件类型</h5><div id="DataTables_Table_0_wrapper" class="dataTables_wrapper no-footer"><table border="0" cellpadding="0" cellspacing="0" class="ibm-data-table display dataTable no-footer dtr-inline" data-widget="datatable" id="DataTables_Table_0" role="grid" style="width: 780px;"><thead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr role="row"><th class="ibm-background-neutral-white-30 sorting_disabled" rowspan="1" colspan="1" style="width: 278px;">事件类型</th><th class="ibm-background-neutral-white-30 sorting_disabled" rowspan="1" colspan="1" style="width: 422px;">描述</th></tr></thead><tbody xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><tr role="row" class="odd"><td tabindex="0"> ClassPrepareEvent </td><td> 装载某个指定的类所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> ClassUnloadEvent </td><td> 卸载某个指定的类所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> BreakingpointEvent </td><td> 设置断点所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> ExceptionEvent </td><td> 目标虚拟机运行中抛出指定异常所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> MethodEntryEvent </td><td> 进入某个指定方法体时引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> MethodExitEvent </td><td> 某个指定方法执行完成后引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> MonitorContendedEnteredEvent </td><td> 线程已经进入某个指定 Monitor
+                            资源所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> MonitorContendedEnterEvent </td><td> 线程将要进入某个指定 Monitor
+                            资源所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> MonitorWaitedEvent </td><td> 线程完成对某个指定 Monitor 资源等待所引发的事件
+                        </td></tr><tr role="row" class="even"><td tabindex="0"> MonitorWaitEvent </td><td> 线程开始等待对某个指定 Monitor 资源所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> StepEvent </td><td> 目标应用程序执行下一条指令或者代码行所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> AccessWatchpointEvent </td><td> 查看类的某个指定 Field 所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> ModificationWatchpointEvent </td><td> 修改类的某个指定 Field 值所引发的事件
+                        </td></tr><tr role="row" class="even"><td tabindex="0"> ThreadDeathEvent </td><td> 某个指定线程运行完成所引发的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> ThreadStartEvent </td><td> 某个指定线程开始运行所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> VMDeathEvent </td><td> 目标虚拟机停止运行所以的事件 </td></tr><tr role="row" class="odd"><td tabindex="0"> VMDisconnectEvent </td><td> 目标虚拟机与调试器断开链接所引发的事件 </td></tr><tr role="row" class="even"><td tabindex="0"> VMStartEvent </td><td> 目标虚拟机初始化时所引发的事件 </td></tr></tbody></table></div><p>不同的事件需要被分类地添加到不同的事件集合（EventSet）中，事件集是事件发送的最小单位。事件集一旦创建出来，便不可再被修改。JDI
+                定义了一些规则，用以规定应该如何将事件分别加入到不同的事件集中：</p><ul class="ibm-bullet-list"><li>每个 VMStartEvent 事件应该分别加入到单独的一个事件集中；</li><li>每个 VMDisconnectEvent 事件应该分别加入到单独的一个事件集中；</li><li>所有的 VMDeathEvent 事件应该加入到同一个事件集中；</li><li>同一线程的 ThreadStartEvent 事件应该加入到同一事件集中；</li><li>同一线程的 ThreadDeathEvent 事件应该加入到同一事件集中；</li><li>同一类型的 ClassPrepareEvent 事件应该加入到同一个事件集中；</li><li>同一类型的 ClassUnloadEvent 事件应该加入到同一个事件集中；</li><li>同一 Field 的 AccessWatchpointEvent 事件应该加入到同一个事件集中；</li><li>同一 Field 的 ModificationWatchpointEvent 事件应该加入到同一个事件集中；</li><li>同一异常的 ExceptionEvent 事件应该加入到同一个事件集中；</li><li>同一方法的 MethodExitEvents 事件应该加入到同一个事件集中；</li><li>同一 Monitor 的 MonitorContendedEnterEvent 事件应该加入到用一个事件集中；</li><li>同一 Monitor 的 MonitorContendedEnteredEvent 事件应该加入到用一个事件集中；</li><li>同一 Monitor 的 MonitorWaitEvent 事件应该加入到同一个事件集中</li><li>同一 Monitor 上的 MonitorWaitedEvent 事件应该加入到同一个事件集中</li><li>在同一线程执行过程中，具有相同行号信息的 BreakpointEvent、StepEvent 和 MethodEntryEvent
+                    事件应该加入到同一个事件集合中。</li></ul><p>生成的事件集将被依次地加入到目标虚拟机的事件队列（EventQueue）中。然后，EventQueue
+                将这些事件集以“先进先出”策略依次地发送到调试器端。EventQueue 负责管理来自目标虚拟机的事件，一个被调试的目标虚拟机上有且仅有一个
+                EventQueue
+                实例。特别地，随着一次事件集的发送，目标虚拟机上可能会有一部分的线程因此而被挂起。如果一直不恢复这些线程，有可能会导致目标虚拟机挂机。因此，在处理好一个事件集中的事件后，建议调用事件集的
+                resume() 方法，恢复所有可能被挂起的线程。</p><h3 id="minor5.2" class="ibm-h3">JDI 事件请求</h3><p>Event 是 JDI 中所有事件接口的父接口，它只定义了一个 request()
+                方法，用以返回由调试器发出的针对该事件的事件请求（EventRequest）。事件请求是由调试器向目标虚拟机发出的，目的是请求目标虚拟机在发生指定的事件后通知调试器。只有当调试器发出的请求与目标虚拟机上发生的事件契合时，这些事件才会被分发到各个事件集，进而等待发送至调试器端。在
+                JDI
+                中，每一种事件类型都对应着一种事件请求类型。一次事件请求可能对应有多个事件实例，但不是每个事件实例都存在与之对应的事件请求。例如，对于某些事件（如
+                VMDeathEvent，VMDisconnectEvent 等），即使没有对应的事件请求，这些事件也必定会被发送给调试器端。</p><p>另外，事件请求还支持过滤功能。通过给 EventRequest
+                实例添加过滤器（Filter），可以进一步筛选出调试器真正感兴趣的事件实例。事件请求支持多重过滤，通过 EventRequest 的
+                add*Filter() 方法可以添加多个过滤器。多个过滤器将共同作用，最终只有满足所有过滤条件的事件实例才会被发给调试器。常用的过滤器有：</p><ul class="ibm-bullet-list"><li>线程过滤器：用以过滤出指定线程中发生的事件；</li><li>类型过滤器：用以过滤出指定类型中发生的事件；</li><li>实例过滤器：用以过滤出指定实例中发生的事件；</li><li>计数过滤器：用以过滤出发生一定次数的事件；</li></ul><p>过滤器提供了一些附加的限制条件，减少了最终加入到事件队列的事件数量，从而提高了调试性能。除了过滤功能，还可以通过它的
+                setSuspendPolicy(int) 设置是否需要在事件发生后挂起目标虚拟机。</p><p>事件请求是由事件请求管理器（EventRequestManager）进行统一管理的，包括对请求的创建和删除。一个目标虚拟机中有且仅有一个
+                EventRequestManager
+                实例。通常，一个事件请求实例有两种状态：激活态和非激活态。非激活态的事件请求将不起任何作用，即使目标虚拟机上有满足此请求的事件发生，目标虚拟机将不做停留，继续执行下一条指令。由
+                EventRequestManager 新建的事件请求都是非激活的，需要调用 setEnable(true) 方法激活该请求，而通过
+                setEnable(false) 则可废除该请求，使其转化为非激活态。</p><h3 id="minor5.3" class="ibm-h3">JDI 事件处理</h3><p>下面将介绍 JDI 中调试器与目标虚拟机事件交互的方式。首先，调试器调用目标虚拟机的 eventQueue() 和
+                eventRequestManager() 分别获取唯一的 EventQueue 实例和 EventRequestManager 实例。然后，通过
+                EventRequestManager 的 createXxxRequest() 创建需要的事件请求，并添加过滤器和设置挂起策略。接着，调试器将从
+                EventQueue 获取来自目标虚拟机的事件实例。</p><p>一个事件实例中包含着事件发生时目标虚拟机的一些状态信息。以 BreakpointEvent 为例：</p><p>调用 BreakpointEvent 的 thread() 可以获取产生事件的线程镜像（ThreadReference），调用
+                ThreadReference 的 frame(int) 可获得当前代码行所在的堆栈（StackFrame），调用 StackFrame 的
+                visibleVariables() 可获取当前堆栈中的所有本地变量（LocaleVariable）。通过调用 BreakpointEvent 的
+                location() 可获得断点所在的代码行号（Location），调用 Location 的 method()
+                可获得当前代码行所归属的方法。通过以上调用，调试器便可获得了目标虚拟机上线程、对象、变量等镜像信息。</p><p>另外，根据从事件实例中获取的以上信息，调试器还可以进一步控制目标虚拟机。例如，可以调用 ObjectReference 的 getValue() 和
+                setValue() 访问和修改对象中封装的 Field 或者 LocalVariable 等，进而影响虚拟机的行为。更多的 JDI
+                的事件处理的详情，请参见图 2。</p><h5 id="fig2" class="ibm-h5">图 2. JDI 事件处理框架（<a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/origin_image002.png" target="_blank">查看大图</a>）</h5><img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/image002.png" class="ibm-downsize" alt="图 2. JDI 事件处理框架" height="320" width="572"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N1029E&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#N1029E">点击查看大图</a></p><div class="overlayrp"></div><h2 id="major6" class="ibm-h2">一个 JDI 的简单实例</h2><p>下面给出一个简单例子，说明如何实现 JDI 的部分接口来提供一个简易的调试客户端。首先是被调试的 Java 类，这里给出一个简单的 Hello
+                World 程序，main 方法第一行声明一个“Hello World!”的字符串变量，第二行打印出这个字符串的内容，见 清单 8。</p><h5 id="listing8" class="ibm-h5">清单 8. HelloWorld 类文件</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_926330" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">package com.ibm.jdi.test;</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="htmlscript plain">public class HelloWorld {</code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">public static void main(String[] args) {</code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">String str = "Hello world!";</code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">System.out.println(str);</code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number8 index7 alt1"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>接着是一个简单的调试器实现 SimpleDebugger，清单 9
+                列出了实现该调试器所需要导入的类库和变量。简单起见，所有的变量都声明为静态全局变量。这些变量分别代表了目标虚拟机镜像，目标虚拟机所在的进程，目标虚拟机的事件请求管理器和事件对列。变量
+                vmExit 标志目标虚拟机是否中止。</p><h5 id="listing9" class="ibm-h5">清单 9. SimpleDebugger
+                    导入的类和声明的全局变量</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_312497" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div><div class="line number24 index23 alt1">24</div><div class="line number25 index24 alt2">25</div><div class="line number26 index25 alt1">26</div><div class="line number27 index26 alt2">27</div><div class="line number28 index27 alt1">28</div><div class="line number29 index28 alt2">29</div><div class="line number30 index29 alt1">30</div><div class="line number31 index30 alt2">31</div><div class="line number32 index31 alt1">32</div><div class="line number33 index32 alt2">33</div><div class="line number34 index33 alt1">34</div><div class="line number35 index34 alt2">35</div><div class="line number36 index35 alt1">36</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">package com.ibm.jdi.test;</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="htmlscript plain">import java.util.List;</code></div><div class="line number4 index3 alt1"><code class="htmlscript plain">import java.util.Map;</code></div><div class="line number5 index4 alt2"><code class="htmlscript plain">import com.sun.jdi.Bootstrap;</code></div><div class="line number6 index5 alt1"><code class="htmlscript plain">import com.sun.jdi.LocalVariable;</code></div><div class="line number7 index6 alt2"><code class="htmlscript plain">import com.sun.jdi.Location;</code></div><div class="line number8 index7 alt1"><code class="htmlscript plain">import com.sun.jdi.ReferenceType;</code></div><div class="line number9 index8 alt2"><code class="htmlscript plain">import com.sun.jdi.StackFrame;</code></div><div class="line number10 index9 alt1"><code class="htmlscript plain">import com.sun.jdi.StringReference;</code></div><div class="line number11 index10 alt2"><code class="htmlscript plain">import com.sun.jdi.ThreadReference;</code></div><div class="line number12 index11 alt1"><code class="htmlscript plain">import com.sun.jdi.Value;</code></div><div class="line number13 index12 alt2"><code class="htmlscript plain">import com.sun.jdi.VirtualMachine;</code></div><div class="line number14 index13 alt1"><code class="htmlscript plain">import com.sun.jdi.connect.Connector;</code></div><div class="line number15 index14 alt2"><code class="htmlscript plain">import com.sun.jdi.connect.LaunchingConnector;</code></div><div class="line number16 index15 alt1"><code class="htmlscript plain">import com.sun.jdi.connect.Connector.Argument;</code></div><div class="line number17 index16 alt2"><code class="htmlscript plain">import com.sun.jdi.event.BreakpointEvent;</code></div><div class="line number18 index17 alt1"><code class="htmlscript plain">import com.sun.jdi.event.ClassPrepareEvent;</code></div><div class="line number19 index18 alt2"><code class="htmlscript plain">import com.sun.jdi.event.Event;</code></div><div class="line number20 index19 alt1"><code class="htmlscript plain">import com.sun.jdi.event.EventIterator;</code></div><div class="line number21 index20 alt2"><code class="htmlscript plain">import com.sun.jdi.event.EventQueue;</code></div><div class="line number22 index21 alt1"><code class="htmlscript plain">import com.sun.jdi.event.EventSet;</code></div><div class="line number23 index22 alt2"><code class="htmlscript plain">import com.sun.jdi.event.VMDisconnectEvent;</code></div><div class="line number24 index23 alt1"><code class="htmlscript plain">import com.sun.jdi.event.VMStartEvent;</code></div><div class="line number25 index24 alt2"><code class="htmlscript plain">import com.sun.jdi.request.BreakpointRequest;</code></div><div class="line number26 index25 alt1"><code class="htmlscript plain">import com.sun.jdi.request.ClassPrepareRequest;</code></div><div class="line number27 index26 alt2"><code class="htmlscript plain">import com.sun.jdi.request.EventRequest;</code></div><div class="line number28 index27 alt1"><code class="htmlscript plain">import com.sun.jdi.request.EventRequestManager;</code></div><div class="line number29 index28 alt2">&nbsp;</div><div class="line number30 index29 alt1"><code class="htmlscript plain">public class SimpleDebugger {</code></div><div class="line number31 index30 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static VirtualMachine vm;</code></div><div class="line number32 index31 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static Process process;</code></div><div class="line number33 index32 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static EventRequestManager eventRequestManager;</code></div><div class="line number34 index33 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static EventQueue eventQueue;</code></div><div class="line number35 index34 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static EventSet eventSet;</code></div><div class="line number36 index35 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static boolean vmExit = false;</code></div></div></td></tr></tbody></table></div></div></div></span><p>随后是 SimpleDebugger 的 main() 方法，见 清单 10。首先从 VirtualMachineManager 获取默认的
+                LaunchingConnector，然后从该 Connector 取得默认的参数。接着，设置 main 和 suspend
+                参数，使得目标虚拟机运行 com.ibm.jdi.test.HelloWorld 类，并随后进入挂起状态。下一步，调用
+                LaunchingConnector.launch() 启动目标虚拟机，返回目标虚拟机的镜像实例，并且获取运行目标虚拟机的进程（
+                Process）。</p><p>然后，创建一个 ClassPrepareRequest 事件请求。当 com.ibm.jdi.test.HelloWorld
+                被装载时，目标虚拟机将发送对应的 ClassPrepareEvent 事件。事件处理完成后，通过 process 的 destroy()
+                方法销毁目标虚拟机进程，结束调试工作。</p><h5 id="listing10" class="ibm-h5">清单 10. SimpleDebugger 的 main()
+                    方法</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_816978" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div><div class="line number24 index23 alt1">24</div><div class="line number25 index24 alt2">25</div><div class="line number26 index25 alt1">26</div><div class="line number27 index26 alt2">27</div><div class="line number28 index27 alt1">28</div><div class="line number29 index28 alt2">29</div><div class="line number30 index29 alt1">30</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">public static void main(String[] args) throws Exception{</code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">LaunchingConnector launchingConnector </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">= Bootstrap.virtualMachineManager().defaultConnector();</code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;</div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Get arguments of the launching connector</code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Map&lt;</code><code class="htmlscript plain">String</code><code class="htmlscript plain">, Connector.Argument&gt; defaultArguments </code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">= launchingConnector.defaultArguments();</code></div><div class="line number8 index7 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Connector.Argument mainArg = defaultArguments.get("main");</code></div><div class="line number9 index8 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Connector.Argument suspendArg = defaultArguments.get("suspend");</code></div><div class="line number10 index9 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Set class of main method</code></div><div class="line number11 index10 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">mainArg.setValue("com.ibm.jdi.test.HelloWorld");</code></div><div class="line number12 index11 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">suspendArg.setValue("true");</code></div><div class="line number13 index12 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">vm = launchingConnector.launch(defaultArguments);</code></div><div class="line number14 index13 alt1">&nbsp;</div><div class="line number15 index14 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">process = vm.process()</code></div><div class="line number16 index15 alt1">&nbsp;</div><div class="line number17 index16 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Register ClassPrepareRequest</code></div><div class="line number18 index17 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventRequestManager = vm.eventRequestManager();</code></div><div class="line number19 index18 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">ClassPrepareRequest classPrepareRequest </code></div><div class="line number20 index19 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">= eventRequestManager.createClassPrepareRequest();</code></div><div class="line number21 index20 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">classPrepareRequest.addClassFilter("com.ibm.jdi.test.HelloWorld");</code></div><div class="line number22 index21 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">classPrepareRequest.addCountFilter(1);</code></div><div class="line number23 index22 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">classPrepareRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL);</code></div><div class="line number24 index23 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">classPrepareRequest.enable();</code></div><div class="line number25 index24 alt2">&nbsp;</div><div class="line number26 index25 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Enter event loop </code></div><div class="line number27 index26 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventLoop();</code></div><div class="line number28 index27 alt1">&nbsp;</div><div class="line number29 index28 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">process.destroy();</code></div><div class="line number30 index29 alt1"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>下面是 eventLoop() 函数的实现：首先获取目标虚拟机的事件队列，然后依次处理队列中的每个事件。当 vmExit（初始值为 false）标志为
+                true 时，结束循环。</p><h5 id="listing11" class="ibm-h5">清单 11. SimpleDebugger 的 eventLoop()
+                    的实现</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_765968" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">private static void eventLoop() throws Exception {</code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventQueue = vm.eventQueue();</code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">while (true) {</code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">if (vmExit == true) {</code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">break;</code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventSet = eventQueue.remove();</code></div><div class="line number8 index7 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">EventIterator eventIterator = eventSet.eventIterator();</code></div><div class="line number9 index8 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">while (eventIterator.hasNext()) {</code></div><div class="line number10 index9 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Event event = (Event) eventIterator.next();</code></div><div class="line number11 index10 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">execute(event);</code></div><div class="line number12 index11 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number13 index12 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number14 index13 alt1"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>具体事件的处理是由 execute(Event) 实现的，这里主要列举出 ClassPreparEvent 和 BreakpointEvent
+                事件的处理用法，请参见 清单 12。</p><h5 id="listing12" class="ibm-h5">清单 12. SimpleDebugger 的 execute ()
+                    方法</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_288215" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div><div class="line number24 index23 alt1">24</div><div class="line number25 index24 alt2">25</div><div class="line number26 index25 alt1">26</div><div class="line number27 index26 alt2">27</div><div class="line number28 index27 alt1">28</div><div class="line number29 index28 alt2">29</div><div class="line number30 index29 alt1">30</div><div class="line number31 index30 alt2">31</div><div class="line number32 index31 alt1">32</div><div class="line number33 index32 alt2">33</div><div class="line number34 index33 alt1">34</div><div class="line number35 index34 alt2">35</div><div class="line number36 index35 alt1">36</div><div class="line number37 index36 alt2">37</div><div class="line number38 index37 alt1">38</div><div class="line number39 index38 alt2">39</div><div class="line number40 index39 alt1">40</div><div class="line number41 index40 alt2">41</div><div class="line number42 index41 alt1">42</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">private static void execute(Event event) throws Exception {</code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">if (event instanceof VMStartEvent) {</code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">System.out.println("VM started");</code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventSet.resume();</code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">} else if (event instanceof ClassPrepareEvent) {</code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">ClassPrepareEvent classPrepareEvent = (ClassPrepareEvent) event;</code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">String mainClassName = classPrepareEvent.referenceType().name();</code></div><div class="line number8 index7 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">if (mainClassName.equals("com.ibm.jdi.test.HelloWorld")) {</code></div><div class="line number9 index8 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">System.out.println("Class " + mainClassName</code></div><div class="line number10 index9 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">+ " is already prepared");</code></div><div class="line number11 index10 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number12 index11 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">if (true) {</code></div><div class="line number13 index12 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Get location</code></div><div class="line number14 index13 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">ReferenceType referenceType = prepareEvent.referenceType();</code></div><div class="line number15 index14 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">List locations = referenceType.locationsOfLine(10);</code></div><div class="line number16 index15 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Location location = (Location) locations.get(0);</code></div><div class="line number17 index16 alt2">&nbsp;</div><div class="line number18 index17 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">// Create BreakpointEvent</code></div><div class="line number19 index18 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">BreakpointRequest breakpointRequest = eventRequestManager</code></div><div class="line number20 index19 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">.createBreakpointRequest(location);</code></div><div class="line number21 index20 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">breakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL);</code></div><div class="line number22 index21 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">breakpointRequest.enable();</code></div><div class="line number23 index22 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number24 index23 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventSet.resume();</code></div><div class="line number25 index24 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">} else if (event instanceof BreakpointEvent) {</code></div><div class="line number26 index25 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">System.out.println("Reach line 10 of com.ibm.jdi.test.HelloWorld");</code></div><div class="line number27 index26 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">BreakpointEvent breakpointEvent = (BreakpointEvent) event;</code></div><div class="line number28 index27 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">ThreadReference threadReference = breakpointEvent.thread();</code></div><div class="line number29 index28 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">StackFrame stackFrame = threadReference.frame(0);</code></div><div class="line number30 index29 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">LocalVariable localVariable = stackFrame</code></div><div class="line number31 index30 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">.visibleVariableByName("str");</code></div><div class="line number32 index31 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">Value value = stackFrame.getValue(localVariable);</code></div><div class="line number33 index32 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">String str = ((StringReference) value).value();</code></div><div class="line number34 index33 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">System.out.println("The local variable str at line 10 is " + str</code></div><div class="line number35 index34 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">+ " of " + value.type().name());</code></div><div class="line number36 index35 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventSet.resume();</code></div><div class="line number37 index36 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">} else if (event instanceof VMDisconnectEvent) {</code></div><div class="line number38 index37 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">vmExit = true;</code></div><div class="line number39 index38 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">} else {</code></div><div class="line number40 index39 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">eventSet.resume();</code></div><div class="line number41 index40 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">}</code></div><div class="line number42 index41 alt1"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>最后列出了以上程序的运行结果，见 清单 13。</p><h5 id="listing13" class="ibm-h5">清单 13. 运行结果</h5><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_702971" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">VM started</code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">Class com.ibm.jdi.test.HelloWorld is already prepared</code></div><div class="line number3 index2 alt2"><code class="htmlscript plain">Reach line 10 of com.ibm.jdi.test.HelloWorld</code></div><div class="line number4 index3 alt1"><code class="htmlscript plain">The local variable str at line 10 is Hello world! of java.lang.String</code></div></div></td></tr></tbody></table></div></div></div></span><h2 id="N102E6" class="ibm-h2">结束语</h2><p>本文介绍了 Java 调试接口（JDI）的体系结构和工作方式，JDI 是 JPDA 体系结构的调试器后端接口，开发人员通过使用它所提供的接口与
+                JDWP（Java 调试线协议）前端 Agent 通信，以这种方式访问和控制被调试的目标虚拟机。最后，本文希望能够帮助开发人员在无须掌握 JPDA
+                的技术细节的情况下，能够编写出实用、高效的 Java 调试器程序。</p><!--CMA ID: 448035--><!--Site ID: 10--><!--XSLT stylesheet used to transform this file: dw-document-html-8.0.xsl--> 
+                                        <!-- Article Resources -->
+                                        <div class="ibm-alternate-rule"><hr></div><h4 id="artrelatedtopics" class="ibm-h4">相关主题</h4><ul><li> 在 <a href="http://java.sun.com/javase/technologies/core/toolsapis/jpda/">JPDA 官方的主页</a>上，您可以查看关于 JPDA 标准实现的细节。 </li><li> 您可以参与 <a href="http://forums.sun.com/forum.jspa?forumID=543">JPDA 官方论坛</a>上的参与。 </li><li>“<a href="http://www.ibm.com/developerworks/cn/java/j-lo-jdi/">使用 Java
+                    Debug Interface（JDI）调试多线程应用程序</a>”（developerWorks，2009 年 10 月）：本文对
+                Java Debug Interface（JDI）及其使用进行了介绍，并通过实现一个多线程分析器的示例应用，演示了如何利用 JDI
+                开发自己的多线程调试程序。</li><li><a href="http://www.eclipse.org/">Eclipse
+                    IDE</a>是一个非常受欢迎的开源开发工具，它集成了对 JPDA 的支持。 </li><li> 参阅 JDWP 协议规范：<a href="http://java.sun.com/javase/6/docs/technotes/guides/jpda/jdwp-spec.html">Specification of Java Debug Wire Protocol</a>。 </li><li> 参阅 JDWP 协议接口规范：<a href="http://java.sun.com/javase/6/docs/technotes/guides/jpda/jdwpTransport.html">Specification of Java Debug Wire Protocol Interface</a>。 </li><li><a href="http://www.ibm.com/developerworks/cn/java/">developerWorks Java
+                    技术专区</a>：查找数百篇有关 Java 编程各方面的文章。 </li></ul>
+                                        <!-- Commenting -->
+<!-- INLINE_COMMENTS_BEGIN: -->
+<div class="ibm-alternate-rule"><hr></div>
+<div id="dw-article-cmts-top" class="ibm-columns">
+    <div class="ibm-col-6-2">
+        <h4 id="icomments" class="ibm-h4">评论</h4>
+        <div id="dw-article-cmts-login">
+            <p>添加或订阅评论，请先<a onclick="window.location=userLinks[0].url;" tabindex="0" role="link">登录</a>或<a onclick="window.location=userLinks[1].url;" tabindex="0" role="link">注册</a>。</p>
+        </div>
+    </div>    
+    <div class="ibm-col-6-2" id="dw-notify"> 
+        <input type="checkbox" value="1" name="comment_notification" id="comment_notification" disabled="">
+        <label for="comment_notification" style="color: rgb(204, 204, 204);">有新评论时提醒我</label>	   
+    </div>
+</div>
+
+<div class="dw-article-cmts-container">       
+    <div class="ibm-no-print jquery-comments read-only" id="dw-icomments-container"><div class="commenting-field main"><img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/user-icon.png" alt="" class="profile-picture round by-current-user"><div class="textarea-wrapper"><span class="close" style="display: none;"><span class="left"></span><span class="right"></span></span><div class="textarea" data-placeholder="添加评论" contenteditable="true" style="height: 3.65em;"></div><div class="control-row" style="display: none;"><span class="send save highlight-background">提交</span></div></div></div><ul class="navigation"><div class="navigation-wrapper"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></div><div class="navigation-wrapper responsive"><li class="title active"><header>最新的</header></li><ul class="dropdown"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></ul></div></ul><div class="data-container" data-container="comments"><ul id="comment-list" class="main"><li data-id="24989" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1464940119616">2016 年 06 月 03 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/java%E6%96%B0%E6%89%8B">java新手</a></div><div class="wrapper"><div class="content">您好！请问下HelloWorld和SimpleDebugger是放在com.ibm.jdi.test文件夹下吗？我是这样放置的，但是VM start了，不过classPrepareRequest一直为false，想请教下哪里出了问题，谢谢~~</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E6%82%A8%E5%A5%BD%EF%BC%81%E8%AF%B7%E9%97%AE%E4%B8%8BHelloWorld%E5%92%8CSimpleDebugger%E6%98%AF%E6%94%BE%E5%9C%A8com.ibm.jdi.test%E6%96%87%E4%BB%B6%E5%A4%B9%E4%B8%8B%E5%90%97%EF%BC%9F%E6%88%91%E6%98%AF%E8%BF%99%E6%A0%B7%E6%94%BE%E7%BD%AE%E7%9A%84%EF%BC%8C%E4%BD%86%E6%98%AFVM%20start%E4%BA%86%EF%BC%8C%E4%B8%8D%E8%BF%87classPrepareRequest%E4%B8%80%E7%9B%B4%E4%B8%BAfalse%EF%BC%8C%E6%83%B3%E8%AF%B7%E6%95%99%E4%B8%8B%E5%93%AA%E9%87%8C%E5%87%BA%E4%BA%86%E9%97%AE%E9%A2%98%EF%BC%8C%E8%B0%A2%E8%B0%A2~~%0D%E7%94%B1%20java%E6%96%B0%E6%89%8B%20%20%E4%BA%8E%202016%20%E5%B9%B4%2006%20%E6%9C%88%2003%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="4749" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1384505797349">2013 年 11 月 15 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/%E5%91%BD%E4%B8%AD%E6%B3%A8%E5%AE%9A">命中注定</a></div><div class="wrapper"><div class="content">"请问下，如果用ProcessAttach方式怎么debug, 总是报Not a debuggee, or not listening for debugger to attach</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda4%2Findex.html&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%22%E8%AF%B7%E9%97%AE%E4%B8%8B%EF%BC%8C%E5%A6%82%E6%9E%9C%E7%94%A8ProcessAttach%E6%96%B9%E5%BC%8F%E6%80%8E%E4%B9%88debug%2C%20%E6%80%BB%E6%98%AF%E6%8A%A5Not%20a%20debuggee%2C%20or%20not%20listening%20for%20debugger%20to%20attach%0D%E7%94%B1%20%E5%91%BD%E4%B8%AD%E6%B3%A8%E5%AE%9A%20%20%E4%BA%8E%202013%20%E5%B9%B4%2011%20%E6%9C%88%2015%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li></ul><div class="no-comments no-data"><i class="fa fa-comments fa-2x"></i><br>第一个评论</div></div></div>
+</div>
+<!-- INLINE_COMMENTS_END -->                                        <!-- CENTER_6_4_CONTENT_COLUMN_END -->
+                                    </div>   
+                                </div>
+                        <!--Rating_Meta_BEGIN--><div class="metavalue">static.content.url=http://www.ibm.com/developerworks/js/artrating/</div><div class="metavalue">SITE_ID=10</div><div class="metavalue">Zone=Java technology</div><div class="metavalue">ArticleID=448035</div><div class="metavalue">ArticleTitle=深入 Java 调试体系，第 4 部分: Java 调试接口（JDI）</div><div class="metavalue">publish-date=11192009</div><script language="javascript" type="text/javascript">document.write('<div class="metavalue">url='+location.href.replace(/</g,  '%3C')+'</div>');</script><div class="metavalue">url=https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html</div><!--Rating_Meta_END-->
+                    <p class="ibm-ind-link ibm-nospacing ibm-icononly ibm-btt-auto ibm-hidden-small"><a class="ibm-nospacing ibm-chevron-up-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#top" tabindex="-1">回页首</a></p></div>
+                    <!-- END_IBM-CONTENT-MAIN -->
+                </div>
+                <!-- END_IBM-CONTENT-BODY -->
+            </div>
+            <!-- END_IBM-CONTENT -->
+        </div>
+        <!-- END_IBM-PCON -->
+    </main>
+    <!-- MAIN_CONTENT_END -->
+    
+    <!-- END_CONTENT-WRAPPER -->	
+</div>
+<!-- FOOTER_BEGIN -->
+<footer role="contentinfo" aria-label="IBM developerWorks">
+    <div id="dw-footer-module" class="dw-footer-home">
+        <section aria-label="参考资料" role="contentinfo">
+            <div class="ibm-columns">
+                <div class="ibm-col-6-1 dw-footer-col-1">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="developerWorks">developerWorks</li>
+                        <li><a href="https://www.ibm.com/developerworks/secure/feedback.jsp?domain=dwchina">站点反馈</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/secure/myideas2.jsp?domain=dwchina">我要投稿</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/author/">投稿指南</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/community/report?lang=zh">报告滥用</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/community/terms/thirdparty/">第三方提示</a></li>
+                    </ul>
+                    <ul>
+                        <li class="dw-footer-newline"><a href="https://weibo.com/ibmdw/">关注微博</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-2">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="加入">加入</li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/partnerworld/isv/">ISV 资源 (英语)</a></li>
+                    </ul>
+                    <ul class="dw-footer-lang" aria-label="选择语言">
+                        <li class="dw-footer-heading">选择语言</li>
+                        <li><a href="https://www.ibm.com/developerworks/">English</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/cn/" lang="zh">中文</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/jp/" lang="ja">日本語</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ru/" lang="ru">Русский</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/br/" lang="pt">Português (Brasil)</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ssa/" lang="es">Español</a></li>
+                        <li><a href="https://developer.ibm.com/kr/" lang="kr">한글</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-3"> </div>
+                <div class="ibm-col-6-1 dw-footer-col-4">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/views/global/libraryview.jsp">技术文档库</a>
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/rss/">订阅源</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-5">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/community/">社区</a>  
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="http://ibmdeveloperworks.mkt6741.com/developerWorksChina-NewsletterSubscriptionPage/">dW 中国时事通讯</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-6">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/downloads/">软件下载</a>  
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="dw-footer" class="ibm-padding-normal ibm-alternate">
+        <div class="ibm-columns">
+            <div class="ibm-col-1-1">
+                <div class="dw-footer-corporate-links">
+                <ul>
+                    <li><a href="https://www.ibm.com/contact/cn/zh/">联系 IBM</a></li>
+                    <li><a href="https://www.ibm.com/privacy/cn/zh/">隐私条约</a></li>
+                    <li><a href="https://www.ibm.com/developerworks/community/terms?lang=zh">使用条款</a></li>
+                    <li><a href="https://www.ibm.com/accessibility/cn/zh/">信息无障碍选项</a></li>
+                    <li class="ibm-feedbacklink"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#">反馈</a></li>
+                    <li id="ibm-truste-cp"><a onclick="truste.eu.clickListener();return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html#">Cookie 首选项</a></li>
+                </ul>                 
+                </div>    
+            </div>
+        </div>
+    </div>        
+</footer> <!-- FOOTER_END -->
+
+<!-- END_IBM-TOP -->
+</div>
+
+<!-- SCRIPTS_INCLUDE_BEGIN -->
+<!-- Styles -->
+<link rel="stylesheet" type="text/css" href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/jquery-comments.css">
+<link rel="stylesheet" href="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/font-awesome.min.css">
+
+<!-- Libraries -->
+<script type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/jquery-comments.min.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/moment-with-locales.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/ContentComments.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/ContentCommentsFormatter.js"></script>
+<script type="text/javascript" language="JavaScript">
+
+	IBMCore.common.module.masthead.subscribe("ready", "customjs", setupCommentsPlugin).runAsap(setupCommentsPlugin);
+
+	function setupCommentsPlugin(){
+		//debugger;
+			//alert(userLinks);
+			var commentsInitInfo = {
+				contentId : $("div[class=metavalue]:contains('ArticleID=')").text().split("=")[1],
+				siteId :  $("div[class=metavalue]:contains('SITE_ID=')").text().split("=")[1],
+				pluginDivId : '#dw-icomments-container',
+				notifyElementId : "#comment_notification",
+				loginMessageDivId : "#dw-article-cmts-login",
+				totalCommentsDivId : "#nCmts"
+			};				
+								
+			ContentComments.Setup(commentsInitInfo);
+	}
+</script>
+<!-- Piwik -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    _paq.push(["setDomains", ["*.www.ibm.com/developerworks","*.www.ibm.com/developerworks"]]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+    var u="//developer.ibm.com/piwik/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<noscript>&lt;p&gt;&lt;img src="//developer.ibm.com/piwik/piwik.php?idsite=7" style="border:0;" alt="" /&gt;&lt;/p&gt;</noscript>
+<!-- End Piwik Code -->
+<!-- SCRIPTS_INCLUDE_END -->
+
+
+
+<div id="ibm-overlay-backdrop"></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N1029E" role="dialog" aria-describedby="ibm-overlaywidget-N1029E-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N1029E-content" class="content"><div class="" data-widget="overlay" id="N1029E"><img alt="图 2. JDI 事件处理框架" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/image002.png" width="572"></div></div></div><div id="ibm-mobilemenu-screen"></div><iframe id="LOTCCFrameWed Jul 19 2017 19:16:44 GMT+0800 (CST)" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/rt=ifr.html" title="empty" tabindex="-1" role="presentation" style="border: 0px; width: 0px; height: 0px; display: block;"></iframe><div id="ttdUniversalPixelTag14a49df88763436db0795df4fc90e6a7" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/up.html"></iframe></div><div id="ttdUniversalPixelTagaf477d928c164ae0b8f3e1717b910617" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/up(1).html"></iframe></div><script type="text/javascript" src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/Serving" async=""></script><script src="./深入 Java 调试体系，第 4 部分_ Java 调试接口（JDI）_files/js(1)" id="mm_pp_background"></script></body></html>

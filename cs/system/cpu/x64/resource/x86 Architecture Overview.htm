@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)http://cs.lmu.edu/~ray/notes/x86overview/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>x86 Architecture Overview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="./x86 Architecture Overview_files/default.css">
+<link rel="stylesheet" type="text/css" href="./x86 Architecture Overview_files/prettify.css">
+<link rel="stylesheet" href="./x86 Architecture Overview_files/css">
+<script src="./x86 Architecture Overview_files/prettify.js"></script>
+</head>
+  <body class="coursenotes">
+    <script>onload = function () {prettyPrint();}</script>
+    <div class="container">
+      <div class="innercontent">
+        <h1>x86 Architecture Overview</h1>
+
+<div class="abstract">The IA-32 is the instruction set architecture (ISA) of Intel’s
+most successful line of 32-bit processors, and the Intel 64 ISA is its extension into
+64-bit processors. (Actually Intel 64 was invented by AMD, who called it x86-64).
+These notes summarize a few items of
+interest about these two ISAs.  They in no way serve as a substitute for reading <a href="http://www.intel.com/products/processor/manuals/">Intel’s
+manuals</a>.</div><div id="contents"><div>CONTENTS</div><div>Processor Modes • Register Set • Instruction Set • Addressing Memory • Flags Register • Exceptions • The System Developer’s Manual</div></div>
+
+<h2>Processor Modes</h2>
+
+<p>A processor implementing the IA-32 architecture can execute in:</p>
+
+<ul>
+<li><b>Protected Mode</b>: The normal mode of operation.
+</li><li><b>Real Mode</b>: A highly restricted operating mode
+in which only the first 1 MB of physical memory is directly
+accessible. Not discussed here.
+</li><li><b>System Management Mode (SMM)</b>: Not discussed here.
+</li></ul>
+
+<p>A processor implementing the Intel 64 architecture has the three above modes
+plus IA-32e mode, which has two submodes:</p>
+
+<ul>
+<li><b>Compatibility Mode</b>: Lets "old binaries" run without being recompiled.
+</li><li><b>64-bit Mode</b>: Full 64-bit capabilities.
+</li></ul>
+
+<h2>Register Set</h2>
+
+<p>Application programmers only care about the following registers (those in purple
+only exist in 64-bit processors):</p>
+
+<p><img src="./x86 Architecture Overview_files/x86-64.png" alt="x86-64.png"></p>
+<p>Application programmers can remain oblivious of the rest of the registers:</p>
+
+<ul>
+<li>The 8 32-bit <b>processor control registers</b>: CR0, CR1, CR2, CR3, CR4, CR5,
+CR6, CR7. The lower 16 bits of CR0 is called the Machine Status Word (MSW).
+</li><li>The 4 16-bit <b>table registers</b>: GDTR, IDTR, LDTR and TR.
+</li><li>The 8 32-bit <b>debug registers</b>: DR0, DR1, DR2, DR3, DR4, DR5, DR6 and DR7.
+</li><li>The 5 test registers: TR3, TR4, TR5, TR6 and TR7.
+</li><li>The <b>memory type range registers</b>
+</li><li>The <b>machine specific registers</b>
+</li><li>The <b>machine check registers</b>
+</li></ul>
+
+<h2>Instruction Set</h2>
+
+<p>See the <a href="http://download.intel.com/products/processor/manual/253665.pdf">Intel 64/IA-32
+SDM Volume 1</a>, Chapter 5 for a nice overview of
+<strong>all</strong> of the processor instructions and
+<a href="http://download.intel.com/products/processor/manual/325383.pdf">Volume 2</a> for complete
+information.</p>
+
+<p>The following table shows most of the available instructions, using the instruction names
+as specified in the Intel syntax.  Not every processor supports every instruction, of course.</p>
+
+<p>The vertical bar means OR, the square brackets mean OPTIONAL, and parentheses are used
+for grouping.  For example:</p>
+<ul>
+<li><code>SH(L|R)[D]</code> stands for <code>SHL</code>, <code>SHR</code>, <code>SHLD</code>,
+    <code>SHRD</code>.
+</li><li><code>PUSH[A[D]]</code> stands for <code>PUSH</code>, <code>PUSHA</code>, <code>PUSHAD</code>.
+</li></ul>
+
+<table class="fullwidth reference">
+
+<tbody><tr>
+<th>INTEGER
+</th><th>FPU
+</th><th>SSE
+</th><th>SSE2
+
+
+</th></tr><tr>
+<td valign="top">
+<pre>MOV
+CMOV[N]((L|G|A|B)[E]|E|Z|S|C|O|P)
+XCHG
+BSWAP
+XADD
+CMPXCHG[8B]
+PUSH[A[D]] | POP[A[D]]
+IN | OUT
+CBW | CWDE | CWD | CDQ
+MOVSX | MOVZX
+
+ADD | ADC
+SUB | SBB
+[I]MUL
+[I]DIV
+INC | DEC
+NEG
+CMP
+
+DAA | DAS
+AAA | AAS | AAM | AAD
+
+AND | OR | XOR | NOT
+
+SH(L|R)[D]
+SA(L|R)
+RO(L|R)
+RC(L|R)
+
+BT[S|R|C]
+BS(F|R)
+SET[N]((L|G|A|B)[E]|E|Z|S|C|O|P)
+TEST
+
+JMP
+J[N]((L|G|A|B)[E]|E|Z|S|C|O|P)
+J[E]CXZ
+LOOP[N][Z|E]
+CALL | RET
+INT[O] | IRET
+ENTER | LEAVE
+BOUND
+
+MOVS[B|W|D]
+CMPS[B|W|D]
+SCAS[B|W|D]
+LODS[B|W|D]
+STOS[B|W|D]
+INS[B|W|D]
+OUTS[B|W|D]
+REP[N][Z|E]
+
+STC | CLC | CMC
+STD | CLD
+STI | CLI
+LAHF | SAHF
+PUSHF[D] | POPF[D]
+
+LDS | LES | LFS | LGS | LSS
+
+LEA
+NOP
+UD2
+XLAT[B]
+CPUID
+</pre>
+
+
+
+</td><td valign="top">
+<pre>F[I]LD
+F[I]ST[P]
+FBLD
+FBSTP
+FXCH
+FCMOV[N](E|B|BE|U)
+
+FADD[P]
+FIADD
+FSUB[R][P]
+FISUB[R]
+FMUL[P]
+FIMUL
+FDIV[R][P]
+FIDIV[R]
+FPREM[1]
+FABS
+FCHS
+FRNDINT
+FSCALE
+FSQRT
+FXTRACT
+
+F[U]COM[P][P]
+FICOM[P]
+F[U]COMI[P]
+FTST
+FXAM
+
+FSIN
+FCOS
+FSINCOS
+FPTAN
+FPATAN
+F2XM1
+FYL2X
+FYL2XP1
+
+FLD1
+FLDZ
+FLDPI
+FLDL2E
+FLDLN2
+FLDL2T
+FLDLG2
+
+FINCSTP
+FDECSTP
+FFREE
+F[N]INIT
+F[N]CLEX
+F[N]STCW
+FLDCW
+F[N]STENV
+FLDENV
+F[N]SAVE
+FRSTOR
+F[N]STSW
+FWAIT | WAIT
+FNOP
+
+FXSAVE
+FXRSTOR
+</pre>
+
+
+
+</td><td valign="top"><!-- SSE Instructions -->
+<pre>MOV(A|U)PS
+MOV(H|HL|L|LH)PS
+MOVSS
+MOVMSKPS
+
+ADD(P|S)S
+SUB(P|S)S
+MUL(P|S)S
+DIV(P|S)S
+RCP(P|S)S
+SQRT(P|S)S
+RSQRT(P|S)S
+MAX(P|S)S
+MIN(P|S)S
+
+CMP(P|S)S
+[U]COMISS
+
+ANDPS
+ANDNPS
+ORPS
+XORPS
+
+SHUFPS
+UNPCK(H|L)PS
+
+CVTPI2PS
+CVT[T]PS2PI
+CVTSI2SS
+CVT[T]SS2SI
+
+PAVG(B|W)
+PEXTRW
+PINSRW
+P(MIN|MAX)(UB|SW)
+PMOVMSKB
+PMULHUW
+PSADBW
+PSHUFW
+
+LDMXCSR
+STMXCSR
+
+MASKMOVQ
+MOVNT(Q|PS)
+PREFETCHT(0|1|2)
+PREFETCHNTA
+SFENCE
+</pre>
+
+
+</td><td valign="top"><!-- SSE2 Instructions -->
+<pre>MOV(A|U)PD
+MOV(H|L)PD
+MOVSD
+MOVMSKPD
+
+ADD(P|S)D
+SUB(P|S)D
+MUL(P|S)D
+DIV(P|S)D
+SQRT(P|S)D
+MAX(P|S)D
+MIN(P|S)D
+
+CMP(P|S)D
+[U]COMISD
+
+ANDPD
+ANDNPD
+ORPD
+XORPD
+
+SHUFPD
+UNPCK(H|L)PD
+
+CVT(PI|DQ)2PD
+CVT[T]PD2(PI|DQ)
+CVTSI2SD
+CVT[T]SD2SI
+CVTPS2PD
+CVTPD2PS
+CVTDQ2PS
+CVT[T]PS2DQ
+CVTSS2SD
+CVTSD2SS
+
+MOVDQ(A|U)
+MOVQ2DQ
+MOVDQ2Q
+PUNPCK(H|L)QDQ
+PADDQ
+PSUBQ
+PMULUDQ
+PSHUF(LW|HW|D)
+PS(L|R)LDQ
+
+MASKMOVDQU
+MOVNT(PD|DQ|I)
+CLFLUSH
+LFENCE
+MFENCE
+PAUSE
+</pre>
+
+
+
+
+</td></tr><tr>
+<th>SYSTEM
+</th><th>MMX
+</th><th>SSE3
+</th><th>SSE4
+
+
+</th></tr><tr>
+<td><!-- System instructions -->
+<pre>LGDT | SGDT
+LLDT | SLDT
+LTR | STR
+LIDT | SIDT
+LMSW | SMSW
+CLTS
+ARPL
+LAR
+LSL
+VERR | VERW
+INVD | WBINVD
+INVLPG
+LOCK
+HLT
+RSM
+RDMSR | WRMSR
+RDPMC
+RDTSC
+SYSENTER
+SYSEXIT
+</pre>
+
+
+
+</td><td valign="top"><!-- MMX Instructions -->
+<pre>MOVD
+MOVQ
+
+PACKSS(WB|DW)
+PACKUSWB
+PUNPCK(H|L)(BW|WD|DQ)
+
+PADD(B|W|D)
+PADD(S|US)(B|W)
+PSUB(B|W|D)
+PSUB(S|US)(B|W)
+PMUL(H|L)W
+PMADDWD
+PCMP(EQ|GT)(B|W|D)
+
+PAND
+PANDN
+POR
+PXOR
+
+PS(L|R)L(W|D|Q)
+PSRA(W|D)
+
+EMMS
+</pre>
+
+
+
+</td><td><!-- SSE3 instructions -->
+<pre>FISTTP
+
+LDDQU
+
+ADDSUBP(S|D)
+
+HADDP(S|D)
+HSUBP(S|D)
+
+MOVS(H|L)DUP
+MOVDDUP
+
+MONITOR
+MWAIT
+</pre>
+
+
+
+</td><td><!-- SSE4 Instructions -->
+<pre>PMUL(LD|DQ)
+DPP(D|S)
+
+MOVNTDQA
+
+BLEND[V](PD|PS)
+PBLEND(VB|W)
+
+PMIN(UW|UD|SB|SD)
+PMAX(UW|UD|SB|SD)
+
+ROUND(P|S)(S|D)
+
+EXTRACTPS
+INSERTPS
+PINSR(B|D|Q)
+PEXTR(B|W|D|Q)
+PMOV(S|Z)X(BW|BD|WD|BQ|WQ|DQ)
+
+MPSADBW
+
+PHMINPOSUW
+
+PTEST
+
+PCMPEQQ
+PACKUSDW
+
+PCMP(E|I)STR(I|M)
+PCMPGTQ
+
+CRC32
+POPCNT
+</pre>
+
+
+
+</td></tr><tr>
+<th>64-BIT MODE
+</th><th>VIRTUAL MACHINE
+</th><th>SSSE3
+</th><th>AESNI
+
+
+</th></tr><tr>
+
+<td><!-- 64 -->
+<pre>CDQE
+CMPSQ
+CMPXCHG16B
+LODSQ
+MOVSQ
+MOVZX
+STOSQ
+SWAPGS
+SYSCALL
+SYSRET
+</pre>
+
+
+</td><td><!-- VMCS -->
+<pre>VMPTRLD
+VPTRST
+VMCLEAR
+VMREAD
+VMWRITE
+VMCALL
+VMLAUNCH
+VMRESUME
+VMXOFF
+VMXON
+INVEPT
+INVVPID
+</pre>
+
+
+</td><td><!-- SSSE3 -->
+<pre>PHADD(W|SW|D)
+PHSUB(W|SW|D)
+PABS(B|W|D)
+PMADDUBSW
+PMULHRSW
+PSHUFB
+PSIGN(B|W|D)
+PALIGNR
+</pre>
+
+
+</td><td><!-- AESNI -->
+<pre>AESDEC[LAST]
+AESENC[LAST]
+AESIMC
+AESKEYGENASSIST
+PCLMULQDQ
+</pre>
+
+
+
+
+
+</td></tr></tbody></table>
+
+
+<h2>Addressing Memory</h2>
+
+<p>In protected mode, applications can choose a flat or segmented
+memory model (see the SDM Volume 1, Chapter 3 for details); in real mode
+only a 16-bit segmented model is available.  Most programmers
+will only use protected mode and a flat-memory model, so that’s
+all we’ll discuss here.</p>
+
+<p>A memory reference has four parts and is often written as</p>
+<pre>[SELECTOR : BASE + INDEX * SCALE + OFFSET]
+</pre>
+<p>The selector is one of the six segment registers; the base is
+one of the eight general purpose registers; the index is any of
+the general purpose registers except ESP; the scale is 1, 2, 4,
+or 8; and the offset is any 32-bit number.
+(Example: <code>[fs:ecx+esi*8+93221]</code>.)  The minimal
+reference consists of only a base register or only an offset;
+a scale can only appear if there is an index present.</p>
+
+<p>Sometimes the memory reference is written like this:</p>
+<pre>selector
+offset(base,index,scale)
+</pre>
+
+<h3>Data Types</h3>
+
+<p>The data types are</p>
+
+<table class="centered">
+<tbody><tr><th>Type name</th><th>Number of bits</th><th>Bit indices
+</th></tr><tr><td>Byte</td><td>8</td><td>7..0
+</td></tr><tr><td>Word</td><td>16</td><td>15..0
+</td></tr><tr><td>Doubleword</td><td>32</td><td>32..0
+</td></tr><tr><td>Quadword</td><td>64</td><td>63..0
+</td></tr><tr><td>Doublequadword</td><td>128</td><td>127..0
+</td></tr></tbody></table>
+
+<h3>Little Endianness</h3>
+
+<p>The IA-32 is little endian, meaning the least significant
+bytes come first in memory.  For example:</p>
+
+<pre class="big">    0  <span style="border: 1px solid black">  12  </span>
+    1  <span style="border: 1px solid black">  31  </span>     byte @ 9 = 1F
+    2  <span style="border: 1px solid black">  CB  </span>     word @ B = FE06
+    3  <span style="border: 1px solid black">  74  </span>     word @ 6 = 230B
+    4  <span style="border: 1px solid black">  67  </span>     word @ 1 = CB31
+    5  <span style="border: 1px solid black">  45  </span>     dword @ A = 7AFE0636
+    6  <span style="border: 1px solid black">  0B  </span>     qword @ 6 = 7AFE06361FA4230B
+    7  <span style="border: 1px solid black">  23  </span>     word @ 2 = 74CB
+    8  <span style="border: 1px solid black">  A4  </span>     qword @ 3 = 361FA4230B456774
+    9  <span style="border: 1px solid black">  1F  </span>     dword @ 9 = FE06361F
+    A  <span style="border: 1px solid black">  36  </span>
+    B  <span style="border: 1px solid black">  06  </span>
+    C  <span style="border: 1px solid black">  FE  </span>
+    D  <span style="border: 1px solid black">  7A  </span>
+    E  <span style="border: 1px solid black">  12  </span>
+</pre>
+
+<p>Note that if you draw memory with the lowest bytes at the bottom, then it is
+easier to read these values!</p>
+
+<h2>Flags Register</h2>
+
+<p>Many instructions cause the flags register to be updated.
+For example if you execute an <code>add</code> instruction and the sum
+is too big to fit into the destination register, the <code>Overflow</code>
+flag is set.</p>
+
+<pre>    3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0
+    1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+   +---------------------------------------------------------------+
+   | | | | | | | | | | |I|V|V|A|V|R| |N| I |O|D|I|T|S|Z| |A| |P| |C|
+   | | | | | | | | | | |D|I|I|C|M|F| |T| P |F|F|F|F|F|F| |F| |F| |F|
+   | | | | | | | | | | | |P|F| | | | | | L | | | | | | | | | | | | |
+   +---------------------------------------------------------------+
+</pre>
+
+<p>The flags are described in Section 3.4.3 of Volume 1 of the SDM.
+To determine how each instruction affects the flags, see Appendix
+A of Volume 1 of the SDM.</p>
+
+<table>
+</table>
+
+<h2>Exceptions</h2>
+
+<p>Sometimes while executing an instruction an exception occurs.
+There are three types of exceptions.</p>
+<ul>
+<li>Faults - indicate an operation can’t be completed
+</li><li>Traps - software generated interrupts (INT or INTO)
+</li><li>Aborts - indicate a serious problem with the OS itself.
+</li></ul>
+<p>When exceptions occur, the processor will start executing code
+in an <em>exception handler</em> associated with that exception.
+The predefined exceptions are:</p>
+
+<table class="centered">
+<tbody><tr><th colspan="5">GENERAL EXCEPTIONS
+</th></tr><tr><td>0</td><td>#DE</td><td>Divide Error</td><td>fault
+</td><td>DIV or IDIV instruction
+</td></tr><tr><td>1</td><td>#DB</td><td>Debug</td><td>fault<br>trap
+</td><td>...
+</td></tr><tr><td>3</td><td>#BP</td><td>Breakpoint</td><td>trap
+</td><td>INT 3 instruction
+</td></tr><tr><td>4</td><td>#OF</td><td>Overflow</td><td>trap
+</td><td>INTO instruction executed when overflow flag in EFLAGS is set
+</td></tr><tr><td>5</td><td>#BR</td><td>Bound Range Exceeded</td><td>fault
+</td><td>BOUND instruction
+</td></tr><tr><td>6</td><td>#UD</td><td>Undefined Opcode</td><td>fault
+</td><td>UD2 instruction, or attempt to execute an opcode that
+doesn’t correspond to any instruction
+</td></tr><tr><td>7</td><td>#NM</td><td>Device Not Available</td><td>fault
+</td><td>FPU instruction or WAIT instruction on a processor
+without an FPU that is not linked to a FPU coprocessor
+</td></tr><tr><td>8</td><td>#DF</td><td>Double Fault</td><td>abort
+</td><td>Exception occurred during an exception handler
+</td></tr><tr><td>10</td><td>#TS</td><td>Invalid TSS</td><td>fault
+</td><td>Task switch or implicit TSS access
+</td></tr><tr><td>11</td><td>#NP</td><td>Not Present</td><td>fault
+</td><td>Loading segment registers or accessing system segments
+</td></tr><tr><td>12</td><td>#SS</td><td>Stack Segment Fault</td><td>fault
+</td><td>Stack operations and SS register loads
+</td></tr><tr><td>13</td><td>#GP</td><td>General Protection Fault</td><td>fault
+</td><td>Any memory reference and other protection checks
+</td></tr><tr><td>14</td><td>#PF</td><td>Page Fault</td><td>fault
+</td><td>Any memory reference
+</td></tr><tr><td>16</td><td>#MF</td><td>FPU Math Fault</td><td>fault
+</td><td>Any FPU instruction<br>
+    &nbsp;&nbsp;#IS - FPU stack overflow<br>
+    &nbsp;&nbsp;#IA - Invalid arithmetic operation<br>
+    &nbsp;&nbsp;#Z  - Divide by zero<br>
+    &nbsp;&nbsp;#D -  Source operand is a denormal number<br>
+    &nbsp;&nbsp;#O -  Overflow in result<br>
+    &nbsp;&nbsp;#U -  Underflow in result<br>
+    &nbsp;&nbsp;#P -  Inexact result
+</td></tr><tr><td>17</td><td>#AC</td><td>Alignment Check</td><td>fault
+</td><td>Any data reference in memory
+</td></tr><tr><td>18</td><td>#MC</td><td>Machine Fault</td><td>abort
+</td><td>Internal Error or bus error
+</td></tr><tr><td>19</td><td>#XF</td><td>SIMD Math Fault</td><td>fault
+</td><td>Any SIMD instruction<br>
+    &nbsp;&nbsp;#I  - Invalid arithmetic operation or source operand<br>
+    &nbsp;&nbsp;#Z  - Divide by zero<br>
+    &nbsp;&nbsp;#D -  Source operand is a denormal number<br>
+    &nbsp;&nbsp;#O -  Overflow in result<br>
+    &nbsp;&nbsp;#U -  Underflow in result<br>
+    &nbsp;&nbsp;#P -  Inexact result
+</td></tr></tbody></table>
+
+<h2>The System Developer’s Manual</h2>
+
+<p>The System Developer’s Manual contains vast amounts of important information
+and is required reading for all assembly language programmers.  The manual is
+split into several volumes; links to all volumes are
+<a href="http://www.intel.com/products/processor/manuals/">here</a>.
+Highlights from Volumes 1 and 2:</p>
+
+<ul>
+<li><a href="http://download.intel.com/products/processor/manual/253665.pdf"><b>Volume 1</b>:</a>
+  <ul>
+    <li>Chapter 1 - About this manual
+    </li><li>Chapter 2 - History of the IA-32 and Intel 64 architectures, a
+        description of many of the microarchitectures and processors
+        and technologies
+    </li><li>Chapter 3 - Basic execution environment
+    </li><li>Chapter 4 - Data types
+    </li><li>Chapter 5 - Instruction set summary.  Lists
+        all instructions and a brief (but not precise)
+        description of each.  Instructions are
+        grouped into convenient categories.
+    </li><li>Chapter 6 - Details on calls and returns, and exceptions
+    </li><li>Chapter 7 - All about general purpose instructions
+    </li><li>Chapter 8 - All about FPU instructions
+    </li><li>Chapter 9 - All about MMX instructions
+    </li><li>Chapter 10 - All about SSE instructions
+    </li><li>Chapter 11 - All about SSE2 instructions
+    </li><li>Chapter 12 - All about SSE3, SSSE3, SSE4 and AESNI instructions
+    </li><li>Chapter 13 - All about AVX, FMA, and AVX2 instructions
+    </li><li>Chapter 14 - All about transactional synchronization instructions
+    </li><li>Chapter 15 - All about I/O instructions
+    </li><li>Chapter 16 - How to determine what processor you have, and what its features are
+    </li><li>Appendix A - Shows which instructions affect which flags
+    </li><li>Appendix B - Condition codes
+    </li><li>Appendix C - Floating-point exceptions
+    </li><li>Appendix D - Guidelines for writing x87 exception handlers
+    </li><li>Appendix E - Guidelines for writing SIMD exception handlers
+  </li></ul>
+
+</li><li><a href="http://download.intel.com/products/processor/manual/325383.pdf"><b>Volume 2</b>:</a>
+  <ul>
+    <li>Chapter 1 - About this manual
+    </li><li>Chapter 2 - Instruction formats
+    </li><li>Chapter 3 - Instruction set reference: full description, and
+        encodings, of <em>every</em> instruction with names beginning with A — L
+    </li><li>Chapter 4 - Instruction set reference: full description, and
+        encodings, of <em>every</em> instruction with names beginning with M — Z
+    </li><li>Chapter 5 - Safer Mode Extensions Reference
+    </li><li>Appendix A - Opcode map
+    </li><li>Appendix B - Encoding summary
+    </li><li>Appendix C - Compiler intrinsics
+  </li></ul>
+
+</li></ul>
+      </div>
+    </div>
+    <script>
+      var title = document.getElementsByTagName("h1")[0];
+      if (title) document.title = title.innerHTML;
+      var abstract = document.querySelector(".abstract");
+      if (abstract) {
+        var contentsDiv = document.createElement('div');
+        contentsDiv.setAttribute('id', 'contents');
+        var s = Array.from(document.getElementsByTagName("h2")).map(el => el.textContent);
+        contentsDiv.innerHTML = '<div>CONTENTS</b></div><div>' + s.join(' • ') + '</div>';
+        abstract.parentNode.insertBefore(contentsDiv, abstract.nextSibling);
+      }
+    </script>
+  
+
+</body></html>

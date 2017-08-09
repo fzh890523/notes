@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Java CPU Sampling Using hprof</title>
+        <meta name="viewport" content="width=device-width">
+	<meta name="description" content="Java CPU Sampling Using hprof">
+	<meta name="keywords" content="java,hprof,cpu,sampling,profiling,blog">
+
+        <!-- syntax highlighting CSS -->
+        <link rel="stylesheet" href="/blog/css/syntax.css">
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="/blog/css/main.css">
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-7747513-3']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+    </head>
+    <body>
+
+	<div class="nav">
+	<p class="navhdr">This Site:</p>
+<a href="/index.html">Homepage</a><br>
+<a href="/blog/index.html">Blog</a><br>
+<a href="/sitemap.html">Full Site Map</a><br>
+<a href="/sysperfbook.html">Sys Perf book</a><br>
+<a href="/linuxperf.html">Linux Perf</a><br>
+<a href="/methodology.html">Perf Methods</a><br>
+<a href="/usemethod.html">USE Method</a><br>
+<a href="/tsamethod.html">TSA Method</a><br>
+<a href="/offcpuanalysis.html">Off-CPU Analysis</a><br>
+<a href="/activebenchmarking.html">Active Bench.</a><br>
+<a href="/flamegraphs.html">Flame Graphs</a><br>
+<a href="/heatmaps.html">Heat Maps</a><br>
+<a href="/frequencytrails.html">Frequency Trails</a><br>
+<a href="/colonygraphs.html">Colony Graphs</a><br>
+<a href="/perf.html">perf Examples</a><br>
+<a href="/ebpf.html">eBPF Tools</a><br>
+<a href="/dtrace.html">DTrace Tools</a><br>
+<a href="/dtracetoolkit.html">DTraceToolkit</a><br>
+<a href="/dtkshdemos.html">DtkshDemos</a><br>
+<a href="/guessinggame.html">Guessing Game</a><br>
+<a href="/specials.html">Specials</a><br>
+<a href="/books.html">Books</a><br>
+<a href="/sites.html">Other Sites</a><br>
+
+	</div>
+
+	<div class="recent">
+	Recent posts:<br>
+	<ul style="padding-left:18px">
+	  
+		   <li>30 Jun 2017 &raquo;<br>
+		   <a href="/blog/2017-06-30/package-flame-graph.html">  
+		   Java Package Flame Graph</a></li>
+	  
+		   <li>16 May 2017 &raquo;<br>
+		   <a href="/blog/2017-05-16/working-at-netflix-2017.html">  
+		   Working at Netflix 2017</a></li>
+	  
+		   <li>15 May 2017 &raquo;<br>
+		   <a href="/blog/2017-05-15/container-performance-analysis-dockercon-2017.html">  
+		   Container Performance Analysis at DockerCon 2017</a></li>
+	  
+		   <li>09 May 2017 &raquo;<br>
+		   <a href="/blog/2017-05-09/cpu-utilization-is-wrong.html">  
+		   CPU Utilization is Wrong</a></li>
+	  
+		   <li>04 May 2017 &raquo;<br>
+		   <a href="/blog/2017-05-04/the-pmcs-of-ec2.html">  
+		   The PMCs of EC2: Measuring IPC</a></li>
+	  
+		   <li>29 Apr 2017 &raquo;<br>
+		   <a href="/blog/2017-04-29/usenix-lisa-2016-bcc-bpf-tools.html">  
+		   USENIX/LISA 2016 Linux bcc/BPF Tools</a></li>
+	  
+		   <li>23 Apr 2017 &raquo;<br>
+		   <a href="/blog/2017-04-23/usenix-lisa-2013-flame-graphs.html">  
+		   USENIX/LISA 2013 Blazing Performance with Flame Graphs</a></li>
+	  
+		   <li>16 Mar 2017 &raquo;<br>
+		   <a href="/blog/2017-03-16/perf-sched.html">  
+		   perf sched for Linux CPU scheduler analysis</a></li>
+	  
+		   <li>06 Feb 2017 &raquo;<br>
+		   <a href="/blog/2017-02-06/flamegraphs-vs-treemaps-vs-sunburst.html">  
+		   Flame Graphs vs Tree Maps vs Sunburst</a></li>
+	  
+		   <li>05 Feb 2017 &raquo;<br>
+		   <a href="/blog/2017-02-05/file-system-flame-graph.html">  
+		   Where has my disk space gone? Flame graphs for file systems</a></li>
+	  
+		   <li>31 Jan 2017 &raquo;<br>
+		   <a href="/blog/2017-01-31/golang-bcc-bpf-function-tracing.html">  
+		   Golang bcc/BPF Function Tracing</a></li>
+	  
+		   <li>27 Dec 2016 &raquo;<br>
+		   <a href="/blog/2016-12-27/linux-tracing-in-15-minutes.html">  
+		   Give me 15 minutes and I'll change your view of Linux tracing</a></li>
+	  
+		   <li>30 Nov 2016 &raquo;<br>
+		   <a href="/blog/2016-11-30/linux-bcc-tcplife.html">  
+		   Linux bcc/BPF tcplife: TCP Lifespans</a></li>
+	  
+		   <li>27 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-27/dtrace-for-linux-2016.html">  
+		   DTrace for Linux 2016</a></li>
+	  
+		   <li>21 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-21/linux-efficient-profiler.html">  
+		   Linux 4.9's Efficient BPF-based Profiler</a></li>
+	  
+		   <li>15 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-15/linux-bcc-tcptop.html">  
+		   Linux bcc tcptop</a></li>
+	  
+		   <li>12 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-12/linux-bcc-nodejs-usdt.html">  
+		   Linux bcc/BPF Node.js USDT Tracing</a></li>
+	  
+		   <li>08 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-08/linux-bcc-runqlat.html">  
+		   Linux bcc/BPF Run Queue (Scheduler) Latency</a></li>
+	  
+		   <li>06 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-06/linux-bcc-ext4dist-ext4slower.html">  
+		   Linux bcc ext4 Latency Tracing</a></li>
+	  
+		   <li>04 Oct 2016 &raquo;<br>
+		   <a href="/blog/2016-10-04/linux-bcc-mysqld-qslower.html">  
+		   Linux MySQL Slow Query Tracing with bcc/BPF</a></li>
+	  
+	</ul>
+	<a href="/blog/index.html">Blog index</a><br>
+	<a href="/blog/about.html">About</a><br>
+	<a href="/blog/rss.xml">RSS</a><br>
+	</div>
+
+        <div class="site">
+          <div class="header">
+            <h1 class="title"><a href="/blog/index.html">Brendan Gregg's Blog</a></h1>
+            <a class="extra" href="/blog/index.html">home</a>
+          </div>
+
+          <h2 class="big">Java CPU Sampling Using hprof</h2>
+<p class="meta">09 Jun 2014</p>
+
+<div class="post">
+<p>hprof is a free profiler shipped with Java, for heap, CPU, and monitor profiling. It is a powerful and well presented tool, however, its CPU sampling mode doesn&#39;t work properly, as it can produce misleading or inaccurate results. I&#39;m also not sure its CPU sampling mode has <em>ever worked</em>.</p>
+
+<p>In this post I&#39;ll describe some of the problems, which should be helpful for anyone trying to use hprof CPU sampling. It&#39;s tempting to discuss other profilers in detail as well, but to keep this short I&#39;ll stick to hprof.</p>
+
+<h2>CPU Sampling Example</h2>
+
+<p>Here&#39;s hprof CPU sampling of <a href="http://vertx.io">vert.x</a>, an application platform for the JVM. Excerpts from the hprof report:</p>
+
+<pre>
+TRACE 301366: (thread=200009)
+        sun.nio.ch.EPollArrayWrapper.epollWait(EPollArrayWrapper.java:Unknown line)
+        sun.nio.ch.EPollArrayWrapper.poll(EPollArrayWrapper.java:269)
+        sun.nio.ch.EPollSelectorImpl.doSelect(EPollSelectorImpl.java:79)
+        sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:86)
+        sun.nio.ch.SelectorImpl.select(SelectorImpl.java:97)
+        io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:605)
+        io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:306)
+        io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:116)
+        java.lang.Thread.run(Thread.java:744)
+[...]
+CPU SAMPLES BEGIN (total = 3310) Mon Jun  9 20:33:05 2014
+rank   self  accum   count trace method
+   1 <b>48.70%</b> 48.70%    1612 301366 <b>sun.nio.ch.EPollArrayWrapper.epollWait</b>
+   2 32.08% 80.79%    1062 301340 sun.nio.ch.EPollArrayWrapper.epollWait
+   3  3.05% 83.84%     101 301526 sun.nio.ch.NativeThread.current
+   4  2.48% 86.31%      82 301457 sun.nio.ch.FileDispatcherImpl.write0
+   5  0.88% 87.19%      29 301460 sun.nio.ch.FileDispatcherImpl.read0
+   6  0.57% 87.76%      19 301484 sun.misc.Unsafe.copyMemory
+   7  0.42% 88.19%      14 301546 io.netty.buffer.AbstractByteBuf.setIndex
+[...]
+</pre>
+
+<p>The output begins with many stack traces, enumerated, and then a sorted summary showing which stacks were most often sampled. Multiply the &quot;count&quot; column with the sampling interval (in this case, I used 20 ms), to get a rough measure of total time spent in these methods.</p>
+
+<p>Stack trace 301366, in method epollWait, was sampled 48.7% of the time. The second highest stack trace is in the same method, bringing the total to 80.79%. Why is epollWait so hot on-CPU? We should fix it &ndash; this app could run 5x faster!</p>
+
+<p>There have been cases of <a href="https://github.com/netty/netty/issues/327">epollWait consuming 100% CPU</a>, due to a bug, in which case hprof would be reporting the truth. But that&#39;s not the case here &ndash; these threads aren&#39;t running on CPU at all.</p>
+
+<p>These hprof results are actually bogus.</p>
+
+<h2>Using hprof cpu=samples</h2>
+
+<p>Here is how hprof can be invoked to perform &quot;CPU&quot; sampling:</p>
+
+<pre>
+java <b>-agentlib:hprof=cpu=samples,depth=100,interval=20,lineno=y,thread=y,file=out.hprof</b> myclass
+</pre>
+
+<p>This samples stacks up to 100 frames deep, every 20 ms, and writes a report to out.hprof when the program exits, or when java receives a SIGQUIT.</p>
+
+<p>This was previously available in the JVM as the -Xrunhprof option, which still works today, but may be removed in a future version of the JDK (it&#39;s still there as of 1.8.0_05). You can check what options are currently available by using hprof=help. Selected lines below:</p>
+
+<pre>
+$ <b>java -agentlib:hprof=help</b>
+
+     HPROF: Heap and CPU Profiling Agent (JVMTI Demonstration Code)
+
+hprof usage: java -agentlib:hprof=[help]|[&lt;option>=&lt;value>, ...]
+
+Option Name and Value  Description                    Default
+---------------------  -----------                    -------
+heap=dump|sites|all    heap profiling                 all
+cpu=samples|times|old  CPU usage                      off
+monitor=y|n            monitor contention             n
+format=a|b             text(txt) or binary output     a
+file=&lt;file>            write data to file             java.hprof[{.txt}]
+net=&lt;host>:&lt;port>      send data over a socket        off
+depth=&lt;size>           stack trace depth              4
+interval=&lt;ms>          sample interval in ms          10
+cutoff=&lt;value>         output cutoff point            0.0001
+lineno=y|n             line number in traces?         y
+thread=y|n             thread in traces?              n
+[...]
+Examples
+--------
+  - Get sample cpu information every 20 millisec, with a stack depth of 3:
+      java -agentlib:hprof=cpu=samples,interval=20,depth=3 classname
+[...]
+Warnings
+--------
+  - This is demonstration code for the JVMTI interface and use of BCI,
+    it is not an official product or formal part of the JDK.
+[...]
+</pre>
+
+<p>Note that the output mentions twice that this is demonstration code for JVMTI. That may help explain why the issues have gone unnoticed and unfixed. Neither the output nor the <a href="http://docs.oracle.com/javase/7/docs/technotes/samples/hprof.html">hprof documentation</a> warns that the results can also be inaccurate. Maybe the developers never discovered this, since for some simple programs it appears to work fine. (And if they did discover it, well, it is only a &quot;demo&quot; and not a product.)</p>
+
+<h2>Idle Test</h2>
+
+<p>To better understand the problem, I profiled vert.x when it was completely idle, and checked CPU usage:</p>
+
+<pre>
+$ <b>top -p 10515</b>
+[...]
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                                              
+30515 root      20   0 4273m 108m  12m S    0  1.5   0:14.33 java   
+
+$ <b>mpstat 1</b>
+[...]
+08:50:53 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest   %idle
+08:50:54 PM  all    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+08:50:54 PM    0    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+08:50:54 PM    1    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00
+</pre>
+
+<p>vert.x is completely idle, yet hprof still reports &quot;CPU SAMPLES&quot; in epollWait, at a rate of around 2000ms every second &ndash; indicating two CPU-bound threads running in parallel.</p>
+
+<p>jstack(1) can help explain what is happening. Showing the thread that is supposed to be hot on-CPU:</p>
+
+<pre>
+"vert.x-eventloop-thread-0" #10 daemon prio=5 os_prio=0 tid=0x00007f5398256000 nid=0x774a runnable [0x00007f53a76ec000]
+   java.lang.Thread.State: <b>RUNNABLE</b>
+    at sun.nio.ch.EPollArrayWrapper.epollWait(Native Method)
+    at sun.nio.ch.EPollArrayWrapper.poll(EPollArrayWrapper.java:269)
+    at sun.nio.ch.EPollSelectorImpl.doSelect(EPollSelectorImpl.java:79)
+    at sun.nio.ch.SelectorImpl.lockAndDoSelect(SelectorImpl.java:86)
+    - locked <0x000000008b97d450> (a io.netty.channel.nio.SelectedSelectionKeySet)
+    - locked <0x000000008b97e4c0> (a java.util.Collections$UnmodifiableSet)
+    - locked <0x000000008b97d3b8> (a sun.nio.ch.EPollSelectorImpl)
+    at sun.nio.ch.SelectorImpl.select(SelectorImpl.java:97)
+    at io.netty.channel.nio.NioEventLoop.select(NioEventLoop.java:605)
+    at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:306)
+    at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:116)
+    at java.lang.Thread.run(Thread.java:745)
+</pre>
+
+<p>epollWait is RUNNABLE according to the JVM &ndash; not the kernel scheduler (it&#39;s really asleep!).</p>
+
+<h2>Internals</h2>
+
+<p>hprof is sampling the Java RUNNABLE state. From jvmti/hprof/hprof_trace.c:</p>
+
+<pre>
+/* Get traces for all threads in list (traces[i]==0 if thread not running) */
+void
+trace_get_all_current(jint thread_count, jthread *threads,
+[...]
+        /* If thread has frames, is runnable, and isn't suspended, we care */
+        if ( always_care ||
+             ( stack_info[i].frame_count > 0
+               && (stack_info[i].state & <b>JVMTI_THREAD_STATE_RUNNABLE</b>)!=0
+               && (stack_info[i].state & JVMTI_THREAD_STATE_SUSPENDED)==0
+               && (stack_info[i].state & JVMTI_THREAD_STATE_INTERRUPTED)==0 )
+            ) {
+[...do sampling...]
+</pre>
+
+<p>JVMTI_THREAD_STATE_RUNNABLE maps to the Java <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/Thread.State.html">RUNNABLE Thread.State</a>, which is documented as:</p>
+
+<blockquote>A thread in the runnable state is executing in the Java virtual machine but it may be waiting for other resources from the operating system such as processor.</blockquote>
+
+<p>Runnable does not mean <em>running</em>. It is also not the same as what the kernel scheduler calls &quot;runnable&quot;. Sampling Java runnable threads is not the same thing as CPU sampling, but hprof documents it as &quot;CPU SAMPLES&quot;. It would be better described as &quot;JVM RUNNABLE SAMPLES&quot;.</p>
+
+<p>This fact doesn&#39;t seem to be well known. The best reference I found <a href="https://www.java.net/node/645002">said</a> (from 2005):</p>
+
+<blockquote>When you have Java threads that are somehow not using the CPU, but managing to stay active, then it will appear as if those stack traces are consuming large amounts of CPU time when they aren't.</blockquote>
+
+<p>This was written by Kelly O&#39;Hair, who wrote hprof. He references the source, and speculates on how to fix this based on examining more Java thread states. I think it needs to go further than that...</p>
+
+<h2>Inaccurate Timing</h2>
+
+<p>There&#39;s another issue with hprof worth mentioning. The paper &quot;Evaluating the Accuracy of Java Profilers&quot; [<a href="http://dl.acm.org/citation.cfm?id=1806618">Mytkowicz 10</a>] shows that different Java profilers, including hprof, produce conflicting profiles. The reason the authors identified was that hprof only samples on <em>yield points</em>, which may not align with the interval specified. They included a sample program which hprof profiles incorrectly, to prove their point.</p>
+
+<p>I find this issue really hard to believe, but I profiled their sample program and saw results that also didn&#39;t make sense. I&#39;d need to study some more to confirm that this really is yield, and not another profiling issue that the authors have stumbled upon.</p>
+
+<p>UPDATE: The JVM term for these are <em>safepoints</em> (see comments).</p>
+
+<h2>Why hprof Isn&#39;t Used</h2>
+
+<p>If hprof was in common usage for CPU sampling, these problems should have been fixed long ago. But it isn&#39;t. I&#39;ve heard various reasons as to why, including:</p>
+
+<ol>
+<li>Other (commercial) profilers have more features. Eg: YourKit, JProfiler, JRocket Flight Recorder, etc.</li>
+<li>IDE profilers (incl. NetBeans Profiler, etc.) are easier for developers than the CLI hprof.</li>
+<li>hprof can&#39;t be turned on and off when needed, so the output contains everything since startup.</li>
+<li>The hprof overhead for CPU profiling is too high.</li>
+</ol>
+
+<p>(3) is true, but there seem to be <a href="https://github.com/rjpower/java-profiler">fixes</a> for that. hprof uses the JVMTI interface, and while hprof doesn&#39;t currently provide on/off capabilities, the JVMTI interface does have them: the NetBeans profiler uses JVMTI for on-demand profiling, as does the VisualVM profiler (which uses the NetBeans profiler).</p>
+
+<p>A simple workaround (ignoring overheads for a moment) could be fashioned using SIGQUIT. With hprof running, a SIGQUIT signal causes hprof to write out its report, and reset profiler data. And so, a second SIGQUIT will only show profile data since the first. This isn&#39;t on-demand, since the profiler is always running, but it does let us collect data for an interval of interest.</p>
+
+<p>(4) is definitely true for the &quot;cpu=times&quot; mode, which instruments every method call, and can slow the target application by 1000x (I saw 480x, last time I tried). As an aside, I&#39;ve been <em>stunned</em> to see products describe this as providing &quot;highly accurate&quot; times, while at the <em>same time</em> warning that it may massively slow the target. Heard of <strong>observer effect</strong>?</p>
+
+<p>The &quot;cpu=samples&quot; mode has much less overhead, and the interval is tunable. For an app I&#39;m testing (vert.x), profiling at 20 ms reduced its request rate by 2%, and increased JVM CPU consumption by 4%. I imagine if this server was out of CPU headroom, the total reduction in request rate would be around 6%. If I had a lot more threads, I may need to increase the sample rate to 50ms or higher to keep the overhead this low.</p>
+
+<p>The most compelling reason not to use hprof for CPU sampling is that the output can be inaccurate. I asked a coworker, a Java performance expert, whether he used hprof, and his answer was to the point: &quot;No, it includes blocking time so the results are misleading&quot;.</p>
+
+<h2>Fixing hprof</h2>
+
+<p>The runnable state issue and yield-based sampling could both be fixed at the same time, by profiling <em>from</em> the system. The best example was developed by Sun: the jstack() action for DTrace, which can sample Java stack traces based on the kernel&#39;s understanding of running CPUs, and using reliable system timers. This approach can sample not just Java methods, but also JVM internals and the kernel, providing the most complete picture possible of CPU consumption. Since it was launched around the same time as hprof, it may further explain why hprof wasn&#39;t fixed earlier: Sun&#39;s attention was on DTrace, not hprof. (I&#39;d use DTrace myself, although I&#39;ve hit an issue with <a href="http://www.listbox.com/member/archive/184261/2014/06/sort/time_rev/page/1/entry/3:9/20140609133236:09A381BE-EFFC-11E3-84AB-F10000B4036A/">incomplete jstacks</a>.)</p>
+
+<p>Aside from system profiling, the runnable issue may be fixable by reading kernel state (eg, via /proc on Linux), to associate actual CPU state with Java thread state. I haven&#39;t looked inside commercial profilers, but this may be how they work. One would need to keep the overheads for reading OS state in check.</p>
+
+<p>Assuming the yield issue hasn&#39;t distorted our results too much, a dumb fix may be to create an exclude list of methods that are known to block yet stay in the Java RUNNABLE state, and to filter these from the hprof results. I saw an implementation of this by <a href="https://github.com/jnorris/conf/blob/master/bin/hprof#L113">jnorris</a>:</p>
+
+<pre>
+    ignore_set = set([
+        'java.net.SocketInputStream.socketRead0',
+        'java.net.SocketOutputStream.socketWrite0',
+        'java.net.PlainSocketImpl.socketAvailable',
+        'java.net.PlainSocketImpl.socketAccept',
+        'sun.nio.ch.EPollArrayWrapper.epollWait',
+    ])
+</pre>
+
+<p>I feel dirty just looking at it. While this is an enormous kludge, it may also be a pragmatic workaround.</p>
+
+<p>Of course, I could (and should) also ask Oracle to fix hprof in the JVM. Although I&#39;m not sure how much of a priority that would be, given that Java Flight Recorder is also a revenue stream.</p>
+
+<h2>Conclusion</h2>
+
+<p>Don&#39;t trust any performance observability tools you use, without double (or triple) checking their results. Including tools that are bundled and seem standard.</p>
+
+<p>In this case, the bundled Java hprof profiler may not sample CPU usage correctly, depending on your program. It samples based on Java&#39;s notion of a thread being runnable, rather than the kernel&#39;s notion of a thread <em>actually running on a CPU</em>. These can differ, such as in epollWait, leading to profiles that blame the wrong methods for CPU consumption. Seasoned hprof users may have learned to look past such blocking methods, knowing that the profiler is sampling them incorrectly.</p>
+
+<p>Another reported hprof issue involves CPU sampling based on yield points, rather than intervals, which can also severely skew results.</p>
+
+<p>If hprof, and its JVMTI infrastructure, could be fixed, we&#39;d have a free bundled profiler for Java. However, I&#39;m not sure if anyone wants to do that work. The status quo for Java is to pay for commercial profilers. I&#39;m tempted to take this on myself, because I don&#39;t believe I should need to pay for <em>basic</em> CPU profiling.</p>
+
+<h2>Update</h2>
+
+<p>I didn&#39;t want to get into other profilers too much, but I just found this, and it&#39;s worth mentioning since it was written to address the same issues, and is also free and opensource: Google&#39;s <a href="https://code.google.com/p/lightweight-java-profiler/wiki/GettingStarted">lightweight java profiler</a>. It is described on slides 26-30 of a <a href="http://www.oracle.com/technetwork/java/jvmls2013manson-2013920.pdf">2013 talk</a> by Jeremy Manson, which has the awesome slide &quot;Why Profiling Doesn&#39;t work&quot;, with the reasons:</p>
+
+<ul>
+<li>Profiling happens at safe points</li>
+<li>Doesn&#39;t say what&#39;s actually running</li>
+<li>Doesn&#39;t account for GC time</li>
+</ul>
+
+<p>The first two are what I discussed. Not accounting GC time would be a third problem.</p>
+
+<p>This led Jeremy to create a profiler that operated asynchronously (like one would expect), using the Hotspot JVM&#39;s AsyncGetCallTrace interface. You can read about it more in his <a href="http://jeremymanson.blogspot.co.uk/2013/07/lightweight-asynchronous-sampling.html">blog post</a>. I just tried it on a few programs, and so far it appears to be working correctly.</p>
+
+<p>As mentioned in the comments, Richard Warburton&#39;s <a href="https://github.com/RichardWarburton/honest-profiler">honest-profiler</a> also uses the AsyncGetCallTrace interface, building upon Jeremy Manson&#39;s approach. This version is on github, and described recently in his <a href="http://insightfullogic.com/blog/2014/mar/2/open-source-jvm-sampling-profiler/">An open source JVM Sampling Profiler</a> blog post. Like the google profiler and hprof, these may not be production ready as they are more demos than products. Some assembly may be needed.</p>
+
+<h2>Resources</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/7/docs/technotes/samples/hprof.html">hprof Documentation</a> on docs.oracle.com.</li>
+<li>Java <a href="http://docs.oracle.com/javase/8/docs/api/java/lang/Thread.State.html">thread states</a> on docs.oracle.com.</li>
+<li><a href="http://dl.acm.org/citation.cfm?id=1806618">Mytkowicz 10</a>: T Mytkowicz, A Diwan, M Hauswirth, PF Sweeney. &quot;Evaluating the Accuracy of Java Profilers,&quot; <em>ACM Sigplan Notices</em> 45 (6), 187-197</li>
+<li>Kelly O&#39;Hair on the hprof <a href="https://www.java.net/node/645002">runnable issue</a>.</li>
+<li>Jeremy Manson on his <a href="https://code.google.com/p/lightweight-java-profiler/wiki/GettingStarted">Lightweight Asynchronous Sampling Profiler</a>, and <a href="http://jeremymanson.blogspot.com/2010/07/why-many-profilers-have-serious.html">Why Many Profilers have Serious Problems</a>.</li>
+<li>Richard Warburton&#39;s <a href="https://github.com/RichardWarburton/honest-profiler">honest-profiler</a>, which may be the most up to date, working, free, and open source Java CPU profiler.</li>
+</ul>
+
+</div>
+
+
+
+<br><hr>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+var disqus_shortname = 'brendangregg';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<p><i>You can comment here, but I can't guarantee your comment will remain here forever: I might switch comment systems at some point (eg, if disqus add advertisements).</i></p>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+          <div class="footer">
+            <div class="contact">
+                Copyright 2017 Brendan Gregg.<br><a href="/blog/about.html">About this blog</a>
+            </div>
+          </div>
+        </div>
+
+    </body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CoreSeek安装_Coreseek测试_coreseek Mac OS X - Lane Blog</title>
+    <meta name="keywords" content="CoreSeek安装,Coreseek测试,coreseek Mac OS X">
+    <meta name="description" content="CoreSeek安装比较麻烦，官方手册对此的支持并不算很好。CoreSeek是基于Sphinx的中文的分词和全文检索软件。本文是在MAC OS X系统下安装和调试CoreSeek。">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- 引入BootStrap的CSS文件 -->
+    <link rel="stylesheet" href="/themes/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/themes/img/favicon.ico" rel="shortcut icon">
+</head>
+
+<body>
+
+
+<header class="navbar navbar-inverse navbar-fixed-top bs-docs-nav" role="banner">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://www.lanecn.com/" class="navbar-brand" title="Lane PHP Blog">Lane</a>
+        </div>
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav">
+                <li  class="active">
+                    <a href="http://www.lanecn.com/" title="李轩PHP博客">首页</a>
+                </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-1">PHP</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-4">Mysql</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-5">Linux</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-6">个人随笔</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-8">灵魂思想</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-10">Redis</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-11">架构</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-12">移动开发</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-13">编程语言</a>
+                    </li>
+                                    <li >
+                        <a href="http://www.lanecn.com/menu/main/mid-15">Nginx</a>
+                    </li>
+                                <li class="divider-vertical"></li>
+            </ul>
+            <form class="navbar-form navbar-left" role="form" action="http://www.lanecn.com/search/main/" method="get">
+                <div class="form-group">
+                    <label class="sr-only" for="exampleInputEmail2">Search PHP</label>
+                    <input type="text" class="form-control" name="keywords" placeholder="Search" value="">
+                </div>
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </form>
+        </nav>
+    </div>
+</header>
+<div class="container">
+    <div class="jumbotron">
+        <h1 class="text-center">Lane<small>Blog</small></h1>
+        <p class="text-center">
+            <small>蝼蚁虽小，也有梦想</small>
+        </p>
+        <p class="text-center">
+            <small><a href="http://meepops.lanecn.com/">PHP Socket服务</a>  |  <a href="http://lanewechat.lanecn.com/">PHP微信开发框架</a>  |  <a href="http://www.lanecn.com/article/main/aid-11">开源博客</a></small>
+        </p>
+    </div>
+</div><script type="text/javascript" src="/wwwroot/themes/plug/ueditor/third-party/SyntaxHighlighter/shCore.js"></script>
+<link href="/wwwroot/themes/plug/ueditor/third-party/SyntaxHighlighter/shCoreDefault.css" rel="stylesheet">
+<script type="text/javascript">SyntaxHighlighter.all();</script>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-8">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                    <div class="col-xs-1 col-sm-1 col-md-1">
+                        <p>
+                            <button type="button" class="btn btn-default btn-xs score_num" score_type="1">
+                                <span class="glyphicon glyphicon-thumbs-up inline"></span>  <div class="inline good_num">1</div>
+                            </button>
+                        </p>
+                        <p>
+                            <button type="button" class="btn btn-default btn-xs score_num" score_type="2">
+                                <span class="glyphicon glyphicon-thumbs-down inline"></span>  <div class="inline bad_num">0</div>
+                            </button>
+                        </p>
+                    </div>
+                    <div class="col-xs-11 col-sm-11 col-md-11">
+                        <h2><a href="http://www.lanecn.com/article/main/aid-67">CoreSeek Mysql 安装与测试 For Mac OS X（中文分词与中文全文检索）</a></h2>
+                        <p><small>Clicks: 2434 Date: 2014-09-02 14:27:43 Power By 李轩Lane</small></p>
+                        <p>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-default btn-sm" disabled="disabled">Tag</button>
+                                                                    <a href="http://www.lanecn.com/search/main/keywords-PHP" class="btn btn-default" role="button">PHP</a>
+                                                                    <a href="http://www.lanecn.com/search/main/keywords-CoreSeek" class="btn btn-default" role="button">CoreSeek</a>
+                                                                    <a href="http://www.lanecn.com/search/main/keywords-MAC" class="btn btn-default" role="button">MAC</a>
+                                                            </div>
+                        </p>
+                    </div>
+                    <div class="row"></div>
+
+<pre style="background: #ffffff">
+    <p>&nbsp; &nbsp; CoreSeek安装比较麻烦，官方手册对此的支持并不算很好。CoreSeek是基于Sphinx的中文的分词和全文检索软件。本文是在MAC OS X系统下安装和调试CoreSeek。</p><p>&nbsp; &nbsp; 安装过程中报错如果是警告warning则忽略，如果是错误error，则必须要处理。</p><p>&nbsp; &nbsp; CoreSeek是支持三种数据来源的，一种是众所周知的Mysql，一种是XML文件，另一种是Python。而Python则是万能数据类型。在本CoreSeek安装测试教程中只示例数据源是XML文件和MYSQL。</p><p><br/></p><p>&nbsp; &nbsp; 官方手册地址：http://www.coreseek.cn/products-install/install_on_macosx</p><p><br/></p><p>&nbsp;&nbsp;&nbsp;&nbsp;一、设置环境变量<br/></p><p><pre class="prettyprint linenums"><br/></p><p>$ export PATH=/usr/local/bin:$PATH</p><p>$ export LC_ALL=zh_CN.UTF-8</p><p>$ export.UTF-8</p><p></pre></p><p><br/></p><p>&nbsp; &nbsp; 二、安装依赖库：m4、autoconf、automake、libtool。</p><p>注意：不要brew install 来安装，因为对安装的库的版本有要求。</p><p><pre class="prettyprint linenums"></p><p>$ curl -O -L http://mirrors.kernel.org/gnu/m4/m4-1.4.13.tar.gz</p><p>$ tar -xzvf m4-1.4.13.tar.gz</p><p>$ cd m4-1.4.13</p><p>$ sudo&nbsp;./configure --prefix=/usr/local/opt</p><p>$ sudo&nbsp;make</p><p>$ sudo&nbsp;make install</p><p>$ cd ..</p><p><br/></p><p>$ curl -O -L http://mirrors.kernel.org/gnu/autoconf/autoconf-2.65.tar.gz</p><p>$ tar -xzvf autoconf-2.65.tar.gz</p><p>$ cd autoconf-2.65</p><p>$ sudo&nbsp;./configure --prefix=/usr/local/opt</p><p>$ sudo&nbsp;make</p><p>$ sudo&nbsp;make install</p><p>$ cd ..</p><p><br/></p><p>$ curl -O -L http://mirrors.kernel.org/gnu/automake/automake-1.11.tar.gz</p><p>$ tar xzvf automake-1.11.tar.gz</p><p>$ cd automake-1.11</p><p>$ ./configure --prefix=/usr/local/opt</p><p>$ sudo&nbsp;make</p><p>$ sudo&nbsp;make install</p><p>$ cd ..</p><p><br/></p><p>$ curl -O -L http://mirrors.kernel.org/gnu/libtool/libtool-2.2.6b.tar.gz</p><p>$ tar xzvf libtool-2.2.6b.tar.gz</p><p>$ cd libtool-2.2.6b</p><p>$ sudo&nbsp;./configure --prefix=/usr/local/opt</p><p>$ sudo&nbsp;make</p><p>$ sudo make install</p><p>$ cd ..</p><p></pre></p><p><br/></p><p>&nbsp; &nbsp; 三、安装Mysql。</p><p>1、mysql 的安装自行安装</p><p>2、查找mysql头文件地址和库文件地址。我用</p><p><pre class="prettyprint linenums"></p><p>brew install mysql</p><p></pre></p><p>安装的Mysql，头文件地址和库文件地址分别是/usr/local/Cellar/mysql/5.6.17_1/include/mysql 和 /usr/local/Cellar/mysql/5.6.17_1/lib。</p><p>头文件地址就是mysql.h所在的目录，库文件地址就是libmysqlclient.a所在的目录。</p><p><br/></p><p>&nbsp; &nbsp; 四、下载Coreseek。</p><p><pre class="prettyprint linenums"></p><p>$ curl -O -L http://www.coreseek.cn/uploads/csft/3.2/coreseek-3.2.14.tar.gz</p><p>$ tar xzvf coreseek-3.2.14.tar.gz</p><p>$ cd coreseek-3.2.14</p><p></pre></p><p>在coreseek-3.2.14文件夹下有mmseg和csft和testpack。mmseg是分词服务，csft是CoreSeek的核心服务，testpack是测试用例。</p><p><br/></p><p>&nbsp; &nbsp; 五、安装mmseg</p><p><pre class="prettyprint linenums"></p><p>$ cd mmseg-3.2.14</p><p>$ sudo ./bootstrap</p><p>$ sudo ./configure --prefix=/usr/local/opt/mmseg3</p><p>$ sudo make</p><p>$ sudo make install</p><p>$ cd ..</p><p></pre></p><p>在make的时候，可能会报错，如下</p><p>file included from css/ThesaurusDict.cpp:6:</p><p>../src/css/ThesaurusDict.h:12:17: error: expected namespace name</p><p>using namespace __gnu_cxx;</p><p>^</p><p>css/ThesaurusDict.cpp:79:15: warning: result of comparison against a string</p><p>literal is unspecified (use strncmp instead) [-Wstring-compare]</p><p>if (filename == &quot;-&quot;) {</p><p>&nbsp; &nbsp; ^ ~~~</p><p>&nbsp; &nbsp; css/ThesaurusDict.cpp:116:15: warning: result of comparison against a string</p><p>literal is unspecified (use strncmp instead) [-Wstring-compare]</p><p>if (filename != &quot;-&quot;) {</p><p>&nbsp; &nbsp; ^ ~~~</p><p>&nbsp; &nbsp; 2 warnings and 1 error generated.</p><p>&nbsp; &nbsp; make[2] : *** [ThesaurusDict.lo] Error 1</p><p>make[1]: *** [install-recursive] Error 1</p><p><br/></p><p>这个时候make进程已经终止。原因是因为<span style="color: rgb(54, 46, 43); font-family: Arial; font-size: 14px; line-height: 26px; background-color: rgb(255, 255, 255);">编译器版本太高导致的，</span>修改方法：1是降低编译器版本，反正我打死也不愿意。方法2如下：</p><p><pre class="prettyprint linenums"></p><p>vim src/css/ThesaurusDict.h</p><p>###在头部找到：#include &lt;string&gt;</p><p>###再其下加入一行代码：</p><p>#include &lt;ext/hash_map&gt;</p><p></pre></p><p>修改完后保存退出，继续重新sudo make一下，就没有error级错误了，然后sudo make install即可。</p><p><br/></p><p>&nbsp; &nbsp; 六、安装coreseek</p><p><pre class="prettyprint linenums"></p><p>$ cd csft-3.2.14</p><p>$ sudo sh buildconf.sh</p><p>$ sudo&nbsp;./configure --prefix=/usr/local/opt/coreseek &nbsp;--without-unixodbc --with-mmseg --with-mmseg-includes=/usr/local/opt/mmseg3/include/mmseg/ --with-mmseg-libs=/usr/local/opt/mmseg3/lib/ --with-mysql --with-mysql-includes=/usr/local/Cellar/mysql/5.6.17_1/include/mysql --with-mysql-libs=/usr/local/Cellar/mysql/5.6.17_1/lib</p><p>$ sudo make</p><p>$ sudo make install</p><p>$ cd ..</p><p></pre></p><p>在./configure时，参数--with-mysql-includes是mysql头文件位置，--with-mysql-libs是mysql库文件位置，请在本CoreSeek安装教程第三步所记录的mysql头文件地址和库文件地址，替换。</p><p><br/></p><p>在make时，可能又会出现error级的错误，如果出现make程序是停止运行的，必须要修改。错误提示如下：</p><p>phinxexpr.cpp:1047:11: error: use of undeclared identifier &#39;ExprEval&#39;</p><p>T val = ExprEval ( this-&gt;m_pArg, tMatch ); // &#39;this&#39; fixes gcc ...</p><p><br/></p><p>解决方法：修改源代码。</p><p><pre class="prettyprint linenums"></p><p>vim src/sphinxexpr.cpp</p><p></pre></p><p>将T val = ExprEval( this-&gt;m_pArg, tMatch )替换为T val = this-&gt;ExprEval ( this-&gt;m_pArg, tMatch )。</p><p>就是加了个“this-&gt;”，是把这个文件中所有的ExprEval()函数都修改了，有三四个吧。</p><p>修改后保存退出，重新sudo make，然后sudo make install即可。</p><p><br/></p><p>&nbsp; &nbsp; 七、测试XML数据</p><p><pre class="prettyprint linenums"></p><p>$ cd testpack</p><p><br/></p><p>#测试编码是否正确显示中文，如果不是中文则请看本CoreSeek安装测试教程第一步</p><p>$ cat var/test/test.xml</p><p><br/></p><p># 测试mmseg分词的效果</p><p>$ /usr/local/opt/mmseg3/bin/mmseg -d /usr/local/opt/mmseg3/etc var/test/test.xml&nbsp;</p><p><br/></p><p># 建立检索的索引。</p><p>$ /usr/local/opt/coreseek/bin/indexer -c etc/csft.conf --all</p><p><br/></p><p>#全文搜索“网络搜索”</p><p>$ /usr/local/opt/coreseek/bin/search -c etc/csft.conf 网络搜索</p><p></pre></p><p>如果在建立检索的索引出错，FATAL: failed to lock var/data/xml.spl: Resource temporarily unavailable, will not index. Try --rotate option.</p><p>则修改为</p><p><pre class="prettyprint linenums"></p><p>$ /usr/local/opt/coreseek/bin/indexer -c etc/csft.conf --all --rotate</p><p></pre></p><p><br/></p><p><br/></p><p>&nbsp; &nbsp; 八、测试MYSQL数据源</p><p><pre class="prettyprint linenums"></p><p>cd testpack</p><p></pre></p><p><br/></p><p>1、修改配置文件，文件位于testpack/etc/csft_mysql.conf</p><p><pre class="prettyprint linenums"></p><p>vim etc/csft_mysql.conf</p><p></pre></p><p>我的csft_mysql.conf文件如下：记得把mysql 的sql_host，sql_user，sql_pass，sql_db，sql_port修改为自己的，并且把路劲都修改为你自己的路径。</p><p><pre class="prettyprint linenums"></p><p>#MySQL数据源配置，详情请查看：http://www.coreseek.cn/products-install/mysql/</p><p>#请先将var/test/documents.sql导入数据库，并配置好以下的MySQL用户密码数据库</p><p><br/></p><p>#源定义</p><p>source mysql</p><p>{</p><p>&nbsp; &nbsp; type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= mysql</p><p><br/></p><p>&nbsp; &nbsp; sql_host &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= localhost</p><p>&nbsp; &nbsp; sql_user &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= root</p><p>&nbsp; &nbsp; sql_pass &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 8823150</p><p>&nbsp; &nbsp; sql_db &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= test</p><p>&nbsp; &nbsp; sql_port &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 3306</p><p>&nbsp; &nbsp; sql_query_pre &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= SET NAMES utf8</p><p><br/></p><p>&nbsp; &nbsp; sql_query &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= SELECT id, group_id, UNIX_TIMESTAMP(date_added) AS date_added, title, content FROM documents</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #sql_query第一列id需为整数</p><p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #title、content作为字符串/文本字段，被全文索引</p><p>&nbsp; &nbsp; sql_attr_uint &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= group_id &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #从SQL读取到的值必须为整数</p><p>&nbsp; &nbsp; sql_attr_timestamp &nbsp; &nbsp; &nbsp; &nbsp;= date_added #从SQL读取到的值必须为整数，作为时间属性</p><p><br/></p><p>&nbsp; &nbsp; sql_query_info_pre &nbsp; &nbsp; &nbsp;= SET NAMES utf8 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;#命令行查询时，设置正确的字符集</p><p>&nbsp; &nbsp; sql_query_info &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= SELECT * FROM documents WHERE id=$id #命令行查询时，从数据库读取原始数据信息</p><p>}</p><p><br/></p><p>#index定义</p><p>index mysql</p><p>{</p><p>&nbsp; &nbsp; source &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= mysql &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #对应的source名称</p><p>&nbsp; &nbsp; path &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= /Users/lane/coreseek-3.2.14/testpack/var/data/mysql #请修改为实际使用的绝对路径，例如：/usr/local/coreseek/var/...</p><p>&nbsp; &nbsp; docinfo &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= extern</p><p>&nbsp; &nbsp; mlock &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 0</p><p>&nbsp; &nbsp; morphology &nbsp; &nbsp; &nbsp; &nbsp;= none</p><p>&nbsp; &nbsp; min_word_len &nbsp; &nbsp; &nbsp; &nbsp;= 1</p><p>&nbsp; &nbsp; html_strip &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 0</p><p><br/></p><p>&nbsp; &nbsp; #中文分词配置，详情请查看：http://www.coreseek.cn/products-install/coreseek_mmseg/</p><p>&nbsp; &nbsp; charset_dictpath = /usr/local/opt/mmseg3/etc/ #BSD、Linux环境下设置，/符号结尾</p><p>&nbsp; &nbsp; #charset_dictpath = etc/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #Windows环境下设置，/符号结尾，最好给出绝对路径，例如：C:/usr/local/coreseek/etc/...</p><p>&nbsp; &nbsp; charset_type &nbsp; &nbsp; &nbsp; &nbsp;= zh_cn.utf-8</p><p>}</p><p><br/></p><p>#全局index定义</p><p>indexer</p><p>{</p><p>&nbsp; &nbsp; mem_limit &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 128M</p><p>}</p><p><br/></p><p>#searchd服务定义</p><p>searchd</p><p>{</p><p>&nbsp; &nbsp; listen &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= &nbsp; 9312</p><p>&nbsp; &nbsp; read_timeout &nbsp; &nbsp; &nbsp; &nbsp;= 5</p><p>&nbsp; &nbsp; max_children &nbsp; &nbsp; &nbsp; &nbsp;= 30</p><p>&nbsp; &nbsp; max_matches &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 1000</p><p>&nbsp; &nbsp; seamless_rotate &nbsp; &nbsp; &nbsp; &nbsp;= 0</p><p>&nbsp; &nbsp; preopen_indexes &nbsp; &nbsp; &nbsp; &nbsp;= 0</p><p>&nbsp; &nbsp; unlink_old &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;= 1</p><p>&nbsp; &nbsp; pid_file = /Users/lane/coreseek-3.2.14/testpack/var/log/searchd_mysql.pid &nbsp;#请修改为实际使用的绝对路径，例如：/usr/local/coreseek/var/...</p><p>&nbsp; &nbsp; log = /Users/lane/coreseek-3.2.14/testpack/var/log/searchd_mysql.log &nbsp; &nbsp; &nbsp; &nbsp;#请修改为实际使用的绝对路径，例如：/usr/local/coreseek/var/...</p><p>&nbsp; &nbsp; query_log = /Users/lane/coreseek-3.2.14/testpack/var/log/query_mysql.log #请修改为实际使用的绝对路径，例如：/usr/local/coreseek/var/...</p><p>}</p><p></pre></p><p><br/></p><p>2、给mysql导入测试数据</p><p>&nbsp; &nbsp; mysql的测试数据我们用的是test数据库，documents数据表。请自行确保test数据库存在，我们一起来建documents表，这个表的结构和数据都是由CoreSeek提供的，在testpack/var/test/documents.sql</p><p><pre class="prettyprint linenums"></p><p>mysql -u root -p</p><p>#输入密码</p><p><br/></p><p>#看看，数据库test在不在</p><p>mysql &gt; show databases;&nbsp;</p><p>#如果test库不在请创建</p><p>mysql &gt; create database test;</p><p><br/></p><p>use test;</p><p><br/></p><p>#导入数据</p><p>source /Users/lane/coreseek-3.2.14/testpack/var/test/documents.sql</p><p></pre></p><p><br/></p><p>3、测试：</p><p style="white-space: normal;"><pre class="prettyprint linenums"></p><p style="white-space: normal;">$ cd testpack</p><p style="white-space: normal;"><br/></p><p style="white-space: normal;"># 建立检索的索引</p><p style="white-space: normal;">$ /usr/local/opt/coreseek/bin/indexer -c etc/csft_mysql.conf --all</p><p style="white-space: normal;"><br/></p><p style="white-space: normal;">#全文搜索“网络搜索”</p><p style="white-space: normal;">$ /usr/local/opt/coreseek/bin/search -c etc/csft_mysql.conf 网络搜索</p><p style="white-space: normal;"></pre></p><p style="white-space: normal;">如果提示有错误，请检查csft_mysql.conf的路径、mysql的配置等信息是否正确。</p><p><br/></p><p><br/></p><p>&nbsp; &nbsp; 九、测试PHP+MYSQL</p><p>1、先启动服务</p><p><pre class="prettyprint linenums"></p><p>/usr/local/opt/coreseek/bin/searchd -c etc/csft.conf</p><p></pre></p><p>2、PHP文件</p><p><pre class="prettyprint linenums"></p><p>&lt;?php</p><p>require ( &quot;/Users/lane/coreseek-3.2.14/testpack/api/sphinxapi.php&quot; );</p><p><br/></p><p>$cl = new SphinxClient ();</p><p>$cl-&gt;SetServer ( &#39;127.0.0.1&#39;, 9312);</p><p>$cl-&gt;SetConnectTimeout ( 3 );</p><p>$cl-&gt;SetArrayResult ( true );</p><p>$cl-&gt;SetMatchMode ( SPH_MATCH_ANY);</p><p>$res = $cl-&gt;Query ( &#39;网络搜索&#39;, &quot;*&quot; );</p><p>print_r($cl);</p><p>print_r($res);</p><p></pre></p><p><br/></p><p><br/></p><p>我在Linux折腾了一天没有搞定，在MAC搞了半天搞定了。等搞定Linux后再发Linux的。</p></pre>
+                </div>
+        	</div>
+
+            <div class="row">
+                <div class="col-xs-6 col-sm-3 col-md-3 text-center">
+                    <button type="button" class="btn btn-default btn-xs score_num" score_type="1">
+                        <span class="glyphicon glyphicon-chevron-up inline"></span>  <div class="inline good_num">1</div> 赞
+                    </button>
+                </div>
+                <div class="col-xs-6 col-sm-3 col-md-3 text-center">
+                    <button type="button" class="btn btn-default btn-xs score_num" score_type="2">
+                        <span class="glyphicon glyphicon-chevron-down inline"></span>  <div class="inline bad_num">0</div> 嘘
+                    </button>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6">
+                </div>
+            </div>
+            <div class="page-header"></div>
+            <!-- 搜狐畅言评论框 start -->
+            <!--高速版-->
+            <div id="SOHUCS" sid="67"></div>
+            <script charset="utf-8" type="text/javascript" src="http://changyan.sohu.com/upload/changyan.js" ></script>
+            <script type="text/javascript">
+                window.changyan.api.config({
+                    appid: 'cyt3e2ujP',
+                    conf: 'prod_b7977404d58ecadbf2438bb8712adf06'
+                });
+            </script>
+            <!--其他参数先留着待用-->
+            <!-- CoreSeek Mysql 安装与测试 For Mac OS X（中文分词与中文全文检索） -->
+            <!-- http://www.lanecn.com/article/main/aid-67 -->
+        </div>
+
+        <div class="col-xs-12 col-sm-12 col-md-4">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                    <h3>分类热门的文章</h3>
+                                            <p><a href="http://www.lanecn.com/article/main/aid-65">微信PHP快速开发框架LaneWeChat...</a></p>
+                                            <p><a href="http://www.lanecn.com/article/main/aid-11">本博客PHP源码下载，基于自己开发的超轻量级的PHP框架...</a></p>
+                                            <p><a href="http://www.lanecn.com/article/main/aid-97">PHP7发布。最好语言发布了新版本...</a></p>
+                                            <p><a href="http://www.lanecn.com/article/main/aid-95">PHP开发一个属于自己MVC框架...</a></p>
+                                            <p><a href="http://www.lanecn.com/article/main/aid-58">XHProf的安装和使用（PHP性能测试神器）...</a></p>
+                                    </div>
+            </div>
+<!--            <div class="row">-->
+<!--                <div class="col-xs-12 col-sm-12 col-md-12">-->
+<!--                    <h3>分类最新的评论</h3>-->
+<!--                    --><!--                        <p>--><!-- On <a href="--><!--article/main/aid---><!--">--><!--</a></p>-->
+<!--                    --><!--                </div>-->
+<!--            </div>-->
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12">
+                    <h3>热门Tag</h3>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags1"><a href="http://www.lanecn.com/search/main/keywords-原型模式">原型模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags8"><a href="http://www.lanecn.com/search/main/keywords-模板方法模式">模板方法模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags3"><a href="http://www.lanecn.com/search/main/keywords-迪米特法则">迪米特法则</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags6"><a href="http://www.lanecn.com/search/main/keywords-外观模式">外观模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags7"><a href="http://www.lanecn.com/search/main/keywords-建造者模式">建造者模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags3"><a href="http://www.lanecn.com/search/main/keywords-观察者模式">观察者模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags2"><a href="http://www.lanecn.com/search/main/keywords-抽象工厂模式">抽象工厂模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags12"><a href="http://www.lanecn.com/search/main/keywords-状态模式">状态模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags11"><a href="http://www.lanecn.com/search/main/keywords-适配器模式">适配器模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                            <ul class="list-unstyled list-inline">
+                            <li class="tags7"><a href="http://www.lanecn.com/search/main/keywords-备忘录模式">备忘录模式</a>&nbsp;&nbsp;</li>
+                        </ul>
+                                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+	<footer class="footer">
+        <p class="pull-right"><a href="#" rel="nofollow">回到顶端</a></p>
+    </footer>
+    <div class="row">
+        <div class="text-center">©2014 <a href="http://www.lanecn.com">www.lanecn.com</a> , All rights reserved. Power By <a href="http://www.lanecn.com">Li Xuan</a>.&nbsp;&nbsp;<a rel="nofollow" href="http://www.miitbeian.gov.cn/">京ICP备14005030号</a> <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_5824445'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/stat.php%3Fid%3D5824445' type='text/javascript'%3E%3C/script%3E"));</script></div>
+    </div>
+</div>
+</body>
+</html>
+<!-- 引入JQuery文件 -->
+<script src="/themes/js/jquery.min.js"></script>
+<!-- 引入BootStrap的JS文件 -->
+<script src="/themes/js/bootstrap.min.js"></script>
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="/themes/js/html5shiv.min.js"></script>
+<script src="/themes/js/respond.min.js"></script>
+<![endif]-->
+
+<link href="/themes/css/style.css" rel="stylesheet">
+<!-- 通知栏 -->
+<div class="modal fade bs-example-modal-sm" id="myModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" id="myModalContent"></div>
+    </div>
+</div>

@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>请教hotspot源码中关于Serialization Page的问题 - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="&lt;div class=&quot;iteye-blog-content-contain&quot; style=&quot;font-size: 14px;&quot;&gt; &lt;p&gt;hotspot由InterpreterGenerator::generate_native_entry()生成从解释执行的java方法调用jni方法的stub。该方法中有如下代码&lt;/p&gt;  ..." />
+    <meta name="keywords" content="请教hotspot源码中关于Serialization Page的问题 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  <link href="http://www.iteye.com/javascripts/editor/css/ui.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/editor/compress.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+  
+        <a href="http://yonka.iteye.com" title="查看我的博客首页" class="welcome">欢迎yonka</a>
+    <a id="notifications_count" href="http://my.iteye.com/notifications">0</a>
+    
+      <a href="http://my.iteye.com/messages" title="你有新的站内短信"><img alt="Newpm" src="http://www.iteye.com/images/newpm.gif?1448702469" />收件箱(13)</a>
+    
+    <a href="http://my.iteye.com" title="我的应用首页">我的应用</a>
+    <div class="quick_menu" style="display:none;">
+      <a href="http://my.iteye.com/feed" title="我关注的好友动态消息">我的关注</a>
+      <a href="http://my.iteye.com/mygroup" title="我加入的群组最新话题">我的群组</a>
+      <a href="http://my.iteye.com/myresume" title="我的个人简历">我的简历</a>
+      <a href="http://my.iteye.com/admin/album" title="我的个人简历">我的相册</a>
+      <a href="http://my.iteye.com/admin/link" title="我收藏的网络资源链接">我的收藏</a>
+      <a href="http://my.iteye.com/admin/code" title="我收藏的代码">我的代码</a>
+      <a href="http://my.iteye.com/admin/weibo" title="用微博发表简短的话题">我的微博</a>
+    </div>
+    <a href="http://yonka.iteye.com/admin" title="管理我的博客">我的博客</a>
+    <a href="http://my.iteye.com/profile" title="修改我的个人设置">设置</a>
+    <a href="/logout" class="nobg" onclick="var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'put'); f.appendChild(m);var s = document.createElement('input'); s.setAttribute('type', 'hidden'); s.setAttribute('name', 'authenticity_token'); s.setAttribute('value', '6n/YOkmm/s4yNaoRc/GPPmcBuK+0MgQvn5AiQerWE3M='); f.appendChild(s);f.submit();return false;">退出</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://leafinwind.iteye.com" class="p-author" target="_blank">LeafInWind</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/39936/post/new">发表回复</a></div>
+  
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/39936">请教hotspot源码中关于Serialization Page的问题</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-261170">
+  <td class="post_author"><div class="logo"><a href='http://leafinwind.iteye.com' target='_blank'><img alt="LeafInWind的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1218287/0b4c45af-2f12-30a3-ac6b-8f0b192d2e83-thumb.jpg?1481119942" title="LeafInWind的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+      2014-04-17
+    </div>
+    <div class="post_body"> 
+      <div class="iteye-blog-content-contain" style="font-size: 14px;">
+<p>hotspot由InterpreterGenerator::generate_native_entry()生成从解释执行的java方法调用jni方法的stub。该方法中有如下代码</p>
+<p> </p>
+<pre name="code" class="引自templateInterpreter_sparc.cpp">    AddressLiteral sync_state(SafepointSynchronize::address_of_state());
+    __ set(_thread_in_native_trans, G3_scratch);
+    __ st(G3_scratch, thread_state);
+    if(os::is_MP()) {
+      if (UseMembar) {
+        // Force this write out before the read below
+        __ membar(Assembler::StoreLoad);
+      } else {
+        // Write serialization page so VM thread can do a pseudo remote membar.
+        // We use the current thread pointer to calculate a thread specific
+        // offset to write to within the page. This minimizes bus traffic
+        // due to cache line collision.
+        __ serialize_memory(G2_thread, G1_scratch, G3_scratch);
+      }
+    }
+    __ load_contents(sync_state, G3_scratch);
+    __ cmp(G3_scratch, SafepointSynchronize::_not_synchronized);</pre>
+<p> </p>
+<p>这段代码用于生成jni调用结束返还到VM的处理代码。具体来说，这段代码首先将当前线程（不妨称为thread A）状态置为_thread_in_native_trans状态，然后读sync_state，看是否有线程准备进行GC，有则将当前线程block，等待GC线程进行GC。</p>
+<p>由于读sync_state的过程不是原子的，存在一个可能的场景是thread A刚读到sync_stated，且其值是<span style="font-family: monospace;">_not_synchronized，这时thread A被抢占，CPU调度给了准备发起GC的线程（不妨称为thread B），该线程将</span>sync_stated设置为了_synchronizing，然后读其他线程的状态，看其他线程是否都已经处于block状态或者_thread_in_native状态，是的话该线程就可以开始GC了，否则它还需要等待。</p>
+<p>如果thread A在写线程状态与读sync_state这两个动作之间缺少membar指令，那么上述过程就有可能出现一个场景，就是thread A读到了sync_stated为_not_synchronized，而thread B还没有看到thread A的状态变为_thread_in_native_trans。这样thread B就会认为thread A已经具备GC条件（因为处于_thread_in_native状态），如果其他线程此时也都准备好了，那thread B就会开始GC了。而thread A由于读到的sync_state是_not_synchronized，因此它不会block，而是会开始执行java代码，这样就会导致GC出错，进而系统崩溃。</p>
+<p>=================</p>
+<p>以上是我对jni返还过程中membar指令意义的理解。而我的问题是：</p>
+<p>1。源码注释说Serialization Page也能达到membar的相同效果，请问是如何达到的。</p>
+<p>2。为什么源码注释说Serialization Page的性能比membar还好。</p>
+<p> </p>
+</div>
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/39936/post/261170/quote" id="261170">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E8%AF%B7%E6%95%99hotspot%E6%BA%90%E7%A0%81%E4%B8%AD%E5%85%B3%E4%BA%8ESerialization+Page%E7%9A%84%E9%97%AE%E9%A2%98&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F39936">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-261398">
+  <td class="post_author"><div class="logo"><a href='http://stefmoon.iteye.com' target='_blank'><img alt="stefmoon的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="stefmoon的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://stefmoon.iteye.com' target='_blank' title='stefmoon'>stefmoon</a>
+      2014-04-23
+    </div>
+    <div class="post_body"> 
+      关于第1个问题，我<a target="_blank" href="http://hllvm.group.iteye.com/group/topic/38904">之前的一个帖子</a>进行了一些解释，更详细的原因可以研究下<a target="_blank" href="http://home.comcast.net/~pjbishop/Dave/Asymmetric-Dekker-Synchronization.txt">这里</a>，R大早推荐了我一直没仔细研究，假期好好看看再来更新。<br />至于第2个问题，我没看出来注释有这个意思呀，第9行的注释是说要模拟membar指令，10-12行说的是为了避免cache line冲突用了一点技巧，这个我之前的帖子也有具体的介绍。
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/39936/post/261398/quote" id="261398">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%9B%9E%E5%A4%8D%3A+%E8%AF%B7%E6%95%99hotspot%E6%BA%90%E7%A0%81%E4%B8%AD%E5%85%B3%E4%BA%8ESerialization+Page%E7%9A%84%E9%97%AE%E9%A2%98&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F39936%23261398">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-261436">
+  <td class="post_author"><div class="logo"><a href='http://leafinwind.iteye.com' target='_blank'><img alt="LeafInWind的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1218287/0b4c45af-2f12-30a3-ac6b-8f0b192d2e83-thumb.jpg?1481119942" title="LeafInWind的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+      2014-04-24
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">引用</div><div class="quote_div"><br />至于第2个问题，我没看出来注释有这个意思呀<br /></div><br />在SafepointSynchronize::begin()方法内部有如下注释：<br /><pre name="code" class="c++">
+  // Begin the process of bringing the system to a safepoint.
+  // Java threads can be in several different states and are
+  // stopped by different mechanisms:
+  //
+  //  1. Running interpreted
+  //     The interpeter dispatch table is changed to force it to
+  //     check for a safepoint condition between bytecodes.
+  //  2. Running in native code
+  //     When returning from the native code, a Java thread must check
+  //     the safepoint _state to see if we must block.  If the
+  //     VM thread sees a Java thread in native, it does
+  //     not wait for this thread to block.  The order of the memory
+  //     writes and reads of both the safepoint state and the Java
+  //     threads state is critical.  In order to guarantee that the
+  //     memory writes are serialized with respect to each other,
+  //     the VM thread issues a memory barrier instruction
+  //     (on MP systems).  In order to avoid the overhead of issuing
+  //     a mem barrier for each Java thread making native calls, each Java
+  //     thread performs a write to a single memory page after changing
+  //     the thread state.  The VM thread performs a sequence of
+  //     mprotect OS calls which forces all previous writes from all
+  //     Java threads to be serialized.  This is done in the
+  //     os::serialize_thread_states() call.  This has proven to be
+  //     much more efficient than executing a membar instruction
+  //     on every call to native code.
+  //  3. Running compiled Code
+  //     Compiled code reads a global (Safepoint Polling) page that
+  //     is set to fault if we are trying to get to a safepoint.
+  //  4. Blocked
+  //     A thread which is blocked will not be allowed to return from the
+  //     block condition until the safepoint operation is complete.
+  //  5. In VM or Transitioning between states
+  //     If a Java thread is currently running in the VM or transitioning
+  //     between states, the safepointing code will wait for the thread to
+  //     block itself when it attempts transitions to a new state.
+  //
+</pre><br />注意第二点的最后一句话，就是说使用serialization page的性能比membar好
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/39936/post/261436/quote" id="261436">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%9B%9E%E5%A4%8D%3A+%E8%AF%B7%E6%95%99hotspot%E6%BA%90%E7%A0%81%E4%B8%AD%E5%85%B3%E4%BA%8ESerialization+Page%E7%9A%84%E9%97%AE%E9%A2%98&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F39936%23261436">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-261440">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2014-04-24
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">LeafInWind 写道</div><div class="quote_div">注意第二点的最后一句话，就是说使用serialization page的性能比membar好</div><br />因为原本Java thread和VM thread都要做membar；用了serialization page之后只有VM thread那边要做mprotect+membar（比原本慢），而Java thread只要做一个普通的serialization page read（比原本快）。VM thread只有一个而Java thread可能有很多个，这样就赚了。
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/39936/post/261440/quote" id="261440">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%9B%9E%E5%A4%8D%3A+%E8%AF%B7%E6%95%99hotspot%E6%BA%90%E7%A0%81%E4%B8%AD%E5%85%B3%E4%BA%8ESerialization+Page%E7%9A%84%E9%97%AE%E9%A2%98&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F39936%23261440">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/39936/post/new">发表回复</a></div>
+  
+</div>
+
+
+  <div class="quick_reply">
+    <form action="/group/topic/39936/post" id="quick_reply_form" method="post" onsubmit="return false;"><div style="margin:0;padding:0;display:inline"><input name="authenticity_token" type="hidden" value="6n/YOkmm/s4yNaoRc/GPPmcBuK+0MgQvn5AiQerWE3M=" /></div>      <input type="hidden" name="post[bbcode]" value="true"/>
+      <span style="background-color: #F2F8EF;padding: 6px;">快速回复</span>
+      
+
+
+  <input type="hidden" id="editor_bbcode_flag"/>
+
+
+
+<div id="editor_main"><textarea class="validate-richeditor bad-words min-length-5" cols="40" id="editor_body" name="post[body]" rows="20" style="width: 480px; height: 200px;"></textarea></div>
+
+
+<script type="text/javascript">
+  var editor = new Control.TextArea.Editor("editor_body", "bbcode", false);
+</script>
+
+      <div style="text-align:right; padding-right: 15px;">(快捷键 Alt+S / Ctrl+Enter) <input class="submit" id="quick_reply_button" name="commit" type="submit" value="提交" /></div>
+    </form>
+    <script type="text/javascript">
+      new HotKey("s",function() {$('quick_reply_button').click();},{altKey: true, ctrlKey: false});
+      new HotKey(new Number(13),function() {$('quick_reply_button').click();},{altKey: false, ctrlKey: true});
+
+      new Validation("quick_reply_form", {immediate: false, onFormValidate: function(result, form){
+      
+        if(confirm('您需要加入此群组才可以使用此功能，你现在申请吗?')) window.location = ('/group/members/new');
+      
+      }});
+    </script>
+  </div>
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '请教hotspot源码中关于Serialization Page的问题');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/1119957" target="_blank">java多线程小结，及解决应用挂死的问题</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/263928" target="_blank">无法回帖啊，，再关于线程误用导致内存泄露的问题</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/623398" target="_blank">非阻塞算法-ReentrantLock代码剖析之ReentrantLock.lock</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1001771" target="_blank">Java内存模型笔记</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/810793" target="_blank">&lt;Java Concurrency in Practice&gt; Part I: Fundamentals原理 Chapter 4.Composing Object</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=1284778' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

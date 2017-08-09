@@ -1,0 +1,814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>透过JVM看Exception本质 - FenixSoft 3.0 - ITeye博客</title>
+    <meta name="description" content="引子         异常能不能作为控制流，这个争论其实已经存在了很长时间，最近gdpglc同学发的一连四张《验证String是不是整数，用异常作判断怎么了!》的帖子（前三张已经被投为隐藏帖，要看的话可以从第四张进去）令这个争端又一次成为JE主版的话题。         gdpglc同学的语气比较激烈，但发表自己观点是值得肯定的，何况异常可以作为控制流的观点，JavaEye创始人肉饼同学在2003年 ..." />
+    <meta name="keywords" content="JVM, 多线程, 软件测试, 虚拟机, OOP 透过JVM看Exception本质" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="/rss" rel="alternate" title="FenixSoft 3.0" type="application/rss+xml" />
+    <link href="http://www.iteye.com/stylesheets/blog.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/blog/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/weiboshare.js?1448702469" type="text/javascript"></script>
+
+    
+  </head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="/">FenixSoft 3.0</a></h1>
+        </div>
+        <div id='fd'></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class='blog_navbar_for'><a href="http://icyfenix.iteye.com"><strong>博客</strong></a></li>
+            <li ><a href="/weibo">微博</a></li>
+            <li ><a href="/album">相册</a></li>
+            <li ><a href="/link">收藏</a></li>
+            <li ><a href="/blog/guest_book">留言</a></li>
+            <li ><a href="/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text" value="" />
+              <input class="submit_search" type="submit" value="" />
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style='display:none'>
+  <a href="http://icyfenix.iteye.com" class="p-author" target="_blank">IcyFenix</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="/blog/857722">透过JVM看Exception本质</a>
+      <em class="actions">      </em>
+    </h3>
+    
+        <div class='news_tag'><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/%E5%A4%9A%E7%BA%BF%E7%A8%8B">多线程</a><a href="http://www.iteye.com/blogs/tag/%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95">软件测试</a><a href="http://www.iteye.com/blogs/tag/%E8%99%9A%E6%8B%9F%E6%9C%BA">虚拟机</a><a href="http://www.iteye.com/blogs/tag/OOP">OOP</a></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    <strong>引子</strong><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 异常能不能作为控制流，这个争论其实已经存在了很长时间，最近gdpglc同学发的一连四张《验证String是不是整数，用异常作判断怎么了!》的帖子（前三张已经被投为隐藏帖，要看的话可以从第四张进去）令这个争端又一次成为JE主版的话题。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; gdpglc同学的语气比较激烈，但发表自己观点是值得肯定的，何况异常可以作为控制流的观点，JavaEye创始人肉饼同学在2003年的时候也提出过，并且也引发了一些讨论，就在这帖子的2楼：http://www.iteye.com/topic/2038。无论是03年还是今天，反方的主流意见都无外乎两点：一是圣经上说不行，列举《Effective Java》等例子。二是从性能上说不行，列举了测试用例，譬如http://www.iteye.com/topic/856221这里，我在二楼发的一个测试用例，有兴趣的话可以看一下，后面被gdpglc吐槽了十几楼那些就不要看了T_T<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 尽信书不如无书，第一点意见不值得讨论。第二点意见说使用异常很慢，并且测试数据说明了确实很慢，那我们不妨来看看为何使用异常会慢，从深一些的层次来看看异常到底是个神马东西。<br /><br /><strong>异常慢在哪里？</strong><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 说用异常慢，首先来看看异常慢在哪里？有多慢？下面的测试用例简单的测试了建立对象、建立异常对象、抛出并接住异常对象三者的耗时对比：<br /><br /><pre name="code" class="java">package org.fenixsoft.exception;
+
+public class ExceptionTest {
+
+	private int testTimes;
+
+	public ExceptionTest(int testTimes) {
+		this.testTimes = testTimes;
+	}
+
+	public void newObject() {
+		long l = System.nanoTime();
+		for (int i = 0; i &lt; testTimes; i++) {
+			new Object();
+		}
+		System.out.println("建立对象：" + (System.nanoTime() - l));
+	}
+
+	public void newException() {
+		long l = System.nanoTime();
+		for (int i = 0; i &lt; testTimes; i++) {
+			new Exception();
+		}
+		System.out.println("建立异常对象：" + (System.nanoTime() - l));
+	}
+
+	public void catchException() {
+		long l = System.nanoTime();
+		for (int i = 0; i &lt; testTimes; i++) {
+			try {
+				throw new Exception();
+			} catch (Exception e) {
+			}
+		}
+		System.out.println("建立、抛出并接住异常对象：" + (System.nanoTime() - l));
+	}
+
+	public static void main(String[] args) {
+		ExceptionTest test = new ExceptionTest(10000);
+		test.newObject();
+		test.newException();
+		test.catchException();
+	}
+}</pre>运行结果：<br /><pre name="code" class="java">建立对象：575817
+建立异常对象：9589080
+建立、抛出并接住异常对象：47394475</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 建立一个异常对象，是建立一个普通Object耗时的约20倍（实际上差距会比这个数字更大一些，因为循环也占用了时间，追求精确的读者可以再测一下空循环的耗时然后在对比前减掉这部分），而抛出、接住一个异常对象，所花费时间大约是建立异常对象的4倍。那我们来看看占用时间的“大头”：抛出、接住异常，系统到底做了什么事情？<br /><br /><strong>当异常发生的那一刹那</strong><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color: red;">注：<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RednaxelaFX：用字节码来解释性能问题很抱歉也是比较不靠谱的。字节码用于解释“语义问题”很靠谱，但看字节码是看不出性能问题的——超过它的抽象层次了<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IcyFenix：同意RednaxelaFX的观点，但本节中的字节码分解本就不涉及性能，仅想表达“当异常发生那一刹那”时会发生什么事情（准确的说，还要限定为是解释方式执行），这里提及的20%、80%时间是基于前一点测试的结果。</span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 要知道当异常发生的那一刹那系统做了什么事情，先把catchException()方法中循环和时间统计的代码去掉，使得代码变得纯粹一些：<br /><br /><pre name="code" class="java">public void catchException() {
+	try {
+		throw new Exception();
+	} catch (Exception e) {
+	}
+}</pre>然后使用javap -verbose命令输出它的字节码，结果如下：<br /><pre name="code" class="java">public void catchException();
+  Code:
+   Stack=2, Locals=2, Args_size=1
+   0:   new     #58; //class java/lang/Exception
+   3:   dup
+   4:   invokespecial   #60; //Method java/lang/Exception."&lt;init&gt;":()V
+   7:   athrow
+   8:   astore_1
+   9:   return
+  Exception table:
+   from   to  target type
+     0     8     8   Class java/lang/Exception</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 解释一下这段字节码的运作过程，如果平时看字节码比较多的同学可以直接略过这段。偏移地址为0的new指令首先会在常量池找到第58项常量，此常量现在为CONSTANT_Class_info型的符号引用，类解析阶段被翻译为java.lang.Exception类的直接引用，接着虚拟机会在Java堆中开辟相应大小的实例空间，并将此空间的引用压入操作栈的栈顶。偏移为3的dup指令就简单的把栈顶的值复制了一份，重新压入栈顶，这时候操作栈中有2份刚刚new出来的exception对象的引用。偏移为4的invokespecial指令将第一个exception对象引用出栈，以它为接收者调用了Excepiton类的实例构造器，这句执行完后栈顶还剩下一份exception对象的引用。写了那么多，说白了这3条字节码就是干了“new Exception()”这句Java代码应该做的事情，和创建任何一个Java对象没有任何区别。这一部分耗费的时间在上一节中分析过，创建一个异常对象只占创建、抛出并接住异常的20%时间。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 接着是占用80%时间高潮部分，偏移为7的athrow指令，这个指令运作过程大致是首先检查操作栈顶，这时栈顶必须存在一个reference类型的值，并且是java.lang.Throwable的子类（虚拟机规范中要求如果遇到null则当作NPE异常使用），然后暂时先把这个引用出栈，接着搜索本方法的异常表（异常表是什么等写完这段再说），找一下本方法中是否有能处理这个异常的handler，如果能找到合适的handler就会重新初始化PC寄存器指针指向此异常handler的第一个指令的偏移地址。接着把当前栈帧的操作栈清空，再把刚刚出栈的引用重新入栈。如果在当前方法中很悲剧的找不到handler，那只好把当前方法的栈帧出栈（这个栈是VM栈，不要和前面的操作栈搞混了，栈帧出栈就意味着当前方法退出），这个方法的调用者的栈帧就自然在这条线程VM栈的栈顶了，然后再对这个新的当前方法再做一次刚才做过的异常handler搜索，如果还是找不到，继续把这个栈帧踢掉，这样一直到找，要么找到一个能使用的handler，转到这个handler的第一条指令开始继续执行，要么把VM栈的栈帧抛光了都没有找到期望的handler，这样的话这条线程就只好被迫终止、退出了。<br />刚刚说的异常表，在运行期一般会实现在栈帧当中。在编译器静态角度看，就是上面直接码中看到的这串内容：<br /><pre name="code" class="java">  Exception table:
+   from   to  target type
+     0     8     8   Class java/lang/Exception</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 上面的异常表只有一个handler记录，它指明了从偏移地址0开始（包含0），到偏移地址8结束（不包含8），如果出现了java.lang.Exception类型的异常，那么就把PC寄存器指针转到8开始继续执行。顺便说一下，对于Java语言中的关键字catch和finally，虚拟机中并没有特殊的字节码指令去支持它们，都是通过编译器生成字节码片段以及不同的异常处理器来实现。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 字节码指令还剩下2句，把它们说完。偏移地址为8的astore_1指令，作用是把栈顶的值放到第一个Slot的局部变量表中，刚才说过如果出现异常后，虚拟机找到了handler，会把那个出栈的异常引用重新入栈。因此这句astore_1实现的目的就是让catch块中的代码能访问到“catch (Exception e)”所定义的那个“e”，又顺便提一句，局部变量表从0开始，第0个Slot放的是方法接收者的引用，也就是使用this关键能访问的那个对象。最后的return指令就不必多讲了，是void方法的返回指令，因为我们的catch块里面没有内容，所以立刻就return了。<br />&nbsp;&nbsp;&nbsp; 到此为止，这几句字节码讲完了，我们总结一下athrow指令中虚拟机可能做的事情（只会做其中一部份啦）：<br /><br /><ul><li>检查栈顶异常对象类型（只检查是不是null，是否referance类型，是否Throwable的子类一般在类验证阶段的数据流分析中做，或者索性不做靠编译器保证了，<span style="color: red;">编译时写到Code属性的StackMapTable中，在加载时仅做类型验证</span>）</li><li>把异常对象的引用出栈</li><li>搜索异常表，找到匹配的异常handler</li><li>重置PC寄存器状态</li><li>清理操作栈</li><li>把异常对象的引用入栈</li><li>把异常方法的栈帧逐个出栈（这里的栈是VM栈）</li><li>残忍地终止掉当前线程。</li><li>……</li></ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 好吧，我勉强认同虚拟机出现异常时要做的事情挺多的，但这要作为直接证据说明它就理所当然的那么慢有点勉强吧？要不，找个具体实现看一下？<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; （PS：虚拟机：囧……这人好麻烦……鸭梨很大……）<br /><br /><strong>透过虚拟机实现看athrow指令</strong><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 下面的讲解基于OpenJDK中HotSpot虚拟机的源代码。有兴趣的话可以去OpenJDK网站（http://download.java.net/openjdk/jdk7/）下载一份，没有兴趣可以略过这节。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 被JIT编译之后，异常处理变成神马样子我们就不管了，只看一看虚拟机解释执行时处理异常是如何实现的。因为三大商用虚拟机只有Sun一系的（Sun/Oracle、HP、SAP等）以OpenJDK的形式开源了，这里所指的所指的实现也就仅是HotSpot VM，后面就不再严格区分了。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color: red;">注：此处有个根本性的错误，见2楼RednaxelaFX的指正<br />RednaxelaFX：HotSpot并没有使用bytecodeInterpreter.cpp里实现的解释器；在OpenJDK里有一套叫Zero/Shark的解释器/JIT编译器，其中Zero的部分用了这里提到的解释器，但它主要是在HotSpot还没良好移植的平台上使用的。 </span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 虚拟机字节码解释器的关键代码在hotspot\src\share\vm\interpreter\bytecodeInterpreter.cpp之中，它使用了while(1)的方式循环swith PC寄存器所指向的opcode指令，处理athrow指令的case中是这样写的：<br /><pre name="code" class="c++">CASE(_athrow): {
+	oop except_oop = STACK_OBJECT(-1);
+	CHECK_NULL(except_oop);
+	// set pending_exception so we use common code
+	THREAD-&gt;set_pending_exception(except_oop, NULL, 0);
+	goto handle_exception;
+}</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 第一句提取操作栈中引用的异常对象，第二句检查异常是否为空，虚拟机规范中要求的为null就当NPE异常，就是这句实现的：<br /><pre name="code" class="c++">#define CHECK_NULL(obj_)
+    if ((obj_) == NULL) { 
+VM_JAVA_ERROR(vmSymbols::java_lang_NullPointerException(), ""); 
+    } 
+VERIFY_OOP(obj_)</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 注释中说可以使用“common code”是指handle_return中的代码，每条opcode处理完都会转到这段代码。因为异常不一定来自athrow指令，也就是不一定来自于用户程序直接抛出，虚拟机运作期间也会产生异常，如被0除、空指针，严重一点的OOM神马的。所以出现异常后的方法退出动作在通用的handle_return里面根据pending_exception进行处理，代码太多就不贴了。前面几句没有太特别的动作，看来athrow指令的关键实现还是在handle_exception这节，看看它的代码（为了逻辑清晰，我删除了不必要的代码，譬如支持跟踪调试的语句）：<br /><pre name="code" class="c++">  handle_exception: {
+
+    HandleMarkCleaner __hmc(THREAD);
+    Handle except_oop(THREAD, THREAD-&gt;pending_exception());
+    // Prevent any subsequent HandleMarkCleaner in the VM
+    // from freeing the except_oop handle.
+    HandleMark __hm(THREAD);
+
+    THREAD-&gt;clear_pending_exception();
+    assert(except_oop(), "No exception to process");
+    intptr_t continuation_bci;
+    // expression stack is emptied
+    topOfStack = istate-&gt;stack_base() - Interpreter::stackElementWords;
+    CALL_VM(continuation_bci = (intptr_t)InterpreterRuntime::exception_handler_for_exception(THREAD, except_oop()),
+            handle_exception);
+
+    except_oop = (oop) THREAD-&gt;vm_result();
+    THREAD-&gt;set_vm_result(NULL);
+    if (continuation_bci &gt;= 0) {
+      // Place exception on top of stack
+      SET_STACK_OBJECT(except_oop(), 0);
+      MORE_STACK(1);
+      pc = METHOD-&gt;code_base() + continuation_bci;
+      // for AbortVMOnException flag
+      NOT_PRODUCT(Exceptions::debug_check_abort(except_oop));
+      goto run;
+    }
+    // for AbortVMOnException flag
+    NOT_PRODUCT(Exceptions::debug_check_abort(except_oop));
+    // No handler in this activation, unwind and try again
+    THREAD-&gt;set_pending_exception(except_oop(), NULL, 0);
+    goto handle_return;
+  }
+</pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 只看这段代码的关键部分，CALL_VM那句是查找异常表，所执行的InterpreterRuntime::exception_handler_for_exception在同目录下的interpreterRuntime.cpp中，查找的具体过程有点复杂，只看程序的主体脉络，这里的代码就不再牵扯进来了。如果找到，也就是if (continuation_bci &gt;= 0)成立的话，（bci的意思是<span style="color: red;">Bytecode Index，字节码索引</span>），把异常对象重新入栈（SET_STACK_OBJECT(except_oop(), 0)这句），并且重置PC指针为异常handler的起始位置（pc = METHOD-&gt;code_base() + continuation_bci这句），然后跳转到run处开始下一轮的循环switch过程。查询异常表没有找到合适的handler，那重新设置上pending_exception，因为前面的时候使用clear_pending_exception()清除掉了。在handle_return中会根据这个标志来决定方法是否出现异常，要不要退出。虚拟机规范中要求的athrow指令的动作这里就写完了，HotSpot VM我们写不出来，看一下还是可以的嘛。<br /><br /><strong>观点与小结</strong><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 这篇文章的主要目的是探讨虚拟机中底层是如何看待“异常”的，并不打算去争论“异常”能不能作为控制流。对事物运作本质了解越深，就越容易根据当前场景衡量代码清晰、实现简单、性能高低、易于扩展等各方面的因素。“能不能”、“会不会”、“是否应该”这类的疑惑就会相对更少一些，也不需要靠“论”去证明了。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 最后稍微说一下引子中提到的那件事情，用异常判断整数能不能用，我的观点还是http://www.iteye.com/topic/856221中二楼的第一句话“这个方法如果调用次数不多，怎么写都无所谓，如果次数多还是不要这样用的好”，请gdpglc同学不同意也不要在这个帖子里面吐槽，多多包涵。gdpglc的第一张帖子我投过一次隐藏贴，那是觉得其语言太过偏激了，不想争论，但后面他的另外三张帖子中很多评论都有可取、可想之处，变成隐藏扣分似乎不太应该。
+  </div>
+
+  
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript"
+              src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type='sina' href="javascript:;" title="分享到新浪微博"><img src="/images/sina.jpg"></a>
+      <a data-type='qq' href="javascript:;" title="分享到腾讯微博"><img src="/images/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="/blog/900737" class="next" title="JE的水真的太深">JE的水真的太深</a>
+      |
+      <a href="/blog/830787" class="pre" title="Servlet 3.0 实战：异步 Servlet 与 Comet 风格应用程序">Servlet 3.0 实战：异步 Servlet 与 Comet ...</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2011-01-02 20:57</li>
+      <li>浏览 5316</li>
+      <li><a href="#comments">评论(60)</a></li>
+       <li>论坛回复 / <a href="http://icyfenix.iteye.com/topic/857722">浏览</a> (60 / 34542)</li> 
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class='last'><a href="http://www.iteye.com/wiki/blog/857722" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="http://img.knowledge.csdn.net/upload/base/1455589744328_328.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36074</em>&nbsp;&nbsp;关注 <i>|</i> <em>3137</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="http://img.knowledge.csdn.net/upload/base/1465887837340_340.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3055</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="http://img.knowledge.csdn.net/upload/base/1479972981201_201.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>14935</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="http://img.knowledge.csdn.net/upload/base/1453701371636_636.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>30845</em>&nbsp;&nbsp;关注 <i>|</i> <em>3747</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2329246">
+  <div class="comment_title">
+    60 楼
+    <a href='http://chrisyujie.iteye.com' target='_blank' title='在世界的中心呼喚愛'>在世界的中心呼喚愛</a>
+    2013-10-25&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">从作者的JVM和其他jvm帖子，一路跟来，前面异常机制是看懂；希望以后能有图文。。<br />特别在操作栈和VM栈那里，感觉楼主自己都说乱。<br />RF说的，基本看不懂，太深；对字节码还没有什么研究。。</div>
+</div>
+
+<div id="bc2001472">
+  <div class="comment_title">
+    59 楼
+    <a href='http://melanlife.iteye.com' target='_blank' title='melanlife'>melanlife</a>
+    2011-03-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">RednaxelaFX 难道是做openJDK开发的？对JVM底层如此了解。。我也只有在程序OOM的时候回去分析下dump文件</div>
+</div>
+
+<div id="bc1994287">
+  <div class="comment_title">
+    58 楼
+    <a href='http://jiasky.iteye.com' target='_blank' title='jiasky'>jiasky</a>
+    2011-03-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">gdpglc 写道</div><div class="quote_div">LZ这样熟悉jvm的底层机制很是佩服。只是，这贴实在太专业，我的确云里雾里。估计没有相关知识的人也是够呛。不知LZ从事哪个行业，为何需要对JVM有如此的研究？的确很好奇，开发什么软件，需要这么深入jvm? 楼主不想回答，我也理解。</div><br /><br />看了这篇文章后，对下面这贴，我只想对您说：杀鸡用牛刀。<br />http://www.iteye.com/topic/856221<br /></div>
+</div>
+
+<div id="bc1899521">
+  <div class="comment_title">
+    57 楼
+    <a href='http://wzju64676266.iteye.com' target='_blank' title='wzju64676266'>wzju64676266</a>
+    2011-02-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">agapple 写道</div><div class="quote_div">其实LZ可以再往下细扣一下，为啥new Exception会慢，profile一看主要就是慢在一个native方法调用上fillInStackTrace。<br /><br />该方法的主要作用就是获取当前线程执行栈，用于日志记录和以后分析所用<br /><br />一般针对业务逻辑，其实可以不太关注具体的线程调用栈，我们大家应该关注的是业务异常message和code<br /><br />所以我还是比较喜欢用异常来进行逻辑控制和返回，首先代码风格上会比较清晰<br /><br />可以参考下：复写了RumtimeException的一个native方法，在测试过程中性能几乎就和if..else一样了<br /><pre name="code" class="java">
+public static class ServiceException extends RumtimeException {
+
+@Override
+public Throwable fillInStackTrace() {
+     return this;
+}
+}
+</pre><br /><br />具体的测试分析，可以看下我同事的测试文档 ： <a rel="nofollow" target="_blank" href="http://www.blogjava.net/stone2083/archive/2010/07/09/325649.html">http://www.blogjava.net/stone2083/archive/2010/07/09/325649.html</a></div><br />金立的文档</div>
+</div>
+
+<div id="bc1889419">
+  <div class="comment_title">
+    56 楼
+    <a href='http://bugmenot.iteye.com' target='_blank' title='bugmenot'>bugmenot</a>
+    2011-01-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">javacoreSZ 写道</div><div class="quote_div"><div class="quote_title">IcyFenix 写道</div><div class="quote_div">看看反应如何，好的话明天再写一篇来小淌一下“C/C++会比Java语言快多少多少倍”这浑水，也是这2天由那几张判断字符串能不能用异常的帖子中看到的观点。</div><br /><br />这个最好还是别写，坑太大了。 <br />而且他们性能之间的差距并不是由c++ 或 java语言本身所带来的，而是由于他们的实际编译器/虚拟机在做代码生成的时候，对代码优化的程度所带来的。<br /><br />所以你要写的话，也是要深入各主流cpp编译器来写，写得不好就口水战了。</div><br />楼主大大这坑还跳么？小的们还等着学习呢<br />小的琢磨，“同等开发成本”为前提来比较才有意义。不然C/C++总能写出更高效的</div>
+</div>
+
+<div id="bc1846317">
+  <div class="comment_title">
+    55 楼
+    <a href='http://jd2bs.iteye.com' target='_blank' title='jd2bs'>jd2bs</a>
+    2011-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">pml346680914 写道</div><div class="quote_div">在自己的机子上测试了下 jdk1.5 <br />每次结果都不一样，相差很大，其中更是出现如下结果，与楼主所说甚是不符啊，请楼主解释下原因。<br />建立对象：794837<br />建立异常对象：14435624<br />建立、抛出并接住异常对象：13600704<br /><br /></div><br />jdk 1.6 <br /><br />建立对象：559164<br />建立异常对象：7357032<br />建立、抛出并接住异常对象：7061238</div>
+</div>
+
+<div id="bc1845674">
+  <div class="comment_title">
+    54 楼
+    <a href='http://gdpglc.iteye.com' target='_blank' title='gdpglc'>gdpglc</a>
+    2011-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">性能问题是可以应用80 20原则的。对于性能优化，优化代码是一种手段，还有一些其它方式，比如：页面静态化、购买缓存服务等...</div>
+</div>
+
+<div id="bc1845649">
+  <div class="comment_title">
+    53 楼
+    <a href='http://laodizhuq.iteye.com' target='_blank' title='laodizhuq'>laodizhuq</a>
+    2011-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">这种微小的性能考虑，在每天有上亿次的访问的系统中就必须考虑，甚至还要了解JVM是如何运作，这样才能够做到性能的极致。<br /></div>
+</div>
+
+<div id="bc1840309">
+  <div class="comment_title">
+    52 楼
+    <a href='http://pml346680914.iteye.com' target='_blank' title='pml346680914'>pml346680914</a>
+    2011-01-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">在自己的机子上测试了下 jdk1.5 <br />每次结果都不一样，相差很大，其中更是出现如下结果，与楼主所说甚是不符啊，请楼主解释下原因。<br />建立对象：794837<br />建立异常对象：14435624<br />建立、抛出并接住异常对象：13600704<br /><br /></div>
+</div>
+
+<div id="bc1832851">
+  <div class="comment_title">
+    51 楼
+    <a href='http://kyfxbl.iteye.com' target='_blank' title='kyfxbl'>kyfxbl</a>
+    2011-01-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">sdh5724 写道</div><div class="quote_div"><div class="quote_title">kyfxbl 写道</div><div class="quote_div">看到这个帖子感到压力很大，这是为什么呢</div><br /><br />有人研究机制<br />有人研究实现<br />有人研究测试<br />你只看帖子！<br /><br />哈哈<br /></div><br /><br /><br />这位大哥说得有道理，我现在确实还没接触到这块么，不会也很正常</div>
+</div>
+
+<div id="bc1832142">
+  <div class="comment_title">
+    50 楼
+    <a href='http://icyfenix.iteye.com' target='_blank' title='IcyFenix'>IcyFenix</a>
+    2011-01-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">hatedance 写道</div><div class="quote_div">呵呵，自从sajia同学带头发了一篇又一篇包含字节码的帖子以后，许多同学在看不懂的情况下怒了，也开始学习底层。</div><br /><br />说的好！都是sajia同学导致的。哈哈哈<br /></div>
+</div>
+
+<div id="bc1832114">
+  <div class="comment_title">
+    49 楼
+    <a href='http://hatedance.iteye.com' target='_blank' title='hatedance'>hatedance</a>
+    2011-01-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">呵呵，自从sajia同学带头发了一篇又一篇包含字节码的帖子以后，许多同学在看不懂的情况下怒了，也开始学习底层。本来大部分同学好好的做着应用开发，倒也相安无事。<br />我预计接下来这样的人会越来越多。标准配置如下：<br />vm spec+Java Lanaguage Specicification(jls)<br />hotspot源码(用于粘帖cpp源码）<br /><br />要任何问题，首先都得贴上vm规范和语言规范里的相关定义，以及生成的字节码和hotspot的cpp源码。如果还不够，其它同学会补充其它jvm实现的源码甚至cpp语言在某个编译器（如gcc）编译以后产生的机器码（比如x86）。<br /><br />长此以往，大家水平越来越高，菜鸟全部自动远走他乡。<br /><br />显然，即使到了机器码这一层，有些同学还是不爽的。接下来得研究OS，硬件，总线，南桥/北桥，尤其是指令集，<br />现在cpu种类这么多，加上无比强大的GPU，到底intel的快还是ARM的快？<br />c编译器肯定得优化。</div>
+</div>
+
+<div id="bc1831945">
+  <div class="comment_title">
+    48 楼
+    <a href='http://rocketball.iteye.com' target='_blank' title='rocketball'>rocketball</a>
+    2011-01-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">小白提问：需要看懂javap -verbose命令输出它的字节码<br />要看哪方面东西呀</div>
+</div>
+
+<div id="bc1831854">
+  <div class="comment_title">
+    47 楼
+    <a href='http://alimama.iteye.com' target='_blank' title='卡拉阿风'>卡拉阿风</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">sdh5724 写道</div><div class="quote_div"><div class="quote_title">kyfxbl 写道</div><div class="quote_div">看到这个帖子感到压力很大，这是为什么呢</div><br /><br />有人研究机制<br />有人研究实现<br />有人研究测试<br />你只看帖子！<br /><br />哈哈<br /></div><br />不想打酱油的被打酱油- -</div>
+</div>
+
+<div id="bc1831222">
+  <div class="comment_title">
+    46 楼
+    <a href='http://william-ai.iteye.com' target='_blank' title='william_ai'>william_ai</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">100,000的测试结果出来了。<br /><pre name="code" class="prompt">
+statistics=10/10
+statistics=92/100
+statistics=99/1000
+statistics=119/10000
+statistics=1233/100000
+</pre><br />Statics是静力学，statistics是统计。之前的有误，希望谅解。</div>
+</div>
+
+<div id="bc1831058">
+  <div class="comment_title">
+    45 楼
+    <a href='http://aabcc.iteye.com' target='_blank' title='aabcc'>aabcc</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">form_rr 写道</div><div class="quote_div">无聊的争论，我赞成IcyFenix的说法。即什么时候用什么方法。这个没有固定的界定。<br />用异常，思路简单明了，代码简单，不管什么样的虚拟机效率都底下，适合初学者。<br />自己写代码判断，思路也不复杂，代码多一点，效率很高（写得很烂的除外）。适合有一定开发水平的人员。<br />&nbsp;&nbsp;&nbsp; 其实，效率的提升是需要多方面的。你仅仅一个字符串是不是数字的判断写得再快，但是程序的整个时序中有很多奇慢的代码。结果也是不言而喻的。<br />&nbsp;&nbsp;&nbsp; 所以，我认为，与其把时间花在单段代码效率的提升上，还不如把时间用在整体的优化上。<br /><br />愚见，请各位指教！</div><br /><br /><div class="quote_title">引用</div><div class="quote_div"><br />Strive to write<br />good programs rather than fast ones.</div><br /><br />但是，如果是讨论基础，那就跟"花在单段代码效率的提升上" 不太一样，你讨论完了，甚至测试出结论了，然后下次直接套用，或者说avoid某种错误，那是很有意义的。</div>
+</div>
+
+<div id="bc1830965">
+  <div class="comment_title">
+    44 楼
+    <a href='http://form-rr.iteye.com' target='_blank' title='form_rr'>form_rr</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">无聊的争论，我赞成IcyFenix的说法。即什么时候用什么方法。这个没有固定的界定。<br />用异常，思路简单明了，代码简单，不管什么样的虚拟机效率都底下，适合初学者。<br />自己写代码判断，思路也不复杂，代码多一点，效率很高（写得很烂的除外）。适合有一定开发水平的人员。<br />&nbsp;&nbsp;&nbsp; 其实，效率的提升是需要多方面的。你仅仅一个字符串是不是数字的判断写得再快，但是程序的整个时序中有很多奇慢的代码。结果也是不言而喻的。<br />&nbsp;&nbsp;&nbsp; 所以，我认为，与其把时间花在单段代码效率的提升上，还不如把时间用在整体的优化上。<br /><br />愚见，请各位指教！</div>
+</div>
+
+<div id="bc1830951">
+  <div class="comment_title">
+    43 楼
+    <a href='http://show-your-sister.iteye.com' target='_blank' title='sdh5724'>sdh5724</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">kyfxbl 写道</div><div class="quote_div">看到这个帖子感到压力很大，这是为什么呢</div><br /><br />有人研究机制<br />有人研究实现<br />有人研究测试<br />你只看帖子！<br /><br />哈哈<br /></div>
+</div>
+
+<div id="bc1830752">
+  <div class="comment_title">
+    42 楼
+    <a href='http://kyfxbl.iteye.com' target='_blank' title='kyfxbl'>kyfxbl</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">看到这个帖子感到压力很大，这是为什么呢</div>
+</div>
+
+<div id="bc1830629">
+  <div class="comment_title">
+    41 楼
+    <a href='http://william-ai.iteye.com' target='_blank' title='william_ai'>william_ai</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><pre name="code" class="java">
+System.out.print("\b\b\b\b\b\b\b\b\b\b"+j);
+</pre><br />这个的原因：<br />一是跑100000次的时候，时间比较久，看这个空白的屏幕太无聊了。O(∩_∩)O哈！<br />二是它没有包含在两次nanoTime的调用中间。<br /><pre name="code" class="java">
+System.out.println("\b\b\b\b\b\b\b\b\b\bStatics="+sum+"/"+l);
+</pre><br />这个一共执行了5次。<br /><pre name="code" class="java">
+System.nanoTime();
+</pre><br />这个的调用确实是比较耗时的（500ns左右）。<br />对于这个测试而言，都是用的java语言，相同的jdk，相同的jre，相同的vm参数。两种方式都用的是同一个方法，这样做是比较公平的事情。不公平的就是一个在前，一个在后了（调换位置后的测试结果一样）。<br />也是因为这一点，这个测试的结果只做了量上的比较。没有打印出具体的时间。<br />这样可以看出数量上的比例。<br />总时间的的比较测试，以后补上（谢谢sdh5724的提醒）。<br /><div class="quote_title">引用</div><div class="quote_div"><br />为毛你的mac比我的跑的快不少？ <br /></div><br />这个测试在两台机器上做过测试。前一篇的测试里有。<br /><pre name="code" class="prompt">
+Statics=6005/10000（在mac的机器上跑的结果是2608／10000）
+</pre><br />不是机器配置的问题，前一篇测试的机器的配置比mac好很多，测试结果却没有mac下的好。<br />找了台稍微好点的机器，配置：44CPU（双核1.6G），264G内存<br /><pre name="code" class="prompt">
+statistics=10/10
+statistics=89/100
+statistics=89/1000
+statistics=115/10000
+statistics=1233/100000
+</pre><br /><pre name="code" class="shell">
+/opt/java1.5/bin/javac F.java
+/opt/java1.5/bin/java -server -Xms512m -Xmx512m F
+</pre></div>
+</div>
+
+
+    
+    <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/blog/857722?page=2#comments" rel="next">2</a> <a href="/blog/857722?page=3#comments">3</a> <a href="/blog/857722?page=2#comments" class="next_page" rel="next">下一页 &raquo;</a></div>
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="/login" style="background-color:white;"> <img src="/images/login_icon.png" style="vertical-align:middle; margin-right: 10px;" /></a><a href="/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 857722;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '透过JVM看Exception本质');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '透过JVM看Exception本质');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href='http://icyfenix.iteye.com'><img alt="IcyFenix的博客" class="logo" src="http://www.iteye.com/upload/logo/user/195743/6edbe3e9-9b1b-39ac-923f-e9a4155ad836.jpg?1263900690" title="IcyFenix的博客: FenixSoft 3.0" width="" /></a></div>
+  <div id="blog_owner_name">IcyFenix</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 243867 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="http://www.iteye.com/images/icon_minigender_1.gif?1448702469" title="男" /></li>
+              <li>来自: 珠海</li>
+              <li><img src='/images/status/offline.gif'/></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style='font-weight:normal;font-size:12px;padding-left:30px;'><a href="/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://lei1985.iteye.com' target='_blank'><img alt="LEI1985的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="LEI1985的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://lei1985.iteye.com' target='_blank' title='LEI1985'>LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://nicks.iteye.com' target='_blank'><img alt="nicks的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nicks的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://nicks.iteye.com' target='_blank' title='nicks'>nicks</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://luochuang.iteye.com' target='_blank'><img alt="luochuang的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1240324/aa5f543a-0920-3647-88fa-dc8bd2231a13-thumb.png?1490835628" title="luochuang的博客: 罗闯的微博" width="48px" /></a></div>
+                <div class="left"><a href='http://luochuang.iteye.com' target='_blank' title='luochuang'>luochuang</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://itnull.iteye.com' target='_blank'><img alt="itnull的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="itnull的博客: itnull" width="48px" /></a></div>
+                <div class="left"><a href='http://itnull.iteye.com' target='_blank' title='itnull'>itnull</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="/">全部博客 (32)</a></li>
+                
+              </ul>
+            </div>
+            <div id='month_blogs'>
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="/blog/post">我的论坛</a> (332)
+                </li>
+                <li><a href="/blog/answered_problems">我的问答</a> (11)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="/blog/monthblog/2013-07">2013-07</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2012-05">2012-05</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2012-02">2012-02</a> (1)</li>
+                
+                <li><a href="/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href='http://chensixy.iteye.com' target='_blank' title='chensixy'>chensixy</a>： 
+                  周老师和Java认识也是鸡猿啊！<br />
+                  <a href="/blog/1513365#bc2398694">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href='http://sophistica.iteye.com' target='_blank' title='sophistica'>sophistica</a>： 
+                  那个链接怎么无效了？<br />
+                  <a href="/blog/1181634#bc2398676">征集《Java虚拟机规范（Java7版）》的译者</a>
+                </li>
+                
+                <li>
+                  <a href='http://zhangfeiyu2005.iteye.com' target='_blank' title='zhangfeiyu2005'>zhangfeiyu2005</a>： 
+                   膜拜大神<br />
+                  <a href="/blog/1513365#bc2397152">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href='http://qinpengtaiyuan.iteye.com' target='_blank' title='qinpengtaiyuan'>qinpengtaiyuan</a>： 
+                  致敬！！！您做什么都能做到一流，值得我学习！<br />
+                  <a href="/blog/1256329#bc2395857">发布《Java虚拟机规范 （Java SE 7 中文版）》</a>
+                </li>
+                
+                <li>
+                  <a href='http://qinpengtaiyuan.iteye.com' target='_blank' title='qinpengtaiyuan'>qinpengtaiyuan</a>： 
+                  膜拜大神~~~<br />
+                  <a href="/blog/1513365#bc2395856">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr/>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br />
+          &copy; 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript"
+                  src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>
+<script src="http://c.csdnimg.cn/public/common/libs/jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="http://ads.csdn.net/js/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="http://www.iteye.com/javascripts/web-storage-cache.min.js?1461122561" type="text/javascript"></script>
+	    <script src="http://www.iteye.com/javascripts/replace.min.js?1464163001" type="text/javascript"></script>
+    
+    
+  </body>
+</html>

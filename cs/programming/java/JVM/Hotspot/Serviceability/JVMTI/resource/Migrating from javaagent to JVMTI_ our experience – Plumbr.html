@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html class="ie6" lang="en"> <![endif]-->
+<!--[if IE 7]>
+<html class="ie7" lang="en"> <![endif]-->
+<!--[if IE 8]>
+<html class="ie8" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Migrating from javaagent to JVMTI: our experience  &#8211; Plumbr </title>
+
+            <script src="https://browser.plumbr.io/pa-early.js" data-plumbr='{"accountId":"k8g0ta8m6e7gsb2afhq6qm5efh","serverUrl":"https://plumbr.plumbr.io", "appName": "plumbr.eu"}'></script>
+    
+    <link rel="shortcut icon" href="https://plumbr.eu/wp-content/themes/plumbr/assets/images/favicon.png">
+    <link rel="stylesheet" href="https://plumbr.eu/wp-content/themes/plumbr/assets/gfx/main.css?ver=1499932826">
+    <link rel="stylesheet" href="https://plumbr.eu/wp-content/themes/plumbr/assets/gfx/responsive.css?ver=1499932826">
+
+            <link rel="stylesheet" href="https://plumbr.eu/wp-content/themes/plumbr/assets/gfx/prettify.css">
+    
+    
+    
+<!-- BEGIN Metadata added by Add-Meta-Tags WordPress plugin -->
+<meta name="description" content="Gathering data from within the JVM, such as the thread or GC behaviour can get you dangerously close to the Java Virtual Machine internals. In this post we share our experience about two tools integrated to the JVM: -javaagents and JVMTI hooks." />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@JavaPlumbr" />
+<meta name="twitter:title" content="Migrating from javaagent to JVMTI: our experience" />
+<meta name="twitter:description" content="Gathering data from within the JVM, such as the thread or GC behaviour can get you dangerously close to the Java Virtual Machine internals. In this post we share our experience about two tools integrated to the JVM: -javaagents and JVMTI hooks." />
+<meta name="twitter:image:src" content="https://plumbr.eu/wp-content/uploads/2014/03/java-GC-monitoring.jpeg" />
+<meta name="twitter:image:width" content="204" />
+<meta name="twitter:image:height" content="204" />
+<!-- END Metadata added by Add-Meta-Tags WordPress plugin -->
+
+<link rel='dns-prefetch' href='//ajax.googleapis.com' />
+<link rel='dns-prefetch' href='//s.w.org' />
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.3\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.3\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/plumbr.eu\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.8"}};
+			!function(a,b,c){function d(a){var b,c,d,e,f=String.fromCharCode;if(!k||!k.fillText)return!1;switch(k.clearRect(0,0,j.width,j.height),k.textBaseline="top",k.font="600 32px Arial",a){case"flag":return k.fillText(f(55356,56826,55356,56819),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,56826,8203,55356,56819),0,0),c=j.toDataURL(),b===c&&(k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447),0,0),c=j.toDataURL(),b!==c);case"emoji4":return k.fillText(f(55358,56794,8205,9794,65039),0,0),d=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55358,56794,8203,9794,65039),0,0),e=j.toDataURL(),d!==e}return!1}function e(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i,j=b.createElement("canvas"),k=j.getContext&&j.getContext("2d");for(i=Array("flag","emoji4"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel='https://api.w.org/' href='https://plumbr.eu/wp-json/' />
+<link rel='shortlink' href='https://plumbr.eu/?p=3254' />
+<link rel="alternate" type="application/json+oembed" href="https://plumbr.eu/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fplumbr.eu%2Fblog%2Fjava%2Fmigrating-from-javaagent-to-jvmti-our-experience" />
+
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-25569981-1', 'plumbr.eu');
+        ga('require', 'displayfeatures');
+        ga('send', 'pageview');
+    </script>
+
+    <script>
+        var _prum = [['id', '53145499abe53d1a33000000'],
+            ['mark', 'firstbyte', (new Date()).getTime()]];
+        (function() {
+            var s = document.getElementsByTagName('script')[0]
+                , p = document.createElement('script');
+            p.async = 'async';
+            p.src = '//rum-static.pingdom.net/prum.min.js';
+            s.parentNode.insertBefore(p, s);
+        })();
+    </script>
+
+    
+    <script type="application/ld+json">
+	{
+		"@context" : "http://schema.org",
+		"@type"    : "Organization",
+		"name"     : "Plumbr &#8211; User Experience &amp; Application Performance Monitoring",
+		"url" 	   : "https://plumbr.eu",
+		"sameAs"   : [
+			"https://www.facebook.com/javaplumbr",
+            "https://twitter.com/JavaPlumbr",
+            "https://www.linkedin.com/company/plumbr"
+		]
+	}
+</script></head>
+
+<body class=" ">
+<div id="header" class="clear">
+    <div class="wrap clear">
+        <p id="logo"><a href="https://plumbr.eu" class="icon icon-plumbr"></a></p>
+
+        <div id="user-box">
+            <a href="#" id="modal-login-link" data-modal="modal-login" class="hidden">Log In</a>
+            <a href="#" id="modal-register-link" class="btn alt hidden" data-modal="modal-register"
+               onclick="sendVirtualPageview('/header/vp-trial-button');">Sign Up</a>
+            <a href="#" class="btn cta" id="menu-toggler"><i class="icon icon-menu"></i></a>
+
+            <a id="continueMonitoring" href="https://app.plumbr.io"
+               class="btn cta btn-icon hidden"><i class="icon icon-chart-area hidden"></i> Continue Monitoring</a>
+        </div>
+
+        <ul id="nav">
+            <li class="parent">
+                <a href="/products-browser">Products</a>
+                <div class="submenu" style="display: none;">
+                    <ul>
+                        <li><a href="/products-browser">Browser Agent</a></li>
+                        <li><a href="/products-jvm">Java Agent</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li class="parent">
+                <a href="#">Solutions</a>
+                <div class="submenu double">
+                    <ul>
+                        <li class="title">By Use Case</li>
+                        <li><a class="" href="/use-case-production">End
+                                User Monitoring in Production</a></li>
+                        <li><a class="" href="/use-case-testing">Performance
+                                Testing</a></li>
+                        <li><a class="" href="/use-case-development">Troubleshooting
+                                in Development</a></li>
+                    </ul>
+                    <ul>
+                        <li class="title">By Role</li>
+                        <li><a class=""
+                               href="/solution-for-business-owner">Business Owners</a></li>
+                        <li><a class=""
+                               href="/solution-for-it-operations">IT Operations</a></li>
+                        <li><a class=""
+                               href="/solution-for-developers">Software Developers</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li><a class="" href="/pricing">Pricing</a></li>
+            <li class="parent">
+                <a href="/blog">Resources</a>
+                <div class="submenu">
+                    <ul>
+                        <li><a class="" href="/how-plumbr-works">How Plumbr
+                                works</a></li>
+                        <li><a class="" href="/blog">Blog</a></li>
+                        <li><a class="" href="/support">Support</a></li>
+                        <li><a class="" href="/root-causes">Root Causes</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+
+
+<div id="user-nav" class="alt">
+    <div class="wrap clear">
+        <ul>
+            <li><a href="/how-plumbr-works">How Plumbr works</a></li>
+            <li class="active"><a href="/blog">Blog</a></li>
+            <li><a href="/support">Support</a></li>
+            <li><a href="/root-causes">Root Causes</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="content">
+    <div class="wrap compact split-alt">
+
+        <p id="sidebar-toggler">
+            <a href="#" data-label="Close categories">
+                <i class="icon icon-menu"></i>
+                <i class="icon icon-cancel"></i>
+                <span class="label">Blog categories</span>
+            </a>
+        </p>
+
+        <div id="main">
+
+            <p class="article-nav clear">
+                <a href="/blog" class="btn link"><i class="icon icon-left-open"></i> To blog</a>
+                    <span class="main">
+                        <a class="btn link" href="https://plumbr.eu/blog/memory-leaks/how-not-to-create-a-permgen-leak" rel="prev" class="previous-post" > <i class="icon icon-left-open"></i> Previous post</a>                                                    <span class="sep">|</span>
+                                                <a class="btn link" href="https://plumbr.eu/blog/memory-leaks/creative-way-to-handle-outofmemoryerrors" rel="next" class="next-post" >Next post <i class="icon icon-right-open"></i></a>                    </span>
+            </p>
+
+            <div class="article">
+                                    <h1>Migrating from javaagent to JVMTI: our experience</h1>
+                    <div class="meta">
+                        March 19, 2014 by
+                        <span class="author">Ago Allikmaa</span>
+                                                                            Filed under:
+                                                            <i class="tag">Java</i>
+                                                                        </div>
+                    <p dir="ltr">When you need to gather data from within the JVM, you will find yourself working dangerously close to the Java Virtual Machine internals. Luckily, there are ways you can avoid getting bogged down by JVM implementation details. The fathers of Java have given you not one but two beautiful tools to work with.</p>
+<p dir="ltr">In this post we will explain the differences between the two approaches and explain why we recently ported a significant part of our algorithms.</p>
+<h2>Javaagent</h2>
+<p dir="ltr">The first option is to use the <em>java.lang.instrument</em> interface. This approach loads your monitoring code into the JVM itself using the <em>-javaagent</em> startup parameter. Being an all Java option, javaagents tend to be the first path to take if your background is in Java development. The best way to illustrate how you can benefit from the approach is via an example.</p>
+<p dir="ltr">Let us create a truly simple agent, which would be responsible for monitoring all method invocations in your code. And when the agent faces a method invocation, it will log the invocation to the standard output stream:</p>
+<pre class="prettyprint"><code class="language-java">import org.objectweb.asm.*;
+
+public class MethodVisitorNotifyOnMethodEntry extends MethodVisitor {
+   public MethodVisitorNotifyOnMethodEntry(MethodVisitor mv) {
+       super(Opcodes.ASM4, mv);
+       mv.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(MethodVisitorNotifyOnMethodEntry.class), "callback", "()V");
+   }
+
+   public static void callback() {
+        System.out.println("Method called!");    }
+}</code></pre>
+<p dir="ltr">You can use the example above, package it as a javaagent (essentially a small JAR file with a special MANIFEST.MF), and launch it using the agent&#8217;s <em>premain()</em> method similar to the following:</p>
+<pre>java -javaagent:path-to/your-agent.jar com.yourcompany.YourClass</pre>
+<p dir="ltr">When launched, you would see a bunch of “Method called!” messages in your log files. And in our case nothing more. But the concept is powerful, especially when combined with bytecode instrumentation tools such as <a href="http://en.wikipedia.org/wiki/ObjectWeb_ASM">ASM</a> or <a href="http://cglib.sourceforge.net/">cgLib</a> as in our example above.</p>
+<p dir="ltr">In order to keep the example easy to understand, we have skipped some details. But it is relatively simple &#8211; when using <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">java.lang.instrument</a> package you start by writing your own agent class, implementing<em> public static void premain(String agentArgs, Instrumentation inst)</em>. Then you need to register your <em>ClassTransformer</em> with <em>inst.addTransformer</em>. As you most likely wish to avoid direct manipulation of class bytecode, you would use some bytecode manipulation library, such as ASM in the example we used. With it, you just have to implement a couple more interfaces &#8211; <em>ClassVisitor</em> (skipped for brevity) and <em>MethodVisitor.</em></p>
+<h2>JVMTI</h2>
+<p dir="ltr">The second path to take will eventually lead you to JVMTI. JVM Tool Interface (<a href="http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html">JVM TI</a>) is a standard native API that allows  native libraries capture events and control the Java Virtual Machine. Access to JVMTI is usually packaged in a specific library called an agent.</p>
+<p dir="ltr">The example below demonstrates the very same callback registration already seen in the javaagent section, but this time it is implemented as a JVMTI call:</p>
+<pre class="prettyprint"><code class="language-java">void JNICALL notifyOnMethodEntry(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread, jmethodID method) {
+    fputs("method was called!\n", stdout);
+}
+
+int prepareNotifyOnMethodEntry(jvmtiEnv *jvmti) {
+    jvmtiError error;
+    jvmtiCapabilities requestedCapabilities, potentialCapabilities;
+    memset(&amp;requestedCapabilities, 0, sizeof(requestedCapabilities));
+
+    if((error = (*jvmti)-&gt;GetPotentialCapabilities(jvmti, &amp;potentialCapabilities)) != JVMTI_ERROR_NONE) return 0;
+
+    if(potentialCapabilities.can_generate_method_entry_events) {
+       requestedCapabilities.can_generate_method_entry_events = 1;
+    }
+    else {
+       //not possible on this JVM
+       return 0;
+    }
+
+    if((error = (*jvmti)-&gt;AddCapabilities(jvmti, &amp;requestedCapabilities)) != JVMTI_ERROR_NONE) return 0;
+
+    jvmtiEventCallbacks callbacks;
+    memset(&amp;callbacks, 0, sizeof(callbacks));
+    callbacks.MethodEntry = notifyOnMethodEntry;
+
+    if((error = (*jvmti)-&gt;SetEventCallbacks(jvmti, &amp;callbacks, sizeof(callbacks))) != JVMTI_ERROR_NONE) return 0;
+    if((error = (*jvmti)-&gt;SetEventNotificationMode(jvmti, JVMTI_ENABLE,    JVMTI_EVENT_METHOD_ENTRY, (jthread)NULL)) != JVMTI_ERROR_NONE) return 0;
+
+    return 1;
+}</code></pre>
+<p dir="ltr">There are several differences between the approaches. For example, you can get more information via JVMTI than the agent.  But the most crucial difference between the two is derived from the loading mechanics. While the Instrumentation agents are loaded inside the heap, they are governed by the same JVM. Whereas the JVMTI agents are not governed by the JVM rules and are thus not affected by the JVM internals such as the GC or runtime error handling. What it means, is best explained via our own experience.</p>
+<h2>Migrating from -javaagent to JVMTI</h2>
+<p dir="ltr">When we started building our <a title="Plumbr memory leak detector" href="http://plumbr.eu">memory leak detector</a> three years ago we did not pay much attention to pros and cons of those approaches. Without much hesitation we implemented the  solution as a <em>-javaagent</em>.</p>
+<p dir="ltr">Throughout the years we have started to understand implications. Some of which were not too pleasant, thus in our latest release we have ported a significant part of our memory leak detection mechanics to the native code. What made us jump to such conclusion?</p>
+<p dir="ltr">First and foremost &#8211; when residing in the heap you need to accommodate yourself next to the application’s own memory structures. Which, as learned through painful experience can lead to problems in itself. When your app has already filled the heap close to the full extent the last thing you need is a memory leak detector that would only seem to speed up the arrival of the <em>OutOfMemoryError</em>.</p>
+<p dir="ltr">But the added heap space was lesser of the evils haunting us. The real problem was related to the fact that our data structures were cleaned using the same garbage collector that the monitored application itself was using. This resulted in longer and more frequent GC pauses.</p>
+<p dir="ltr">While most applications did not mind the few extra percentage points we added to heap consumption, we learned that the unpredictable impact on <a href="https://plumbr.eu/handbook/garbage-collection-in-java#minor-gc-major-gc-full-gc">Full GC</a> pauses was something we needed to get rid of.</p>
+<p><a href="https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle.jpeg"><img class="alignright size-full wp-image-3264" src="https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle.jpeg" alt="Java GC consuming CPU" width="290" height="290" srcset="https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle.jpeg 290w, https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle-150x150.jpeg 150w, https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle-204x204.jpeg 204w, https://plumbr.eu/wp-content/uploads/2014/03/garbage-collection-cycle-222x222.jpeg 222w" sizes="(max-width: 290px) 100vw, 290px" /></a></p>
+<p dir="ltr">To make things worse &#8211; how <a href="https://plumbr.eu/">Plumbr</a> works is that it monitors all object creations and collections. When you monitor something, you need to keep track. Keeping track tends to create objects. Created objects will be eligible for GC. And when it is now GC you are monitoring, you have just created a vicious circle &#8211; the more objects are garbage collected, the more monitors you create triggering even more frequent GC runs, etc.</p>
+<p dir="ltr">When keeping track of objects, we are notified about the death of objects by the JVMTI. However, JVMTI does not permit the use of JNI during those callbacks. So if we keep the statistics about tracked objects in Java, it is not possible to instantly update the statistics when we are notified of changes. Instead the changes need to be cached and applied when we know the JVM is in the correct state. This created unnecessary complexity and delays in updating the actual statistics.</p>
+<p dir="ltr">The newest Plumbr 3.6.2 release that we launched today migrated the most data-heavy parts of the application to native code, avoiding the unpredictable overhead and long GC pause problems. Do not hesitate, go and get the new <a href="https://plumbr.eu">memory leak detector</a> while it is still fresh.</p>
+                            </div>
+
+            
+<div id="comments" class="comments-area">
+    	<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title"> <small><a rel="nofollow" id="cancel-comment-reply-link" href="/blog/java/migrating-from-javaagent-to-jvmti-our-experience#respond" style="display:none;">Cancel</a></small></h3>			<form action="https://plumbr.eu/wp-comments-post.php" method="post" id="comment-form" class="comment-form">
+				<h2>ADD COMMENT</h2><dl class="form"><textarea id="comment-text" name="comment" aria-required="true"></textarea></dl>
+            <div class="row clear">
+
+            <div class="col-6"><dl class="form">
+                <dt><label for="plmbr-comment-author">Name</label></dt>
+                <dd><input id="plmbr-comment-author" name="author" type="text" class="txt" maxlength="255" /></dd>
+            </dl></div>
+
+            <div class="col-6"><dl class="form">
+                <dt><label for="plumbr-comment-email">E-mail</label></dt>
+                <dd><input id="plumbr-comment-email" name="email" type="email" class="txt" maxlength="255" /></dd>
+            </dl></div>
+
+        <div id="plmbr-comment-captcha" class="col-12 hidden">
+            <dl class="form comment-captcha">
+             <dt>To prove that you are not a bot, select <u>green</u> icon</dt>
+             <dd>
+		<label> <input type="radio" value="red" name="commentCaptcha"  class="hidden"/> <i class="icon icon-agent second"></i></label>
+		<label> <input type="radio" value="blue" name="commentCaptcha" class="hidden"/> <i class="icon icon-agent first"></i></label>
+		<label> <input type="radio" value="green" name="commentCaptcha"  class="hidden green"/> <i class="icon icon-agent third"></i></label>
+		</dd>
+		 </dl></div>
+
+            </div>
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit-button" class="btn" value="SEND" /> <input type='hidden' name='comment_post_ID' value='3254' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p>			</form>
+			</div><!-- #respond -->
+	
+	
+
+    </div><!-- #comments .comments-area -->
+            <div id ="related-articles" class ="group">
+                            </div>
+
+        </div>
+
+        <div id="sidebar">
+
+    <h2 class="blog-cat-title">Categories:</h2>
+
+    <ul class="tags clear">
+                                                                <li>
+                <a href="https://plumbr.eu/blog/category/blog/garbage-collection" >
+                    Garbage Collection                    <span class="count">(24)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/io" >
+                    I/O                    <span class="count">(10)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/java" class="active">
+                    Java                    <span class="count">(42)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/locked-threads" >
+                    Locked Threads                    <span class="count">(11)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/memory-leaks" >
+                    Memory Leaks                    <span class="count">(47)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/monitoring" >
+                    Monitoring                    <span class="count">(16)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/performance-blog" >
+                    Performance                    <span class="count">(26)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/plumbr-blog" >
+                    Plumbr                    <span class="count">(25)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/product-updates" >
+                    Product Updates                    <span class="count">(37)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/programming" >
+                    Programming                    <span class="count">(9)</span>
+                </a>
+            </li>
+                                            <li>
+                <a href="https://plumbr.eu/blog/category/blog/user-experience" >
+                    User Experience                    <span class="count">(4)</span>
+                </a>
+            </li>
+            </ul>
+
+    <div class="floating-wrap">
+        <div class="floating-content">
+            <a onclick="sendVirtualPageview('/blog/vp-trial-button');" href="https://plumbr.eu/solution-for-developer" class="feature special alt">
+                <p>Fighting with poorly performing Java applications?</p>
+                <p><span class="cta">Try Plumbr <i class="icon icon-right-open"></i></span></p>
+                <i class="icon icon-agent"></i>
+            </a>
+            <div class="feature special plus">
+                <h2>Plumbr Handbooks</h2>
+                <ul class="icon-list">
+                    <li><a onclick="sendVirtualPageview('/blog/vp-oom-link');" href="https://plumbr.eu/outofmemoryerror"><i class="icon icon-book"></i> OutOfMemoryError</a></li>
+                    <li><a href="https://plumbr.eu/java-garbage-collection-handbook"><i class="icon icon-book"></i> Java Garbage Collection</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+    </div>
+</div>
+
+<div id="modal-panel" class="right small">
+	<div class="panel">
+		<form id="blogNewsletterForm">
+			<h2 class="header"><i class="icon icon-mail-alt"></i> Subscribe</h2>
+
+			<div class="content">
+				<p>Do you like the content? Subscribe to Plumbr blog <span class="disclaimer">(1-2 emails per week)</span></p>
+
+				<dl class="form">
+					<dt><label for="subscription-email">E-mail address</label></dt>
+					<dd><input type="email" class="txt" id="subscription-email"></dd>
+				</dl>
+
+				<p>
+					<input id="blogNewsletterSubmit" type="submit" class="btn" value="Subscribe">
+					<a id="hideScrollBox" class="btn alt" data-modal-panel-close>Hide</a>
+				</p>
+
+				<p class="social-icons">
+					<span class="label">Follow Plumbr</span>
+					<a href="https://twitter.com/javaplumbr" target="_blank"><i class="icon icon-twitter-squared"></i></a>
+					<a href="https://www.facebook.com/javaplumbr" target="_blank"><i class="icon icon-facebook-squared"></i></a>
+					<a href="https://www.linkedin.com/company/plumbr" target="_blank"><i class="icon icon-linkedin-squared"></i></a>
+					<a href="/feed" target="_blank"><i class="icon icon-rss-squared"></i></a>
+				</p>
+			</div>
+		</form>
+	</div>
+	<div id="modal-panel-msg">You have been successfully subscribed to our newsletter.</div>
+</div>    <div id="footer">
+        <div class="wrap">
+            <ul id="nav-footer" class="clear">
+                <li><a id="footer-pricing" href="/pricing">Pricing</a></li>
+                <li><a id="footer-blog" href="/blog">Blog</a></li>
+                <li><a id="footer-support" href="/support">Support</a></li>
+                <li><a id="footer-about-us" href="/about-us-we-are">About us</a></li>
+                <li><a id="footer-join-us" href="/join-us">Join us</a></li>
+            </ul>
+
+            <ul class="social">
+                <li><a href="mailto:support@plumbr.eu"><i class="icon icon-mail-alt"></i></a></li>
+                <li><a target="_blank" href="https://www.facebook.com/javaplumbr"><i class="icon icon-facebook-squared"></i></a></li>
+                <li><a target="_blank" href="https://twitter.com/JavaPlumbr"><i class="icon icon-twitter-squared"></i></a></li>
+                <li><a target="_blank" href="https://www.linkedin.com/company/plumbr"><i class="icon icon-linkedin-squared"></i></a></li>
+            </ul>
+
+            <p id="copyright">© Copyright Plumbr. All Rights Reserved. </p>
+        </div>
+    </div>
+    <div id="modal-wrap">
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+    <div class="modal login" id="modal-login">
+        <a href="#" id="modal-login-close" class="close"><i class="icon icon-cancel"></i></a>
+        <h2>Log In</h2>
+        <form>
+            <dl class="form">
+                <dt><label for="login-mail">Your e-mail</label></dt>
+                <dd><input name="userName" type="email" id="login-mail" class="txt" maxlength="255"
+                           autofocus="autofocus" tabindex="1"></dd>
+                <dt><label for="login-password">Password</label></dt>
+                <dd>
+                    <input name="password" type="password" id="login-password" class="txt" maxlength="255" tabindex="2">
+                    <a href="#" id="forgot-password" data-modal="modal-new-password" tabindex="5">Forgot your
+                        password?</a>
+                </dd>
+                <dd><input name="isFromComment" type="hidden" id="login-comment" class="txt" value="false"></dd>
+            </dl>
+            <p class="form-action"><input id="modal-login-submit" type="submit" class="btn big" value="LOG IN"
+                                          tabindex="3"></p>
+        </form>
+        <p class="form-action-plus"><a href="#" id="no-account" data-modal="modal-register" tabindex="4">Don't have an
+                account?</a></p>
+    </div>
+
+    <div class="modal signup clear" id="modal-register">
+        <a href="#" class="close"><i class="icon icon-cancel"></i></a>
+
+        <div class="register">
+            <h2>Start your 14-day free trial!</h2>
+            <form>
+                <p class="info">Create your account to download Plumbr and see the results at your Plumbr dashboard:</p>
+
+                <dl class="form horizontal">
+                    <dt><label for="register-mail">Work e-mail <span class="req">*</span></label></dt>
+                    <dd><input name="userName" type="email" id="register-mail" class="txt" maxlength="255"
+                               autofocus="autofocus"></dd>
+                    <dt><label for="register-password">Password <span class="req">*</span></label></dt>
+                    <dd><input name="password" type="password" id="register-password" class="txt" maxlength="255"></dd>
+                </dl>
+
+                <h3>Tell us more about you:</h3>
+                <dl class="form horizontal min">
+                    <dt class="right"><label for="register-name">First name</label></dt>
+                    <dd><input name="firstName" type="text" id="register-name" class="txt" maxlength="255"></dd>
+                    <dt class="right"><label for="register-lname">Last name</label></dt>
+                    <dd><input name="lastName" type="text" id="register-lname" class="txt" maxlength="255"></dd>
+
+                    <dt class="right"><label for="register-company">Company</label></dt>
+                    <dd><input name="company" type="text" id="register-company" class="txt"></dd>
+                    <dt class="right"><label for="register-phone">Phone</label></dt>
+                    <dd><input name="phoneNr" type="text" id="register-phone" class="txt"></dd>
+
+                    <dt class="right tz-js"><label for="register-timezone">Timezone</label></dt>
+                    <dd class="tz-js">
+                        <input name="timezoneName" type="text" id="register-timezone" class="txt" maxlength="255">
+                    </dd>
+
+                    <dd><input name="isFromComment" type="hidden" id="register-comment" class="txt" value="false"></dd>
+
+                    <dd class="action">
+                        <input type="submit" class="btn big cta block" value="Start free trial">
+                        <p>By signing up, you agree with our <a href="/terms-of-service">Terms of service</a></p>
+                        <p>Already have an account? <a href="#" data-modal="modal-login">Log in here</a></p>
+                    </dd>
+                </dl>
+            </form>
+        </div>
+        <div class="desc">
+            <ul class="flow">
+                <li><i>1</i> <span><strong>Create</strong> your<br>account</span></li>
+                <li class="alt"><i>2</i> <span><strong>Install</strong> Plumbr<br>in 5 minutes</span></li>
+                <li><i>3</i> <span>Make sure the application <strong>is being used</strong></span></li>
+                <li class="alt"><i>4</i> <span>Analyze the <strong>experience of end users</strong></span></li>
+            </ul>
+
+            <p>Plumbr is a Java performance monitoring solution with <strong>automatic root cause detection</strong>.
+            </p>
+        </div>
+    </div>
+
+    <div class="modal login" id="modal-new-password">
+        <a href="#" class="close"><i class="icon icon-cancel"></i></a>
+        <h2>Reset password</h2>
+        <p>You will receive a link to create a new password via email.</p>
+
+        <div class="msg-icon hidden" id="reset-success">
+            <i class="icon icon-ok"></i>
+
+            <div class="aligner">
+                <p>Instructions on how to change your password have been sent to your e-mail.</p>
+            </div>
+        </div>
+
+        <form>
+            <dl class="form">
+                <dt><label for="new-mail">Email</label></dt>
+                <dd><input name="email" type="email" id="new-mail" class="txt"></dd>
+            </dl>
+            <p class="form-action"><input type="submit" class="btn big" value="Get new password"></p>
+        </form>
+    </div>
+
+    <div class="modal video" id="modal-video">
+        <a id="close-video" href="#" class="close"><i class="icon icon-cancel"></i></a>
+        <div class="flex-video">
+            <div id="video01"></div>
+        </div>
+    </div>
+
+    
+
+
+
+
+
+</div>    
+
+
+<script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js?ver=1.10.2'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var param = {"portalUrl":"https:\/\/app.plumbr.io"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/userLogin.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/timezones.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/jstz.min.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/typeahead.bundle.min.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/prettify.js?ver=4.8'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/oom-scroll-box.js?ver=4.8'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/ondemand.js?ver=1499932826'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var local = {"isSupportIndex":"","isSupportType":"","isEmailLandingPage":"","isSearch":"","ajaxurl":"https:\/\/plumbr.eu\/wp-admin\/admin-ajax.php"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/custom.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/video.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/jquery-ui-1.10.4.custom.min.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/comment-reply.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-content/themes/plumbr/assets/js/comments.js?ver=1499932826'></script>
+<script type='text/javascript' src='https://plumbr.eu/wp-includes/js/wp-embed.min.js?ver=4.8'></script>
+</body>
+</html>

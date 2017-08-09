@@ -1,0 +1,1748 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html dir='ltr' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+<link type='text/css' rel='stylesheet' href='https://www.blogger.com/static/v1/widgets/763856997-widget_css_bundle.css' />
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
+<meta content='blogger' name='generator'/>
+<link href='http://jeremymanson.blogspot.co.id/favicon.ico' rel='icon' type='image/x-icon'/>
+<link href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html' rel='canonical'/>
+<link rel="alternate" type="application/atom+xml" title="Java Concurrency (&amp;c) - Atom" href="http://jeremymanson.blogspot.com/feeds/posts/default" />
+<link rel="alternate" type="application/rss+xml" title="Java Concurrency (&amp;c) - RSS" href="http://jeremymanson.blogspot.com/feeds/posts/default?alt=rss" />
+<link rel="service.post" type="application/atom+xml" title="Java Concurrency (&amp;c) - Atom" href="https://www.blogger.com/feeds/8405107760807432973/posts/default" />
+
+<link rel="alternate" type="application/atom+xml" title="Java Concurrency (&amp;c) - Atom" href="http://jeremymanson.blogspot.com/feeds/5370045468923715521/comments/default" />
+<!--Can't find substitution for tag [blog.ieCssRetrofitLinks]-->
+<meta content='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html' property='og:url'/>
+<meta content='Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace' property='og:title'/>
+<meta content='This post is not about the memory model, but, instead, is about being able to get, asynchronously, the stack trace of a currently executing ...' property='og:description'/>
+<!--[if IE]> <script> (function() { var html5 = ("abbr,article,aside,audio,canvas,datalist,details," + "figure,footer,header,hgroup,mark,menu,meter,nav,output," + "progress,section,time,video").split(','); for (var i = 0; i < html5.length; i++) { document.createElement(html5[i]); } try { document.execCommand('BackgroundImageCache', false, true); } catch(e) {} })(); </script> <![endif]-->
+<title>Java Concurrency (&amp;c): Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace</title>
+<style id='page-skin-1' type='text/css'><!--
+/*
+-----------------------------------------------
+Blogger Template Style
+Name:     Minima Stretch
+Date:     26 Feb 2004
+----------------------------------------------- */
+
+/* Use this with templates/template-twocol.html */
+body {
+background:#ffffff;
+margin:0;
+color:#333333;
+font:x-small Georgia Serif;
+font-size/* */:/**/small;
+font-size: /**/small;
+text-align: center;
+}
+a:link {
+color:#5588aa;
+text-decoration:none;
+}
+a:visited {
+color:#999999;
+text-decoration:none;
+}
+a:hover {
+color:#cc6600;
+text-decoration:underline;
+}
+a img {
+border-width:0;
+}
+/* Header
+-----------------------------------------------
+*/
+#header-wrapper {
+margin:0 2% 10px;
+border:1px solid #cccccc;
+}
+#header {
+margin: 5px;
+border: 1px solid #cccccc;
+text-align: center;
+color:#666666;
+}
+#header-inner {
+background-position: center;
+margin-left: auto;
+margin-right: auto;
+}
+#header h1 {
+margin:5px 5px 0;
+padding:15px 20px .25em;
+line-height:1.2em;
+text-transform:uppercase;
+letter-spacing:.2em;
+font: normal normal 200% Georgia, Serif;
+}
+#header a {
+color:#666666;
+text-decoration:none;
+}
+#header a:hover {
+color:#666666;
+}
+#header .description {
+margin:0 5px 5px;
+padding:0 20px 15px;
+text-transform:uppercase;
+letter-spacing:.2em;
+line-height: 1.4em;
+font: normal normal 78% 'Trebuchet MS', Trebuchet, Arial, Verdana, Sans-serif;
+color: #999999;
+}
+#header img {
+margin-left: auto;
+margin-right: auto;
+}
+/* Outer-Wrapper
+----------------------------------------------- */
+#outer-wrapper {
+margin:0;
+padding:10px;
+text-align:left;
+font: normal normal 100% Georgia, Serif;
+}
+#main-wrapper {
+margin-left: 2%;
+width: 67%;
+float: left;
+display: inline;       /* fix for doubling margin in IE */
+word-wrap: break-word; /* fix for long text breaking sidebar float in IE */
+overflow: hidden;      /* fix for long non-text content breaking IE sidebar float */
+}
+#sidebar-wrapper {
+margin-right: 2%;
+width: 25%;
+float: right;
+display: inline;       /* fix for doubling margin in IE */
+word-wrap: break-word; /* fix for long text breaking sidebar float in IE */
+overflow: hidden;      /* fix for long non-text content breaking IE sidebar float */
+}
+/* Headings
+----------------------------------------------- */
+h2 {
+margin:1.5em 0 .75em;
+font:normal normal 78% 'Trebuchet MS',Trebuchet,Arial,Verdana,Sans-serif;
+line-height: 1.4em;
+text-transform:uppercase;
+letter-spacing:.2em;
+color:#999999;
+}
+/* Posts
+-----------------------------------------------
+*/
+h2.date-header {
+margin:1.5em 0 .5em;
+}
+.post {
+margin:.5em 0 1.5em;
+border-bottom:1px dotted #cccccc;
+padding-bottom:1.5em;
+}
+.post h3 {
+margin:.25em 0 0;
+padding:0 0 4px;
+font-size:140%;
+font-weight:normal;
+line-height:1.4em;
+color:#cc6600;
+}
+.post h3 a, .post h3 a:visited, .post h3 strong {
+display:block;
+text-decoration:none;
+color:#cc6600;
+font-weight:normal;
+}
+.post h3 strong, .post h3 a:hover {
+color:#333333;
+}
+.post-body {
+margin:0 0 .75em;
+line-height:1.6em;
+}
+.post-body blockquote {
+line-height:1.3em;
+}
+.post-footer {
+margin: .75em 0;
+color:#999999;
+text-transform:uppercase;
+letter-spacing:.1em;
+font: normal normal 78% 'Trebuchet MS', Trebuchet, Arial, Verdana, Sans-serif;
+line-height: 1.4em;
+}
+.comment-link {
+margin-left:.6em;
+}
+.post img, table.tr-caption-container {
+padding:4px;
+border:1px solid #cccccc;
+}
+.tr-caption-container img {
+border: none;
+padding: 0;
+}
+.post blockquote {
+margin:1em 20px;
+}
+.post blockquote p {
+margin:.75em 0;
+}
+/* Comments
+----------------------------------------------- */
+#comments h4 {
+margin:1em 0;
+font-weight: bold;
+line-height: 1.4em;
+text-transform:uppercase;
+letter-spacing:.2em;
+color: #999999;
+}
+#comments-block {
+margin:1em 0 1.5em;
+line-height:1.6em;
+}
+#comments-block .comment-author {
+margin:.5em 0;
+}
+#comments-block .comment-body {
+margin:.25em 0 0;
+}
+#comments-block .comment-footer {
+margin:-.25em 0 2em;
+line-height: 1.4em;
+text-transform:uppercase;
+letter-spacing:.1em;
+}
+#comments-block .comment-body p {
+margin:0 0 .75em;
+}
+.deleted-comment {
+font-style:italic;
+color:gray;
+}
+.feed-links {
+clear: both;
+line-height: 2.5em;
+}
+#blog-pager-newer-link {
+float: left;
+}
+#blog-pager-older-link {
+float: right;
+}
+#blog-pager {
+text-align: center;
+}
+/* Sidebar Content
+----------------------------------------------- */
+.sidebar {
+color: #666666;
+line-height: 1.5em;
+}
+.sidebar ul {
+list-style:none;
+margin:0 0 0;
+padding:0 0 0;
+}
+.sidebar li {
+margin:0;
+padding-top:0;
+padding-right:0;
+padding-bottom:.25em;
+padding-left:15px;
+text-indent:-15px;
+line-height:1.5em;
+}
+.sidebar .widget, .main .widget {
+border-bottom:1px dotted #cccccc;
+margin:0 0 1.5em;
+padding:0 0 1.5em;
+}
+.main .Blog {
+border-bottom-width: 0;
+}
+/* Profile
+----------------------------------------------- */
+.profile-img {
+float: left;
+margin-top: 0;
+margin-right: 5px;
+margin-bottom: 5px;
+margin-left: 0;
+padding: 4px;
+border: 1px solid #cccccc;
+}
+.profile-data {
+margin:0;
+text-transform:uppercase;
+letter-spacing:.1em;
+font: normal normal 78% 'Trebuchet MS', Trebuchet, Arial, Verdana, Sans-serif;
+color: #999999;
+font-weight: bold;
+line-height: 1.6em;
+}
+.profile-datablock {
+margin:.5em 0 .5em;
+}
+.profile-textblock {
+margin: 0.5em 0;
+line-height: 1.6em;
+}
+.profile-link {
+font: normal normal 78% 'Trebuchet MS', Trebuchet, Arial, Verdana, Sans-serif;
+text-transform: uppercase;
+letter-spacing: .1em;
+}
+/* Footer
+----------------------------------------------- */
+#footer {
+width:660px;
+clear:both;
+margin:0 auto;
+padding-top:15px;
+line-height: 1.6em;
+text-transform:uppercase;
+letter-spacing:.1em;
+text-align: center;
+}
+
+--></style>
+<link href='https://www.blogger.com/dyn-css/authorization.css?targetBlogID=8405107760807432973&amp;zx=5920eae1-72c4-4418-9990-7bbd1e40c4d2' media='none' onload='if(media!=&#39;all&#39;)media=&#39;all&#39;' rel='stylesheet'/><noscript><link href='https://www.blogger.com/dyn-css/authorization.css?targetBlogID=8405107760807432973&amp;zx=5920eae1-72c4-4418-9990-7bbd1e40c4d2' rel='stylesheet'/></noscript>
+</head>
+<body>
+<div class='navbar section' id='navbar'><div class='widget Navbar' data-version='1' id='Navbar1'><script type="text/javascript">
+    function setAttributeOnload(object, attribute, val) {
+      if(window.addEventListener) {
+        window.addEventListener('load',
+          function(){ object[attribute] = val; }, false);
+      } else {
+        window.attachEvent('onload', function(){ object[attribute] = val; });
+      }
+    }
+  </script>
+<div id="navbar-iframe-container"></div>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript">
+      gapi.load("gapi.iframes:gapi.iframes.style.bubble", function() {
+        if (gapi.iframes && gapi.iframes.getContext) {
+          gapi.iframes.getContext().openChild({
+              url: 'https://www.blogger.com/navbar.g?targetBlogID\x3d8405107760807432973\x26blogName\x3dJava+Concurrency+(%26c)\x26publishMode\x3dPUBLISH_MODE_BLOGSPOT\x26navbarType\x3dLIGHT\x26layoutType\x3dLAYOUTS\x26searchRoot\x3dhttp://jeremymanson.blogspot.com/search\x26blogLocale\x3den\x26v\x3d2\x26homepageUrl\x3dhttp://jeremymanson.blogspot.com/\x26targetPostID\x3d5370045468923715521\x26blogPostOrPageUrl\x3dhttp://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html\x26vt\x3d3252977127563606368',
+              where: document.getElementById("navbar-iframe-container"),
+              id: "navbar-iframe"
+          });
+        }
+      });
+    </script><script type="text/javascript">
+(function() {
+var script = document.createElement('script');
+script.type = 'text/javascript';
+script.src = '//pagead2.googlesyndication.com/pagead/js/google_top_exp.js';
+var head = document.getElementsByTagName('head')[0];
+if (head) {
+head.appendChild(script);
+}})();
+</script>
+</div></div>
+<div id='outer-wrapper'><div id='wrap2'>
+<!-- skip links for text browsers -->
+<span id='skiplinks' style='display:none;'>
+<a href='#main'>skip to main </a> |
+      <a href='#sidebar'>skip to sidebar</a>
+</span>
+<div id='header-wrapper'>
+<div class='header section' id='header'><div class='widget Header' data-version='1' id='Header1'>
+<div id='header-inner'>
+<div class='titlewrapper'>
+<h1 class='title'>
+<a href='http://jeremymanson.blogspot.co.id/'>
+Java Concurrency (&amp;c)
+</a>
+</h1>
+</div>
+<div class='descriptionwrapper'>
+<p class='description'><span>Jeremy Manson's blog, which goes into great detail either about concurrency in Java, or anything else that the author happens to feel is interesting or relevant to the target audience.</span></p>
+</div>
+</div>
+</div></div>
+</div>
+<div id='content-wrapper'>
+<div id='crosscol-wrapper' style='text-align:center'>
+<div class='crosscol no-items section' id='crosscol'></div>
+</div>
+<div id='main-wrapper'>
+<div class='main section' id='main'><div class='widget Blog' data-version='1' id='Blog1'>
+<div class='blog-posts hfeed'>
+
+          <div class="date-outer">
+        
+<h2 class='date-header'><span>Monday, May 14, 2007</span></h2>
+
+          <div class="date-posts">
+        
+<div class='post-outer'>
+<div class='post hentry uncustomized-post-template' itemprop='blogPost' itemscope='itemscope' itemtype='http://schema.org/BlogPosting'>
+<meta content='8405107760807432973' itemprop='blogId'/>
+<meta content='5370045468923715521' itemprop='postId'/>
+<a name='5370045468923715521'></a>
+<h3 class='post-title entry-title' itemprop='name'>
+Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace
+</h3>
+<div class='post-header'>
+<div class='post-header-line-1'></div>
+</div>
+<div class='post-body entry-content' id='post-body-5370045468923715521' itemprop='description articleBody'>
+This post is not about the memory model, but, instead, is about being able to get, asynchronously, the stack trace of a currently executing thread out of Sun's Java VM.    Getting one synchronously is easy, of course.<br /><br />I was trying to profile some Java applications under Linux, and I wanted to use SIGPROF and JVMTI to find out what code was running at any given second.  This is just a posting to document how I did it, as I ended up using some undocumented JVM features, and I can't find a proper reference for them anywhere else.<br /><br /><a href="http://jeremymanson.blogspot.com/2007/06/more-thoughts-on-sigprof-jvmti-and.html">More information as to why you might want to do this is here</a>.<br /><br />JVMTI is the Java Virtual Machine Toolkit Interface.  It's a C/C++ interface to the virtual machine that allows you to hook in debuggers and profilers.  <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html">More information can be found here</a>.<br /><br />SIGPROF is a POSIX signal.  The way it is set up under Linux is that you can set a timer that goes off at intervals, and, whenever the timer expires, the SIGPROF signal is sent to the application.  The idea is that you can then collect profiling information at fixed intervals.<br /><br />The signal is caught and handled by a random running thread.  That thread will be doing  some task related to running the Java application -- whether that is executing user code, running garbage collection, or doing internal VM maintenance.<br /><br />The problem is that there is no officially documented JVMTI hook that allows the user to find out exactly what the currently running thread is doing that is safe to run in a signal handler.  The official way of getting a stack trace for the currently executing thread, the <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html#GetStackTrace">GetStackTrace</a> function, isn't safe to be called in an asynchronous way -- if you try to read the stack when a timer expires, the Java stack could be in a corrupt state, or GC could be running, or any number of other things.<br /><br />It turns out that the kind folks who wrote the Java virtual machine were fully aware of this, and provided an undocumented interface for this type of profiling, used by their Forte Analyzer (which now operates under the Sun Studio umbrella, I believe).  Now that they've open-sourced the JVM, this is public knowledge.  For those of you who like to see the source code for such things, it can be found in hotspot/src/share/prims/forte.cpp.<br /><br />In principle, AsyncGetCallTrace is fairly easy to use.  This is less true in practice.  Since JVMPI has been removed in JDK6, you start by having to include JVMPI structures in your headers.  In JDK5 and earlier, this step in unnecessary (all covered under the GPL):<br /><pre><br />typedef struct {<br /> jint lineno;<br /> jmethodID method_id;<br />} JVMPI_CallFrame;<br /><br />typedef struct {<br /> JNIEnv *env_id;<br /> jint num_frames;<br /> JVMPI_CallFrame *frames;<br />} JVMPI_CallTrace;<br /></pre><br />Now that you have the JVMPI structures defined, you need a prototype for the undocumented call:<br /><pre><br />extern "C"<br />void AsyncGetCallTrace(JVMPI_CallTrace *trace, jint depth,<br /> void* ucontext)<br />__attribute__ ((weak));<br /></pre><br />The <code>__attribute__ ((weak))</code> is only for g++ users -- it tells the compiler not to look for AsyncGetCallTrace at compile or link time.  People using other compilers can create a library stub that contains this method -- this is left as an exercise for the reader.<br /><br />Since this post is too long already, I will assume that you know how to write both JVMTI and signal handlers.  If you want me to write about that, leave a response, and I'll get to it at some point. <br /><br />So, you write a bit of JVMTI that executes this method, and find out that although the method is invoked, it always returns -1 for the stack depth.  It turns out that jmethodIDs (which are the internal numerical representation for a method in JVMTI / JVMPI) are allocated lazily.  Most JVMTI methods call a method to GetAndAllocate these method IDs.  AsyncGetCallTrace calls a getter, and relies on the jmethodIDs being pre-allocated.  The expectation in the code is that if you have a <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html#ClassLoad">ClassLoad hook in JVMTI</a>, then the method ids will get allocated correctly.<br /><br />So, you insert a ClassLoad Hook (all error correction code removed -- include your error correction code!):<br /><pre><br />void JNICALL OnClassLoad(jvmtiEnv *jvmti_env,<br />                        JNIEnv* jni_env,<br />                        jthread thread,<br />                        jclass klass) {<br />}<br /><br />...<br /><br />jvmtiEnv *jvmti;<br />vm->GetEnv((void **)&jvmti, JVMTI_VERSION);<br />jvmtiEventCallbacks *callbacks =<br /> new jvmtiEventCallbacks();<br />callbacks->ClassLoad = &OnClassLoad;<br />jvmti->SetEventCallbacks(callbacks,<br /> sizeof(jvmtiEventCallbacks));<br />jvmti->SetEventNotificationMode(JVMTI_ENABLE,<br /> JVMTI_EVENT_CLASS_LOAD, NULL);<br /></pre><br />I ran it after I did this, and found out that the stack depth was no longer -1, but the method ids were invalid.  This seems to violate the contract of AsyncGetCallTrace; maybe one of my audience can tell me that this is wrong.  Anyway, in order to "prime the pump" of method ids, I inserted another hook -- this time, to load up the method ids:<br /><pre><br />void JNICALL OnClassPrepare(jvmtiEnv *jvmti_env,<br />                           JNIEnv* jni_env,<br />                           jthread thread,<br />                           jclass klass) {<br /> // We need to do this to "prime the pump",<br /> // as it were -- make sure that all of the<br /> // methodIDs have been initialized internally,<br /> // for AsyncGetCallTrace.  I imagine it slows<br /> // down class loading a mite, but honestly,<br /> // how fast does class loading have to be?<br /> jint method_count;<br /> jmethodID *methods;<br /> jvmti_env->GetClassMethods(klass, &method_count,<br />   &amp;methods);<br /> delete [] methods;<br />}<br /></pre><br />This is pretty dumb, and I'd love to get rid of it.  Anyone more familiar with this interface should slap me upside the head and tell me how to do it properly.<br /><br />Anyway, after you do this, AsyncGetCallTrace returns valid results.  If the resulting stack depth is negative, it wasn't able to grab a valid Java stack.  The most important negative result is -2, which indicates that you sampled in the middle of garbage collection.
+<div style='clear: both;'></div>
+</div>
+<div class='post-footer'>
+<div class='post-footer-line post-footer-line-1'>
+<span class='post-author vcard'>
+Posted by
+<span class='fn' itemprop='author' itemscope='itemscope' itemtype='http://schema.org/Person'>
+<meta content='https://www.blogger.com/profile/04241094734813086257' itemprop='url'/>
+<a class='g-profile' href='https://www.blogger.com/profile/04241094734813086257' rel='author' title='author profile'>
+<span itemprop='name'>Jeremy Manson</span>
+</a>
+</span>
+</span>
+<span class='post-timestamp'>
+at
+<meta content='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html' itemprop='url'/>
+<a class='timestamp-link' href='http://jeremymanson.blogspot.co.id/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html' rel='bookmark' title='permanent link'><abbr class='published' itemprop='datePublished' title='2007-05-14T16:22:00-07:00'>4:22 PM</abbr></a>
+</span>
+<span class='reaction-buttons'>
+</span>
+<span class='post-comment-link'>
+</span>
+<span class='post-backlinks post-comment-link'>
+</span>
+<span class='post-icons'>
+<span class='item-action'>
+<a href='https://www.blogger.com/email-post.g?blogID=8405107760807432973&postID=5370045468923715521' title='Email Post'>
+<img alt='' class='icon-action' height='13' src='https://resources.blogblog.com/img/icon18_email.gif' width='18'/>
+</a>
+</span>
+<span class='item-control blog-admin pid-1254066360'>
+<a href='https://www.blogger.com/post-edit.g?blogID=8405107760807432973&postID=5370045468923715521&from=pencil' title='Edit Post'>
+<img alt='' class='icon-action' height='18' src='https://resources.blogblog.com/img/icon18_edit_allbkg.gif' width='18'/>
+</a>
+</span>
+</span>
+<div class='post-share-buttons goog-inline-block'>
+</div>
+</div>
+<div class='post-footer-line post-footer-line-2'>
+<span class='post-labels'>
+Labels:
+<a href='http://jeremymanson.blogspot.co.id/search/label/Hotspot%20JVM' rel='tag'>Hotspot JVM</a>,
+<a href='http://jeremymanson.blogspot.co.id/search/label/Java' rel='tag'>Java</a>,
+<a href='http://jeremymanson.blogspot.co.id/search/label/JVMTI' rel='tag'>JVMTI</a>,
+<a href='http://jeremymanson.blogspot.co.id/search/label/Profiling' rel='tag'>Profiling</a>
+</span>
+</div>
+<div class='post-footer-line post-footer-line-3'>
+<span class='post-location'>
+</span>
+</div>
+</div>
+</div>
+<div class='comments' id='comments'>
+<a name='comments'></a>
+<h4>20 comments:</h4>
+<div id='Blog1_comments-block-wrapper'>
+<dl class='avatar-comment-indent' id='comments-block'>
+<dt class='comment-author ' id='c8359965798451407618'>
+<a name='c8359965798451407618'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/17263278019821528417" rel="nofollow" onclick="" class="avatar-hovercard" id="av-8359965798451407618-17263278019821528417"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Ranjit Iyer">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/17263278019821528417' rel='nofollow'>Ranjit Iyer</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-8359965798451407618'>
+<p>
+Thanks for a very informative post. Am trying to express my vague understanding of the series of events that happen when the timer goes off. I'd appreciate if you could shed some light where necessary.<BR/><BR/>The timer goes off and a signal is raised by the OS. From here on am  confused between two things.<BR/><BR/>Does this signal gets translated into a Java exception accusing the currently executing thread's method for having raised it? and which in turn causes a JVMTI ExceptionEvent to occur, giving your agent the chance to obtain the stack trace of the faulting thread (which was the active thread)? <BR/><BR/>Or<BR/><BR/>If the above conjecture is false, would you elaborate on the role played by the signal handler and the events thereafter?<BR/><BR/>Specifically, if you installed a signal handler to handle the SIGPROF, on which thread is the handler executed (current thread?)? If it is on the current/active thread, how do you force an Java event so the JVMTI agent gets notified and gets a chance to do something.<BR/><BR/>Thanks and Regards,<BR/>Ranjit
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1181950860000#c8359965798451407618' title='comment permalink'>
+June 15, 2007 at 4:41 PM
+</a>
+<span class='item-control blog-admin pid-787186945'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=8359965798451407618' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c6792143780159479008'>
+<a name='c6792143780159479008'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-6792143780159479008-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="34" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//www.cs.umd.edu/~jmanson/me.jpg" title="Jeremy Manson">
+
+<noscript><img src="//www.cs.umd.edu/~jmanson/me.jpg" width="34" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-6792143780159479008'>
+<p>
+Hey Ranjit --<BR/><BR/>I answered this in waaay too much detail in <A HREF="http://jeremymanson.blogspot.com/2007/06/more-about-profiling-with-sigprof.html" REL="nofollow">a post about using SIGPROF</A>.  The short version is that you load a signal handler in C++, and it gets executed when the timer goes off.  Nothing happens in Java code at all.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1182841140000#c6792143780159479008' title='comment permalink'>
+June 25, 2007 at 11:59 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=6792143780159479008' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c3905753778259663307'>
+<a name='c3905753778259663307'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/17263278019821528417" rel="nofollow" onclick="" class="avatar-hovercard" id="av-3905753778259663307-17263278019821528417"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Ranjit Iyer">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/17263278019821528417' rel='nofollow'>Ranjit Iyer</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-3905753778259663307'>
+<p>
+Thanks Jeremy, That was very helpful. <BR/><BR/>Ranjit
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1184691960000#c3905753778259663307' title='comment permalink'>
+July 17, 2007 at 10:06 AM
+</a>
+<span class='item-control blog-admin pid-787186945'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=3905753778259663307' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c3027814855073073979'>
+<a name='c3027814855073073979'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/16799886769176229078" rel="nofollow" onclick="" class="avatar-hovercard" id="av-3027814855073073979-16799886769176229078"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Brent">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/16799886769176229078' rel='nofollow'>Brent</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-3027814855073073979'>
+<p>
+Jeremy: I just stumbled across this 2-year old post of yours.<br /><br />What is the current state of the art?  In particular, what is the best (accurate, yet low impact) Java profiler, in your experience?<br /><br />I have used JIP<br />    http://jiprof.sourceforge.net/<br />in the past, but it has terrible performance impact.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1243814530312#c3027814855073073979' title='comment permalink'>
+May 31, 2009 at 5:02 PM
+</a>
+<span class='item-control blog-admin pid-1015214217'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=3027814855073073979' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c4574570138008762301'>
+<a name='c4574570138008762301'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-4574570138008762301-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-4574570138008762301'>
+<p>
+Heh.  We've been working on ours.  It now does native and mixed mode (i.e., Java + native) stack frames, which means it can identify hotspots in the VM and in JNI code (including GC and compiler time), with little / no cost.  It really is pretty sweet.  So I use that one a lot.  I would love to make it open source, but I haven't even had the time to make the profiler work on non-Google programs, much less open-source it.<br /><br />When I don't use that, I tend to use JProfiler, largely because it is available and handy at Google.  It has a fairly enormous performance impact, though.<br /><br />I don't know enough about it to recommend it, but I understand that the Sun Studio profiler uses AsyncGetCallTrace.  As a result, it should have low overhead.  I also believe that the binaries are free-as-in-beer, so it might be worth a try.<br /><br />I don't use it, but I also understand that YourKit has a lower-overhead mode.  I know several people who swear by it.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1243834329498#c4574570138008762301' title='comment permalink'>
+May 31, 2009 at 10:32 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=4574570138008762301' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c3116566244431052957'>
+<a name='c3116566244431052957'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/16799886769176229078" rel="nofollow" onclick="" class="avatar-hovercard" id="av-3116566244431052957-16799886769176229078"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Brent">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/16799886769176229078' rel='nofollow'>Brent</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-3116566244431052957'>
+<p>
+Jeremy: please blog extensively as soon as you open source that profiler--sounds exciting.<br /><br />In the meanwhile, I will look into those other recommendations.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244078451767#c3116566244431052957' title='comment permalink'>
+June 3, 2009 at 6:20 PM
+</a>
+<span class='item-control blog-admin pid-1015214217'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=3116566244431052957' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c6427516309374523210'>
+<a name='c6427516309374523210'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/00414063535114178838" rel="nofollow" onclick="" class="avatar-hovercard" id="av-6427516309374523210-00414063535114178838"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="William Louth">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/00414063535114178838' rel='nofollow'>William Louth</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-6427516309374523210'>
+<p>
+I think call stack sampling can easily be replaced with a more efficient probe based (chained metering strategy) approach with much accurate hotspot detection along with the possibility of using addition meters/metrics which is not possible with call sampling in whatever form.<br /><br />http://williamlouth.wordpress.com/2009/01/07/profiling-sampling-versus-execution-part-1/<br /><br />http://williamlouth.wordpress.com/2009/01/16/profiling-sampling-versus-execution-part-2/
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244194829850#c6427516309374523210' title='comment permalink'>
+June 5, 2009 at 2:40 AM
+</a>
+<span class='item-control blog-admin pid-282742704'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=6427516309374523210' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c5217583201530774275'>
+<a name='c5217583201530774275'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-5217583201530774275-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-5217583201530774275'>
+<p>
+@William - From that blog post, your methodology is highly unclear.  You have to describe how you gather your data before I will believe your claims.<br /><br />AsyncGetCallTrace avoids a lot of the overhead of traditional Java stack trace sampling mechanisms, and can profile with a greater degree of accuracy.  You don&#39;t have to take my word for it - you can try it yourself.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244217948181#c5217583201530774275' title='comment permalink'>
+June 5, 2009 at 9:05 AM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=5217583201530774275' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c6957452238919023339'>
+<a name='c6957452238919023339'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/16799886769176229078" rel="nofollow" onclick="" class="avatar-hovercard" id="av-6957452238919023339-16799886769176229078"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Brent">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/16799886769176229078' rel='nofollow'>Brent</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-6957452238919023339'>
+<p>
+Jeremy, do you happen to know if the Netbeans profiler uses AsyncGetCallTrace or not?<br /><br />Apparently, the visualvm profiler in jdk 6u14 uses code from the latest NB profiler, so I would be curious to know if they use this technique or not.  (And why not, if not.)<br /><br />I did a google search just now, but could not find any good info.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244736075800#c6957452238919023339' title='comment permalink'>
+June 11, 2009 at 9:01 AM
+</a>
+<span class='item-control blog-admin pid-1015214217'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=6957452238919023339' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c711424837756799188'>
+<a name='c711424837756799188'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-711424837756799188-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-711424837756799188'>
+<p>
+@Brent : I have no idea.  It seems reasonably likely.  I know that Sun Studio uses it.  You could grep / objdump your way through the .so files looking for it.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244741802143#c711424837756799188' title='comment permalink'>
+June 11, 2009 at 10:36 AM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=711424837756799188' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c7324486098504786251'>
+<a name='c7324486098504786251'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/16799886769176229078" rel="nofollow" onclick="" class="avatar-hovercard" id="av-7324486098504786251-16799886769176229078"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Brent">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/16799886769176229078' rel='nofollow'>Brent</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-7324486098504786251'>
+<p>
+Jeremy: I just skimmed thru my ...\jdk1.6.0_14\lib\visualvm directory.<br /><br />There are no .so files.  Also, everything seems to be pure java code inside jar files, or xml config files.<br /><br />The one exception that looks like it might have something interesting is ...\jdk1.6.0_14\lib\visualvm\profiler3\lib\deployed\jdk16\windows\profilerinterface.dll<br /><br />Opening that up in TextPad, I see that it does do some JVMTI stuff (JVMTI_ERROR_NONE seems to come up a lot).  But did not see AsyncGetCallTrace.  Maybe that is because I am not looking at the file right.<br /><br />I think that the definitive answer is gonna have to come from someone else.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244744565621#c7324486098504786251' title='comment permalink'>
+June 11, 2009 at 11:22 AM
+</a>
+<span class='item-control blog-admin pid-1015214217'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=7324486098504786251' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c8858201730284374746'>
+<a name='c8858201730284374746'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-8858201730284374746-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-8858201730284374746'>
+<p>
+That particular library seems to call out to Java_org_netbeans_lib_profiler_server_system_Stacks_getCurrentStackFrameIds to get its stack traces.  The code:<br /><br />http://visualvm.sourcearchive.com/documentation/0.20080728/Stacks_8c-source.html<br /><br />Seems to call out to JVMTI&#39;s GetStackTrace function (i.e., not AGCT).
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1244755510956#c8858201730284374746' title='comment permalink'>
+June 11, 2009 at 2:25 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=8858201730284374746' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c5907271283926176374'>
+<a name='c5907271283926176374'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><a href="https://www.blogger.com/profile/16799886769176229078" rel="nofollow" onclick="" class="avatar-hovercard" id="av-5907271283926176374-16799886769176229078"><img src="//lh3.googleusercontent.com/zFdxGE77vvD2w5xHy6jkVuElKv-U9_9qLkRYK8OnbDeJPtjSZ82UPq5w6hJ-SA=s35" width="35" height="35" alt="" title="Brent">
+
+</a></span></div>
+<a href='https://www.blogger.com/profile/16799886769176229078' rel='nofollow'>Brent</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-5907271283926176374'>
+<p>
+Having used visualvm&#39;s profiler several times now in the last couple of days, I too am pretty sure that it must not be using AGCT because it seems to have a massive impact on the performance of my program.  Darn.  Is there a reason why it is not using AGCT?  Ignorance on the part of the developers?  Or does AGCT have some other negative aspect (e.g. it is less accurate or something)?
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1245181884211#c5907271283926176374' title='comment permalink'>
+June 16, 2009 at 12:51 PM
+</a>
+<span class='item-control blog-admin pid-1015214217'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=5907271283926176374' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c4896547232380547709'>
+<a name='c4896547232380547709'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-4896547232380547709-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-4896547232380547709'>
+<p>
+@Brent - The sense I have gotten from talking with these guys is twofold:<br /><br />1) AGCT is just more broken.  We&#39;ve had to patch the VM a few times so that it didn&#39;t fall apart.<br /><br />2) It is also more non-standard - my feeling is that the management team at Sun likes to have their code use the Java standards, and AGCT is not part of the JVMTI spec.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1245187421053#c4896547232380547709' title='comment permalink'>
+June 16, 2009 at 2:23 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=4896547232380547709' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c2099108735235546664'>
+<a name='c2099108735235546664'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><img src="//img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" title="Brent">
+
+</span></div>
+Brent
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-2099108735235546664'>
+<p>
+Jeremy: your profiler probably should NOT use regular time interval samples, but use random samples instead.<br /><br />See this paper:<br />       http://www.inf.usi.ch/faculty/hauswirth/publications/pldi10.pdf
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1277433107844#c2099108735235546664' title='comment permalink'>
+June 24, 2010 at 7:31 PM
+</a>
+<span class='item-control blog-admin pid-887090748'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=2099108735235546664' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c8278149884947718268'>
+<a name='c8278149884947718268'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/10496299147100350513" rel="nofollow" onclick="" class="avatar-hovercard" id="av-8278149884947718268-10496299147100350513"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//lh6.googleusercontent.com/-LPZyIqgbGeQ/AAAAAAAAAAI/AAAAAAAAADA/C0pnXZHCmqU/s35-c/photo.jpg" title="Nitsan Wakart">
+
+<noscript><img src="//lh6.googleusercontent.com/-LPZyIqgbGeQ/AAAAAAAAAAI/AAAAAAAAADA/C0pnXZHCmqU/s35-c/photo.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/10496299147100350513' rel='nofollow'>Nitsan Wakart</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-8278149884947718268'>
+<p>
+Thanks for a great post, I&#39;ve read it a while back and stumbled upon it again today.<br />For present time readers (5 years later) it is worth mentioning that current Oracle Java versions come bundled with Java Flight Recorder and Java Mission Control[1] which offer low overhead AsyncGetCallTrace based profiling. OpenJDK does not include JFR.<br />Also worth mentioning is the active effort by Richard W. on Honest Profiler[2] which is an independent open source effort in creating a low overhead profiler based on AsyncGetCallTrace.<br />1. http://www.oracle.com/technetwork/java/javaseproducts/mission-control/java-mission-control-1998576.html<br />2. https://github.com/RichardWarburton/honest-profiler
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1416444002932#c8278149884947718268' title='comment permalink'>
+November 19, 2014 at 4:40 PM
+</a>
+<span class='item-control blog-admin pid-325136536'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=8278149884947718268' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c8083903740230178718'>
+<a name='c8083903740230178718'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-8083903740230178718-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-8083903740230178718'>
+<span class='deleted-comment'>This comment has been removed by the author.</span>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1416447044291#c8083903740230178718' title='comment permalink'>
+November 19, 2014 at 5:30 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=8083903740230178718' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c22967977467690347'>
+<a name='c22967977467690347'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-22967977467690347-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-22967977467690347'>
+<p>
+Thanks, Nitsan. I also have a proof of concept profiler here:<br /><br />https://code.google.com/p/lightweight-java-profiler/
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1416447070335#c22967977467690347' title='comment permalink'>
+November 19, 2014 at 5:31 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=22967977467690347' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author ' id='c7735888534555484908'>
+<a name='c7735888534555484908'></a>
+<div class="avatar-image-container avatar-stock"><span dir="ltr"><img src="//img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" title="Anonymous">
+
+</span></div>
+Anonymous
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-7735888534555484908'>
+<p>
+Hi Jeremy, thanks for your wonderful discussions on the subject along with the proof-of-concept profiler, which is easy to build and use. Do you have any suggestions on how to use this AGCT API without involving a signal handler (whether SIGPROF or others)?  Mainly, is there a way to call this API from a thread to collect the stack trace on another interested thread?
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1450748168621#c7735888534555484908' title='comment permalink'>
+December 21, 2015 at 5:36 PM
+</a>
+<span class='item-control blog-admin pid-1189805902'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=7735888534555484908' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+<dt class='comment-author blog-author' id='c4183226645905948051'>
+<a name='c4183226645905948051'></a>
+<div class="avatar-image-container vcard"><span dir="ltr"><a href="https://www.blogger.com/profile/04241094734813086257" rel="nofollow" onclick="" class="avatar-hovercard" id="av-4183226645905948051-04241094734813086257"><img src="https://img1.blogblog.com/img/blank.gif" width="35" height="35" alt="" class="delayLoad" style="display: none;" longdesc="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" title="Jeremy Manson">
+
+<noscript><img src="//3.bp.blogspot.com/_Kd3ZRwid36g/SartGilspGI/AAAAAAAAABM/bYwFAyjfM_U/S45-s35/MyPicture.jpg" width="35" height="35" class="photo" alt=""></noscript></a></span></div>
+<a href='https://www.blogger.com/profile/04241094734813086257' rel='nofollow'>Jeremy Manson</a>
+said...
+</dt>
+<dd class='comment-body' id='Blog1_cmt-4183226645905948051'>
+<p>
+Hi!  Thanks for the kind words.<br /><br />I can think of several ways to call this API without involving a signal handler, but very few reasons to do so.  If I wanted to call this function asynchronously on another thread, I&#39;d probably send the other thread a signal with pthread_kill.<br /><br />Different platforms may have different ways of invoking code asynchronously, of course.  On OS X, for example, the profiler as written won&#39;t work, because SIGPROF always goes to the main thread.  Various web searches can solve this problem.
+</p>
+</dd>
+<dd class='comment-footer'>
+<span class='comment-timestamp'>
+<a href='http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html?showComment=1450848316406#c4183226645905948051' title='comment permalink'>
+December 22, 2015 at 9:25 PM
+</a>
+<span class='item-control blog-admin pid-1254066360'>
+<a class='comment-delete' href='https://www.blogger.com/delete-comment.g?blogID=8405107760807432973&postID=4183226645905948051' title='Delete Comment'>
+<img src='https://resources.blogblog.com/img/icon_delete13.gif'/>
+</a>
+</span>
+</span>
+</dd>
+</dl>
+</div>
+<p class='comment-footer'>
+<a href='https://www.blogger.com/comment.g?blogID=8405107760807432973&postID=5370045468923715521' onclick=''>Post a Comment</a>
+</p>
+<div id='backlinks-container'>
+<div id='Blog1_backlinks-container'>
+</div>
+</div>
+</div>
+</div>
+
+        </div></div>
+      
+</div>
+<div class='blog-pager' id='blog-pager'>
+<span id='blog-pager-newer-link'>
+<a class='blog-pager-newer-link' href='http://jeremymanson.blogspot.co.id/2007/05/double-checked-locking-and-problem-with.html' id='Blog1_blog-pager-newer-link' title='Newer Post'>Newer Post</a>
+</span>
+<span id='blog-pager-older-link'>
+<a class='blog-pager-older-link' href='http://jeremymanson.blogspot.co.id/2007/05/google-talks.html' id='Blog1_blog-pager-older-link' title='Older Post'>Older Post</a>
+</span>
+<a class='home-link' href='http://jeremymanson.blogspot.co.id/'>Home</a>
+</div>
+<div class='clear'></div>
+<div class='post-feeds'>
+<div class='feed-links'>
+Subscribe to:
+<a class='feed-link' href='http://jeremymanson.blogspot.com/feeds/5370045468923715521/comments/default' target='_blank' type='application/atom+xml'>Post Comments (Atom)</a>
+</div>
+</div>
+<script type='text/javascript'>
+    window.___gcfg = { 'lang': 'en' };
+  </script>
+</div></div>
+</div>
+<div id='sidebar-wrapper'>
+<div class='sidebar section' id='sidebar'><div class='widget BlogArchive' data-version='1' id='BlogArchive1'>
+<h2>Blog Archive</h2>
+<div class='widget-content'>
+<div id='ArchiveList'>
+<div id='BlogArchive1_ArchiveList'>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2015/'>
+2015
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2015/12/'>
+December
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2013/'>
+2013
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2013/07/'>
+July
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2012/'>
+2012
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2012/02/'>
+February
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2011/'>
+2011
+</a>
+<span class='post-count' dir='ltr'>(3)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2011/06/'>
+June
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2011/05/'>
+May
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2011/04/'>
+April
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2010/'>
+2010
+</a>
+<span class='post-count' dir='ltr'>(5)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2010/08/'>
+August
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2010/02/'>
+February
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2010/01/'>
+January
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/'>
+2009
+</a>
+<span class='post-count' dir='ltr'>(7)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/12/'>
+December
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/09/'>
+September
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/07/'>
+July
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/06/'>
+June
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/04/'>
+April
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2009/02/'>
+February
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/'>
+2008
+</a>
+<span class='post-count' dir='ltr'>(15)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/12/'>
+December
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/11/'>
+November
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/10/'>
+October
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/08/'>
+August
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/07/'>
+July
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/05/'>
+May
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/04/'>
+April
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/03/'>
+March
+</a>
+<span class='post-count' dir='ltr'>(3)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2008/02/'>
+February
+</a>
+<span class='post-count' dir='ltr'>(1)</span>
+</li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate expanded'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy toggle-open'>
+
+        &#9660;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/'>
+2007
+</a>
+<span class='post-count' dir='ltr'>(25)</span>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/08/'>
+August
+</a>
+<span class='post-count' dir='ltr'>(4)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/06/'>
+June
+</a>
+<span class='post-count' dir='ltr'>(6)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate expanded'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy toggle-open'>
+
+        &#9660;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/05/'>
+May
+</a>
+<span class='post-count' dir='ltr'>(5)</span>
+<ul class='posts'>
+<li><a href='http://jeremymanson.blogspot.co.id/2007/05/double-checked-locking-and-problem-with.html'>Double-Checked Locking and the Problem with Wikipe...</a></li>
+<li><a href='http://jeremymanson.blogspot.co.id/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html'>Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCa...</a></li>
+<li><a href='http://jeremymanson.blogspot.co.id/2007/05/google-talks.html'>Google Talks</a></li>
+<li><a href='http://jeremymanson.blogspot.co.id/2007/05/roach-motels-and-java-memory-model.html'>Roach Motels and The Java Memory Model</a></li>
+<li><a href='http://jeremymanson.blogspot.co.id/2007/05/software-transactional-memory-talk-at.html'>Software Transactional Memory Talk at Google</a></li>
+</ul>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/04/'>
+April
+</a>
+<span class='post-count' dir='ltr'>(2)</span>
+</li>
+</ul>
+<ul class='hierarchy'>
+<li class='archivedate collapsed'>
+<a class='toggle' href='javascript:void(0)'>
+<span class='zippy'>
+
+        &#9658;&#160;
+      
+</span>
+</a>
+<a class='post-count-link' href='http://jeremymanson.blogspot.co.id/2007/03/'>
+March
+</a>
+<span class='post-count' dir='ltr'>(8)</span>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=8405107760807432973&widgetType=BlogArchive&widgetId=BlogArchive1&action=editWidget&sectionId=sidebar' onclick='return _WidgetManager._PopupConfig(document.getElementById("BlogArchive1"));' target='configBlogArchive1' title='Edit'>
+<img alt='' height='18' src='https://resources.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div>
+</div><div class='widget Profile' data-version='1' id='Profile1'>
+<h2>About Me</h2>
+<div class='widget-content'>
+<a href='https://www.blogger.com/profile/04241094734813086257'><img alt='My photo' class='profile-img' height='80' src='//3.bp.blogspot.com/_Kd3ZRwid36g/SPQ45cHj9UI/AAAAAAAAAAM/9BkGwSDrYX4/S220-s80/MyPicture.jpg' width='68'/></a>
+<dl class='profile-datablock'>
+<dt class='profile-data'>
+<a class='profile-name-link g-profile' href='https://www.blogger.com/profile/04241094734813086257' rel='author' style='background-image: url(//www.blogger.com/img/logo-16.png);'>
+Jeremy Manson
+</a>
+</dt>
+<dd class='profile-textblock'>I'm a programming languages and software engineering guy who works at Google. Nothing I say represents the views of my employer, of course.
+<br>
+I was one of the authors on JSR-133, the revision of the JLS that dealt with threads and synchronization.  I often use this blog to address frequently asked questions about threading.</dd>
+</dl>
+<a class='profile-link' href='https://www.blogger.com/profile/04241094734813086257' rel='author'>View my complete profile</a>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=8405107760807432973&widgetType=Profile&widgetId=Profile1&action=editWidget&sectionId=sidebar' onclick='return _WidgetManager._PopupConfig(document.getElementById("Profile1"));' target='configProfile1' title='Edit'>
+<img alt='' height='18' src='https://resources.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div>
+</div><div class='widget Subscribe' data-version='1' id='Subscribe1'>
+<div style='white-space:nowrap'>
+<h2 class='title'>Subscribe To This Blog</h2>
+<div class='widget-content'>
+<div class='subscribe-wrapper subscribe-type-POST'>
+<div class='subscribe expanded subscribe-type-POST' id='SW_READER_LIST_Subscribe1POST' style='display:none;'>
+<div class='top'>
+<span class='inner' onclick='return(_SW_toggleReaderList(event, "Subscribe1POST"));'>
+<img class='subscribe-dropdown-arrow' src='https://img2.blogblog.com/img/widgets/arrow_dropdown.gif'/>
+<img align='absmiddle' alt='' border='0' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+Posts
+</span>
+<div class='feed-reader-links'>
+<a class='feed-reader-link' href='https://www.netvibes.com/subscribe.php?url=http%3A%2F%2Fjeremymanson.blogspot.com%2Ffeeds%2Fposts%2Fdefault' target='_blank'>
+<img src='https://img1.blogblog.com/img/widgets/subscribe-netvibes.png'/>
+</a>
+<a class='feed-reader-link' href='https://add.my.yahoo.com/content?url=http%3A%2F%2Fjeremymanson.blogspot.com%2Ffeeds%2Fposts%2Fdefault' target='_blank'>
+<img src='https://img1.blogblog.com/img/widgets/subscribe-yahoo.png'/>
+</a>
+<a class='feed-reader-link' href='http://jeremymanson.blogspot.com/feeds/posts/default' target='_blank'>
+<img align='absmiddle' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+                  Atom
+                </a>
+</div>
+</div>
+<div class='bottom'></div>
+</div>
+<div class='subscribe' id='SW_READER_LIST_CLOSED_Subscribe1POST' onclick='return(_SW_toggleReaderList(event, "Subscribe1POST"));'>
+<div class='top'>
+<span class='inner'>
+<img class='subscribe-dropdown-arrow' src='https://img2.blogblog.com/img/widgets/arrow_dropdown.gif'/>
+<span onclick='return(_SW_toggleReaderList(event, "Subscribe1POST"));'>
+<img align='absmiddle' alt='' border='0' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+Posts
+</span>
+</span>
+</div>
+<div class='bottom'></div>
+</div>
+</div>
+<div class='subscribe-wrapper subscribe-type-PER_POST'>
+<div class='subscribe expanded subscribe-type-PER_POST' id='SW_READER_LIST_Subscribe1PER_POST' style='display:none;'>
+<div class='top'>
+<span class='inner' onclick='return(_SW_toggleReaderList(event, "Subscribe1PER_POST"));'>
+<img class='subscribe-dropdown-arrow' src='https://img2.blogblog.com/img/widgets/arrow_dropdown.gif'/>
+<img align='absmiddle' alt='' border='0' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+Comments
+</span>
+<div class='feed-reader-links'>
+<a class='feed-reader-link' href='https://www.netvibes.com/subscribe.php?url=http%3A%2F%2Fjeremymanson.blogspot.com%2Ffeeds%2F5370045468923715521%2Fcomments%2Fdefault' target='_blank'>
+<img src='https://img1.blogblog.com/img/widgets/subscribe-netvibes.png'/>
+</a>
+<a class='feed-reader-link' href='https://add.my.yahoo.com/content?url=http%3A%2F%2Fjeremymanson.blogspot.com%2Ffeeds%2F5370045468923715521%2Fcomments%2Fdefault' target='_blank'>
+<img src='https://img1.blogblog.com/img/widgets/subscribe-yahoo.png'/>
+</a>
+<a class='feed-reader-link' href='http://jeremymanson.blogspot.com/feeds/5370045468923715521/comments/default' target='_blank'>
+<img align='absmiddle' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+                  Atom
+                </a>
+</div>
+</div>
+<div class='bottom'></div>
+</div>
+<div class='subscribe' id='SW_READER_LIST_CLOSED_Subscribe1PER_POST' onclick='return(_SW_toggleReaderList(event, "Subscribe1PER_POST"));'>
+<div class='top'>
+<span class='inner'>
+<img class='subscribe-dropdown-arrow' src='https://img2.blogblog.com/img/widgets/arrow_dropdown.gif'/>
+<span onclick='return(_SW_toggleReaderList(event, "Subscribe1PER_POST"));'>
+<img align='absmiddle' alt='' border='0' class='feed-icon' src='https://img1.blogblog.com/img/icon_feed12.png'/>
+Comments
+</span>
+</span>
+</div>
+<div class='bottom'></div>
+</div>
+</div>
+<div style='clear:both'></div>
+</div>
+</div>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=8405107760807432973&widgetType=Subscribe&widgetId=Subscribe1&action=editWidget&sectionId=sidebar' onclick='return _WidgetManager._PopupConfig(document.getElementById("Subscribe1"));' target='configSubscribe1' title='Edit'>
+<img alt='' height='18' src='https://resources.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div><div class='widget AdSense' data-version='1' id='AdSense1'>
+<div class='widget-content'>
+<script type="text/javascript"><!--
+google_ad_client="pub-7404595746739662";
+google_ad_host="pub-1556223355139109";
+google_ad_host_channel="00000";
+google_ad_width=180;
+google_ad_height=150;
+google_ad_format="180x150_as";
+google_ad_type="text";
+google_color_border="336699";
+google_color_bg="FFFFFF";
+google_color_link="0000FF";
+google_color_url="008000";
+google_color_text="000000";
+//--></script>
+<script type="text/javascript"
+  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+<div class='clear'></div>
+<span class='widget-item-control'>
+<span class='item-control blog-admin'>
+<a class='quickedit' href='//www.blogger.com/rearrange?blogID=8405107760807432973&widgetType=AdSense&widgetId=AdSense1&action=editWidget&sectionId=sidebar' onclick='return _WidgetManager._PopupConfig(document.getElementById("AdSense1"));' target='configAdSense1' title='Edit'>
+<img alt='' height='18' src='https://resources.blogblog.com/img/icon18_wrench_allbkg.png' width='18'/>
+</a>
+</span>
+</span>
+<div class='clear'></div>
+</div>
+</div></div>
+</div>
+<!-- spacer for skins that want sidebar and main to be the same height-->
+<div class='clear'>&#160;</div>
+</div>
+<!-- end content-wrapper -->
+<div id='footer-wrapper'>
+<div class='footer no-items section' id='footer'></div>
+</div>
+</div></div>
+<!-- end outer-wrapper -->
+<script type='text/javascript'>
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type='text/javascript'>
+var pageTracker = _gat._getTracker("UA-1938684-1");
+pageTracker._initData();
+pageTracker._trackPageview();
+</script>
+<script src='https://apis.google.com/js/plusone.js' type='text/javascript'></script>
+
+<script type="text/javascript" src="https://www.blogger.com/static/v1/widgets/3863139539-widgets.js"></script>
+<script type='text/javascript'>
+window['__wavt'] = 'AOuZoY4lYXGG02VEgCVyz7SVrr9vXQHRRg:1500728130392';_WidgetManager._Init('//www.blogger.com/rearrange?blogID\x3d8405107760807432973','//jeremymanson.blogspot.co.id/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html','8405107760807432973');
+_WidgetManager._SetDataContext([{'name': 'blog', 'data': {'blogId': '8405107760807432973', 'title': 'Java Concurrency (\x26amp;c)', 'url': 'http://jeremymanson.blogspot.co.id/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html', 'canonicalUrl': 'http://jeremymanson.blogspot.com/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html', 'homepageUrl': 'http://jeremymanson.blogspot.co.id/', 'searchUrl': 'http://jeremymanson.blogspot.co.id/search', 'canonicalHomepageUrl': 'http://jeremymanson.blogspot.com/', 'blogspotFaviconUrl': 'http://jeremymanson.blogspot.co.id/favicon.ico', 'bloggerUrl': 'https://www.blogger.com', 'hasCustomDomain': false, 'httpsEnabled': true, 'enabledCommentProfileImages': true, 'gPlusViewType': 'FILTERED_POSTMOD', 'adultContent': false, 'analyticsAccountNumber': '', 'encoding': 'UTF-8', 'locale': 'en', 'localeUnderscoreDelimited': 'en', 'languageDirection': 'ltr', 'isPrivate': false, 'isMobile': false, 'isMobileRequest': false, 'mobileClass': '', 'isPrivateBlog': false, 'feedLinks': '\x3clink rel\x3d\x22alternate\x22 type\x3d\x22application/atom+xml\x22 title\x3d\x22Java Concurrency (\x26amp;c) - Atom\x22 href\x3d\x22http://jeremymanson.blogspot.com/feeds/posts/default\x22 /\x3e\n\x3clink rel\x3d\x22alternate\x22 type\x3d\x22application/rss+xml\x22 title\x3d\x22Java Concurrency (\x26amp;c) - RSS\x22 href\x3d\x22http://jeremymanson.blogspot.com/feeds/posts/default?alt\x3drss\x22 /\x3e\n\x3clink rel\x3d\x22service.post\x22 type\x3d\x22application/atom+xml\x22 title\x3d\x22Java Concurrency (\x26amp;c) - Atom\x22 href\x3d\x22https://www.blogger.com/feeds/8405107760807432973/posts/default\x22 /\x3e\n\n\x3clink rel\x3d\x22alternate\x22 type\x3d\x22application/atom+xml\x22 title\x3d\x22Java Concurrency (\x26amp;c) - Atom\x22 href\x3d\x22http://jeremymanson.blogspot.com/feeds/5370045468923715521/comments/default\x22 /\x3e\n', 'meTag': '', 'openIdOpTag': '', 'adsenseClientId': 'ca-pub-7404595746739662', 'adsenseHostId': 'ca-host-pub-1556223355139109', 'adsenseHasAds': true, 'view': '', 'dynamicViewsCommentsSrc': '//www.blogblog.com/dynamicviews/4224c15c4e7c9321/js/comments.js', 'dynamicViewsScriptSrc': '//www.blogblog.com/dynamicviews/d11edf3f68fa7b7e', 'plusOneApiSrc': 'https://apis.google.com/js/plusone.js', 'sharing': {'platforms': [{'name': 'Get link', 'key': 'link', 'shareMessage': 'Get link', 'target': ''}, {'name': 'Facebook', 'key': 'facebook', 'shareMessage': 'Share to Facebook', 'target': 'facebook'}, {'name': 'BlogThis!', 'key': 'blogThis', 'shareMessage': 'BlogThis!', 'target': 'blog'}, {'name': 'Twitter', 'key': 'twitter', 'shareMessage': 'Share to Twitter', 'target': 'twitter'}, {'name': 'Pinterest', 'key': 'pinterest', 'shareMessage': 'Share to Pinterest', 'target': 'pinterest'}, {'name': 'Google+', 'key': 'googlePlus', 'shareMessage': 'Share to Google+', 'target': 'googleplus'}, {'name': 'Email', 'key': 'email', 'shareMessage': 'Email', 'target': 'email'}], 'googlePlusShareButtonWidth': 300, 'googlePlusBootstrap': '\x3cscript type\x3d\x22text/javascript\x22\x3ewindow.___gcfg \x3d {\x27lang\x27: \x27en\x27};\x3c/script\x3e'}, 'hasCustomJumpLinkMessage': false, 'jumpLinkMessage': 'Read more', 'pageType': 'item', 'postId': '5370045468923715521', 'pageName': 'Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace', 'pageTitle': 'Java Concurrency (\x26amp;c): Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace'}}, {'name': 'features', 'data': {'unsupported_browser_message': 'false', 'lightbox_img_parsing': 'false', 'sharing_get_link_dialog': 'false'}}, {'name': 'messages', 'data': {'edit': 'Edit', 'linkCopiedToClipboard': 'Link copied to clipboard!', 'ok': 'Ok', 'postLink': 'Post Link'}}, {'name': 'template', 'data': {'name': 'custom', 'localizedName': 'Custom', 'isResponsive': false, 'isAlternateRendering': false, 'isCustom': true}}, {'name': 'view', 'data': {'classic': {'name': 'classic', 'url': '?view\x3dclassic'}, 'flipcard': {'name': 'flipcard', 'url': '?view\x3dflipcard'}, 'magazine': {'name': 'magazine', 'url': '?view\x3dmagazine'}, 'mosaic': {'name': 'mosaic', 'url': '?view\x3dmosaic'}, 'sidebar': {'name': 'sidebar', 'url': '?view\x3dsidebar'}, 'snapshot': {'name': 'snapshot', 'url': '?view\x3dsnapshot'}, 'timeslide': {'name': 'timeslide', 'url': '?view\x3dtimeslide'}, 'isMobile': false, 'title': 'Profiling with JVMTI/JVMPI, SIGPROF and AsyncGetCallTrace', 'description': 'This post is not about the memory model, but, instead, is about being able to get, asynchronously, the stack trace of a currently executing ...', 'url': 'http://jeremymanson.blogspot.co.id/2007/05/profiling-with-jvmtijvmpi-sigprof-and.html', 'type': 'item', 'isSingleItem': true, 'isMultipleItems': false, 'isError': false, 'isPage': false, 'isPost': true, 'isHomepage': false, 'isArchive': false, 'isLabelSearch': false, 'postId': 5370045468923715521}}]);
+_WidgetManager._RegisterWidget('_NavbarView', new _WidgetInfo('Navbar1', 'navbar', null, document.getElementById('Navbar1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HeaderView', new _WidgetInfo('Header1', 'header', null, document.getElementById('Header1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogView', new _WidgetInfo('Blog1', 'main', null, document.getElementById('Blog1'), {'cmtInteractionsEnabled': false, 'lightboxEnabled': true, 'lightboxModuleUrl': 'https://www.blogger.com/static/v1/jsbin/2709796370-lbx.js', 'lightboxCssUrl': 'https://www.blogger.com/static/v1/v-css/368954415-lightbox_bundle.css'}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogArchiveView', new _WidgetInfo('BlogArchive1', 'sidebar', null, document.getElementById('BlogArchive1'), {'languageDirection': 'ltr', 'loadingMessage': 'Loading\x26hellip;'}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_ProfileView', new _WidgetInfo('Profile1', 'sidebar', null, document.getElementById('Profile1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_SubscribeView', new _WidgetInfo('Subscribe1', 'sidebar', null, document.getElementById('Subscribe1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_AdSenseView', new _WidgetInfo('AdSense1', 'sidebar', null, document.getElementById('AdSense1'), {}, 'displayModeFull'));
+</script>
+</body>
+</html>

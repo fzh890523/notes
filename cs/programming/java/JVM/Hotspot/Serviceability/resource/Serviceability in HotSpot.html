@@ -1,0 +1,549 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=us-ascii" /><meta content="text/html; charset=us-ascii" http-equiv="content-type" /><title>Serviceability in HotSpot</title><link rel="shortcut icon" href="../../../images/nanoduke.ico" /><link rel="stylesheet" type="text/css" href="../../../page.css" /><script type="text/javascript" src="../../../page.js"><noscript></noscript></script></head><body><div id="main">
+<a href="../index.html"><img src="upArrow.jpg" alt="up arrow" /></a>
+<h1>Serviceability in HotSpot</h1>
+The HotSpot Virtual Machine contains several technologies that
+allow its operation to be observed by another Java process:
+<ul>
+<li><b>The Serviceability Agent(SA)</b>. The Serviceability Agent
+is a Sun private component in the HotSpot repository that was
+developed by HotSpot engineers to assist in debugging HotSpot. They
+then realized that SA could be used to craft serviceability tools
+for end users since it can expose Java objects as well as HotSpot
+data structures both in running processes and in core files.</li>
+<li><b>jvmstat performance counters</b>. HotSpot maintains several
+performance counters that are exposed to external processes via a
+Sun private shared memory mechanism. These counters are sometimes
+called perfdata.</li>
+<li><b>The Java Virtual Machine Tool Interface (JVM TI)</b>. This
+is a standard C interface that is the reference implementation of
+<a href="http://jcp.org/en/jsr/detail?id=163">JSR 163 -
+Java<sup><font size="-2">TM</font></sup> Platform Profiling
+Architecture</a> JVM TI is implemented by HotSpot and allows a
+native code 'agent' to inspect and modify the state of the
+JVM.</li>
+<li><b>The Monitoring and Management interface</b>. This is a Sun
+private API that allows aspects of HotSpot to be monitored and
+managed.</li>
+<li><b>Dynamic Attach</b>. This is a Sun private mechanism that
+allows an external process to start a thread in HotSpot that can
+then be used to launch an agent to run in that HotSpot, and to send
+information about the state of HotSpot back to the external
+process.</li>
+<li><b>DTrace</b>. <a href="http://en.wikipedia.org/wiki/DTrace">DTrace</a> is the award
+winning dynamic trace facility built into Solaris 10 and later
+versions. DTrace probes have been added to HotSpot that allow
+monitoring of many aspects of operation when HotSpot runs on
+Solaris. In addition, HotSpot contains a jhelper.d file that
+enables dtrace to show Java frames in stack traces.</li>
+<li><b>pstack support</b>. <a href="http://docs.sun.com/app/docs/doc/816-5165/6mbb0m9pm?a=view">pstack</a>
+is a Solaris utility that prints stack traces of all threads in a
+process. HotSpot includes support that allows pstack to show Java
+stack frames.</li>
+</ul>
+<blockquote><b>Note</b>: HotSpot also includes the following
+mechanisms that will produce output on the standard output TTY.
+These mechanisms are not normally used by observability tools and
+won't be discussed further here.
+<ul>
+<li>Command line options such as -verbose that cause trace type
+information to be written to the standard output tty device</li>
+<li>SIGQUIT/control-break handling that causes a stack dump of
+executing threads to be produced on the standard output tty
+device.</li>
+</ul>
+</blockquote>
+<p>For each of these technologies, there is code in the J2SE
+repository that uses it, and/or allows user code to use it; see
+<a href="/groups/serviceability/svcjdk.html">Serviceability in the
+J2SE Repository</a></p>
+<p>The following table contains links to more information about
+each of these technologies, shows where these technologies reside
+in the HotSpot repository, and contains links to information about
+the use of the technologies in the J2SE repository.<br />
+<br /></p>
+<table style="text-align: left;" summary="Serviceability Technologies in HotSpot" border="1" cellpadding="2" cellspacing="0">
+<tbody>
+<tr>
+<th><big><big>Technology<br /></big></big></th>
+<th><big><big>Source Location<br /></big></big></th>
+<th><big><big>Usage in the J2SE Repository</big></big></th>
+</tr>
+<tr>
+<td valign="top"><a name="tjvmti" href="#bjvmti" id="tjvmti">JVM
+TI- Java Virtual Machine Tools Interface</a></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmtiGen.java">
+hotspot/src/share/vm/prims/jvmtiGen.java</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmtiEnvFill.java">
+hotspot/src/share/vm/prims/jvmtiGen.java</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmti.xml">
+hotspot/src/share/vm/prims/jvmti.xml</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims">hotspot/src/share/vm/prims/jvmti*</a><br />
+
+build/.../generated/jvmtifiles/jvmtiEnter.cpp<br />
+build/.../generated/jvmtifiles/jvmtiEnterTrace.cpp<br />
+build/.../generated/jvmtifiles/jvmtiEnv.hpp<br />
+build/.../generated/jvmtifiles/jvmtiEnvRecommended.cpp<br />
+build/.../generated/jvmtifiles/jvmtiEnvStub.cpp<br />
+build/.../generated/jvmtifiles/jvmti.h<br />
+&#160;&#160;&#160;&#160;(copied to
+j2se/src/share/javavm/export/jvmti.h)<br /></td>
+<td valign="top"><a href="/groups/serviceability/svcjdk.html#tJDWP">J2SE Info</a><br />
+<a href="http://bugs.sun.com/bugdatabase/search.do?process=1&amp;category=hotspot&amp;bugStatus=open&amp;subcategory=jvmti">
+Bugs</a></td>
+</tr>
+<tr>
+<td valign="top"><a name="tmanagement" href="#bmanagement" id="tmanagement">Monitoring and Management</a></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/services/">hotspot/src/share/vm/services/</a>
+(most but not all)<br /></td>
+<td valign="top"><a href="/groups/serviceability/svcjdk.html#tmanagement">J2SE
+Info</a><br />
+<a href="http://bugs.sun.com/bugdatabase/search.do?process=1&amp;category=hotspot&amp;bugStatus=open&amp;subcategory=monitoring_management">
+Bugs</a></td>
+</tr>
+<tr>
+<td valign="top"><a name="tattach" href="#battach" id="tattach">Dynamic attach mechanism</a></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/services/">src/share/vm/services/attachListener.*</a><br />
+
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/linux/vm/attachListener_linux.cpp">
+src/os/linux/vm/attachListener_linux.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/solaris/vm/attachListener_solaris.cpp">
+src/os/solaris/vm/attachListener_solaris.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/win32/vm/attachListener_win32.cpp">
+src/os/win32/vm/attachListener_win32.cpp</a><br /></td>
+<td valign="top"><a href="/groups/serviceability/svcjdk.html#tattach">J2SE Info</a></td>
+</tr>
+<tr>
+<td valign="top"><a name="tjvmstat" href="#bjvmstat" id="tjvmstat">Jvmstat Performance Counters</a></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/perf.cpp">
+src/share/vm/prims/perf.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/runtime/perfMemory.cpp">
+src/share/runtime/perfMemory.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/runtime/perfData.cpp">
+src/share/runtime/perfData.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/runtime/statSampler.cpp">
+src/share/runtime/statSampler.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/services/">src/share/vm/services/*Service.cpp</a><br />
+
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/solaris/vm/perfMemory_solaris.cpp">
+src/os/solaris/vm/perfMemory_solaris.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/linux/vm/perfMemory_linux.cpp">
+src/os/linux/vm/perfMemory_linux.cpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/os/win32/vm/perfMemory_win32.cpp">
+src/os/win32/vm/perfMemory_win32.cpp</a><br /></td>
+<td valign="top"><a href="/groups/serviceability/svcjdk.html#tjvmstat">J2SE Info</a><br />
+<a href="http://bugs.sun.com/bugdatabase/search.do?process=1&amp;category=hotspot&amp;bugStatus=open&amp;subcategory=perfdata">
+Bugs</a></td>
+</tr>
+<tr>
+<td valign="top"><a name="tsa" href="#bsa" id="tsa">Serviceability
+Agent</a></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/agent/">hotspot/agent/</a><br />
+
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/runtime/vmStructs.hpp/">
+hotspot/src/share/vm/runtime/vmStructs.hpp</a><br />
+<a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/runtime/vmStructs.cpp/">
+hotspot/src/share/vm/runtime/vmStructs.cpp</a><br />
+hotspot/cpu/<i>cpu</i>/vm/vmstructs_<i>cpu</i>.hpp<br />
+hotspot/os_cpu/<i>os-cpu</i>/vm/vmstructs_<i>os-cpu</i>.hpp<br /></td>
+<td valign="top"><a href="/groups/serviceability/svcjdk.html#tsa">J2SE Info</a><br />
+<a href="http://www.usenix.org/events/jvm01/full_papers/russell/russell_html/index.html">
+Usenix Serviceability Agent paper</a></td>
+</tr>
+<tr>
+<td valign="top"><a name="tdtrace" href="#bdtrace" id="tdtrace">DTrace Support (Solaris only)</a><br /></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/os/solaris/dtrace/">hotspot/src/os/solaris/dtrace/</a><br />
+
+<a href="http://opengrok.neojava.org/hotspot/xref/build/solaris/makefiles/dtrace.make">
+hotspot/build/solaris/makefiles/dtrace.make</a></td>
+<td valign="top"><a href="http://java.sun.com/javase/6/docs/technotes/guides/vm/dtrace.html">
+DTrace Probes in HotSpot</a><br />
+<a href="http://docs.sun.com/app/docs/doc/819-5488">User
+Guide</a><br /></td>
+</tr>
+<tr>
+<td valign="top"><a name="tpstack" href="#bpstack" id="tpstack">pstack Support(Solaris only)</a><br /></td>
+<td valign="top"><a href="http://opengrok.neojava.org/hotspot/xref/src/os/solaris/dtrace/">hotspot/src/os/solaris/dtrace/</a></td>
+<td valign="top"><a href="http://docs.sun.com/app/docs/doc/816-5165/6mbb0m9pm?a=view">User
+Guide</a></td>
+</tr>
+</tbody>
+</table>
+<h2>Build and Implementation Notes</h2>
+<h2><a name="bjvmti" id="bjvmti">HotSpot JVM TI</a></h2>
+The base definition of JVM TI is contained in file <a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmti.xml">
+jvmti.xml</a> which is processed at HotSpot build time by <a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmtiGen.java">
+hotspot/src/share/vm/prims/jvmtiGen.java</a> and <a href="http://opengrok.neojava.org/hotspot/xref/src/share/vm/prims/jvmtiEnvFill.java">
+hotspot/src/share/vm/prims/jvmtiEnvFill.java</a> to create the .cpp
+and .hpp files shown above in the build/.../ directory. These files
+are then compiled during the build. The resulting JVM TI
+implementation is included in libjvm.so/jvm.dll with the rest of
+HotSpot.
+<p>The HotSpot build process creates interface file jvmti.h which
+is used by JVM TI agents such as the <a href="/groups/serviceability/svcjdk.html#tjdwp">JPDA back-end</a>.
+jvmti.h is copied from the HotSpot build area and checked into the
+J2SE repository whenever changes are made to the interface. This
+file contains a JVM TI version number which is compiled into the
+back-end and is checked against the JVM TI version that is in
+HotSpot during back-end startup.</p>
+<p>In addition to the files shown above, JVM TI has hooks in many
+other HotSpot files, mainly for detecting events that might need to
+be reported to JVM TI agents. You can see such usages by 'grep -i
+jvmti' in the other HotSpot files. For many debugging functions,
+JVM TI also needs hooks in the generated interpreter. Since the
+mere presence of these hooks can slow down applications, the
+interpreter is normally generated without these hooks. If debugging
+is to be done, then a -agentlib option must be used on the Java
+command line specifying the debugging agent that is to be run. This
+option will be detected early in HotSpot startup and will cause the
+<a href="http://java.sun.com/javase/6/docs/platform/jvmti/jvmti.html#startup">
+agent intialization</a> code to be run before the interpreter is
+generated. The agent's startup code will request the JVM TI
+debugging <a href="http://java.sun.com/javase/6/docs/platform/jvmti/jvmti.html#capability">
+capabilities</a> which will in turn cause the interpreter to be
+generated in debug mode.</p>
+<p>We are investigating the possibility of allowing debugging
+agents to start dynamically after HotSpot is already running in JDK
+7. See <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4841257">4841257:
+Should be able to 'attach on demand' to debug</a></p>
+<p><a href="jvmtiImpl.pdf">Here(.pdf)</a> is a presentation about
+the JVM TI implementation.<br />
+<br />
+<a href="#tjvmti"><img src="upArrow.jpg" alt="up arrow" /></a><br />
+<br /></p>
+<h2><a name="bmanagement" id="bmanagement">HotSpot Monitoring and
+Management</a></h2>
+File src/share/vm/services/jmm.h defines a Sun private interface
+that is implemented in HotSpot and is used by the monitoring and
+management code in the J2SE repository. jmm.h is copied into the
+J2SE repository so that monitoring and management native methods
+can use it to call into HotSpot to extract information. jmm.h
+contains a version number that is used at runtime to verify
+interface compatibility between the Java code and the HotSpot that
+is being monitored.
+<p>See <a href="/groups/serviceability/svcjdk.html#tmanagement">Monitoring and
+Management in the J2SE Repository</a> for more information.<br />
+<a href="#tmanagement"><img src="upArrow.jpg" alt="up arrow" /></a><br />
+<br /></p>
+<h2><a name="battach" id="battach">HotSpot Dynamic Attach
+Mechanism</a></h2>
+This is a Sun extension that allows a tool to 'attach' to another
+process running Java code and launch a JVM TI agent or a
+java.lang.instrument agent in that process. This also allows the
+system properties to be obtained from the target JVM.
+<p>The Sun implementation of this API also includes some HotSpot
+specific methods that allow additional information to be obtained
+from HotSpot:</p>
+<ul>
+<li>The ctrl-break output from the local JVM</li>
+<li>The ctrl-break output from the remote JVM</li>
+<li>A dump of the heap</li>
+<li>A histogram showing the number of instances of the classes
+loaded in the target JVM. Either all instances or just 'live'
+instances can be counted.</li>
+<li>The value of a manageable command line flag. Such flags can
+also be set.</li>
+</ul>
+<p>Dynamic attach has an attach listener thread in the target JVM.
+This is a thread that is started when the first attach request
+occurs. On Linux and Solaris, the client creates a file named
+.attach_pid(pid) and sends a SIGQUIT to the target JVM process. The
+existence of this file causes the SIGQUIT handler in HotSpot to
+start the attach listener thread. On Windows, the client uses the
+Win32 CreateRemoteThread function to create a new thread in the
+target process. The attach listener thread then communicates with
+the source JVM in an OS dependent manner:</p>
+<ul>
+<li>On Solaris, the Doors IPC mechanism is used. The door is
+attached to a file in the file system so that clients can access
+it.</li>
+<li>On Linux, a Unix domain socket is used. This socket is bound to
+a file in the filesystem so that clients can access it.</li>
+<li>On Windows, the created thread is given the name of a pipe
+which is served by the client. The result of the operations are
+written to this pipe by the target JVM.</li>
+</ul>
+<a href="#tattach"><img src="upArrow.jpg" alt="up arrow" /></a><br />
+<br />
+<h2><a name="bjvmstat" id="bjvmstat">HotSpot Jvmstat Performance
+Counters</a></h2>
+The HotSpot JVM exports a set of instrumentation objects, or
+counters as they are typically called. The counters are always on
+and so are updated by HotSpot in such a way as to impose minimal
+overhead to the running application. The set of counters exported
+by a JVM is not static as a JVM may create certain counters only
+when appropriate arguments are specified on the command line.
+Furthermore, different versions of a JVM may export very different
+sets of instrumentation. The counters have structured names such as
+<i>sun.gc.generation.1.name, java.threads.live,
+java.cls.loadedClasses</i>. The names of these counters and the
+data structures used to represent them are considered private,
+uncommitted interfaces to the HotSpot JVM. Users should not become
+dependent on any counter names, particularly those that start with
+prefixes other than "java.".
+<p>These counters are exposed to observers in different processes
+by means of a shared memory file. This allows observers in other
+processes to poll the counters without imposing any overhead on the
+target process. The java.io.tmpdir system property contains the
+pathname of the directory in which this file resides. The Solaris
+and Linux shared memory implementations use the mmap interface with
+a backing store file to implement named shared memory. Using the
+file system as the name space for shared memory allows a common
+name space to be supported across a variety of platforms. It also
+provides a name space that Java applications can deal with through
+simple file APIs. The Solaris and Linux implementations store the
+backing store file in a user specific temporary directory located
+in the /tmp file system, which is always a local file system and is
+sometimes a RAM based file system. The name of the file
+is:<br /></p>
+<blockquote>
+/tmp/hsperfdata_<i>user-name</i>/<i>vm-id</i></blockquote>
+<p>The win32 shared memory implementation uses two objects to
+represent the shared memory: a windows kernel based file mapping
+object and a backing store file. On windows, the name space for
+shared memory is a kernel based name space that is disjoint from
+other win32 name spaces. Since Java is unaware of this name space,
+a parallel file system based name space is maintained, which
+provides a common file system based shared memory name space across
+the supported platforms and one that Java apps can deal with
+through simple file apis. For performance and resource cleanup
+reasons, it is recommended that the user specific directory and the
+backing store file be stored in either a RAM based file system or a
+local disk based file system. Network based file systems are not
+recommended for performance reasons. In addition, use of SMB
+network based file systems may result in unsuccessful cleanup of
+the disk based resource on exit of the JVM. The Windows TMP and
+TEMP environment variables, as used by the GetTempPath() Win32 API
+(see os::get_temp_directory() in os_win32.cpp), control the
+location of the user specific directory and the shared memory
+backing store file. This file must not be on a FAT
+filesystem.<br />
+<a href="#tjvmstat"><img src="upArrow.jpg" alt="up arrow" /></a><br />
+<br /></p>
+<h2><a name="bsa" id="bsa">HotSpot Serviceability Agent</a></h2>
+SA knows how to:
+<ul>
+<li>Read bits out of an executing Java process, or a core file from
+a Java process</li>
+<li>Extract all the HotSpot data structures from the raw bits.</li>
+<li>Extract Java objects from the HotSpot data structures.</li>
+</ul>
+<p>Note that SA runs in a separate process from the target process
+and executes no code in the target process. However, the target
+process is halted while SA observes it.</p>
+<p>SA consists mostly of Java classes but it contains a small
+amount of native code to read raw bits from processes and core
+files.</p>
+<ul>
+<li>On Solaris SA uses <a href="http://www.opensolaris.org/os/community/observability/process/libproc/;jsessionid=4C9B9B3195B58BAF8F78C89987506E58">
+libproc</a> to read bits from a process or a core file.</li>
+<li>On Linux, SA uses a mix of /proc and ptrace (mostly the latter)
+to read bits from a process. For core files, SA parses ELF files
+directly.</li>
+<li>On Windows, SA uses the Windows dbgeng.dll library to read the
+raw bits from processes and core files. An alternate implementation
+uses Windows process debugging primitives, but this only works for
+live processes.<br />
+<b>Note that as of JDK 6, SA and tools that depend on it have not
+yet been released on Windows.</b></li>
+</ul>
+<p>File <a href="http://12.101.252.19/hotspot/xref/src/share/vm/runtime/vmStructs.cpp">
+src/share/vm/runtime/vmStructs.cpp</a> contains 'declarations' of
+each HotSpot class and its fields as well as declarations of
+processor dependent items such as registers, sizeof types, ... For
+the latter, vmStructs.cpp includes arch/cpu dependent files,
+eg:</p>
+<ul>
+<li><a href="http://12.101.252.19/hotspot/xref/src/cpu/sparc/vm/vmStructs_sparc.hpp">
+src/cpu/sparc/vm/vmStructs_sparc.hpp</a></li>
+<li><a href="http://12.101.252.19/hotspot/xref/src/os_cpu/solaris_sparc/vm/vmStructs_solaris_sparc.hpp">
+src/os_cpu/solaris_sparc/vm/vmStructs_solaris_sparc.hpp</a></li>
+</ul>
+As an example, in file <a href="http://12.101.252.19/hotspot/xref/src/share/vm/oops/cpCacheOop.hpp#291">
+src/share/vm/oops/cpCacheOop.hpp</a> we have:
+<pre>
+      :
+      class constantPoolCacheOopDesc: public arrayOopDesc {
+      friend class VMStructs;
+      private:
+      constantPoolOop _constant_pool;   // the corresponding constant pool
+      :
+    </pre>
+In vmStructs.cpp, the <i>_constant_pool</i> field is 'declared'
+like this:
+<pre>
+      nonstatic_field(constantPoolCacheOopDesc, _constant_pool,  constantPoolOop) \
+    </pre>
+Note the 'friend class VMStructs' declaration in the above class.
+Most classes declare VMStructs to be a friend so that private
+fields can be accessed.
+<p>During the HotSpot build, vmStructs.cpp is compiled into
+vmStructs.o which is included in libjvm.so. vmStructs.o contains
+all the data that SA needs to read the HotSpot data structures. At
+runtime, SA reads this data from the target process or core
+file.</p>
+<blockquote><b>The names in vmStructs.cpp are used by the Java code
+in SA. Thus, if a field named in vmStructs.cpp is deleted or
+renamed, both vmStructs.cpp and the Java code that access that
+field have to be modified. If this isn't done, then SA will fail
+when it tries to examine a process/core file.</b></blockquote>
+The test in <a href="http://12.101.252.19/hotspot/xref/agent/test/jdi/sasanity.sh">agent/jdi/sasanity.sh</a>
+which runs this class: <a href="http://12.101.252.19/hotspot/xref/agent/test/jdi/sasanity.sh">agent/jdi/SASanityChecker.java</a>
+should be run to check this.
+<p>Lastly, the Java code in SA is basically a mirror of the C++
+code in HotSpot. If algorithms are changed in HotSpot, the same
+changes might have to e made in the SA Java code. Because of the
+tight coupling between the Java classes in SA and the HotSpot data
+structures, we can only count on an instance of SA being able to
+analyze the HotSpot that was built from the same HotSpot repository
+state. In order to detect a mismatch, the HotSpot build places a
+sa.properties file into sa-jdi.jar. This file contains a version
+property, eg:<br /></p>
+<blockquote>
+sun.jvm.hotspot.runtime.VM.supportedVersion=1.7.0</blockquote>
+At run time, SA Java code reads this property and compares it to
+the version of the HotSpot to be analyzed and throws a
+VMVersionMismatchException if the versions do not match. This check
+can be disabled by running the SA tool with<br />
+<blockquote>
+-Dsun.jvm.hotspot.runtime.VM.disableVersionCheck</blockquote>
+<p>SA components are built as part of the standard build of the
+HotSpot repository:</p>
+<ul>
+<li>The native code component of SA is placed in these files:<br />
+<blockquote>jre/lib/sparc/libsaproc.so<br />
+jre/lib/i386/libsaproc.so<br /></blockquote>
+</li>
+<li>The Java classes for SA are placed in<br />
+<blockquote>jdk/lib/sa-jdi.jar<br /></blockquote>
+It includes an implementation of the <a href="/groups/serviceability/svcjdk.html#tJDI">Java Debug
+Interface(JDI)</a> which allows JDI clients to do read-only
+debugging on core files and hung processes.</li>
+</ul>
+<p>These two files are copied from the HotSpot build area to the
+JDK build area during a control build (a control build is a build
+of the control repository which first builds HotSpot and then
+builds the J2SE repository, so that the files built by the HotSpot
+build are available to the J2SE build.)</p>
+<p>SA includes other components that are just used for debugging
+HotSpot and are not built as part of the normal HotSpot build.
+These components are built by doing a make in the
+hotspot/agent/make directory. For more information, please see
+<a href="http://opengrok.neojava.org/hotspot/xref/agent/doc">agent/doc/</a>
+for documentation on these tools, and hints for cross machine core
+dump debugging.</p>
+<p>See also <a href="http://www.usenix.org/events/jvm01/full_papers/russell/russell_html/index.html">
+Usenix Serviceability Agent paper</a><br />
+<a href="#tsa"><img src="upArrow.jpg" alt="up arrow" /></a><br /></p>
+<h2><a name="bdtrace" id="bdtrace">DTrace Support</a></h2>
+(The files that support dtrace in HotSpot are in <a href="http://opengrok.neojava.org/hotspot/xref/src/os/solaris/dtrace/">hotspot/src/os/solaris/dtrace/</a>
+)<br />
+HotSpot contains functionality that allows the DTrace jstack()
+action to show Java frames. In addition, HotSpot contains several
+built-in USDT probes that allow HotSpot actions to be directly
+accessed from D programs.
+<h4><a name="jstack" id="jstack">jstack() Support</a></h4>
+HotSpot contains support for the dtrace jstack() action that allows
+Java stack frames to be shown. Here is the how this works.
+<ul>
+<li>Files generateJvmOffsets.cpp and generateJvmOffsetsMain.cpp are
+compiled into executable program generateJvmOffets</li>
+<li>generateJvmOffsets is run which creates files JvmOffsets.cpp,
+JvmOffsets.h, JvmOffsetsIndex.h
+<ul>
+<li>JvmOffsets.hpp defines names of offsets to various HotSpot data
+structures</li>
+<li>JvmOffsets.cpp contains an array of these offsets</li>
+<li>JvmOffsetsIndex.h defines indexes into this array</li>
+</ul>
+</li>
+<li>JvmOffsets.o is linked into libjvm.so</li>
+<li>jhelper.d includes jvmOffsetsIndex.h. It uses this to find
+entries in the table in JvmOffsets.o, and to copy the corresponding
+data from HotSpot into the jhelper.d program.</li>
+<li>jhelper.d is compiled into dtrace.o which contains a special
+Elf section - SUNW_dof.</li>
+<li>dtrace.o is linked into libjvm.so. When libjvm.so is loaded,
+the _init() method in the SUNW_dof section registers the contents
+of dtrace.o with dtrace.</li>
+<li>When a D script program calls the jstack() action, dtrace finds
+the related code in dtrace.o and calls it.</li>
+</ul>
+<h3>USDT dtrace probes in HotSpot</h3>
+A USDT dtrace probe in a HotSpot file is represented by a macro
+that calls a non-existent specially-named external function. The
+parameters that are passed to the function (through the macro)
+become arguments that the dtrace script client can access. For
+example, in hashtable.cpp, the new_entry method contains
+<pre>
+        HS_DTRACE_PROBE4(hs_private, hashtable__new_entry,  this, hashValue, obj, entry);
+    </pre>
+<i>hs_private</i> is a dtrace <i>provider</i>. HotSpot has three
+providers:
+<blockquote>hotspot, hotspot_jni, hs_private</blockquote>
+These providers are defined in files hotspot.d, hotspot_jni.d, and
+hs_private.d. These files are combined (along with jhelper.d) into
+temp file dtrace.d which is compiled by a dtrace command into file
+dtrace.o. dtrace.o contains a special section (SUNW_dof) which
+contains a mapping of the probes to their location in the code. In
+addition to the dtrace.d file, the dtrace command is also given the
+.o files that contain the probes. dtrace generates new versions of
+these .o files in which the non-existent functions have been
+replaced by one or more 'nop' instructions, and the non-existant
+symbols are deleted have been deleted from the symbol table.
+<p>Finally, the modified .o files, and dtrace.o are linked into
+libjvm.so. When libjvm.so is loaded, the _init() method in the
+special SUNW_dof section registers the probes with dtrace in the
+kernel. When a dtrace script wants to trace a particular area, it
+interacts with the dtrace code in the kernel and causes a 'trap'
+instruction to replace the 'nop', and the kernel handles all the
+work to get the dtrace actions executed.</p>
+<p>Because the probe points turn into nop instruction (except for
+the argument setup), the probes are relatively cost-free in the
+traced application when not actively probed. The argument setup can
+be somewhat costly at times which is why in hotspot the
+synchronization probes are protected by a command-line switch.
+Newer versions of dtrace have tricks for checking whether a probe
+is enabled to let you skip that argument setup, but because we have
+to compile on Solaris 8 and have a special backported version of
+dtrace, we don't have that functionality.</p>
+<p>A problem is that currently, USDT probes cannot be placed in
+generated code. This makes tracing Java methods and object
+allocation tricky since that is done in generated code. To overcome
+this, there are a couple of stubs in static code in
+src/share/vm/runtime/sharedRuntime.cpp which contain the
+appropriate probes. When the</p>
+<blockquote>-XX:+ExtendedDTraceProbes flag</blockquote>
+is passed on the command line, runtime control flow is redirected
+thru these stubs which slows down execution.<br />
+<a href="#tdtrace"><img src="upArrow.jpg" alt="up arrow" /></a><br />
+<h2><a name="bpstack" id="bpstack">pstack Support</a></h2>
+pstack(1) is a Solaris utility that prints stack traces of all
+threads in a process. HotSpot contains support that allows pstack
+to find names of Java methods on a stack.
+<p>pstack does this by calling into libjvm_db.so to get the names
+of Java frames. libjvm_db.so is created from file libjvm_db.c which
+finds information in the HotSpot process by using the same
+JvmOffsets mechanism as does the <a href="#jstack">dtrace jstack()
+provider</a>.<br />
+<a href="#tdtrace"><img src="upArrow.jpg" alt="up arrow" /></a><br /></p>
+<hr />
+<font size="-1">Last Modified: 06/29/07</font><br />
+</div><div id="sidebar"><div id="openjdk-sidebar-logo"><a href="/"><img alt="OpenJDK logo" src="../../../images/openjdk-small.png" /></a></div><div class="links"><div class="link"><a href="/faq/">OpenJDK FAQ</a></div><div class="link"><a href="/install/">Installing</a></div><div class="link"><a href="/contribute/">Contributing</a></div><div class="link"><a href="/sponsor/">Sponsoring</a></div><div class="link"><a href="/guide/">Developers' Guide</a></div></div><div class="links"><div class="links"><a href="http://mail.openjdk.java.net">Mailing lists</a></div><div class="link"><a href="/irc">IRC</a>
+                      &#183; <a href="http://wiki.openjdk.java.net">Wiki</a></div></div><div class="links"><div class="links"><a href="/bylaws">Bylaws</a> &#183; <a href="/census">Census</a></div><div class="link"><a href="/legal/">Legal</a></div></div><div class="links"><div class="links"><a href="/jeps/0"><b>JEP Process</b></a></div></div><div class="links"><div class="link search"><form method="get" action="http://www.google.com/search"><input id="searchBox" style="color: gray" type="text" name="q" size="10" maxlength="255" value="search" /><input type="hidden" name="sitesearch" value="openjdk.java.net" /></form></div></div><div class="links"><div class="about">Source code</div><div class="link"><a href="http://hg.openjdk.java.net">Mercurial</a></div><div class="link">Bundles (<a href="http://download.java.net/openjdk/jdk6">6</a>)</div></div><div class="links"><div class="about">Groups</div><div class="link"><a href="/groups/">(overview)</a></div><div class="link"><a href="/groups/2d">2D Graphics</a></div><div class="link"><a href="/groups/adoption">Adoption</a></div><div class="link"><a href="/groups/awt">AWT</a></div><div class="link"><a href="/groups/build">Build</a></div><div class="link"><a href="/groups/csr">Compatibility &amp; Specification Review</a></div><div class="link"><a href="/groups/compiler">Compiler</a></div><div class="link"><a href="/groups/conformance">Conformance</a></div><div class="link"><a href="/groups/core-libs">Core Libraries</a></div><div class="link"><a href="/groups/gb">Governing Board</a></div><div class="link"><a href="/groups/hotspot">HotSpot</a></div><div class="link"><a href="/groups/i18n">Internationalization</a></div><div class="link"><a href="/groups/jmx">JMX</a></div><div class="link"><a href="/groups/members">Members</a></div><div class="link"><a href="/groups/net">Networking</a></div><div class="link"><a href="/groups/nb-projects">NetBeans Projects</a></div><div class="link"><a href="/groups/porters">Porters</a></div><div class="link"><a href="/groups/quality">Quality</a></div><div class="link"><a href="/groups/security">Security</a></div><div class="link"><a href="/groups/serviceability">Serviceability</a></div><div class="link"><a href="/groups/sound">Sound</a></div><div class="link"><a href="/groups/swing">Swing</a></div><div class="link"><a href="/groups/web">Web</a></div></div><div class="links"><div class="about">Projects</div><div class="link"><a href="/projects/">(overview)</a></div><div class="link"><a href="/projects/amber">Amber</a></div><div class="link"><a href="/projects/anno-pipeline">Annotations Pipeline 2.0</a></div><div class="link"><a href="/projects/audio-engine">Audio Engine</a></div><div class="link"><a href="/projects/build-infra">Build Infrastructure</a></div><div class="link"><a href="/projects/caciocavallo">Caciocavallo</a></div><div class="link"><a href="/projects/closures">Closures</a></div><div class="link"><a href="/projects/code-tools">Code Tools</a></div><div class="link"><a href="/projects/coin">Coin</a></div><div class="link"><a href="/projects/cvmi">Common VM Interface</a></div><div class="link"><a href="/projects/compiler-grammar">Compiler Grammar</a></div><div class="link"><a href="/projects/dio">Device I/O</a></div><div class="link"><a href="/projects/font-scaler">Font Scaler</a></div><div class="link"><a href="/projects/fbtoolkit">Framebuffer Toolkit</a></div><div class="link"><a href="/projects/graal">Graal</a></div><div class="link"><a href="/projects/graphics-rasterizer">Graphics Rasterizer</a></div><div class="link"><a href="/projects/harfbuzz">HarfBuzz Integration</a></div><div class="link"><a href="/projects/icedtea">IcedTea</a></div><div class="link"><a href="/projects/jdk6">JDK 6</a></div><div class="link"><a href="/projects/jdk7">JDK 7</a></div><div class="link"><a href="/projects/jdk7u">JDK 7 Updates</a></div><div class="link"><a href="/projects/jdk8">JDK 8</a>
+                      &#183; <a href="/projects/jdk8/spec">Java&#160;SE&#160;8</a></div><div class="link"><a href="/projects/jdk8u">JDK 8 Updates</a></div><div class="link"><a href="/projects/jdk9">JDK 9</a>
+                      &#183; <a href="/projects/jdk9/spec">Java&#160;SE&#160;9</a></div><div class="link"><a href="/projects/jdk10">JDK 10</a></div><div class="link"><a href="/projects/javadoc-next">JavaDoc.Next</a></div><div class="link"><a href="/projects/jigsaw">Jigsaw</a></div><div class="link"><a href="/projects/kona">Kona</a></div><div class="link"><a href="/projects/kulla">Kulla</a></div><div class="link"><a href="/projects/lambda">Lambda</a></div><div class="link"><a href="/projects/locale-enhancement">Locale Enhancement</a></div><div class="link"><a href="/projects/jmm">Memory Model Update</a></div><div class="link"><a href="/projects/mobile">Mobile</a></div><div class="link"><a href="/projects/modules">Modules</a></div><div class="link"><a href="/projects/mlvm">Multi-Language VM</a></div><div class="link"><a href="/projects/nashorn">Nashorn</a></div><div class="link"><a href="/projects/nio">New I/O</a></div><div class="link"><a href="/projects/openjfx">OpenJFX</a></div><div class="link"><a href="/projects/panama">Panama</a></div><div class="link"><a href="/projects/penrose">Penrose</a></div><div class="link"><a href="/projects/aarch32-port">Port: AArch32</a></div><div class="link"><a href="/projects/aarch64-port">Port: AArch64</a></div><div class="link"><a href="/projects/bsd-port">Port: BSD</a></div><div class="link"><a href="/projects/haiku-port">Port: Haiku</a></div><div class="link"><a href="/projects/macosx-port">Port: Mac OS X</a></div><div class="link"><a href="/projects/mips-port">Port: MIPS</a></div><div class="link"><a href="/projects/ppc-aix-port">Port: PowerPC/AIX</a></div><div class="link"><a href="/projects/s390x-port">Port: s390x</a></div><div class="link"><a href="/projects/portola">Portola</a></div><div class="link"><a href="/projects/sctp">SCTP</a></div><div class="link"><a href="/projects/shenandoah">Shenandoah</a></div><div class="link"><a href="/projects/sumatra">Sumatra</a></div><div class="link"><a href="/projects/threeten">ThreeTen</a></div><div class="link"><a href="/projects/tiered-attrib">Tiered Attribution</a></div><div class="link"><a href="/projects/type-annotations">Type Annotations</a></div><div class="link"><a href="/projects/xrender">XRender Pipeline</a></div><div class="link"><a href="/projects/valhalla">Valhalla</a></div><div class="link"><a href="/projects/verona">Verona</a></div><div class="link"><a href="/projects/visualvm">VisualVM</a></div><div class="link"><a href="/projects/zero">Zero</a></div></div><div class="links"><div class="about">Tools</div><div class="link"><a href="http://java.sun.com/javase/downloads/index.jsp">Java SE</a></div><div class="link"><a href="http://www.selenic.com/mercurial/">Mercurial</a></div><div class="link"><a href="http://netbeans.org">NetBeans</a></div><div class="link"><a href="/jtreg/index.html">jtreg harness</a></div></div><div class="links"><div class="about">Community</div><div class="link"><a href="http://planetjdk.org">Planet JDK blogs</a></div><div class="link"><a href="http://blogs.oracle.com/theaquarium">The Aquarium</a></div><div class="link"><a href="http://java.sun.com">java.sun.com</a></div><div class="link"><a href="http://jcp.org">Java Community Process</a></div></div><div class="links"><div class="about">Related</div><div class="link">JDK Snapshots (<a href="http://jdk.java.net/8/">8u</a>,
+       <a href="http://jdk.java.net/9/">9</a>) </div><div class="link"><a href="http://javaee.github.io/glassfish/">GlassFish</a></div></div><div class="buttons"><a href="http://oracle.com"><img alt="Oracle logo" src="../../../images/oracle.png" /></a></div></div><div id="footer">
+
+        &#169; 2017 Oracle Corporation and/or its affiliates
+        <br /><a href="/legal/tou/">Terms of Use</a>
+        &#183;
+        
+            License: <a href="/legal/gplv2+ce.html">GPLv2</a>
+        &#183; <a href="http://www.oracle.com/us/legal/privacy/">Privacy</a>
+        &#183; <a href="http://www.oracle.com/us/legal/third-party-trademarks/third-party-trademarks-078568.html">Trademarks</a></div><SCRIPT type="text/javascript">
+  var sc_project=2527440;
+  var sc_invisible=1;
+  var sc_partition=24;
+  var sc_security="d832a704";
+  var sc_remove_link=1;
+  </SCRIPT><script type="text/javascript" src="http://www.statcounter.com/counter/counter_xhtml.js"></script><noscript><div class="statcounter"><img class="statcounter" src="http://c25.statcounter.com/counter.php?sc_project=2527440&amp;java=0&amp;security=d832a704&amp;invisible=1" alt="web statistics" /></div></noscript></body></html>

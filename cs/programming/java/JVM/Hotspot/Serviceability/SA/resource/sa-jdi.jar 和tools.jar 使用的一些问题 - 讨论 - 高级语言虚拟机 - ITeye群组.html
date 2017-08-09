@@ -1,0 +1,724 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>sa-jdi.jar 和tools.jar 使用的一些问题 - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="看了一些调试相关的工具，其中有几个疑问想请教下 1、tools.jar包中有相关调试的工具例如VirtualMachine.attach(pid);可以动态加载agent。。在sa-jdi.jar包中也有继承Tool也可以进行类似的动态加载agent，例如tool.start(args); 这两种动态加载有什么不同？ 2、sa-jdi.jar 中很多工具类，是否可以安全（不会太大影响性能）的用到生产 ..." />
+    <meta name="keywords" content="sa-jdi.jar 和tools.jar 使用的一些问题 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://zhxing.iteye.com" class="p-author" target="_blank">zhxing</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/34278/post/new">发表回复</a></div>
+  <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/group/topic/34278?page=2" rel="next">2</a> <a href="/group/topic/34278?page=2" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/34278">sa-jdi.jar 和tools.jar 使用的一些问题</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-227458">
+  <td class="post_author"><div class="logo"><a href='http://zhxing.iteye.com' target='_blank'><img alt="zhxing的博客" class="logo" src="http://www.iteye.com/upload/logo/user/42162/082ece0e-ba6d-35ff-ad9a-7f8d0ae22eee-thumb.jpg?1236834311" title="zhxing的博客: ヾ孤星随缘ツ  @fancy" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://zhxing.iteye.com' target='_blank' title='zhxing'>zhxing</a>
+      2012-08-15
+    </div>
+    <div class="post_body"> 
+      看了一些调试相关的工具，其中有几个疑问想请教下<br />1、tools.jar包中有相关调试的工具例如VirtualMachine.attach(pid);可以动态加载agent。。在sa-jdi.jar包中也有继承Tool也可以进行类似的动态加载agent，例如tool.start(args); 这两种动态加载有什么不同？<br />2、sa-jdi.jar 中很多工具类，是否可以安全（不会太大影响性能）的用到生产环境中进行调试。。例如CLHSDB这工具。。如果不能是因为什么原因。。<br /><br />另外问下，如果想了解sa-jdi.jar的一些工具类，有没一些文档介绍，我网上连javadoc都找不到。。只能下载源码来生成。如果想学jvm调试有没一些比较有用的文档可以参考。（jvmti这个已有大概了解，可以除外）<br />
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227512">
+  <td class="post_author"><div class="logo"><a href='http://caoxudong818.iteye.com' target='_blank'><img alt="caoxudong818的博客" class="logo" src="http://www.iteye.com/upload/logo/user/506968/53e9d518-60e4-372d-9004-03e61c60c216-thumb.jpg?1309332346" title="caoxudong818的博客: caoxudong818" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://caoxudong818.iteye.com' target='_blank' title='caoxudong818'>caoxudong818</a>
+      2012-08-16
+    </div>
+    <div class="post_body"> 
+      <p>你的第一个问题貌似和加载agent没啥关系。</p>
+<p> </p>
+<p>Attach API貌似目前只能attach到本地线程。以Windows为例（Linux没找到相应的类，后续找到再补上）：</p>
+<p>
+</p>
+<pre class="java" name="code">WindowsVirtualMachine(AttachProvider provider, String id)
+        throws AttachNotSupportedException, IOException{
+
+        super(provider, id);
+
+        int pid;
+        try {
+            pid = Integer.parseInt(id);
+        } catch (NumberFormatException x) {
+            throw new AttachNotSupportedException("Invalid process identifier");
+        }
+        hProcess = openProcess(pid);
+
+        // The target VM might be a pre-6.0 VM so we enqueue a "null" command
+        // which minimally tests that the enqueue function exists in the target
+        // VM.
+        try {
+            enqueue(hProcess, stub, null, null);
+        } catch (IOException x) {
+            throw new AttachNotSupportedException(x.getMessage());
+        }
+    }</pre>
+
+<p> </p>
+<p>该构造函数由WindowsAttachProvider类调用，实现对Java进程的attach功能。</p>
+<p> </p>
+<p>而sa-jdi.jar中，基础工具类Tool中规定了可以通过3种方式实现类似“attach”的功能，分别是</p>
+<p>
+</p>
+<pre class="java" name="code">// debugeeType is one of constants below
+protected static final int DEBUGEE_PID    = 0;
+protected static final int DEBUGEE_CORE   = 1;
+protected static final int DEBUGEE_REMOTE = 2;</pre>
+
+<p>并不局限于本地进程。</p>
+<p> </p>
+<p>第二个问题，我个人感觉用于生产环境不太好，以下仅为个人猜测，无数据支撑。</p>
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227549">
+  <td class="post_author"><div class="logo"><a href='http://zhxing.iteye.com' target='_blank'><img alt="zhxing的博客" class="logo" src="http://www.iteye.com/upload/logo/user/42162/082ece0e-ba6d-35ff-ad9a-7f8d0ae22eee-thumb.jpg?1236834311" title="zhxing的博客: ヾ孤星随缘ツ  @fancy" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://zhxing.iteye.com' target='_blank' title='zhxing'>zhxing</a>
+      2012-08-17
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">caoxudong818 写道</div>
+<div class="quote_div">
+<p>你的第一个问题貌似和加载agent没啥关系。</p>
+<p> </p>
+<p>Attach API貌似目前只能attach到本地线程。以Windows为例（Linux没找到相应的类，后续找到再补上）：</p>
+<p> </p>
+<pre class="java" name="code">WindowsVirtualMachine(AttachProvider provider, String id)
+        throws AttachNotSupportedException, IOException{
+
+        super(provider, id);
+
+        int pid;
+        try {
+            pid = Integer.parseInt(id);
+        } catch (NumberFormatException x) {
+            throw new AttachNotSupportedException("Invalid process identifier");
+        }
+        hProcess = openProcess(pid);
+
+        // The target VM might be a pre-6.0 VM so we enqueue a "null" command
+        // which minimally tests that the enqueue function exists in the target
+        // VM.
+        try {
+            enqueue(hProcess, stub, null, null);
+        } catch (IOException x) {
+            throw new AttachNotSupportedException(x.getMessage());
+        }
+    }</pre>
+<p> </p>
+<p>该构造函数由WindowsAttachProvider类调用，实现对Java进程的attach功能。</p>
+<p> </p>
+<p>而sa-jdi.jar中，基础工具类Tool中规定了可以通过3种方式实现类似“attach”的功能，分别是</p>
+<p> </p>
+<pre class="java" name="code">// debugeeType is one of constants below
+protected static final int DEBUGEE_PID    = 0;
+protected static final int DEBUGEE_CORE   = 1;
+protected static final int DEBUGEE_REMOTE = 2;</pre>
+<p>并不局限于本地进程。</p>
+<p> </p>
+<p>第二个问题，我个人感觉用于生产环境不太好，以下仅为个人猜测，无数据支撑。</p>
+</div>
+<p> </p>
+<p> </p>
+<p>关于第一个问题，确实和agent关系不大，只是一下子找到不好的词来描述。。然后我问第一问题主要想了解的是JVM对这两种Attach的处理是怎样的，用同一个调试器？？</p>
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227586">
+  <td class="post_author"><div class="logo"><a href='http://caoxudong818.iteye.com' target='_blank'><img alt="caoxudong818的博客" class="logo" src="http://www.iteye.com/upload/logo/user/506968/53e9d518-60e4-372d-9004-03e61c60c216-thumb.jpg?1309332346" title="caoxudong818的博客: caoxudong818" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://caoxudong818.iteye.com' target='_blank' title='caoxudong818'>caoxudong818</a>
+      2012-08-17
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">zhxing 写道</div>
+<div class="quote_div">
+<div class="quote_title">caoxudong818 写道</div>
+<div class="quote_div">
+<p>你的第一个问题貌似和加载agent没啥关系。</p>
+<p> </p>
+<p>Attach API貌似目前只能attach到本地线程。以Windows为例（Linux没找到相应的类，后续找到再补上）：</p>
+<p> </p>
+<pre class="java" name="code">WindowsVirtualMachine(AttachProvider provider, String id)
+        throws AttachNotSupportedException, IOException{
+
+        super(provider, id);
+
+        int pid;
+        try {
+            pid = Integer.parseInt(id);
+        } catch (NumberFormatException x) {
+            throw new AttachNotSupportedException("Invalid process identifier");
+        }
+        hProcess = openProcess(pid);
+
+        // The target VM might be a pre-6.0 VM so we enqueue a "null" command
+        // which minimally tests that the enqueue function exists in the target
+        // VM.
+        try {
+            enqueue(hProcess, stub, null, null);
+        } catch (IOException x) {
+            throw new AttachNotSupportedException(x.getMessage());
+        }
+    }</pre>
+<p> </p>
+<p>该构造函数由WindowsAttachProvider类调用，实现对Java进程的attach功能。</p>
+<p> </p>
+<p>而sa-jdi.jar中，基础工具类Tool中规定了可以通过3种方式实现类似“attach”的功能，分别是</p>
+<p> </p>
+<pre class="java" name="code">// debugeeType is one of constants below
+protected static final int DEBUGEE_PID    = 0;
+protected static final int DEBUGEE_CORE   = 1;
+protected static final int DEBUGEE_REMOTE = 2;</pre>
+<p>并不局限于本地进程。</p>
+<p> </p>
+<p>第二个问题，我个人感觉用于生产环境不太好，以下仅为个人猜测，无数据支撑。</p>
+</div>
+<p> </p>
+<p> </p>
+<p>关于第一个问题，确实和agent关系不大，只是一下子找到不好的词来描述。。然后我问第一问题主要想了解的是JVM对这两种Attach的处理是怎样的，用同一个调试器？？</p>
+</div>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><span style="white-space: pre;">	</span>纠正一下我前面的一个错误，“<span style="background-color: #fafafa;">Attach API貌似目前只能attach到本地线程</span>”，这句话是错误的。</p>
+<p><span style="white-space: pre;">	</span>看了一下Attach API的Javadoc，并没有限定只能用于本地线程。attach api的实现是通过MonitoredHost类实现，而MonitoredHost的实现类有三个，分别应对不容类型的jvm，包括file,localhost, remote。所以attach api本应该也可以连接到这三种类型的jvm。</p>
+<p><span style="white-space: pre;">	</span>但jdk中自带的WindowsAttachProvider限定了只能连接到本地进程。</p>
+<p> </p>
+<pre class="java" name="code">public VirtualMachine attachVirtualMachine(String vmid)
+        throws AttachNotSupportedException, IOException{
+        checkAttachPermission();
+        // AttachNotSupportedException will be thrown if the target VM can be determined
+        // to be not attachable.
+        testAttachable(vmid);
+        return new WindowsVirtualMachine(this, vmid);
+    }</pre>
+<p><span style="white-space: pre;">	</span>在创建的WindowsVirtualMachine实例的方法中，jvm会调用Win32函数<span style="font-family: Consolas, Courier, monospace;"><a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms684320(v=vs.85).aspx" target="_blank">OpenProcess</a>返回一个已存在的进程的句柄，并将之返回：</span></p>
+<p> </p>
+<pre class="cpp" name="code">JNIEXPORT jlong JNICALL Java_sun_tools_attach_WindowsVirtualMachine_openProcess
+  (JNIEnv *env, jclass cls, jint pid)
+{
+    HANDLE hProcess = NULL;
+
+    if (pid == (jint) GetCurrentProcessId()) {
+        /* process is attaching to itself; get a pseudo handle instead */
+        hProcess = GetCurrentProcess();
+        /* duplicate the pseudo handle so it can be used in more contexts */
+        if (DuplicateHandle(hProcess, hProcess, hProcess, &amp;hProcess,
+                PROCESS_ALL_ACCESS, FALSE, 0) == 0) {
+            /*
+             * Could not duplicate the handle which isn't a good sign,
+             * but we'll try again with OpenProcess() below.
+             */
+            hProcess = NULL;
+        }
+    }
+
+    if (hProcess == NULL) {
+        /*
+         * Attempt to open process. If it fails then we try to enable the
+         * SE_DEBUG_NAME privilege and retry.
+         */
+        hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)pid);
+        if (hProcess == NULL &amp;&amp; GetLastError() == ERROR_ACCESS_DENIED) {
+            hProcess = doPrivilegedOpenProcess(PROCESS_ALL_ACCESS, FALSE,
+                           (DWORD)pid);
+        }
+
+        if (hProcess == NULL) {
+            if (GetLastError() == ERROR_INVALID_PARAMETER) {
+                JNU_ThrowIOException(env, "no such process");
+            } else {
+                char err_mesg[255];
+                /* include the last error in the default detail message */
+                sprintf(err_mesg, "OpenProcess(pid=%d) failed; LastError=0x%x",
+                    (int)pid, (int)GetLastError());
+                JNU_ThrowIOExceptionWithLastError(env, err_mesg);
+            }
+            return (jlong)0;
+        }
+    }
+
+    /*
+     * On Windows 64-bit we need to handle 32-bit tools trying to attach to 64-bit
+     * processes (and visa versa). X-architecture attaching is currently not supported
+     * by this implementation.
+     */
+    if (_IsWow64Process != NULL) {
+        BOOL isCurrent32bit, isTarget32bit;
+        (*_IsWow64Process)(GetCurrentProcess(), &amp;isCurrent32bit);
+        (*_IsWow64Process)(hProcess, &amp;isTarget32bit);
+
+        if (isCurrent32bit != isTarget32bit) {
+            CloseHandle(hProcess);
+            #ifdef _WIN64
+              JNU_ThrowByName(env, "com/sun/tools/attach/AttachNotSupportedException",
+                  "Unable to attach to 32-bit process running under WOW64");
+            #else
+              JNU_ThrowByName(env, "com/sun/tools/attach/AttachNotSupportedException",
+                  "Unable to attach to 64-bit process");
+            #endif
+        }
+    }
+
+    return (jlong)hProcess;
+}</pre>
+<p> </p>
+<p><span style="white-space: pre;">	</span>获取到VirtualMachine实例后，会通过enqueue方法完成后续的动作。在该方法中会创建一个命名管道与目标进行连接，以便接受执行命令的返回值。</p>
+<p> </p>
+<pre class="java" name="code">// enqueue the command to the process
+            enqueue(hProcess, stub, cmd, pipename, args);
+
+            // wait for command to complete - process will connect with the
+            // completion status
+            connectPipe(hPipe);
+
+            // create an input stream for the pipe
+            PipedInputStream is = new PipedInputStream(hPipe);
+
+            // read completion status
+            int status = readInt(is);
+            if (status != 0) {
+                // special case the load command so that the right exception is thrown
+                if (cmd.equals("load")) {
+                    throw new AgentLoadException("Failed to load agent library");
+                } else {
+                    throw new IOException("Command failed in target VM");
+                }
+            }
+
+            // return the input stream
+            return is;</pre>
+<p><span style="white-space: pre;">	</span>在Linux上是通过创建socket，并通过socket的fd进行通信的。 至于为啥Windows用管道，Linux用socket，猜测是Windows创建socket的成本比较大（纯属个人猜测）。</p>
+<p> </p>
+<p><span style="white-space: pre;">	</span>再看sa中连接到目标jvm的过程，以连接到本地进程的过程为例。</p>
+<p><span style="white-space: pre;">	</span>对BugSpotAgent的实例进行跟踪的会，会进入到其attachDebugger方法中，在其中针对目标jvm的位置选择如何设置debugger，这里会是一个LinuxDebuggerLocal实例。在LinuxDebuggerLocal实例的attach方法中，会调用native方法attach0连接到目标进程。</p>
+<p> </p>
+<pre class="cpp" name="code">static void fillThreadsAndLoadObjects(JNIEnv* env, jobject this_obj, struct ps_prochandle* ph) {
+  int n = 0, i = 0;
+
+  // add threads
+  n = get_num_threads(ph);
+  for (i = 0; i &lt; n; i++) {
+    jobject thread;
+    jobject threadList;
+    lwpid_t lwpid;
+
+    lwpid = get_lwp_id(ph, i);
+    thread = (*env)-&gt;CallObjectMethod(env, this_obj, getThreadForThreadId_ID,
+                                      (jlong)lwpid);
+    CHECK_EXCEPTION;
+    threadList = (*env)-&gt;GetObjectField(env, this_obj, threadList_ID);
+    CHECK_EXCEPTION;
+    (*env)-&gt;CallBooleanMethod(env, threadList, listAdd_ID, thread);
+    CHECK_EXCEPTION;
+  }
+
+  // add load objects
+  n = get_num_libs(ph);
+  for (i = 0; i &lt; n; i++) {
+     uintptr_t base;
+     const char* name;
+     jobject loadObject;
+     jobject loadObjectList;
+
+     base = get_lib_base(ph, i);
+     name = get_lib_name(ph, i);
+     loadObject = (*env)-&gt;CallObjectMethod(env, this_obj, createLoadObject_ID,
+                                   (*env)-&gt;NewStringUTF(env, name), (jlong)0, (jlong)base);
+     CHECK_EXCEPTION;
+     loadObjectList = (*env)-&gt;GetObjectField(env, this_obj, loadObjectList_ID);
+     CHECK_EXCEPTION;
+     (*env)-&gt;CallBooleanMethod(env, loadObjectList, listAdd_ID, loadObject);
+     CHECK_EXCEPTION;
+  }
+}
+</pre>
+<p> <span style="white-space: pre;">	</span>这个方法分为两步，先获取到该进程中的所有线程代理（通过调用jni调用LinuxDebuggerLocal类的getThreadForThreadId方法完成），在对每个线程代理做点事。具体做了啥，我还不清楚。同理，对该进程涉及到的每个lib也做类似的事，此处仍不清楚做了啥，有待后续跟进。</p>
+<p> </p>
+<p><span style="white-space: pre;">	</span>综上，我感觉是attach api在通过socket或pipe连接到目标jvm后，并未做太多额外的事或准备工作，也没有设置调试器；而sa本市为了调试或观察而连接到目标jvm，所以会设置调试器，并针对目标进程中的线程和相关类库做一些准备工作。</p>
+<p><span style="white-space: pre;">	</span>到底做了哪些，恩，to be continued...</p>
+<p> </p>
+<p> </p>
+<p> </p>
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227690">
+  <td class="post_author"><div class="logo"><a href='http://zhxing.iteye.com' target='_blank'><img alt="zhxing的博客" class="logo" src="http://www.iteye.com/upload/logo/user/42162/082ece0e-ba6d-35ff-ad9a-7f8d0ae22eee-thumb.jpg?1236834311" title="zhxing的博客: ヾ孤星随缘ツ  @fancy" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://zhxing.iteye.com' target='_blank' title='zhxing'>zhxing</a>
+      2012-08-20
+    </div>
+    <div class="post_body"> 
+      @caoxudong818 <br />谢谢你的回答，麻烦你也深入看看，sa启动调试器的话，对jvm的性能或者其他的影响在生成环境是否可以接受。。从你的分析看只是单纯依赖attach api（不做字节码修改）基本是不会有性能开销的吧。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227765">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-08-21
+    </div>
+    <div class="post_body"> 
+      sa-jdi.jar是HotSpot自带的底层调试支持，Serviceability Agent的实现。它的来龙去脉请参考2001年的一篇报告：<a href="http://static.usenix.org/event/jvm01/full_papers/russell/russell_html/" target="_blank">http://static.usenix.org/event/jvm01/full_papers/russell/russell_html/</a><br /><br />SA意义上的agent跟JVMTI/Java agent不是同一个层次上的。<br /><br />现有的SA实现只支持“snapshot”式的使用方式，也就是<br />1、通过系统级调试API将一个活的目标进程暂停下来，将SA连接上去，做分析，做完之后将SA断开连接，然后恢复目标进程的正常运行；<br />2、打开core dump，利用SA来分析里面的内容。也就是事后分析（postmortem）。<br /><br />“snapshot”是指，上面这两种使用场景都不支持在SA保持连接的同时让目标进程运行。<br /><br />我是经常会用到CLHSDB的，但通常Java应用层的开发不会直接用它吧。<br />SA系的工具可以很方便的抓取到JVM层面的信息，相对Java应用来说这就是“底层信息”了。当然对应用来说也可以派上用场，例如淘宝的同事叔同写的这个：<a href="https://github.com/jlusdy/TBJMap" target="_blank">TBJMap</a>“增强版jmap”，或者我之前写的这玩儿的原型<a href="https://gist.github.com/1551013" target="_blank">https://gist.github.com/1551013</a>，又例如我写的用来显示NIO direct memory使用状况的工具：<a href="https://gist.github.com/1593521" target="_blank">https://gist.github.com/1593521</a><br /><br />SA里自带工具大部分都通过JDK的工具命令暴露出来了，例如jmap、jstack这些的某些选项的功能就是通过SA来实现的。<br /><br />以前在淘宝的时候，我们的生产环境上要连接/拔下一个空的SA系工具大概要300ms。如果要额外捞点“位置固定”的数据那花不了多少时间。但如果要遍历GC堆的话花上几秒甚至几分钟都是完全正常的。生产环境上要小心使用。<br /><br />关于文档：CLHSDB的文档在这里有 <a href="http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/agent/doc/" target="_blank">http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/agent/doc/</a><br />而SA系的内部更细节的地方就没文档了。只有源码。上文提到的论文是除了源码之外最好的入门途径。<br /><br />===================================================<br /><br />可能有人留意到了JDK自带的那些工具中，有好些都是有两种实现的。以jstack为例，默认参数下它用的是attach API，也就是楼主说的tools.jar里的那边；使用了-F或-m，或者是对core dump来使用的时候，它用的就是SA系的实现。<br /><br />这俩最大的区别是，attach API是“in-process”，而SA是“out-of-process”的。如果对调试器的实现方式熟悉的话这俩名词应该不会陌生。张银奎在《程序员》杂志上连载的“调试之剑”专栏的2011年1、2月两期讲CLRv4的调试架构重构的时候正好也提到了这俩概念，可以参考。<br /><br />简单来说，in-process就是调试器（或类似的功能）运行在目标进程内，而out-of-process是调试器跟目标进程是独立的两个进程，通过进程间通信来实现调试。<br /><br />前者的重要好处是不依赖底层（特别是操作系统提供的调试API）所以容易移植，而且运行速度较快（因为访问数据的时候是在同进程内的）。但缺点也很明显：调试功能自身容易干扰到被调试目标，形成“海森堡效应”。<br />例如说，本来要用jstack看一个Java程序的所有Java线程的栈，attach API的实现方式是：<br />1、客户端连接到目标JVM，向其发出一个“threaddump”文本命令；<br />2、目标JVM接收到这个命令，执行JVM内的一个<a href="http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/src/share/vm/services/attachListener.cpp" target="_blank">thread_dump()函数</a>，将收集到的结果以文本形式返回<br />3、客户端接收到返回的文本并将其显示出来。<br />这样，如果thread_dump()自身的实现有bug，搞不好就把这个目标Java进程给弄挂了。<br />又或者，如果目标进程没响应了（hung了），那它就接收不到那个threaddump命令，jstack就没办法正常执行了。<br /><br />而后者，out-of-process方式则正好相反：调试功能在目标进程之外运行，通过进程间通信从目标进程获取数据。通常这种进程间通信依赖于操作系统提供的调试API，移植起来会麻烦一些，而且数据的访问速度较慢；但好处是调试功能与调试目标之间有良好的隔离，即便调试功能自身有问题也不会影响到目标进程。例如说用jstack -F去看线程栈信息，就算目标进程hung了也照样能看；或者是jstack -F自身有bug死循环了，只要把这个jstack -F的进程杀掉，目标进程就又能继续正常运行，不会受影响。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227767">
+  <td class="post_author"><div class="logo"><a href='http://caoxudong818.iteye.com' target='_blank'><img alt="caoxudong818的博客" class="logo" src="http://www.iteye.com/upload/logo/user/506968/53e9d518-60e4-372d-9004-03e61c60c216-thumb.jpg?1309332346" title="caoxudong818的博客: caoxudong818" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://caoxudong818.iteye.com' target='_blank' title='caoxudong818'>caoxudong818</a>
+      2012-08-21
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">RednaxelaFX 写道</div><div class="quote_div">sa-jdi.jar是HotSpot自带的底层调试支持，Serviceability Agent的实现。它的来龙去脉请参考2001年的一篇报告：<a href="http://static.usenix.org/event/jvm01/full_papers/russell/russell_html/" target="_blank">http://static.usenix.org/event/jvm01/full_papers/russell/russell_html/</a><br /><br />SA意义上的agent跟JVMTI/Java agent不是同一个层次上的。<br /><br />现有的SA实现只支持“snapshot”式的使用方式，也就是<br />1、通过系统级调试API将一个活的目标进程暂停下来，将SA连接上去，做分析，做完之后将SA断开连接，然后恢复目标进程的正常运行；<br />2、打开core dump，利用SA来分析里面的内容。也就是事后分析（postmortem）。<br /><br />“snapshot”是指，上面这两种使用场景都不支持在SA保持连接的同时让目标进程运行。<br /><br />我是经常会用到CLHSDB的，但通常Java应用层的开发不会直接用它吧。<br />SA系的工具可以很方便的抓取到JVM层面的信息，相对Java应用来说这就是“底层信息”了。当然对应用来说也可以派上用场，例如淘宝的同事叔同写的这个：<a href="https://github.com/jlusdy/TBJMap" target="_blank">TBJMap</a>“增强版jmap”，或者我之前写的这玩儿的原型<a href="https://gist.github.com/1551013" target="_blank">https://gist.github.com/1551013</a>，又例如我写的用来显示NIO direct memory使用状况的工具：<a href="https://gist.github.com/1593521" target="_blank">https://gist.github.com/1593521</a><br /><br />SA里自带工具大部分都通过JDK的工具命令暴露出来了，例如jmap、jstack这些的某些选项的功能就是通过SA来实现的。<br /><br />以前在淘宝的时候，我们的生产环境上要连接/拔下一个空的SA系工具大概要300ms。如果要额外捞点“位置固定”的数据那花不了多少时间。但如果要遍历GC堆的话花上几秒甚至几分钟都是完全正常的。生产环境上要小心使用。<br /><br />关于文档：CLHSDB的文档在这里有 <a href="http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/agent/doc/" target="_blank">http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/agent/doc/</a><br />而SA系的内部更细节的地方就没文档了。只有源码。上文提到的论文是除了源码之外最好的入门途径。<br /><br />===================================================<br /><br />可能有人留意到了JDK自带的那些工具中，有好些都是有两种实现的。以jstack为例，默认参数下它用的是attach API，也就是楼主说的tools.jar里的那边；使用了-F或-m，或者是对core dump来使用的时候，它用的就是SA系的实现。<br /><br />这俩最大的区别是，attach API是“in-process”，而SA是“out-of-process”的。如果对调试器的实现方式熟悉的话这俩名词应该不会陌生。张银奎在《程序员》杂志上连载的“调试之剑”专栏的2011年1、2月两期讲CLRv4的调试架构重构的时候正好也提到了这俩概念，可以参考。<br /><br />简单来说，in-process就是调试器（或类似的功能）运行在目标进程内，而out-of-process是调试器跟目标进程是独立的两个进程，通过进程间通信来实现调试。<br /><br />前者的重要好处是不依赖底层（特别是操作系统提供的调试API）所以容易移植，而且运行速度较快（因为访问数据的时候是在同进程内的）。但缺点也很明显：调试功能自身容易干扰到被调试目标，形成“海森堡效应”。<br />例如说，本来要用jstack看一个Java程序的所有Java线程的栈，attach API的实现方式是：<br />1、客户端连接到目标JVM，向其发出一个“threaddump”文本命令；<br />2、目标JVM接收到这个命令，执行JVM内的一个<a href="http://hg.openjdk.java.net/jdk7u/jdk7u6/hotspot/file/7566374c3c89/src/share/vm/services/attachListener.cpp" target="_blank">thread_dump()函数</a>，将收集到的结果以文本形式返回<br />3、客户端接收到返回的文本并将其显示出来。<br />这样，如果thread_dump()自身的实现有bug，搞不好就把这个目标Java进程给弄挂了。<br />又或者，如果目标进程没响应了（hung了），那它就接收不到那个threaddump命令，jstack就没办法正常执行了。<br /><br />而后者，out-of-process方式则正好相反：调试功能在目标进程之外运行，通过进程间通信从目标进程获取数据。通常这种进程间通信依赖于操作系统提供的调试API，移植起来会麻烦一些，而且数据的访问速度较慢；但好处是调试功能与调试目标之间有良好的隔离，即便调试功能自身有问题也不会影响到目标进程。例如说用jstack -F去看线程栈信息，就算目标进程hung了也照样能看；或者是jstack -F自身有bug死循环了，只要把这个jstack -F的进程杀掉，目标进程就又能继续正常运行，不会受影响。<br /></div><br /><br />R大出手，果然清晰准确。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227778">
+  <td class="post_author"><div class="logo"><a href='http://zhxing.iteye.com' target='_blank'><img alt="zhxing的博客" class="logo" src="http://www.iteye.com/upload/logo/user/42162/082ece0e-ba6d-35ff-ad9a-7f8d0ae22eee-thumb.jpg?1236834311" title="zhxing的博客: ヾ孤星随缘ツ  @fancy" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://zhxing.iteye.com' target='_blank' title='zhxing'>zhxing</a>
+      2012-08-21
+    </div>
+    <div class="post_body"> 
+      @RednaxelaFX <br />很感谢，再次解决我的一些疑问。。。已大概明白其的不同点。。看来以后得学下C语言，看看源码来更深入学习了。.<br /><br />@caoxudong818 也很感谢热心回答。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227788">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-08-21
+    </div>
+    <div class="post_body"> 
+      @zhxing<br /><br />SA最有趣的一点就是它暴露出来的API完全是Java的，有极高的灵活性和可扩展性，所以用它来写工具非常方便。有时候我要对VM内的数据做分析的时候都会借助SA先用Java来写，如果实在有必要做在VM里再把它用C++重新写一次。<br /><br />而attach API有两类用途，一类是加载Java agent，这个是可扩展的（自己写Java agent）；另一类是工具通过私有API发送命令给JVM，执行特定的功能（如jstack、jmap），这种要扩展就必须改JVM自身，对上层程序员来说这扩展性几乎为0。除非打算自己修改与编译JVM，不然要捞JVM层面的数据还是用SA方便。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-227843">
+  <td class="post_author"><div class="logo"><a href='http://raintung.iteye.com' target='_blank'><img alt="raintung的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="raintung的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://raintung.iteye.com' target='_blank' title='raintung'>raintung</a>
+      2012-08-22
+    </div>
+    <div class="post_body"> 
+      有空可以看一下我的blog<br />http://blog.csdn.net/raintungli,希望能对你有点帮助
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/34278/post/new">发表回复</a></div>
+  <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/group/topic/34278?page=2" rel="next">2</a> <a href="/group/topic/34278?page=2" class="next_page" rel="next">下一页 &raquo;</a></div>
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', 'sa-jdi.jar 和tools.jar 使用的一些问题');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/730461" target="_blank">借助HotSpot SA来一窥PermGen上的对象</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1005918" target="_blank">btrace一些你不知道的事(源码入手)</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1127145" target="_blank">JPDA简单总结</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1131514" target="_blank">深入理解JVM学习笔记——第4章 虚拟机性能监控与故障处理工具</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/483964" target="_blank">BTrace实现原理的初步分析</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

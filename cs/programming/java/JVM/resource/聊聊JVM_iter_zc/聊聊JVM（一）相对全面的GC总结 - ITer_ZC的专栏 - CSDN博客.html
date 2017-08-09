@@ -1,0 +1,1455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>  
+        <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/tingyun-rum.js"></script>
+            <link rel="canonical" href="http://blog.csdn.net/iter_zc/article/details/41746265"> 
+ <meta http-equiv="Cache-Control" content="no-siteapp"><link rel="alternate" media="handheld" href="#">
+
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+       
+    <title>聊聊JVM（一）相对全面的GC总结 - ITer_ZC的专栏
+        - CSDN博客</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="description" content="最近时间比较紧张，要写的东西也有很多，只能想到一点写一点。关于GC，网上的资料太多，之前对一个系统调优的时候又回顾了一下，找了几篇广泛流传的资料，大部分都是大同小异，这里总个总结，希望能够做个相对的全集，并写出一些新的点，比如Card Marking（卡片标记）等。首先是大家都要提到的GC的基础算法：标记清除，标记整理，复制，分代。这些算法的第一步都是做的一件事: 标记(Mark)。">
+
+    <meta name="keywords" content="JVM,Card Marking,卡片标记">
+
+   
+    <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/blog_static_head.js" type="text/javascript"></script>
+
+    
+        <!--new top-->
+       
+       
+        <!--new top-->
+    
+      <!-- ad begin -->
+         
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/style_002.css">
+
+    
+
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="http://blog.csdn.net/ITer_ZC/rss/list">
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/default.css">
+ 
+
+
+
+    <link href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/csdn_public_blog_detail.css" type="text/css" rel="stylesheet">
+     
+         <link rel="stylesheet" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/csdn_blog_detail.css">
+
+  
+
+
+    <!-- 请置于所有广告位代码之前 --> 
+            <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/ds.js"></script>
+
+<script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/share.js"></script><link href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/bdsstyle.css" rel="stylesheet" type="text/css"><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Hover_Arrow {position: absolute; width: 15px; height: 11px; cursor: pointer}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 5px 0px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; -khtml-border-radius: 5px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 1px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; color: #666666}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: .7em}
+.MathJax_MenuRadioCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuLabel {padding: 1px 2em 3px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #DDDDDD; margin: 4px 3px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: #606872; color: white}
+.MathJax_Menu_Close {position: absolute; width: 31px; height: 31px; top: -15px; left: -15px}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1px; bottom: 2px; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><link rel="stylesheet" type="text/css" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/style.css"><link rel="stylesheet" type="text/css" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/style_003.css"><script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/logger.js"></script><link rel="stylesheet" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/share_style0_16.css"></head>
+
+
+<body><div id="MathJax_Message" style="display: none;"></div><iframe style="display: none;" frameborder="0"></iframe><div class="csdn-toolbar csdn-toolbar-skin-black ">        <div class="container row center-block ">          <div class="col-md-3 pull-left logo clearfix"><a href="http://www.csdn.net/?ref=toolbar" title="CSDN首页" target="_blank" class="icon"></a><a title="频道首页" href="http://blog.csdn.net/?ref=toolbar_logo" class="img blog-icon"></a></div>          <div class="pull-right login-wrap ">            <ul class="btns">              <li class="loginlink"><a href="https://passport.csdn.net/account/login?ref=toolbar" target="_top">登录&nbsp;</a>|<a target="_top" href="http://passport.csdn.net/account/mobileregister?ref=toolbar&amp;action=mobileRegister">&nbsp;注册</a></li>              <li class="search">                <div class="icon on-search-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <form action="http://so.csdn.net/search" id="toolbar_search" method="get" target="_blank">                      <input value="toolbar" name="ref" accesskey="2" type="hidden">                      <div class="border">                        <input placeholder="搜索" name="q" accesskey="2" type="text"><span class="icon-enter-sm"></span>                      </div>                    </form>                  </div>                </div>              </li>              <li class="favor">                <div class="icon on-favor-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div style="display:none;" class="favor-success"><span class="msg">收藏成功</span>                      <div class="btns"><span class="btn btn-primary ok">确定</span></div>                    </div>                    <div style="display:none;" class="favor-failed"><span class="icon-danger-lg"></span><span class="msg">收藏失败，请重新收藏</span>                      <div class="btns"><span class="btn btn-primary ok">确定</span></div>                    </div>                    <form role="form" class="form-horizontal favor-form">                      <div class="form-group">                        <div class="clearfix">                          <label for="input-title" class="col-sm-2 control-label"><span class="red_txt">*</span>标题</label>                          <div class="col-sm-10">                            <input id="inputTitle" placeholder="" class="title form-control" value="聊聊JVM（一）相对全面的GC总结 - ITer_ZC的专栏 - CSDN博客" type="text">                          </div>                        </div>                        <div class="alert alert-danger"><strong></strong>标题不能为空</div>                      </div>                      <div class="form-group" style="display:none;">                        <label for="input-url" class="col-sm-2 control-label">网址</label>                        <div class="col-sm-10">                          <input id="input-url" placeholder="" class="url form-control" value="http://blog.csdn.net/iter_zc/article/details/41746265" type="text">                        </div>                      </div>                      <div class="form-group">                        <label for="input-tag" class="col-sm-2 tag control-label">标签</label>                        <div class="col-sm-10">                          <input id="input-tag" class="form-control tag" type="text">                        </div>                      </div>                      <div class="form-group">                        <label for="input-description" class="description col-sm-2 control-label">位置</label>                        <div class="col-sm-10">                          <div class="my_lib_box">                            个人主页&nbsp;-&nbsp;<a href="http://my.csdn.net/" target="_blank">我的知识</a>                          </div>                          <div class="checkbox">                            <div class="pull-left">                              <label>                                <input name="share" class="save_lib_map" checked="checked" type="checkbox">同时保存至：                              </label>                            </div>                            <div class="pull-left">                              <div class="dropdown">                                <button id="toolbar_sele_map" type="button">                                  选择知识图谱                                  <i class="fa fa-chevron-down"></i>                                </button>                                <div class="top_arr"></div>                                <div class="outside">                                  <ul class="dropdown-menu" id="toolbar_Design_knowledge"><li>选择知识图谱</li></ul>                                </div>                              </div>                            </div>                            <div class="pull-left new_txt">                              <a href="http://lib.csdn.net/my/create/structure" target="_blank">新建？</a>                            </div>                          </div>                        </div>                      </div>                      <div class="form-group">                        <div class="col-sm-offset-2 col-sm-10 ft">                          <div class="col-sm-4 pull-left" style="display:none">                            <div class="checkbox">                              <label>                                <input name="share" checked="checked" class="share" type="checkbox">公开                              </label>                            </div>                          </div>                          <div class="col-sm-8 pull-right favor-btns">                            <button type="button" class="cancel btn btn-default">取消</button>                            <button type="submit" class="submit btn btn-primary">收藏</button>                          </div>                        </div>                      </div>                    </form>                  </div>                </div>              </li>              <li class="notify">                <div style="display:none" class="number"></div>                <div style="" class="icon-hasnotes-sm"></div>                <div id="header_notice_num"><div class="icon-hasnotes" style=""></div></div>                <div class="icon on-notify-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div id="note1" class="csdn_note" style="left: -212px; top: 25px; display: none;">                      <div class="box"><div class="notifications notice_list_con curr">  <div class="menu_title">    <span class="title"><a href="http://msg.csdn.net/letters" target="_blank" class="read_all">查看所有私信</a><a href="http://msg.csdn.net/" target="_blank" class="go_all">查看所有通知</a></span>  </div>  <div class="loading" style="display: none;"></div>  <div class="empty" style="display: none;">暂没有新通知</div>  <div class="notice_content" style="overflow-y: auto; max-height: 270px;"><dl data-ids="37968429" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 深度学习30天系统实战！     </span>    <span class="count_down">07-21</span>  </dt></dl><dl data-ids="37952613" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 学机器学习吃力？快跟我一起恶补数学基础吧！     </span>    <span class="count_down">07-20</span>  </dt></dl><dl data-ids="37903372" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 关注 OpenStack 的筒子们，福利来啦！     </span>    <span class="count_down">07-18</span>  </dt></dl><dl data-ids="37768699" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 【观点】人工智能真的值得 All-In 么？     </span>    <span class="count_down">07-11</span>  </dt></dl><dl data-ids="37571163" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 马上直播：跟大咖探究Linux的驱动模型！     </span>    <span class="count_down">07-03</span>  </dt></dl><dl data-ids="37341457" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 【观点】降薪求职，到底该不该？     </span>    <span class="count_down">06-28</span>  </dt></dl><dl data-ids="36760309" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 直播：前端圈有大事儿发生！     </span>    <span class="count_down">06-22</span>  </dt></dl><dl data-ids="36644624" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 618 程序员充电来IT大趴！     </span>    <span class="count_down">06-16</span>  </dt></dl><dl data-ids="36600080" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 7位大牛教你如何一天掌握物联网全栈开发之道！     </span>    <span class="count_down">06-15</span>  </dt></dl><dl data-ids="36560624" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 《深度学习与TensorFlow实践》直播课来袭！报名送书哦！     </span>    <span class="count_down">06-13</span>  </dt></dl><dl data-ids="36443703" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 【揭秘】CSDN上，那些超过百万访问量的Android牛人都是谁？     </span>    <span class="count_down">06-07</span>  </dt></dl><dl data-ids="36424403" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 【技术2017】机器学习金牌系统课，工程师40天突破     </span>    <span class="count_down">06-06</span>  </dt></dl><dl data-ids="28979072" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 免费公开课|管中窥豹-聊聊物联网的强安全实践     </span>    <span class="count_down">11-17</span>  </dt></dl><dl data-ids="20386990" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> CSDN攒课活动第三期投票已经开始啦，很身边小伙伴一起投票为自己攒课吧！     </span>    <span class="count_down">2015-12-17</span>  </dt></dl><dl data-ids="19878509" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> CSDN“攒课”第三期课题征集已经开始了，想学什么技术课，来发话题攒课吧！     </span>    <span class="count_down">2015-11-18</span>  </dt></dl><dl data-ids="19366612" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 感谢您对CSDN“攒课”活动的支持，攒课第二期已经开始报名听课啦！     </span>    <span class="count_down">2015-10-22</span>  </dt></dl><dl data-ids="19366244" class="list rev_type1234 unread" style="">  <dt>    <i></i>    <span class="item_title"> 感谢您对CSDN“攒课”活动的支持，您投票的课题开始报名听课啦！     </span>    <span class="count_down">2015-10-22</span>  </dt></dl></div></div><div class="notifications detail_con" style="display: none">  <div class="menu_title">    <span class="title">      <a class="go_back" href="javascript:void%200;">返回通知列表</a>      <a class="notifications_page_none nextnote" href="javascript:void%200;">下一条</a>      <a class="notifications_page prvnote" href="javascript:void%200;">上一条</a>    </span>  </div>  <div class="notice_content" style="overflow-y: scroll; height: 250px;"><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37968429">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/series_detail/45?utm_source=home&amp;loc=r4&amp;home&amp;loc=r4" target="_blank">深度学习30天系统实战！点我查看！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37952613">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/series_detail/49?ref=home&amp;loc=r4" target="_blank">五周带你学习概率与统计推断、矩阵、凸优化，快速上手机器学习！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37903372">    <dt>      <i></i>      <span class="item_title"><a href="http://blog.csdn.net/soledadzz/article/details/75312484" target="_blank">关注 OpenStack 的筒子们，福利来啦！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37768699">    <dt>      <i></i>      <span class="item_title"><a href="http://blog.csdn.net/pk.html?id=9581" target="_blank">【观点】人工智能真的值得 All-In 么？作为程序员，你怎么看？</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37571163">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/detail/426?ref=home&amp;loc=r4" target="_blank">马上直播：跟大咖探究Linux的驱动模型！点我立即观看！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="37341457">    <dt>      <i></i>      <span class="item_title"><a href="http://blog.csdn.net/pk.html?id=9308" target="_blank">降薪求职，到底该不该？</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36760309">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/series_detail/43?ref=home&amp;loc=r4" target="_blank">点我查看，前端圈的“大事儿”</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36644624">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/yearPromotion/detail/3" target="_blank">618 点我获取程序员充电指南！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36600080">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/series_detail/42?ref=home&amp;loc=r4" target="_blank">1天掌握物联网全栈开发之道！点我速戳！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36560624">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/detail/422" target="_blank">《深度学习基础与TensorFlow实践》直播课来袭！报名赠书！先报先得！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36443703">    <dt>      <i></i>      <span class="item_title"><a href="http://geek.csdn.net/news/detail/201179" target="_blank">6月25日大事件剧透，快去围观</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="36424403">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/detail/404" target="_blank">最后一周，即将直播</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="28979072">    <dt>      <i></i>      <span class="item_title"><a href="http://edu.csdn.net/huiyiCourse/detail/221">由姚熙主讲的《免费公开课|管中窥豹-聊聊物联网的强安全实践》明晚8点开讲啦，赶快来报名吧</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="20386990">    <dt>      <i></i>      <span class="item_title"><a href="http://bss.csdn.net/m/topic/cuanke_vote" target="_blank">CSDN攒课活动第三期投票已经开始啦，很身边小伙伴一起投票为自己攒课吧！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="19878509">    <dt>      <i></i>      <span class="item_title"><a href="http://bbs.csdn.net/topics/391857175" target="_blank">CSDN“攒课”第三期课题征集已经开始了，想学什么技术课，来发话题攒课吧！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="19366612">    <dt>      <i></i>      <span class="item_title"><a href="http://bss.csdn.net/m/topic/cuanke_vote/lecture" target="_blank">感谢您对CSDN“攒课”活动的支持，攒课第二期已经开始报名听课啦！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div><div style="/*display: none*/">  <dl class="detail_list rev_type1234" data-ids="19366244">    <dt>      <i></i>      <span class="item_title"><a href="http://huiyi.csdn.net/activity/product/goods_list?project_id=2544" target="_blank">感谢您对CSDN“攒课”活动的支持，您投票的课题开始报名听课啦！</a></span>      <span class="count_down"></span>    </dt>  </dl>  <div class="loading"></div>  <div class="empty">暂没有新通知</div>  <a class="notifications_more" target="_blank">查看其它 0 条</a></div></div></div><div class="error"></div></div>                    <iframe src="about:block" allowtransparency="true" style="z-index:-1;position:absolute;top:0;left:0;width:100%;height:100%;background:transparent" frameborder="0"></iframe></div>                  </div>                </div>              </li>              <li class="ugc">                <div class="icon on-ugc-icon">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <dl>                      <dt><a href="http://geek.csdn.net/news/expert?ref=toolbar" target="_blank" class="p-news clearfix" style="display:none;"><em class="icon"></em><span>分享资讯</span></a></dt>                      <dt style="border: none;"><a href="http://u.download.csdn.net/upload?ref=toolbar" target="_blank" class="p-doc clearfix"><em class="icon"></em><span>传PPT/文档</span></a></dt>                      <dt><a href="http://bbs.csdn.net/topics/new?ref=toolbar" target="_blank" class="p-ask clearfix"><em class="icon"></em><span>提问题</span></a></dt>                      <dt><a href="http://write.blog.csdn.net/postedit?ref=toolbar" target="_blank" class="p-blog clearfix"><em class="icon"></em><span>写博客</span></a></dt>                      <dt><a href="http://u.download.csdn.net/upload?ref=toolbar" target="_blank" class="p-src clearfix"><em class="icon"></em><span>传资源</span></a></dt>                      <dt><a href="https://code.csdn.net/projects/new?ref=toolbar" target="_blank" class="c-obj clearfix"><em class="icon"></em><span>创建项目</span></a></dt>                      <dt><a href="https://code.csdn.net/snippets/new?ref=toolbar" target="_blank" class="c-code clearfix"><em class="icon"></em><span>创建代码片</span></a></dt>                    </dl>                  </div>                </div>              </li>              <li class="profile">                <div class="icon on-profile-icon"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/2_yonka.jpg" class="curr-icon-img">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div class="bd">                      <dl class="clearfix">                        <dt class="pull-left img"><a target="_blank" href="http://my.csdn.net/?ref=toolbar" class="avatar"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/2_yonka.jpg"></a></dt>                        <dd class="info" style="border: none;"><a target="_blank" href="http://my.csdn.net/?ref=toolbar" class="nickname">yonka</a><span class="dec">七味都气丸</span></dd>                      </dl>                    </div>                    <div class="ft clearfix"><a target="_blank" href="http://my.csdn.net/my/account/changepwd?ref=toolbar" class="pull-left"><span class="icon-cog"></span>帐号设置</a><a href="https://passport.csdn.net/account/logout?ref=toolbar" target="_top" class="pull-left" style="margin-left:132px; width:18px; height:27px; white-space:nowrap; overflow:hidden;"><span class="icon-signout"></span><span class="out">退出</span></a></div>                  </div>                </div>              </li>              <li class="apps">                <div id="chasnew123" class="hasnew" style="display: none;"></div>                <div id="cappsarea123" class="icon on-apps-icon">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                  <div class="detail">                    <dl>                      <dt>                        <h5>社区</h5>                      </dt>                      <dd> <a href="http://blog.csdn.net/?ref=toolbar" target="_blank">博客</a></dd>                      <dd> <a href="http://bbs.csdn.net/?ref=toolbar" target="_blank">论坛</a></dd>                      <dd> <a href="http://download.csdn.net/?ref=toolbar" target="_blank">下载</a></dd>                      <dd> <a href="http://lib.csdn.net/?ref=toolbar" target="_blank">知识库</a></dd>                      <dd><a href="http://ask.csdn.net/?ref=toolbar" target="_blank">技术问答</a></dd>                      <dd><a href="http://geek.csdn.net/?ref=toolbar" target="_blank">极客头条</a></dd>                      <dd style="display:none"> <a href="http://hero.csdn.net/?ref=toolbar" target="_blank">英雄会</a></dd>                    </dl>                  </div>                  <div class="detail">                    <dl>                      <dt>                        <h5>服务</h5>                      </dt>                      <dd style="display:none"> <a href="http://job.csdn.net/?ref=toolbar" target="_blank">JOB<img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/new.gif" style="display: none; margin-top: -26px; width: 23px;"></a></dd>                      <dd> <a href="http://edu.csdn.net/?ref=toolbar" target="_blank">学院<img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/new.gif" style="display: none; margin-top: -26px; width: 23px;"></a></dd>                      <dd> <a href="https://code.csdn.net/?ref=toolbar" target="_blank">CODE</a></dd>                      <dd> <a href="http://huiyi.csdn.net/?ref=toolbar" target="_blank">活动</a></dd>                      <dd> <a href="http://www.csto.com/?ref=toolbar" target="_blank">CSTO</a></dd>                      <dd> <a href="http://mall.csdn.net/?ref=toolbar" target="_blank">C币兑换<img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/new.gif" style="display: none; margin-top: -26px; width: 23px;"></a></dd>                    </dl>                  </div>                  <div class="detail last">                    <dl>                      <dt>                        <h5>俱乐部</h5>                      </dt>                      <dd> <a href="http://cto.csdn.net/?ref=toolbar" target="_blank">CTO俱乐部</a></dd>                      <dd> <a href="http://student.csdn.net/?ref=toolbar" target="_blank">高校俱乐部</a></dd>                    </dl>                  </div>                </div>              </div>            </li>            </ul>          </div>        </div>    </div>
+     
+        <div class="tracking-ad" data-view="true" data-mod="ad_popu_72" data-mtp="62" data-order="40" data-con="ad_content_2072">
+                     <script id="popuLayer_js_q" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/popuLayer.js" defer="defer" type="text/javascript"></script>
+                <div id="layerd" style="position: fixed; bottom: 0px; right: 0px; line-height: 0px; z-index: 1000; width: 300px; height: 278px;">
+    	                <div class="J_close layer_close" style="display:;background-color:#efefef;padding:0px;color:#333;font:12px/24px Helvetica,Tahoma,Arial,sans-serif;text-align:right;">关闭</div><!-- 广告占位容器 --><div id="cpro_u2895327"><iframe id="iframeu2895327_0" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/hclm.html" vspace="0" hspace="0" marginwidth="0" marginheight="0" scrolling="no" style="border:0;vertical-align:bottom;margin:0;width:300px;height:250px" allowtransparency="true" width="300" align="center,center" height="250" frameborder="0"></iframe></div></div>
+                <script>  document.getElementById("popuLayer_js_q").onload = function () { var styObjd = styObj = { width: "300px", "height": parseInt(250) + 28 }; window.CSDN.Layer.PopuLayer("#layerd", { storageName: "layerd", styleObj: styObjd, total: 50, expoire: 1000 * 60 }); }</script><!-- 投放代码 --><script type="text/javascript">                    /*服务器频道首页置顶Banner960*90，创建于2014-7-3*/    (window.cproArray = window.cproArray || []).push({ id: "u2895327" });  </script>  <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/c.js" type="text/javascript"></script>
+     
+        </div>
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/iter_zc">ITer_ZC的专栏</a></h2>
+            <h3></h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/iter_zc?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/iter_zc?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/iter_zc/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "ITer_ZC";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/iter_zc";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod="popu_3"> 
+
+
+<a href="http://blog.csdn.net/turingbooks/article/details/76034232" target="_blank">
+<font color="red"><strong>评论送书 | 7月书讯：众多畅销书升级！ </strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/74550215" target="_blank">
+<font color="blue"><strong>征文 | 你会为 AI 转型么？</strong></font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+<a href="http://blog.csdn.net/epubit17/article/details/76066685" target="_blank">
+<font color="red"><strong>赠书 | AI专场（AI圣经！《深度学习》中文版）</strong></font></a>
+
+</div>                        </div>
+
+                        
+
+
+
+  
+
+
+
+
+
+
+<script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/category.js"></script>
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+      var isBole = false; 
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%b8%80%ef%bc%89%e7%9b%b8%e5%af%b9%e5%85%a8%e9%9d%a2%e7%9a%84GC%e6%80%bb%e7%bb%93&u=http://blog.csdn.net/iter_zc/article/details/41746265"
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+    <h1>
+        <span class="link_title"><a href="http://blog.csdn.net/iter_zc/article/details/41746265">
+        聊聊JVM（一）相对全面的GC总结        
+           
+        </a>
+        </span>
+
+         
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href="http://www.csdn.net/tag/JVM" target="_blank" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">JVM</a><a href="http://www.csdn.net/tag/Card%20Marking" target="_blank" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">Card Marking</a><a href="http://www.csdn.net/tag/%e5%8d%a1%e7%89%87%e6%a0%87%e8%ae%b0" target="_blank" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">卡片标记</a><a href="http://www.csdn.net/tag/GC" target="_blank" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">GC</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2014-12-05 13:08</span>
+            <span class="link_view" title="阅读次数">10425人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(8)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%b8%80%ef%bc%89%e7%9b%b8%e5%af%b9%e5%85%a8%e9%9d%a2%e7%9a%84GC%e6%80%bb%e7%bb%93','41746265');return false;" title="收藏" target="_blank">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(41746265,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label onclick="GetCategoryArticles('178970','ITer_ZC','top','41746265');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">Java<em>（81）</em></span>
+                      <img class="arrow-down" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/arrow_triangle%2520_down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a href="http://blog.csdn.net/ITer_ZC/article/category/178970" target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_178970">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label onclick="GetCategoryArticles('2758863','ITer_ZC','top','41746265');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JVM<em>（10）</em></span>
+                      <img class="arrow-down" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/arrow_triangle%2520_down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a href="http://blog.csdn.net/ITer_ZC/article/category/2758863" target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2758863">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+        <div class="bog_copyright">         
+            <p class="copyright_p">版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+
+<div id="article_content" class="article_content tracking-ad" data-mod="popu_307" data-dsm="post">
+
+<p>最近时间比较紧张，要写的东西也有很多，只能想到一点写一点。关于GC，网上的资料太多，之前对一个系统调优的时候又回顾了一下，找了几篇广泛流传
+的资料，大部分都是大同小异，这里总个总结，希望能够做个相对的全集，并写出一些新的点，比如Card Marking（卡片标记）等。</p>
+<p><br>
+</p>
+<p>首先是大家都要提到的GC的基础<a href="http://lib.csdn.net/base/datastructure" class="replace_word" title="算法与数据结构知识库" target="_blank" style="color:#df3434; font-weight:bold;">算法</a>：标记清除，标记整理，复制，分代。这些算法的第一步都是做的一件事: 标记(Mark)。</p>
+<p>JVM的标记算法采用了根搜索算法(Root Tracing)。根有几种：</p>
+<p>1. JVM栈的Frame里面的引用</p>
+<p>2. 静态类，常量的引用</p>
+<p>3. 本地栈中的引用</p>
+<p>4. 本地方法的引用</p>
+<p><br>
+</p>
+<p>一般我们能控制的就是JVM栈中的引用和静态类，常量的引用。标记也分为几个阶段，比如</p>
+<p>1. 标记直接和根引用的对象</p>
+<p>2. 标记间接和根引用的对象</p>
+<p>3. 由于分代算法，被老年代对象所引用的新生代的对象</p>
+<p><br>
+</p>
+<p>对于第三种，JVM采用了Card Marking(卡片标记)的方法，避免了在做Minor GC时需要对整个老年代扫描。具体的方法如下:</p>
+<p>1. 将老年代的内存分片，1个片默认是512byte</p>
+<p>2. 如果老年代的对象发生了修改，就把这个老年代对象所在的片标记为脏 dirty。或者老年代对象指向了新生代对象，那么它所在的片也会被标记为dirty</p>
+<p>3. 没有标记为脏的老年代片它没有指向新的新生代对象，所以可以不需要去扫描</p>
+<p>4. Minor GC扫描老年代空间时，只需要去扫描脏的卡片的对象，不需要扫描整个老年代空间<br>
+</p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205134809165.png" alt=""></p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205134902814.png" alt=""></p>
+<p><br>
+</p>
+<p>所以做Minor GC时标记的时间 = T(stack_scan) + T(card_scan) + T(old_root_scan).</p>
+<p>T(stack_scan): 级联扫描在JVM栈里的根的时间</p>
+<p>T(card_scan): 级联扫描卡表中脏卡片的时间</p>
+<p>T(old_root_scan): 扫描在老年代中的直接的根的时间。注意是直接的根，不会去级联扫描老年代的对象。因为扫描都是从根开始的，一开始不知道根到底是在老年代还是新生代</p>
+<p><br>
+</p>
+<p>和Card Marking相关的一个重要的JVM参数是<strong>-XX:UseCondCardMark</strong> 。使用这个参数的原因是在高并发的情况下，Card标记为脏的操作本身就存在着竞争，使用这个参数可以避免卡片被重复标记为脏，从而提高性能。<br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p>说完了标记，下面提一下几种基础的GC算法，没有什么新的点，直接引用网上的图</p>
+<p><strong>标记-清除算法</strong></p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205140026173.png" alt=""><br>
+</p>
+<p><br>
+</p>
+<p><strong>复制算法</strong></p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205140217182.png" alt=""></p>
+<p><br>
+</p>
+<p><strong>标记--整理算法</strong></p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205140301346.png" alt=""><br>
+</p>
+<p><br>
+</p>
+<p><strong>分代算法</strong>是将对象分为新生代和老年代，然后使用不同的GC策略来进行回收，提高整体的效率。</p>
+<p>由于新生代的大部分对象都会在一次Minor GC中死亡，存活的对象很少，所以新生代的GC收集器都采用了复制算法。新生代分为Eden + S0 + S1. S0和S1就是用来实现复制的，<strong>在任何一次Minor GC后，S0和S1总是只有一个区域有数据，另一个区域为空，以便于下一次复制使用</strong><br>
+</p>
+<p>当新生代空间不能满足大对象分配时，老年代空间为它提供了分配担保，大对象可以直接进入老年代。有两个JVM参数可以控制新生代进入老年代的门槛:</p>
+<p>PretenureSizeThreshold: 单位是B，设置了对象大小的阀值</p>
+<p>MaxTenuringThreshold: 设置了进入老年代的年龄的阀值</p>
+<p><br>
+</p>
+<p>老年代对象一般都是存活时间久，老年代的空间本来就大，所以没有更多空间来提供分配担保，所以老年代一般采用标记--清理或者标记--整理算法。</p>
+<p>下面这张图很好地介绍了JDK6的各种GC收集器以及各自的特点:</p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205141404316.png" alt=""></p>
+<p><br>
+</p>
+<p>1. 新生代都采用复制算法</p>
+<p>2. CMS采用了标记--清除算法，由于标记清除算法会生成内存碎片，所以JVM提供了参数来使CMS可以在几次清除后作一次整理<br>
+</p>
+<p><span style="font-family:Courier New"><strong>-XX:CMSFullGCsBeforeCompaction</strong>：由于并发收集器不对内存空间进行压缩、整理，所以运行一段时间以后会产生“碎片”，使得运行效率降低。此值设置运行多少次GC以后对内存空间进行压缩、整理。<br>
+</span><strong>-XX:+UseCMSCompactAtFullCollection</strong>：打开对年老代的压缩。可能会影响性能，但是可以消除碎片</p>
+<p>3. Serial Old(MSC)和Parallel Old都采用标记整理算法</p>
+<p>4. UseSerialGC默认会在新生代使用Serial收集器，在老年代使用Serial Old收集器，这两个都是单线程的收集器</p>
+<p>5. UseConcMarkSweepGC默认会再新生代使用ParNew收集器，这是个并发的收集器。在老年代会使用CMS + Serial Old收集器，当CMS失败的时候，会启用Serial Old做FULL GC</p>
+<p>6. UseParallelOldGC默认会在新生的使用Parallel Scavenge收集器，在老年代使用Parallel Old收集器。这两个收集器都是吞吐量优先，所谓吞吐量优先就是它可以严格控制GC的时间，从而保证吞吐量。<strong>但是吞吐量提高了，新生代和老年代的空间就是动态调整的，而不是按照初始配置的大小。因为单位时间清除的垃圾量近乎一个常量，既然要保证时间，那么必须保证垃圾总量，而垃圾总量可以通过新生代和老年代的大小来控制的</strong></p>
+<p>7. 对于和用户有交互的应用，比如Web应用，一个重要的考量是系统的响应时间，要保证系统的响应时间就要保证由GC导致的stop the world次数少，或者让用户线程和GC线程一起运行。所以Web应用是使用CMS收集器的一个重要场景。<strong>CMS减少了stop the world的次数，不可避免地让整体GC的时间拉长了</strong>。<br>
+</p>
+<p>8. 对于计算密集型的应用可能会考虑计算的吞吐量，这时候可以使用Parallel Scavenge收集器来保证吞吐量</p>
+<p>9. Serial, ParNew, Parallel Scanvange, Parallel Old, Serial Old全程都会Stop the world，JVM这时候只运行GC线程，不运行用户线程</p>
+<p>10. CMS主要分为 initial Mark, Concurrent Mark, ReMark, Concurrent 
+Sweep等阶段，initial Mark和Remark占整体的时间比较较小，它们会Stop the world. Concurrent 
+Mark和Concurrent Sweep会和用户线程一起运行。</p>
+<p><br>
+</p>
+<p>下面这张图对GC的日志信息做了说明:</p>
+<p><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20141205143353656.png" alt=""><br>
+</p>
+<p><br>
+</p>
+<p>关于JVM调优的各种参数设置，网上一抓一大把，这里不多说了。有一个调优的整体的原则：</p>
+<p>1. 先做一个JVM的性能<a href="http://lib.csdn.net/base/softwaretest" class="replace_word" title="软件测试知识库" target="_blank" style="color:#df3434; font-weight:bold;">测试</a>，了解当前的状态<br>
+</p>
+<p>2. 明确调优的目标，比如减少FULL GC的次数，减少GC的总时间，提高吞吐量等</p>
+<p>3. 调整参数后再进行多次的测试，分析，最终达到一个较为理想的状态。各种参数要根据系统的自身情况来确定，没有统一的解决方案</p>
+<p><br>
+</p>
+<p>将各种工具的文章页很多，这里从解决问题的角度出发列出几个。</p>
+<p><br>
+</p>
+<p>查看JVM启动参数</p>
+<p>1. jps -v</p>
+<p>2. jinfo -flags pid</p>
+<p>3. jinfo pid -- 列出JVM启动参数和system.properties</p>
+<p>4. ps -ef | grep <a href="http://lib.csdn.net/base/java" class="replace_word" title="Java 知识库" target="_blank" style="color:#df3434; font-weight:bold;">Java</a></p>
+<p><br>
+</p>
+<p>查看当前堆的配置</p>
+<p>1. jstat -gc pid 1000 3&nbsp; -- 列出堆的各个区域的大小</p>
+<p>2. jstat -gcutil pid 1000 3 -- 列出堆的各个区域使用的比例</p>
+<p>3. jmap -heap pid&nbsp; -- 列出当前使用的GC算法，堆的各个区域大小</p>
+<p><br>
+</p>
+<p>查看线程的堆栈信息</p>
+<p>1. jstack -l pid&nbsp;</p>
+<p><br>
+</p>
+<p>dump堆内的对象</p>
+<p>1. jmap -dump:live,format=b,file=xxx pid</p>
+<p>2. -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=xxx&nbsp; -- 设置JVM参数，当JVM OOM时输出堆的dump</p>
+<p><strong>3. ulimit&nbsp; -c&nbsp;unlimited&nbsp; -- 设置<a href="http://lib.csdn.net/base/linux" class="replace_word" title="Linux知识库" target="_blank" style="color:#df3434; font-weight:bold;">Linux</a> ulimit参数，可以产生coredump且不受大小限制。之前在线上遇到过一个极其诡异的问题，JVM整个进程突然挂了，这时候依靠JVM本身生成dump文件已经不行了，只有依赖<a href="http://lib.csdn.net/base/linux" class="replace_word" title="Linux知识库" target="_blank" style="color:#df3434; font-weight:bold;">linux</a>，让系统来生成进程挂掉的core dump文件</strong></p>
+<p><strong>使用jstack 可以来获得这个coredump的线程堆栈信息:&nbsp; jstack "$JAVA_HOME/bin/java" core.xxx &gt; core.log</strong></p>
+<p><br>
+</p>
+<p>获得当前系统占用CPU最高的10个进程，线程</p>
+<p>ps Hh -eo pid,tid,pcpu,pmem | sort -nk3 |tail &gt; temp.txt<br>
+</p>
+<p><br>
+</p>
+<p>图形化界面<br>
+1. jvisualvm 里面有很多插件，比如Visual GC，可以可视化地看到各个堆区域时候的状态，从而可以对整体GC的性能有整体的认识<br>
+</p>
+<p><br>
+就说到这吧，有遗漏的后面再补充</p>
+<p><br>
+</p>
+<p>参考资料:&nbsp; <a target="_blank" href="http://blog.griddynamics.com/2011/06/understanding-gc-pauses-in-jvm-hotspots.html">
+Understanding GC pauses in JVM, HotSpot's minor GC.</a></p>
+<p>《深入理解JVM》</p>
+<p>《Think in GC》<br>
+</p>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad bdshare-button-style0-16" style="float: right;" data-mod="popu_172" data-bd-bind="1500967746426">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important" target="_blank"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间" style="background-position:0 -52px !important" target="_blank"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博" style="background-position:0 -104px !important" target="_blank"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博" style="background-position:0 -260px !important" target="_blank"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网" style="background-position:0 -208px !important" target="_blank"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信" style="background-position:0 -1612px !important" target="_blank"></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   
+
+<!--172.16.140.15-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/bds_s_v2.js"></script>
+
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+
+ 
+
+
+        <div id="digg" articleid="41746265">
+            <dl id="btnDigg" class="digg digg_enable" onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>4</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable" onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" target="_blank">&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" target="_blank">&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41212547';">上一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41212547" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">聊聊ZooKeeper（一）分析ZooKeeper的Quorums机制--防止Split-Brain问题</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41802365';">下一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41802365" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">聊聊JVM（二）说说GC的一些常见概念</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+            <div class="similar_article">
+                    <h4></h4>
+                    <div class="similar_c" style="margin:20px 0px 0px 0px">
+                        <div class="similar_c_t">
+                          &nbsp;&nbsp;相关文章推荐
+                        </div>
+                   
+                        <div class="similar_wrap tracking-ad" data-mod="popu_36">                       
+                            <ul class="similar_list fl">    
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/tonytfjing/article/details/44278233" title="JVM结构、GC工作机制详解" strategy="BlogCommendFromBaidu" target="_blank">JVM结构、GC工作机制详解</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/antony9118/article/details/51375662" title="JVM GC 机制与性能优化" strategy="BlogCommendFromBaidu" target="_blank">JVM GC 机制与性能优化</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/wwww1988600/article/details/21011935" title="JVM GC机制" strategy="BlogCommendFromBaidu" target="_blank">JVM GC机制</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/suifeng3051/article/details/48292193" title="JVM内存管理及GC机制" strategy="BlogCommendFromBaidu" target="_blank">JVM内存管理及GC机制</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/a511596982/article/details/8460128" title="深入JVM系列（二）之GC机制、收集器与GC调优" strategy="BlogCommendFromBaidu" target="_blank">深入JVM系列（二）之GC机制、收集器与GC调优</a>
+                                   </li>
+                            </ul>
+                              <ul class="similar_list fr">      
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/u012909091/article/details/50583724" title="JVM-GC设计思路分析" strategy="BlogCommendFromBaidu" target="_blank">JVM-GC设计思路分析</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/lzxadsl/article/details/50159939" title="JVM及 GC 的 工作原理" strategy="BlogCommendFromBaidu" target="_blank">JVM及 GC 的 工作原理</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/macyang/article/details/8731313" title="JVM调优：选择合适的GC collector" strategy="BlogCommendFromBaidu" target="_blank">JVM调优：选择合适的GC collector</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/yohoph/article/details/42041729" title="JVM gc参数设置与分析" strategy="BlogCommendFromBaidu" target="_blank">JVM gc参数设置与分析</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/doc_sgl/article/details/46594123" title="jvm的GC日志分析" strategy="BlogCommendFromBaidu" target="_blank">jvm的GC日志分析</a>
+                                   </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>   
+      
+</div>
+
+    <div>
+        
+
+        <script type="text/javascript">
+            /*博客内容页下方Banner1-728*90，创建于2016-12-13*/
+            var cpro_id = "u2843949";
+        </script>
+        <script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/c.js"></script><div id="BAIDU_SSP__wrapper_u2843949_0"><iframe id="iframeu2843949_0" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/hclm_002.html" vspace="0" hspace="0" marginwidth="0" marginheight="0" scrolling="no" style="border:0;vertical-align:bottom;margin:0;width:728px;height:90px" allowtransparency="true" width="728" align="center,center" height="90" frameborder="0"></iframe></div>
+
+     </div>
+
+<div id="suggest">
+
+</div>
+         <script language="javascript" type="text/javascript">     
+             $(function(){
+                 $.get("/ITer_ZC/svc/GetSuggestContent/41746265",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+        <dl class="blog-ass-articl tracking-ad" id="res-relatived" data-mod="popu_84"> 
+             <dt><span>猜你在找</span></dt>    
+           
+    
+           
+
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5084" title="【直播】机器学习&amp;深度学习系统实战（唐宇迪）" strategy="undefined" target="_blank">【直播】机器学习&amp;深度学习系统实战（唐宇迪）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5219" title="【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）" strategy="undefined" target="_blank">【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5222" title="【直播回放】深度学习基础与TensorFlow实践（王琛）" strategy="undefined" target="_blank">【直播回放】深度学习基础与TensorFlow实践（王琛）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/52" title="【直播】计算机视觉原理及实战（屈教授）" strategy="undefined" target="_blank">【直播】计算机视觉原理及实战（屈教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/48" title="【直播】机器学习之凸优化（马博士）" strategy="undefined" target="_blank">【直播】机器学习之凸优化（马博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/47" title="【直播】机器学习之矩阵（黄博士）" strategy="undefined" target="_blank">【直播】机器学习之矩阵（黄博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/46" title="【直播】机器学习之概率与统计推断（冒教授）" strategy="undefined" target="_blank">【直播】机器学习之概率与统计推断（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/49" title="【直播】机器学习之数学基础" strategy="undefined" target="_blank">【直播】机器学习之数学基础</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/44" title="【直播】TensorFlow实战进阶（智亮）" strategy="undefined" target="_blank">【直播】TensorFlow实战进阶（智亮）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/45" title="【直播】深度学习30天系统实训（唐宇迪）" strategy="undefined" target="_blank">【直播】深度学习30天系统实训（唐宇迪）</a>
+                        </dd>
+        </dl>
+
+
+
+
+            
+                                    
+            
+                                    
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list"><dl class="comment_item comment_topic" id="comment_item_6766137"><dt class="comment_head" floor="8">8楼 <span class="user"><a class="username" href="http://blog.csdn.net/u013038861" target="_blank">冯尧</a> <span class="ptime">2017-04-19 20:10发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="6766137" username="u013038861"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/u013038861" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_u013038861.jpg" width="40" height="40"></a></dd><dd class="comment_body">标记整理算法的解释错了吧博主。</dd></dl><dl class="comment_item comment_topic" id="comment_item_6628030"><dt class="comment_head" floor="7">7楼 <span class="user"><a class="username" href="http://blog.csdn.net/u014228542" target="_blank">DesertSnowTequiero</a> <span class="ptime">2017-02-27 11:32发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="6628030" username="u014228542"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/u014228542" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_u014228542.jpg" width="40" height="40"></a></dd><dd class="comment_body">nice, this article was helpful for me, thanks.</dd></dl><dl class="comment_item comment_topic" id="comment_item_6246163"><dt class="comment_head" floor="6">6楼 <span class="user"><a class="username" href="http://blog.csdn.net/JavaYohn" target="_blank">JavaYohn</a> <span class="ptime">2016-08-31 11:41发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="6246163" username="JavaYohn"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/JavaYohn" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_javayohn.jpg" width="40" height="40"></a></dd><dd class="comment_body">赞。写那么多。</dd></dl><dl class="comment_item comment_topic" id="comment_item_6077418"><dt class="comment_head" floor="5">5楼 <span class="user"><a class="username" href="http://blog.csdn.net/il_wq" target="_blank">il_wq</a> <span class="ptime">2016-06-08 10:28发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="6077418" username="il_wq"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/il_wq" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_il_wq.gif" width="40" height="40"></a></dd><dd class="comment_body">补充一下：标记--整理算法的标记过程任然与标记-清除算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉端边界以外的内存。</dd></dl><dl class="comment_item comment_topic" id="comment_item_6077410"><dt class="comment_head" floor="4">4楼 <span class="user"><a class="username" href="http://blog.csdn.net/il_wq" target="_blank">il_wq</a> <span class="ptime">2016-06-08 10:24发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="6077410" username="il_wq"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/il_wq" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_il_wq.gif" width="40" height="40"></a></dd><dd class="comment_body">非常不错。</dd></dl><dl class="comment_item comment_topic" id="comment_item_5971837"><dt class="comment_head" floor="3">3楼 <span class="user"><a class="username" href="http://blog.csdn.net/xiaoduanayu" target="_blank">尐葮阿譽</a> <span class="ptime">2016-04-06 15:01发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="5971837" username="xiaoduanayu"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/xiaoduanayu" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_xiaoduanayu.gif" width="40" height="40"></a></dd><dd class="comment_body">标记--整理算法下面的配图的文字描述错了，总结得很好，就是排班糟糕，建议博主注意排版，排版漂亮且有内容的博文，访问量肯定是蹭蹭的！</dd></dl><dl class="comment_item comment_topic" id="comment_item_5694615"><dt class="comment_head" floor="2">2楼 <span class="user"><a class="username" href="http://blog.csdn.net/u012914981" target="_blank">扫大街的程序员</a> <span class="ptime">2015-12-04 10:42发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="5694615" username="u012914981"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/u012914981" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_u012914981.jpg" width="40" height="40"></a></dd><dd class="comment_body">标记整理算法介绍，内容应该疏忽写成标记复制算法了</dd></dl><dl class="comment_item comment_topic" id="comment_item_4595257"><dt class="comment_head" floor="1">1楼 <span class="user"><a class="username" href="http://blog.csdn.net/kmter" target="_blank">萧易客</a> <span class="ptime">2014-12-08 23:41发表</span>  <a href="#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="4595257" username="kmter"> <a href="#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/kmter" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/3_kmter.jpg" width="40" height="40"></a></dd><dd class="comment_body">总结得很好！JVM调优在我看来是Java程序员进阶所必需掌握的技能。要是博主能够更加注重以下排版就更好了，加油！</dd></dl><div class="clear"></div></div>
+    <div id="comment_bar" style="display: none;">
+    </div>
+    <div id="comment_form"><a name="commentbox"></a><a name="reply"></a><a name="quote"></a><form action="/ITer_ZC/comment/submit?id=41746265" method="post" onsubmit="return subform(this);"><div class="commentform"><div class="panel_head">发表评论</div><ul><li class="left">用 户 名：</li><li class="right">yonka</li></ul><ul><li class="left">评论内容：</li><li class="right" style="position:relative;"><div id="ubbtools"><a href="#insertcode" code="code"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/code.gif" alt="插入代码" title="插入代码" border="0"></a></div><div id="lang_list" style="position: absolute; top: 28px; left: 0px; display: none;"><a class="long_name" href="#html">HTML/XML</a><a class="long_name" href="#objc">objective-c</a><a class="zhong_name" href="#delphi">Delphi</a><a class="zhong_name" href="#ruby">Ruby</a><a href="#php">PHP</a><a class="duan_name" href="#csharp">C#</a><a style=" border-right: none;" class="duan_name" href="#cpp">C++</a><a style=" border-bottom:none;" class="long_name" href="#javascript">JavaScript</a><a style=" border-bottom:none;" class="long_name" href="#vb">Visual Basic</a><a style=" border-bottom:none;" class="zhong_name" href="#python">Python</a><a style=" border-bottom:none;" class="zhong_name" href="#java">Java</a><a style="border-bottom:none;" class="duan_name" href="#css">CSS</a><a style="border-bottom:none;" class="duan_name" href="#sql">SQL</a><a style="border:none;" class="duan_name" href="#plain">其它</a></div><textarea class="comment_content" name="comment_content" id="comment_content" style="width: 400px; height: 200px;"></textarea></li></ul><ul><input id="comment_replyId" name="comment_replyId" type="hidden"><input id="comment_userId" name="comment_userId" value="521203" type="hidden"><input id="commentId" name="commentId" value="" type="hidden"><input class="comment_btn" value="提交" type="submit">&nbsp;&nbsp;<span id="tip_comment" style="color: Red; display: none;"></span></ul></div></form></div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '41746265';
+    var commentscount = 8;
+    var islock = false
+</script>
+
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top" style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop" style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])">         
+         <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var 
+u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    
+$.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, 
+function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                
+thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            
+$(".math").each(function(index,value){$(this).find("span").last().css("color","#fff");
+ })
+        },5000);
+
+        setTimeout(function(){
+            
+$(".math").each(function(index,value){$(this).find("span").last().css("color","#fff");
+ })
+        },10000);
+
+        setTimeout(function(){
+            
+$(".math").each(function(index,value){$(this).find("span").last().css("color","#fff");
+ })
+        },15000);
+        
+        setTimeout(function(){
+            $("a 
+img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe 
+src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm"
+ frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( 
+window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+    var articletitle='聊聊JVM（一）相对全面的GC总结';
+
+</script>
+
+
+
+
+
+
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/ITer_ZC" target="_blank">
+    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/1_iter_zc.jpg" title="访问我的空间" style="max-width:90%">
+    </a>
+    <br>
+    <span><a href="http://my.csdn.net/ITer_ZC" class="user_name" target="_blank">iter_zc</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attented" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter" title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=ITer_ZC','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a target="_blank">
+                                                    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/zhuanlandaren.png" onmouseover="m_over_m(this,2)" onmouseout="m_out_m()" alt="5">
+                                            </a>
+                                            <a target="_blank">
+                                                    <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="4">
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>430463次</span></li>
+    <li>积分：<span>5607</span> </li>    
+    <li>等级： <span style="position:relative;display:inline-block;z-index:1">
+            <img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/blog6.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：5607 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>115篇</span></li>
+    <li>转载：<span>0篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>157条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+    <ul class="panel_head"><span>博客专栏</span></ul>
+    <ul class="panel_body" id="sp_column">
+    <table cellspacing="0" cellpadding="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20151123180345177.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank">Flume NG源码分析</a>
+    <p>文章：7篇</p>
+    <span>阅读：12815</span>
+    </td>
+    </tr></tbody></table>
+    <table cellspacing="0" cellpadding="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20151123180229364.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank">计算机底层知识拾遗</a>
+    <p>文章：10篇</p>
+    <span>阅读：37629</span>
+    </td>
+    </tr></tbody></table>
+    <table cellspacing="0" cellpadding="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20151123180126770.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank">聊聊JVM</a>
+    <p>文章：10篇</p>
+    <span>阅读：82730</span>
+    </td>
+    </tr></tbody></table>
+    <table cellspacing="0" cellpadding="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20151123180050145.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank">聊聊高并发</a>
+    <p>文章：44篇</p>
+    <span>阅读：149537</span>
+    </td>
+    </tr></tbody></table>
+    <table cellspacing="0" cellpadding="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/20151123180029583.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank">Thrift源码分析</a>
+    <p>文章：9篇</p>
+    <span>阅读：37021</span>
+    </td>
+    </tr></tbody></table>
+    </ul>
+</div><div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search csdn-tracking-statistics" target="_blank" data-mod="popu_306">
+        <span><input id="inputSearch" class="blogsearch" title="请输入关键字" type="text"></span>
+        <input id="btnSubmit" value="搜索" title="search in blog" type="button">
+        <input name="q" id="inputQ" type="hidden">
+        <input name="t" value="blog" type="hidden">
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(function () {
+        $("#btnSubmit").unbind("click");
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {           
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            if ($("#inputSearch").val() == "") {               
+                alert("请录入搜索关键词！");                         
+                return false;
+            }
+            //var url = "http://so.csdn.net/so/search/s.do?q=" + 
+encodeURIComponent($("#inputSearch").val()) + "&u=" + username + 
+"&t=blog";           
+            var url = "https://www.baidu.com/s?wd=" + 
+encodeURIComponent($("#inputSearch").val()) + "%20site%3Ablog.csdn.net"
+            window.location.href = url;
+        }   
+    });
+</script><div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/178970" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java</a><span>(82)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2562435" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">NIO</a><span>(13)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2562447" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">随手记</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2564739" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">架构设计</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2566479" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">RPC</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2567647" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">TCP/IP</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2585735" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Thrift</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2592507" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">高并发</a><span>(46)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2687261" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">序列化</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2719317" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">ZooKeeper</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2758863" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JVM</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2785017" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java内存模型</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2796737" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/2796741" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机原理</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/5570277" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Flume NG</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="http://blog.csdn.net/ITer_ZC/article/category/6053139" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式系统</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list"><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2016/01">2016年01月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/07">2015年07月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/06">2015年06月</a><span>(9)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/05">2015年05月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/04">2015年04月</a><span>(4)</span></li><span class="hidelist" style="display:none;"><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/03">2015年03月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2015/01">2015年01月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2014/12">2014年12月</a><span>(16)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2014/11">2014年11月</a><span>(21)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2014/10">2014年10月</a><span>(15)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2014/09">2014年09月</a><span>(26)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2006/04">2006年04月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/ITer_ZC/article/month/2006/02">2006年02月</a><span>(1)</span></li></span><div id="archive_list_button" class="list_closed">展开</div></div>
+</ul>
+</div>
+<div id="hotarticls" class="panel tracking-ad" data-mod="popu_340">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS" target="_blank">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(17900)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41822719" title="聊聊JVM（三）两种计算Java对象大小的方法" target="_blank">聊聊JVM（三）两种计算Java对象大小的方法</a><span>(10610)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结" target="_blank">聊聊JVM（一）相对全面的GC总结</a><span>(10411)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO" target="_blank">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(9138)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念" target="_blank">聊聊JVM（二）说说GC的一些常见概念</a><span>(8574)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41892567" title="聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞" target="_blank">聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞</a><span>(7446)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41847887" title="聊聊JVM（六）理解JVM的safepoint" target="_blank">聊聊JVM（六）理解JVM的safepoint</a><span>(7164)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41843595" title="聊聊JVM（五）从JVM角度理解线程" target="_blank">聊聊JVM（五）从JVM角度理解线程</a><span>(6911)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41979189" title="聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理" target="_blank">聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理</a><span>(6863)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/42644229" title="计算机底层知识拾遗（一）理解虚拟内存机制" target="_blank">计算机底层知识拾遗（一）理解虚拟内存机制</a><span>(6339)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel tracking-ad" data-mod="popu_341">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/42026511" title="聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则" target="_blank">聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则</a><span>(13)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/39317311" title="《Netty权威指南》私有协议开发的可运行源代码分享" target="_blank">《Netty权威指南》私有协议开发的可运行源代码分享</a><span>(13)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结" target="_blank">聊聊JVM（一）相对全面的GC总结</a><span>(8)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/39546405" title="聊聊高并发（二）结合实例说说线程封闭和背后的设计思想" target="_blank">聊聊高并发（二）结合实例说说线程封闭和背后的设计思想</a><span>(7)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO" target="_blank">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(7)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS" target="_blank">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(7)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/606327" title="关于如何在java的web应用获取服务器资源。" target="_blank">关于如何在java的web应用获取服务器资源。</a><span>(6)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/40738561" title="聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)" target="_blank">聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)</a><span>(6)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念" target="_blank">聊聊JVM（二）说说GC的一些常见概念</a><span>(6)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/iter_zc/article/details/39341983" title="几种分布式调用技术的比较 -- RPC VS REST" target="_blank">几种分布式调用技术的比较 -- RPC VS REST</a><span>(6)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend">
+<ul>
+<li><a href="http://blog.csdn.net/blogdevteam/article/details/75669610" target="_blank">*  CSDN日报20170721——《为什么我们创业失败了和选择创业公司的思考》</a></li>
+<li><a href="http://blog.csdn.net/javazejian/article/details/75043422" target="_blank">* 深入剖析基于并发AQS的重入锁(ReetrantLock)及其Condition实现原理</a></li>
+<li><a href="http://blog.csdn.net/jiangwei0910410003/article/details/75512732" target="_blank">* Android版本的"Wannacry"文件加密病毒样本分析(附带锁机)</a></li>
+<li><a href="http://blog.csdn.net/mindfloating/article/details/75948781" target="_blank">* 工作与生活真的可以平衡吗？</a></li>
+<li><a href="http://blog.csdn.net/poem_qianmo/article/details/75943714" target="_blank">* 《Real-Time Rendering 3rd》 提炼总结——高级着色：BRDF及相关技术</a></li>
+<li><a href="http://blog.csdn.net/dog250/article/details/75735806" target="_blank">* 《三体》读后思考-泰勒展开/维度打击/黑暗森林</a></li>
+
+</ul></ul>
+</div>
+
+
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41847887#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/haoyifen" class="user_name">Frank-Hao</a>:
+https://bugs.openjdk.java.net/browse/JDK-8029060jd...
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/39291647#comments">深入理解非阻塞同步IO和非阻塞异步IO</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/saodilaoshu" class="user_name">六饼嫖鼠</a>:
+@JackieeeCheng:我觉得并没有矛盾,非阻塞同步中,是要分两个阶段的,一个是等待IO事件就...
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41825395#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/zcymz" class="user_name">极之光</a>:
+我想还是有细微差别，不然不会起两名。
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41802365#comments">聊聊JVM（二）说说GC的一些常见概念</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/l543227182" class="user_name">l543227182</a>:
+关于第二问，两种情况应该是在MinorGC之前判断的吧
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。"阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。"阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/40373881#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/long772891026" class="user_name">kaili_yplong</a>:
+你说的怎么感觉和我之前的理解有很大差距？一次CMS怎么可能会产生两次FULL GC
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41868999#comments">聊聊JVM（八）说说GC标记阶段的一些事</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/u013038861" class="user_name">冯尧</a>:
+大神啊，太厉害了！！
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41853855#comments">聊聊JVM（七）一张图说明JVM运行时状态</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/u013038861" class="user_name">冯尧</a>:
+那张图帮了大忙了，对于JVM内部结构的理解太棒了。
+    </p>
+    </li>
+    <li>
+   
+         <a href="http://blog.csdn.net/iter_zc/article/details/41853855#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/u013038861" class="user_name">冯尧</a>:
+博主好厉害！！
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+
+                   <!-- 广告位开始 -->                    <!-- 广告位结束 -->
+                   <div class="tracking-ad" data-view="true" data-mtp="63" data-order="40" data-con="ad_content_1260" style="width: 200px; height: 500px;">
+                         <div id="nav_show_top_stop" style="width: 200px; height: 500px; z-index: 1000; position: fixed; top: 3626.5px;"><div id="cpro_u2734128"><iframe id="iframeu2734128_0" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/hclm_003.html" vspace="0" hspace="0" marginwidth="0" marginheight="0" scrolling="no" style="border:0;vertical-align:bottom;margin:0;width:200px;height:200px" allowtransparency="true" width="200" align="center,center" height="200" frameborder="0"></iframe></div>
+                             <div id="cpro_u3031287"><iframe id="iframeu3031287_0" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/hclm_004.html" vspace="0" hspace="0" marginwidth="0" marginheight="0" scrolling="no" style="border:0;vertical-align:bottom;margin:0;width:200px;height:200px" allowtransparency="true" width="200" align="center,center" height="200" frameborder="0"></iframe></div></div>
+                   </div>
+    <script type="text/javascript">
+        setTimeout(function () {
+            var naviga_offsetTop = 0;
+            function naviga_stay_top() { var scrollTop = 
+jQuery(document).scrollTop(); if (scrollTop > naviga_offsetTop) { 
+jQuery("#nav_show_top_stop").css({ "position": "fixed" }); 
+jQuery("#nav_show_top_stop").css({ "top": "0px" }); } else { 
+jQuery("#nav_show_top_stop").css({ "position": "fixed" }); 
+jQuery("#nav_show_top_stop").css({ "top": naviga_offsetTop - scrollTop +
+ "px" }); } }
+            function onload_function() { naviga_offsetTop = 
+jQuery("#nav_show_top_stop").position().top; 
+jQuery(window).bind("scroll", naviga_stay_top); 
+jQuery(window).bind("mousewheel", naviga_stay_top); 
+jQuery(document).bind("scroll", naviga_stay_top); 
+jQuery(document).bind("mousewheel", naviga_stay_top); } 
+jQuery(document).ready(onload_function);
+
+        }, 200);
+    </script>
+<script type="text/javascript">(window.cproArray = window.cproArray || []).push({ id: "u2734128" });  </script> 
+                    <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/c.js" type="text/javascript"></script> 
+                   <script type="text/javascript">
+                       /*PC端-博客内容页左侧Button2-200*200-2017/7/10*/
+                       (window.cproArray = window.cproArray || []).push({ id: "u3031287" });
+</script>
+<script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a 
+href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  
+style='text-indent:0;'><img 
+src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 
+alt='在CODE上查看代码片' 
+style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a 
+href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' 
+style='text-indent:0;'><img 
+src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 
+alt='派生到我的代码片' 
+style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && 
+parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+
+     
+
+   
+   
+     <!--new top-->
+   
+   
+
+    
+    
+    
+   
+
+   
+
+
+       <script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/MathJax.js"></script>
+          <script type="text/javascript">
+              //$(function () {
+              //    setTimeout(function () {
+              //        var searchtitletags = articletitle + ',' + 
+$("#tags").html();
+              //        searchService({
+              //            index: 'blog',
+              //            query: searchtitletags,
+              //            from: 5,
+              //            size: 5,
+              //            appendTo: '#res',
+              //            url: 'recommend',
+              //            his: 2,
+              //            client: "blog_cf_enhance",
+              //            tmpl: '<dd 
+style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif)
+ no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ 
+strategy }">#{ title }</a></dd>'
+              //        });
+              //    }, 1000);
+              //});
+
+         </script>
+    
+    <script src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/csdn_blog_detail.js" type="text/javascript"></script><link rel="stylesheet" type="text/css" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/pub_footer_2014.css"><div class="pub_fo"><div id="pub_footerall" class="pub_footer_new"><dl><dt></dt> <dd class="foot_sub_menu"><a href="http://www.csdn.net/company/about.html" target="_blank">公司简介</a><span>|</span><a href="http://www.csdn.net/company/recruit.html" target="_blank">招贤纳士</a><span>|</span><a href="http://www.csdn.net/company/marketing.html" target="_blank">广告服务</a><span>|</span><a href="http://www.csdn.net/company/contact.html" target="_blank">联系方式</a><span>|</span><a href="http://www.csdn.net/company/statement.html" target="_blank">版权声明</a><span>|</span><a href="http://www.csdn.net/company/layer.html" target="_blank">法律顾问</a><span>|</span><a href="mailto:webmaster@csdn.net">问题报告</a><span>|</span><a target="_blank" href="http://www.csdn.net/friendlink.html">合作伙伴</a><span>|</span><a href="http://bbs.csdn.net/forums/Service" target="_blank">论坛反馈</a></dd><dd class="foot_contact"><a href="javascript:void(0);" target="_blank" class="qq">网站客服</a><a href="http://wpa.qq.com/msgrd?v=3&amp;uin=2251809102&amp;site=qq&amp;menu=yes" target="_blank" class="qq">杂志客服</a><a href="http://e.weibo.com/csdnsupport/profile" target="_blank" class="weibo">微博客服</a><a href="mailto:webmaster@csdn.net" class="email" title="联系邮箱">webmaster@csdn.net</a><span class="phone" title="服务热线">400-660-0108</span><span class="interval">|</span><span>北京创新乐知信息技术有限公司 版权所有</span><span class="interval">|</span><span>江苏知之为计算机有限公司</span><span class="interval">|</span><span>江苏乐知网络技术有限公司</span></dd><dd class="foot_copyright"><span>京&nbsp;ICP&nbsp;证&nbsp;09002463&nbsp;号</span><span class="interval">|</span><span>Copyright © 1999-2017, CSDN.NET, All Rights Reserved&nbsp;</span><a href="http://www.hd315.gov.cn/beian/view.asp?bianhao=010202001032100010" target="_blank"><img src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/gongshang_logos.gif" alt="GongshangLogo" title=""></a></dd></dl></div></div><div id="note1" class="csdn_note" style="display:none; position:absolute; z-index:9999; width:440px">  <span class="notice_top_arrow"><span class="inner"></span></span>  <div class="box"></div></div><div class="csdn_notice_tip" style="position: absolute; z-index: 9990; width: 170px; left: -72px; top: 18px; display: block;">  <iframe src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/a_004.html" scrolling="no" style="z-index:-1;position:absolute;top:0;left:0;width:100%;height:100%;background:transparent" frameborder="0"></iframe>  <div class="tip_text">您有<strong>22</strong>条新通知</div>  <a href="javascript:void%200" class="close2"></a></div><script id="noticeScript" type="text/javascript" btnid="header_notice_num" wrapid="note1" count="5" subcount="5" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/notify.js"></script><input id="aa_g_data_ids" value="18967007|18965926|17966678|17966677|17823338|37968429|37952613|37903372|37768699|37571163|37341457|36760309|36644624|36600080|36560624|36443703|36424403|28979072|20386990|19878509|19366612|19366244|" type="hidden">
+        
+    <script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/csdn_public_blog_detail.js"></script>
+
+    <script type="text/javascript" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/showblogmedal.js"></script>
+
+     
+    
+
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/52b5334.js"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   <div><iframe style="width: 1px; height: 1px; position: absolute; visibility: hidden;" src="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/skip.html"></iframe></div></div>
+
+    
+    
+        
+     
+
+    
+          
+    <div class="pop_CA_cover" style="display:none"></div>
+    <div class="pop pop_CA" style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon" id="fapancle" onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" scrolling="no" width="100%" height="360" frameborder="0"></iframe>
+    </div>
+
+
+        <script type="text/javascript">
+
+            $(function () {
+                var fromjs = $("#fromjs");
+                if (fromjs.length > 0) {
+                    $("#fromjs .markdown_views pre").addClass("prettyprint");
+                    prettyPrint();
+
+                    $('pre.prettyprint code').each(function () {
+                        var lines = $(this).text().split('\n').length;
+                        var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                        $(this).addClass('has-numbering').parent().append($numbering);
+                        for (i = 1; i <= lines; i++) {
+                            $numbering.append($('<li/>').text(i));
+                        };
+                        $numbering.fadeIn(1700);
+                    });
+
+                    $('.pre-numbering li').css("color", "#999");
+                }
+            });
+
+            $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+            //$(".toc a[target='_blank']").attr("target", "");
+
+            setTimeout(function () {
+                $(".toc a[target='_blank']").attr("target", "");
+            }, 500);
+
+        </script>
+    
+
+   
+<div id="tag-suggest-pop">
+  <div class="relative">
+    <div class="close"></div>
+    <div class="content"></div>
+  </div>
+</div><div id="mask_code"></div><div class="gist_edit"><div class="save_snippets clearfix"><div class="tit"><h3>保存代码片</h3><span>整理和分享保存的代码片，请访问<a href="https://code.csdn.net/snippets_manage" target="_blank">代码笔记</a></span></div><div class="con_form"><ul class="gist_edit_list clearfix"><li><span class="red">*</span><span class="txt">标题</span><input id="form_title" class="form-input" placeholder="聊聊JVM（一）相对全面的GC总结" type="text"></li><li><span class="red">*</span><span class="txt">描述</span><textarea id="form-textarea" class="form-textarea" placeholder="聊聊JVM（一）相对全面的GC总结： http://blog.csdn.net/iter_zc/article/details/41746265"></textarea></li><li><span class="red">&nbsp;</span><span class="txt">标签</span><div id="divSearchTags"><span class="label blog_tag"><span>JVM</span><a title="Removing tag" href="javascript:;">x</a></span><span class="label blog_tag"><span>Card Marking</span><a title="Removing tag" href="javascript:;">x</a></span><span class="label blog_tag"><span>卡片标记</span><a title="Removing tag" href="javascript:;">x</a></span><span class="label blog_tag"><span>GC</span><a title="Removing tag" href="javascript:;">x</a></span><input id="insertTag" class="insertTag" placeholder="请输入标签，按Enter生成(最多5项)" name="insertTag" maxlength="21" style="color: rgb(51, 51, 51);" type="text"><input id="OrganTag" class="OrganTag" name="OrganTag" value="JVM,Card" marking,卡片标记,gc,="" type="hidden"><input id="OldOrganTag" class="OldOrganTag" name="OldOrganTag" value="" type="hidden"><input name="txtSearchTags" type="hidden"></div></li></ul></div><div class="bottom-bar"><a href="javascript:;" class="btn-submit btn-cancel">取消</a><span class="tracking-ad" data-mod="popu_250"><a class="btn-submit btn-confirm" href="javascript:;" target="_blank">确定</a></span></div></div></div><link rel="stylesheet" type="text/css" media="screen" href="%E8%81%8A%E8%81%8AJVM%EF%BC%88%E4%B8%80%EF%BC%89%E7%9B%B8%E5%AF%B9%E5%85%A8%E9%9D%A2%E7%9A%84GC%E6%80%BB%E7%BB%93%20-%20ITer_ZC%E7%9A%84%E4%B8%93%E6%A0%8F%20-%20CSDN%E5%8D%9A%E5%AE%A2_files/ask_float_fonts_css-6b30a53970eb5c3a2a045e3df585b475.css"><div data-mod="popu_64" class="csdn-tracking-statistics" chg-blk="0"><a id="com-quick-QRcode" class="QRcodebg1" title="扫描二维码" style="top:151px"><span class="closeQR"></span></a><a id="com-quick-reply" title="快速回复" style="top:285px"></a><a id="com-quick-collect" title="我要收藏" style="top:323px"></a><a id="com-d-top-a" style="top: 361px; display: none;" title="返回顶部" onclick=""></a></div><div class="pop_edit ask_second comm_ask_second"><h3>提问</h3><span class="ask_float_span">您的问题将会被发布在“<a class="ask_float_channel" href="http://ask.csdn.net/" target="_blank" style="cursor:pointer">技术问答</a>”频道</span><a href="#" nodetype="close" class="close">×</a><div class="context"><div class="err_div"><span class="err_ico"></span><span class="err_txt">该问题已存在，请勿重复提问</span></div><div class="input_div"><input id="askInputSecond" style="font-size:14px;" placeholder="问题标题" type="text"></div><div class="cm_box"><div class="cm_dialog"></div> <div class="pop_cm cm_add_link"><input placeholder="链接内容" id="af_cm_link_txt" type="text"><input placeholder="链接地址" id="af_cm_link_url" type="text"><input placeholder="链接提示" id="af_cm_link_tit" type="text"><div class="text-right"><span class="btn btn-default btn-sm" id="add_link_btn">插入链接</span> </div> </div><div class="pop_cm cm_add_img"><div class="nav-tabs"><a class="img_tab active" href="#tab_upload">本地上传</a><a class="img_tab" href="#tab_weburl">网络图片</a></div><div class="tab_panel active" id="tab_upload"><div class="set_img"></div></div><div class="tab_panel" id="tab_weburl"><input placeholder="图片地址" id="af_cm_img_url" type="text"><input placeholder="图片说明" id="af_cm_img_alt" type="text"><div class="text-right"><span class="btn btn-default btn-sm" id="add_img_btn">插入图片</span> </div></div> </div></div> <textarea id="editor_all" rows="8" style="display: none;"></textarea><div class="editor-toolbar"><i class="separator">|</i><a class="icon-headline" title="标题一（Ctrl+Alt+1）"></a><a class="icon-heading" title="标题二（Ctrl+Alt+2）"></a><a class="icon-bold" title="粗体（Ctrl+B）"></a><a class="icon-italic" title="斜体（Ctrl+I）"></a><i class="separator">|</i><a class="icon-quote-left" title="引用（Ctrl+’）"></a><a class="icon-code" title="插入代码片（Ctrl+,）"></a><a class="icon-list-ul" title="无序列表（Ctrl+L）"></a><a class="icon-list-ol" title="有序列表（Ctrl+Alt+L）"></a><i class="separator">|</i><a class="icon-link" title="添加链接（Ctrl+K）"></a><a class="icon-picture" title="添加图片（Ctrl+Alt+I）"></a><i class="separator">|</i><a class="icon-reply" title="撤退（Ctrl+Z）"></a><a class="icon-share-alt" title="前进（Ctrl+Shift+Z）"></a><i class="separator">|</i><a class="icon-info" href="http://ask.csdn.net/pages/markdown" target="_blank" title="markdown语法参考"></a><a class="icon-preview" title="预览"></a><i class="separator">|</i></div><div class="CodeMirror cm-s-paper CodeMirror-focused"><div style="overflow: hidden; position: relative; width: 3px; height: 0px;"><textarea style="position: absolute; padding: 0px; width: 1px; height: 1em; outline: medium none; font-size: 4px;" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" wrap="off"></textarea></div><div class="CodeMirror-hscrollbar"><div style="height: 1px;"></div></div><div class="CodeMirror-vscrollbar"><div style="width: 1px;"></div></div><div class="CodeMirror-scrollbar-filler"></div><div class="CodeMirror-gutter-filler"></div><div class="CodeMirror-scroll" tabindex="-1" draggable="true"><div class="CodeMirror-sizer" style="min-width: 33px;"><div style="position: relative;"><div class="CodeMirror-lines"><div style="position: relative; outline: medium none;"><div class="CodeMirror-measure"><pre>&nbsp;<span style="display: inline-block; width: 1px; margin-right: -1px;">&nbsp;</span></pre></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code"></div><div class="CodeMirror-cursor" style="visibility: hidden;">&nbsp;</div><div class="CodeMirror-cursor CodeMirror-secondarycursor" style="visibility: hidden;">&nbsp;</div></div></div></div></div><div style="position: absolute; height: 30px; width: 1px;"></div><div class="CodeMirror-gutters" style="display: none;"></div></div></div><div class="editor-statusbar"><span class="lines">0</span><span class="words">0</span><span class="cursor">0:0</span></div><div class="div_tags clearfix"><div id="divSearchTags" class="tags_con"><input type="text"></div><input name="txtSearchTags" type="hidden"></div><div id="ask2_tagRecomm_div" class="drt_tagRecomm tracking-ad" data-mod="popu_73"><span class="drt_tit">推荐标签：</span></div></div><div class="success"><div class="left_area"><input id="chk_cb" type="checkbox"><span class="wyxs">我要悬赏</span><input id="cb_num" class="cb_num" readonly="true"><span class="phib_rii"><span> 币</span></span></div><a href="#" nodetype="cancel" class="cancel">取消</a><a href="#" nodetype="ok" class="ok">发布</a></div></div><div id="common_ask_div_sc" class="searchContainer"><div class="sTitle">可能存在类似的问题：</div><div class="sFooter"><a class="sFirstNewAsk">我想提一个新问题</a></div></div><div style="position:fixed; top:0; left:0; overflow:hidden;"><input style="position:absolute; left:-300px;" id="focus_retriever" readonly="true" type="text"></div></body></html>
