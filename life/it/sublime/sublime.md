@@ -34,6 +34,61 @@ src="1-基础/$1.png
 
 
 
+# selection
+
+
+
+## 列模式
+
+1. 苹果：OS X
+
+   －鼠标左键＋Option
+
+   －或者鼠标中键
+
+   －增加选择：Command，减少选择：Command+Shift
+
+2. Windows：
+
+   －鼠标右键＋Shift
+
+   －或者鼠标中键
+
+   －增加选择：Ctrl，减少选择：Alt
+
+3. Linux：
+
+   －鼠标右键＋Shift
+
+   －增加选择：Ctrl，减少选择：Alt
+
+
+
+
+# 插件
+
+
+
+## 文本处理
+
+
+
+### 文本比较
+
+
+
+#### FileDiffs
+
+可以比较标签页等。
+
+* with clipboard
+* with file in project
+* with opened tab
+* with previous tab
+
+
+
+
 
 
 

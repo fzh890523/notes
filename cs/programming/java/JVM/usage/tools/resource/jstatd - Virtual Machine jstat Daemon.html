@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="copyright" content="2004, 2010" />
+
+
+  <title>jstatd - Virtual Machine jstat Daemon</title>
+
+</head>
+
+<body>
+<!-- BEGIN A2 COMPONENT V.1 -->
+<div class="a2w0"
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/popUp.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/sniff.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucontent.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucode.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/developer.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/other/js/search.js"></script>
+<link rel="stylesheet" href="../../../../../webdesign/pubs/css/default_developer.css" />
+<meta name="collection" content="reference"> <div class="a2" id="a2v1">
+<div class="a2w1"><div class="a2w2"><div class="a2w3"><div class="a2w4">
+<div class="a2topiclinks">
+<a href="http://www.oracle.com" title="Oracle Home Page" id="sunlogo"><img src="../../../../../webdesign/pubs/im/a.gif" alt="Home Page" width="98" height="58" border="0" /></a>
+
+<ul id="mtopics">
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="See Oracle Technology Network" href="http://oracle.com/technology">Oracle Technology Network</a></li>
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="Software Downloads" href="http://www.oracle.com/technology/software/index.html">Software Downloads</a></li>
+<li id="mtopic2"><a id="glink2" class="tpclink a2menu" title="See All Documentation" href="http://www.oracle.com/technology/documentation/index.html">Documentation</a></li>
+</ul>
+
+<div class="a2search">
+<a href="../../../../../search.html" target="_blank">Search</a>
+</div>
+
+</div>
+</div></div></div></div>
+</div></div>
+<!-- END A2 COMPONENT V.1 -->
+
+<div class="a0 a0v1" id="a0v1">
+
+<!-- BEGIN SEPARATOR -->
+<div class="hr"><hr /></div>
+<!-- END SEPARATOR -->
+
+<!-- ============ -->
+<!-- MAIN CONTENT -->
+<!-- ============ -->
+  <div class="smallpagetitle"><h1>jstatd - Virtual Machine jstat Daemon</h1></div>
+
+  <ul>
+    <li><a href="#synopsis">Synopsis</a></li>
+
+    <li><a href="#parameters">Parameters</a></li>
+
+    <li><a href="#description">Description</a></li>
+
+    <li><a href="#options">Options</a></li>
+
+    <li><a href="#security">Security</a></li>
+
+    <li><a href="#remote-interface">Remote Interface</a></li>
+
+    <li><a href="#examples">Examples</a></li>
+
+    <li><a href="#seealso">See Also</a></li>
+  </ul>
+
+  <h2><a name="synopsis"/>SYNOPSIS</h2>
+<blockquote>
+<pre>
+jstatd [ <i>options</i> ]<br />
+</pre>
+</blockquote>
+  <h2><a name="parameters"/>PARAMETERS</h2>
+  <blockquote>
+
+  <dl>
+    <dt><a href="#options"><code>options</code></a></dt>
+
+    <dd>Command-line options. The options may be in any order. If
+    there are redundant or contradictory options, the last option
+    specified will take precedence.</dd>
+  </dl>
+
+</blockquote>
+  <h2><a name="description"/>DESCRIPTION</h2>
+<blockquote>
+  <p>The <b>jstatd</b> tool is an RMI server application that
+  monitors for the creation and termination of instrumented HotSpot
+  Java virtual machines (JVMs) and provides a interface to allow
+  remote monitoring tools to attach to JVMs running on the local
+  host.</p>
+
+  <p>The <b>jstatd</b> server requires the presence of an RMI
+  registry on the local host. The <b>jstatd</b> server will attempt
+  to attach to the RMI registry on the default port, or on the port
+  indicated by the <i>-p port</i> option. If an RMI registry is not
+  found, one will be created within the <b>jstatd</b> application
+  bound to the port indicated by the <i>-p port</i> option or to
+  the default RMI registry port if <i>-p port</i> is omitted.
+  Creation of an internal RMI registry can be inhibited by
+  specifying the <i>-nr</i> option.</p>
+
+  <p><b>NOTE:</b> This utility is unsupported and may or may not be
+  available in future versions of the JDK. It is not currently
+  available on the Windows 98 and Windows ME platforms.</p>
+</blockquote>
+  <h2><a name="options"/>OPTIONS</h2>
+<blockquote>
+  <p>The <b>jstatd</b> command supports the following options:</p>
+
+  <dl>
+    <dt><b>-nr</b></dt>
+
+    <dd>Do not attempt to create an internal RMI registry within
+    the <i>jstatd</i> process when an existing RMI registry is not
+    found.</dd>
+
+    <dt><b>-p</b>&nbsp; <i>port</i></dt>
+
+    <dd>Port number where the RMI registry is expected to be found,
+    or, if not found, created if <i>-nr</i> is not specified.</dd>
+
+    <dt><b>-n</b>&nbsp; <i>rminame</i></dt>
+
+    <dd>Name to which the remote RMI object is bound in the RMI
+    registry. The default name is <i>JStatRemoteHost</i>. If
+    multiple <b>jstatd</b> servers are started on the same host,
+    the name of the exported RMI object for each server can be made
+    unique by specifying this option. However, doing so will
+    require that the unique server name be included in the
+    monitoring client's <i>hostid</i> and <i>vmid</i> strings.</dd>
+
+    <dt><b>-J</b><i>option</i></dt>
+
+    <dd>Pass <i>option</i> to the <b>java</b> launcher called by
+    <b>javac</b>. For example, <b>-J-Xms48m</b> sets the startup
+    memory to 48 megabytes. It is a common convention for <b>-J</b>
+    to pass options to the underlying VM executing applications
+    written in Java.</dd>
+  </dl>
+</blockquote>
+  <h2><a name="security"/>SECURITY</h2>
+<blockquote>
+  <p>The <b>jstatd</b> server can only monitor JVMs for which it
+  has the appropriate native access permissions. Therefor the
+  <b>jstatd</b> process must be running with the same user
+  credentials as the target JVMs. Some user credentials, such as
+  the <i>root</i> user in UNIX(TM) based systems, have permission
+  to access the instrumentation exported by any JVM on the system.
+  A <b>jstatd</b> process running with such credentials can monitor
+  any JVM on the system, but introduces additional security
+  concerns.</p>
+
+  <p>The <b>jstatd</b> server does not provide any authentication
+  of remote clients. Therefore, running a <b>jstatd</b> server
+  process exposes the instrumentation export by all JVMs for which
+  the <b>jstatd</b> process has access permissions to any user on
+  the network. This exposure may be undesireable in your
+  environment and local security policies should be considered
+  before starting the <b>jstatd</b> process, particularly in
+  production environments or on unsecure networks.</p>
+
+  <p>The <b>jstatd</b> server installs an instance of
+  RMISecurityPolicy if no other security manager has been installed
+  and therefore requires a security policy file to be specified.
+  The policy file must conform to the default policy
+  implementation's <a href=
+  "../../guides/security/PolicyFiles.html">Policy File
+  Syntax</a>.</p>
+
+  <p>The following policy file will allow the <b>jstatd</b> server
+  to run without any security exceptions. This policy is less
+  liberal then granting all permissions to all codebases, but is
+  more liberal than a policy that grants the minimal permissions to
+  run the <b>jstatd</b> server.</p>
+  <pre>
+grant codebase "file:${java.home}/../lib/tools.jar" {<br />
+   permission java.security.AllPermission;<br />
+};<br />
+</pre>
+
+  <p>To use this policy, copy the text into a file called
+  <i>jstatd.all.policy</i> and run the <b>jstatd</b> server as
+  follows:</p>
+  <pre>
+jstatd -J-Djava.security.policy=jstatd.all.policy<br />
+</pre>
+
+  <p>For sites with more restrictive security practices, it is
+  possible to use a custom policy file to limit access to specific
+  trusted hosts or networks, though such techniques are subject to
+  IP addreess spoofing attacks. If your security concerns cannot be
+  addressed with a customized policy file, then the safest action
+  is to not run the <b>jstatd</b> server and use the <b>jstat</b>
+  and <b>jps</b> tools locally.</p>
+</blockquote>
+  <h2><a name="remote-interface"/>REMOTE
+  INTERFACE</h2>
+<blockquote>
+  <p>The interface exported by the <b>jstatd</b> process is
+  proprietary and is guaranteed to change. Users and developers are
+  discouraged from writing to this interface.</p>
+</blockquote>
+  <h2><a name="examples"/>EXAMPLES</h2>
+<blockquote>
+  <p>Here are some examples of starting <b>jstatd</b>. Note that
+  the <b>jstatd</b> scripts automatically start the server in the
+  background.</p>
+
+  <h3><a name="simple"/>Using Internal RMI
+  Registry</h3>
+
+  <p>This example demonstrates starting <b>jstatd</b> with an
+  internal RMI registry. This example assumes that no other server
+  is bound to the default RMI Registry port (port 1099).</p>
+  <pre>
+jstatd -J-Djava.security.policy=all.policy
+</pre>
+
+  <h3><a name="with-RMI-registry"/>Using
+  External RMI Registry</h3>
+
+  <p>This example demonstrates starting <b>jstatd</b> with a
+  external RMI registry.</p>
+  <pre>
+rmiregistry&amp;
+jstatd -J-Djava.security.policy=all.policy
+</pre>
+
+  <p>This example demonstrates starting <b>jstatd</b> with an
+  external RMI registry server on port 2020.</p>
+  <pre>
+rmiregistry 2020&amp;
+jstatd -J-Djava.security.policy=all.policy -p 2020
+</pre>
+
+  <p>This example demonstrates starting <b>jstatd</b> with an
+  external RMI registry on port 2020, bound to name
+  AlternateJstatdServerName.</p>
+  <pre>
+rmiregistry 2020&amp;
+jstatd -J-Djava.security.policy=all.policy -p 2020 -n AlternateJstatdServerName
+</pre>
+
+  <h3><a name="prevent-RMI-registry"/>Inhibiting creation of an in-process RMI registry</h3>
+
+  <p>This example demonstrates starting <b>jstatd</b> such that it
+  will not create a RMI registry if one is not found. This example
+  assumes an RMI registry is already running. If it is not, an
+  appropriate error message is emitted.</p>
+  <pre>
+jstatd -J-Djava.security.policy=all.policy -nr
+</pre>
+
+  <h3><a name="troubleshooting"/>Enabling RMI
+  logging capabilities.</h3>
+
+  <p>This example demonstrates starting <b>jstatd</b> with RMI
+  logging capabilities enabled. This technique is useful as a
+  troubleshooting aid or for monitoring server activities.</p>
+  <pre>
+jstatd -J-Djava.security.policy=all.policy -J-Djava.rmi.server.logCalls=true
+</pre>
+</blockquote>
+  <h2><a name="seealso">SEE ALSO</a></h2>
+
+  <ul>
+    <li><a href="../index.html#java">java</a> - the Java Application
+    Launcher</li>
+
+    <li><a href="jps.html">jps</a> - the Java Process Status
+    Application</li>
+
+    <li><a href="jstat.html">jstat</a> - the Java Virtual Machine
+    Statistics Monitoring Tool</li>
+
+    <li><a href="../index.html#rmi">rmiregistry</a> - the Java Remote
+    Object Registry</li>
+  </ul>
+  
+
+
+
+<div class="hr"><hr /></div>
+<table summary="layout" border="0" width="100%">
+<tr valign="TOP">
+<td width="30%"> <img src="../../../../../webdesign/pubs/im/logo_oracle_footer.gif" alt="Oracle and/or its affiliates" border="0" width="100" height="29" /><br />
+<font size="+1"> <i>Java Technology</i></font> </td>
+
+<td width="30%">
+<p><font size ="-2">
+<a href="../../../legal/cpyr.html">Copyright &#169;</a> 1993, 2016, Oracle and/or its affiliates. All rights reserved.
+</font></p> 
+</td>
+<td width="30%">
+<p align="right"><font size="-2"><a href="http://download.oracle.com/javase/feedback.html">Contact Us</a></p>
+</td>
+</tr>
+</table> 
+<div class="hr"><hr /></div>
+</div>
+
+<!-- Start SiteCatalyst code   -->
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code_download.js"></script>
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code.js"></script>
+ 
+<!-- ********** DO NOT ALTER ANYTHING BELOW THIS LINE ! *********** -->
+<!--  Below code will send the info to Omniture server -->
+<script language="javascript">var s_code=s.t();if(s_code)document.write(s_code)</script>
+ 
+<!-- End SiteCatalyst code -->
+
+</body>
+</html>

@@ -1,0 +1,1477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>借HSDB来探索HotSpot VM的运行时数据 - Script Ahead, Code Behind - ITeye博客</title>
+    <meta name="description" content="（未经许可请勿转载。希望转载请与我联系。） （如果打开此页面时浏览器有点卡住的话请耐心等待片刻。大概是ItEye的代码高亮太耗时了…） 几天前� ...">
+    <meta name="keywords" content="JVM 借HSDB来探索HotSpot VM的运行时数据">
+    <link rel="shortcut icon" href="http://rednaxelafx.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://rednaxelafx.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://rednaxelafx.iteye.com/rss" rel="alternate" title="Script Ahead, Code Behind" type="application/rss+xml">
+    <link href="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/black.css" media="screen" rel="stylesheet" type="text/css">
+    <script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/application.js" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hotkey.js" type="text/javascript"></script>
+  <script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/code_favorites.js" type="text/javascript"></script>
+<script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/weiboshare.js" type="text/javascript"></script>
+
+    
+  <style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style></head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://rednaxelafx.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://rednaxelafx.iteye.com/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://rednaxelafx.iteye.com/">Script Ahead, Code Behind</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://rednaxelafx.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://rednaxelafx.iteye.com/weibo">微博</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/album">相册</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/link">收藏</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text">
+              <input class="submit_search" value="" type="submit">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://rednaxelafx.iteye.com/" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="http://rednaxelafx.iteye.com/blog/1847971">借HSDB来探索HotSpot VM的运行时数据</a>
+      <em class="actions">      </em>
+    </h3>
+    <ul class="blog_categories"><strong>博客分类：</strong> <li><a href="http://rednaxelafx.iteye.com/category/226933">OpenJDK</a></li><li><a href="http://rednaxelafx.iteye.com/category/61298">Virtual Machine</a></li><li><a href="http://rednaxelafx.iteye.com/category/22617">Java</a></li><li><a href="http://rednaxelafx.iteye.com/category/162318">HotSpot VM</a></li> </ul>
+        <div class="news_tag"><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    （未经许可请勿转载。希望转载请与我联系。）
+<br>
+<br>（如果打开此页面时浏览器有点卡住的话请耐心等待片刻。大概是ItEye的代码高亮太耗时了…）
+<br>
+<br>几天前在<a href="http://hllvm.group.iteye.com/" target="_blank">HLLVM群组</a>有人<a href="http://hllvm.group.iteye.com/group/topic/37542" target="_blank">问了个小问题</a>，说
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=public%20class%20Test%20%7B%0A%20%20%20%20static%20Test2%20t1%20%3D%20new%20Test2()%3B%0A%20%20%20%20%20%20%20%20%20%20%20Test2%20t2%20%3D%20new%20Test2()%3B%0A%20%20%20%20public%20void%20fn()%20%7B%0A%20%20%20%20%20%20%20%20Test2%20t3%20%3D%20new%20Test2()%3B%20%20%20%20%20%0A%20%20%20%20%7D%0A%7D%0A%0Aclass%20Test2%20%7B%0A%0A%7D%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;Test&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">static</span><span>&nbsp;Test2&nbsp;t1&nbsp;=&nbsp;</span><span class="keyword">new</span><span>&nbsp;Test2();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test2&nbsp;t2&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;Test2();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;fn()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test2&nbsp;t3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;Test2();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span><span class="keyword">class</span><span>&nbsp;Test2&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="0" title="借HSDB来探索HotSpot VM的运行时数据">public class Test {
+    static Test2 t1 = new Test2();
+           Test2 t2 = new Test2();
+    public void fn() {
+        Test2 t3 = new Test2();     
+    }
+}
+
+class Test2 {
+
+}
+</pre>
+<br>这个程序的t1、t2、t3三个变量本身（而不是这三个变量所指向的对象）到底在哪里。
+<br>
+<br>TL;DR版回答是：
+<br><ul>
+<li> t1在存Java静态变量的地方，概念上在JVM的方法区（method area）里
+</li><li> t2在Java堆里，作为Test的一个实例的字段存在
+</li><li> t3在Java线程的调用栈里，作为Test.fn()的一个局部变量存在
+</li></ul>
+<br>
+<br>不过就这么简单的回答大家都会，满足不了对JVM的实现感兴趣的同学们的好奇心。说到底，这“方法区”到底是啥？Java堆在哪里？Java线程的调用栈又是啥样的？
+<br>
+<br>那就让我们跑点例子，借助调试器来看看在一个实际运行中的JVM里是啥状况。
+<br>
+<br>（下文中代码也传了一份到<a href="https://gist.github.com/rednaxelafx/5392451" target="_blank">https://gist.github.com/rednaxelafx/5392451</a>）
+<br>
+<br>=============================================================================
+<br>
+<br>写个启动类来跑上面问题中的代码：
+<br>
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=public%20class%20Main%20%7B%0A%20%20%20%20public%20static%20void%20main(String%5B%5D%20args)%20%7B%0A%20%20%20%20%20%20%20%20Test%20test%20%3D%20new%20Test()%3B%0A%20%20%20%20%20%20%20%20test.fn()%3B%0A%20%20%20%20%7D%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;Main&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;main(String[]&nbsp;args)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test&nbsp;test&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;Test();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test.fn();&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="1" title="借HSDB来探索HotSpot VM的运行时数据">public class Main {
+    public static void main(String[] args) {
+        Test test = new Test();
+        test.fn();
+    }
+}</pre>
+<br>（编译这个Main.java和上面的Test.java时最好加上-g参数生成LocalVariableTable等调试信息，以便后面某些情况下可以用到）
+<br>
+<br>接下来如无特别说明本文将使用Windows 7 64-bit, Oracle JDK 1.7.0_09 Server VM, Serial GC的环境中运行所有例子。
+<br>
+<br>之前在GreenTeaJUG在杭州的活动<a href="http://rednaxelafx.iteye.com/blog/1814180" target="_blank">演示Serviceability Agent</a>的时候也讲到过这是个非常便于探索HotSpot VM内部实现的API，而HSDB则是在SA基础上包装起来的一个调试器。这次我们就用HSDB来做实验。
+<br>
+<br>SA的一个限制是它只实现了调试snapshot的功能：要么要让被调试的目标进程完全暂停，要么就调试core dump。所以我们在用HSDB做实验前，得先让我们的Java程序运行到我们关注的点上才行。
+<br>
+<br>理想情况下我们会希望让这Java程序停在Test.java的第6行，也就是Test.fn()中t3局部变量已经进入作用域，而该方法又尚未返回的地方。怎样才能停在这里呢？
+<br>
+<br>其实用个Java层的调试器即可。大家平时可能习惯了在Eclipse、IntelliJ IDEA、NetBeans等Java IDE里使用Java层调试器，但为了减少对外部工具的依赖，本文将使用Oracle JDK自带的jdb工具来完成此任务。
+<br>
+<br><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/windows/jdb.html" target="_blank">jdb</a>跟上面列举的IDE里包含的调试器底下依赖着同一套调试API，也就是<a href="http://docs.oracle.com/javase/7/docs/technotes/guides/jpda/index.html" target="_blank">Java Platform Debugger Architecture (JPDA)</a>。功能也类似，只是界面是命令行的，表明上看起来不太一样而已。
+<br>
+<br>为了方便后续步骤，启动jdb的时候可以设定让目标Java程序使用serial GC和10MB的Java heap。
+<br>启动jdb之后可以用stop in命令在指定的Java方法入口处设置断点，
+<br>然后用run命令指定主类名称来启动Java程序，
+<br>等跑到断点看看位置是否已经到满足需求，还没到的话可以用step、next之类的命令来向前进。
+<br>对jdb命令不熟悉的同学可以在启动jdb之后使用help命令来查看命令列表和说明。
+<br>
+<br>具体步骤如下：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Command prompt代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=D%3A%5Ctest%3Ejdb%20-XX%3A%2BUseSerialGC%20-Xmx10m%0AInitializing%20jdb%20...%0A%3E%20stop%20in%20Test.fn%0ADeferring%20breakpoint%20Test.fn.%0AIt%20will%20be%20set%20after%20the%20class%20is%20loaded.%0A%3E%20run%20Main%0Arun%20%20Main%0ASet%20uncaught%20java.lang.Throwable%0ASet%20deferred%20uncaught%20java.lang.Throwable%0A%3E%0AVM%20Started%3A%20Set%20deferred%20breakpoint%20Test.fn%0A%0ABreakpoint%20hit%3A%20%22thread%3Dmain%22%2C%20Test.fn()%2C%20line%3D5%20bci%3D0%0A5%20%20%20%20%20%20%20%20%20%20%20%20Test2%20t3%20%3D%20new%20Test2()%3B%0A%0Amain%5B1%5D%20next%0A%0AStep%20completed%3A%20%3E%20%22thread%3Dmain%22%2C%20Test.fn()%2C%20line%3D6%20bci%3D8%0A6%20%20%20%20%20%20%20%20%7D%0A%0Amain%5B1%5D%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>D:\test&gt;jdb&nbsp;-XX:+UseSerialGC&nbsp;-Xmx10m&nbsp;&nbsp;</span></span></li><li><span>Initializing&nbsp;jdb&nbsp;...&nbsp;&nbsp;</span></li><li><span>&gt;&nbsp;stop&nbsp;in&nbsp;Test.fn&nbsp;&nbsp;</span></li><li><span>Deferring&nbsp;breakpoint&nbsp;Test.fn.&nbsp;&nbsp;</span></li><li><span>It&nbsp;will&nbsp;be&nbsp;set&nbsp;after&nbsp;the&nbsp;class&nbsp;is&nbsp;loaded.&nbsp;&nbsp;</span></li><li><span>&gt;&nbsp;run&nbsp;Main&nbsp;&nbsp;</span></li><li><span>run&nbsp;&nbsp;Main&nbsp;&nbsp;</span></li><li><span>Set&nbsp;uncaught&nbsp;java.lang.Throwable&nbsp;&nbsp;</span></li><li><span>Set&nbsp;deferred&nbsp;uncaught&nbsp;java.lang.Throwable&nbsp;&nbsp;</span></li><li><span>&gt;&nbsp;&nbsp;</span></li><li><span>VM&nbsp;Started:&nbsp;Set&nbsp;deferred&nbsp;breakpoint&nbsp;Test.fn&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Breakpoint&nbsp;hit:&nbsp;<span class="string">"thread=main"</span><span>,&nbsp;Test.fn(),&nbsp;line=</span><span class="number">5</span><span>&nbsp;bci=</span><span class="number">0</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test2&nbsp;t3&nbsp;=&nbsp;new&nbsp;Test2();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>main[<span class="number">1</span><span>]&nbsp;next&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Step&nbsp;completed:&nbsp;&gt;&nbsp;<span class="string">"thread=main"</span><span>,&nbsp;Test.fn(),&nbsp;line=</span><span class="number">6</span><span>&nbsp;bci=</span><span class="number">8</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>main[<span class="number">1</span><span>]&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="command prompt" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="2" title="借HSDB来探索HotSpot VM的运行时数据">D:\test&gt;jdb -XX:+UseSerialGC -Xmx10m
+Initializing jdb ...
+&gt; stop in Test.fn
+Deferring breakpoint Test.fn.
+It will be set after the class is loaded.
+&gt; run Main
+run  Main
+Set uncaught java.lang.Throwable
+Set deferred uncaught java.lang.Throwable
+&gt;
+VM Started: Set deferred breakpoint Test.fn
+
+Breakpoint hit: "thread=main", Test.fn(), line=5 bci=0
+5            Test2 t3 = new Test2();
+
+main[1] next
+
+Step completed: &gt; "thread=main", Test.fn(), line=6 bci=8
+6        }
+
+main[1] </pre>
+<br>按照上述步骤执行完最后一个next命令之后，我们就来到了最初想要的Test.java的第6行，也就是Test.fn()返回前的位置。
+<br>
+<br>接下来把这个jdb窗口放一边，另开一个命令行窗口用<a href="http://docs.oracle.com/javase/7/docs/technotes/tools/share/jps.html" target="_blank">jps</a>命令看看我们要调试的Java进程的pid是多少：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Command prompt代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=D%3A%5Ctest%3Ejps%0A4328%20Main%0A9064%20Jps%0A7716%20TTY" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>D:\test&gt;jps&nbsp;&nbsp;</span></span></li><li><span><span class="number">4328</span><span>&nbsp;Main&nbsp;&nbsp;</span></span></li><li><span><span class="number">9064</span><span>&nbsp;Jps&nbsp;&nbsp;</span></span></li><li><span><span class="number">7716</span><span>&nbsp;TTY&nbsp;&nbsp;</span></span></li></ol></div><pre class="command prompt" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="3" title="借HSDB来探索HotSpot VM的运行时数据">D:\test&gt;jps
+4328 Main
+9064 Jps
+7716 TTY</pre>
+<br>可以看到是4328。把这个pid记下来待会儿用。
+<br>
+<br>然后启动HSDB：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Command prompt代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=D%3A%5Ctest%3Ejava%20-cp%20.%3B%25JAVA_HOME%25%2Flib%2Fsa-jdi.jar%20sun.jvm.hotspot.HSDB" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>D:\test&gt;java&nbsp;-cp&nbsp;.;%JAVA_HOME%/lib/sa-jdi.jar&nbsp;sun.jvm.hotspot.HSDB&nbsp;&nbsp;</span></span></li></ol></div><pre class="command prompt" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="4" title="借HSDB来探索HotSpot VM的运行时数据">D:\test&gt;java -cp .;%JAVA_HOME%/lib/sa-jdi.jar sun.jvm.hotspot.HSDB</pre>
+<br>（要留意Linux和Solaris在Oracle/Sun JDK6就可以使用HSDB了，但Windows上要到Oracle JDK7才可以用HSDB）
+<br>
+<br>启动HSDB之后，把它连接到目标进程上。从菜单里选择File -&gt; Attach to HotSpot process：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/b6b03530-db8d-33b4-a7a3-f0e6c064b794.png">
+<br>在弹出的对话框里输入刚才记下的pid然后按OK：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/65f19d5b-e704-3790-88ce-97e2714870b5.png">
+<br>这会儿就连接到目标进程了：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/4a86f8b5-d778-38bb-bcde-c239d492ed2a.png">
+<br>刚开始打开的窗口是Java Threads，里面有个线程列表。双击代表线程的行会打开一个Oop Inspector窗口显示HotSpot VM里记录线程的一些基本信息的C++对象的内容。
+<br>
+<br>不过这里我们更可能会关心的是线程栈的内存数据。先选择main线程，然后点击Java Threads窗口里的工具栏按钮从左数第2个可以打开Stack Memory窗口来显示main线程的栈：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/7a8b2ab8-620c-34aa-aa21-be933b4fd2f2.png">
+<br>Stack Memory窗口的内容有三栏：
+<br>左起第1栏是内存地址，请让我提醒一下本文里提到“内存地址”的地方都是指虚拟内存意义上的地址，<span style="color: red;"><strong>不是</strong>“物理内存地址”</span>，请不要弄混了这俩概念；
+<br>第2栏是该地址上存的数据，以字宽为单位，本文例子中我是在Windows 7 64-bit上跑64位的JDK7的HotSpot VM，字宽是64位（8字节）；
+<br>第3栏是对数据的注释，竖线表示范围，横线或斜线连接范围与注释文字。
+<br>
+<br>现在看不懂这个窗口里的数据没关系，先放一边，后面再回过头来看。
+<br>
+<br>现在让我们打开HSDB里的控制台，以便用命令来了解更多信息。
+<br>在菜单里选择Windows -&gt; Console：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/bf46a711-879d-3c5f-bb3d-2691e6e1d32a.png">
+<br>然后会得到一个空白的Command Line窗口。在里面敲一下回车就会出现hsdb&gt;提示符。
+<br>（用过CLHSDB的同学可能会发现这就是把CLHSDB嵌入在了HSDB的图形界面里）
+<br>
+<br>不知道有什么命令可用的同学可以先用help命令看看命令列表。
+<br>
+<br>可以用universe命令来查看GC堆的地址范围和使用情况：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20universe%0AHeap%20Parameters%3A%0AGen%200%3A%20%20%20eden%20%5B0x00000000fa400000%2C0x00000000fa4aad68%2C0x00000000fa6b0000)%20space%20capacity%20%3D%202818048%2C%2024.831088753633722%20used%0A%20%20from%20%5B0x00000000fa6b0000%2C0x00000000fa6b0000%2C0x00000000fa700000)%20space%20capacity%20%3D%20327680%2C%200.0%20used%0A%20%20to%20%20%20%5B0x00000000fa700000%2C0x00000000fa700000%2C0x00000000fa750000)%20space%20capacity%20%3D%20327680%2C%200.0%20usedInvocations%3A%200%0A%0AGen%201%3A%20%20%20old%20%20%5B0x00000000fa750000%2C0x00000000fa750000%2C0x00000000fae00000)%20space%20capacity%20%3D%207012352%2C%200.0%20usedInvocations%3A%200%0A%0A%20%20perm%20%5B0x00000000fae00000%2C0x00000000fb078898%2C0x00000000fc2c0000)%20space%20capacity%20%3D%2021757952%2C%2011.90770160721009%20usedInvocations%3A%200" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;universe&nbsp;&nbsp;</span></span></li><li><span>Heap&nbsp;Parameters:&nbsp;&nbsp;</span></li><li><span>Gen&nbsp;<span class="number">0</span><span>:&nbsp;&nbsp;&nbsp;eden&nbsp;[</span><span class="number">0x00000000fa400000</span><span>,</span><span class="number">0x00000000fa4aad68</span><span>,</span><span class="number">0x00000000fa6b0000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">2818048</span><span>,&nbsp;</span><span class="number">24.831088753633722</span><span>&nbsp;used&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;from&nbsp;[<span class="number">0x00000000fa6b0000</span><span>,</span><span class="number">0x00000000fa6b0000</span><span>,</span><span class="number">0x00000000fa700000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">327680</span><span>,&nbsp;</span><span class="number">0.0</span><span>&nbsp;used&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;[<span class="number">0x00000000fa700000</span><span>,</span><span class="number">0x00000000fa700000</span><span>,</span><span class="number">0x00000000fa750000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">327680</span><span>,&nbsp;</span><span class="number">0.0</span><span>&nbsp;usedInvocations:&nbsp;</span><span class="number">0</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Gen&nbsp;<span class="number">1</span><span>:&nbsp;&nbsp;&nbsp;old&nbsp;&nbsp;[</span><span class="number">0x00000000fa750000</span><span>,</span><span class="number">0x00000000fa750000</span><span>,</span><span class="number">0x00000000fae00000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">7012352</span><span>,&nbsp;</span><span class="number">0.0</span><span>&nbsp;usedInvocations:&nbsp;</span><span class="number">0</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;perm&nbsp;[<span class="number">0x00000000fae00000</span><span>,</span><span class="number">0x00000000fb078898</span><span>,</span><span class="number">0x00000000fc2c0000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">21757952</span><span>,&nbsp;</span><span class="number">11.90770160721009</span><span>&nbsp;usedInvocations:&nbsp;</span><span class="number">0</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="5" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ universe
+Heap Parameters:
+Gen 0:   eden [0x00000000fa400000,0x00000000fa4aad68,0x00000000fa6b0000)
+ space capacity = 2818048, 24.831088753633722 used
+  from [0x00000000fa6b0000,0x00000000fa6b0000,0x00000000fa700000) space 
+capacity = 327680, 0.0 used
+  to   [0x00000000fa700000,0x00000000fa700000,0x00000000fa750000) space 
+capacity = 327680, 0.0 usedInvocations: 0
+
+Gen 1:   old  [0x00000000fa750000,0x00000000fa750000,0x00000000fae00000)
+ space capacity = 7012352, 0.0 usedInvocations: 0
+
+  perm [0x00000000fae00000,0x00000000fb078898,0x00000000fc2c0000) space 
+capacity = 21757952, 11.90770160721009 usedInvocations: 0</pre>
+<br>这里用的是HotSpot VM的serial GC。GC堆由young gen = 
+DefNewGeneration（包括eden和两个survivor space）、old gen = 
+TenuredGeneration和perm gen = PermGen构成。
+<br>其中young gen和old gen构成了这种配置下HotSpot VM里的Java堆（Java heap），而perm gen不属于Java heap的一部分，它存储的主要是元数据或者叫反射信息，主要用于实现JVM规范里的“方法区”概念。
+<br>
+<br>在我们的Java代码里，执行到Test.fn()末尾为止应该创建了3个Test2的实例。它们必然在GC堆里，但都在哪里呢？用scanoops命令来看：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20scanoops%200x00000000fa400000%200x00000000fc2c0000%20Test2%0A0x00000000fa49a710%20Test2%0A0x00000000fa49a730%20Test2%0A0x00000000fa49a740%20Test2" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;scanoops&nbsp;</span><span class="number">0x00000000fa400000</span><span>&nbsp;</span><span class="number">0x00000000fc2c0000</span><span>&nbsp;Test2&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a710</span><span>&nbsp;Test2&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a730</span><span>&nbsp;Test2&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a740</span><span>&nbsp;Test2&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="6" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; scanoops 0x00000000fa400000 0x00000000fc2c0000 Test2
+0x00000000fa49a710 Test2
+0x00000000fa49a730 Test2
+0x00000000fa49a740 Test2</pre>
+<br>scanoops接受两个必选参数和一个可选参数：必选参数是要扫描的地址范围，一个是起始地址一个是结束地址；可选参数用于指定要扫描什么类型的对象实例。实际扫描的时候会扫出指定的类型及其派生类的实例。
+<br>
+<br>这里可以看到确实扫出了3个Test2的实例。内容有两列：左边是对象的起始地址，右边是对象的实际类型。
+<br>从它们所在的地址，对照前面universe命令看到的GC堆的地址范围，可以知道它们都在eden里。
+<br>通过whatis命令可以进一步知道它们都在eden之中分配给main线程的thread-local allocation buffer (TLAB)中：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20whatis%200x00000000fa49a710%0AAddress%200x00000000fa49a710%3A%20In%20thread-local%20allocation%20buffer%20for%20thread%20%22main%22%20(1)%20%20%5B0x00000000fa48f490%2C0x00000000fa49a750%2C0x00000000fa49d118)%0A%20%0Ahsdb%3E%20whatis%200x00000000fa49a730%0AAddress%200x00000000fa49a730%3A%20In%20thread-local%20allocation%20buffer%20for%20thread%20%22main%22%20(1)%20%20%5B0x00000000fa48f490%2C0x00000000fa49a750%2C0x00000000fa49d118)%0A%20%0Ahsdb%3E%20whatis%200x00000000fa49a740%0AAddress%200x00000000fa49a740%3A%20In%20thread-local%20allocation%20buffer%20for%20thread%20%22main%22%20(1)%20%20%5B0x00000000fa48f490%2C0x00000000fa49a750%2C0x00000000fa49d118)%0A%20%0Ahsdb%3E%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;whatis&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fa49a710</span><span>:&nbsp;In&nbsp;thread-local&nbsp;allocation&nbsp;buffer&nbsp;for&nbsp;thread&nbsp;</span><span class="string">"main"</span><span>&nbsp;(</span><span class="number">1</span><span>)&nbsp;&nbsp;[</span><span class="number">0x00000000fa48f490</span><span>,</span><span class="number">0x00000000fa49a750</span><span>,</span><span class="number">0x00000000fa49d118</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;</span></li><li><span>hsdb&gt;&nbsp;whatis&nbsp;<span class="number">0x00000000fa49a730</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fa49a730</span><span>:&nbsp;In&nbsp;thread-local&nbsp;allocation&nbsp;buffer&nbsp;for&nbsp;thread&nbsp;</span><span class="string">"main"</span><span>&nbsp;(</span><span class="number">1</span><span>)&nbsp;&nbsp;[</span><span class="number">0x00000000fa48f490</span><span>,</span><span class="number">0x00000000fa49a750</span><span>,</span><span class="number">0x00000000fa49d118</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;</span></li><li><span>hsdb&gt;&nbsp;whatis&nbsp;<span class="number">0x00000000fa49a740</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fa49a740</span><span>:&nbsp;In&nbsp;thread-local&nbsp;allocation&nbsp;buffer&nbsp;for&nbsp;thread&nbsp;</span><span class="string">"main"</span><span>&nbsp;(</span><span class="number">1</span><span>)&nbsp;&nbsp;[</span><span class="number">0x00000000fa48f490</span><span>,</span><span class="number">0x00000000fa49a750</span><span>,</span><span class="number">0x00000000fa49d118</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;</span></li><li><span>hsdb&gt;&nbsp;&nbsp;&nbsp;</span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="7" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ whatis 0x00000000fa49a710
+Address 0x00000000fa49a710: In thread-local allocation buffer for thread
+ "main" (1)  [0x00000000fa48f490,0x00000000fa49a750,0x00000000fa49d118)
+ 
+hsdb&gt; whatis 0x00000000fa49a730
+Address 0x00000000fa49a730: In thread-local allocation buffer for thread
+ "main" (1)  [0x00000000fa48f490,0x00000000fa49a750,0x00000000fa49d118)
+ 
+hsdb&gt; whatis 0x00000000fa49a740
+Address 0x00000000fa49a740: In thread-local allocation buffer for thread
+ "main" (1)  [0x00000000fa48f490,0x00000000fa49a750,0x00000000fa49d118)
+ 
+hsdb&gt; </pre>
+<br>
+<br>还可以用inspect命令来查看对象的内容：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fa49a710%0Ainstance%20of%20Oop%20for%20Test2%20%40%200x00000000fa49a710%20%40%200x00000000fa49a710%20(size%20%3D%2016)%0A_mark%3A%201" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;&nbsp;</span></span></li><li><span>instance&nbsp;of&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;@&nbsp;<span class="number">0x00000000fa49a710</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;(size&nbsp;=&nbsp;</span><span class="number">16</span><span>)&nbsp;&nbsp;</span></span></li><li><span>_mark:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="8" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fa49a710
+instance of Oop for Test2 @ 0x00000000fa49a710 @ 0x00000000fa49a710 (size = 16)
+_mark: 1</pre>
+<br>可见一个Test2的实例要16字节。因为Test2类没有任何Java层的实例字段，这里就没有任何Java实例字段可显示。不过本来这里还应该显示一行：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=_metadata._compressed_klass%3A%20InstanceKlass%20for%20Test2%20%40%200x00000000fb078608" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>_metadata._compressed_klass:&nbsp;InstanceKlass&nbsp;for&nbsp;Test2&nbsp;@&nbsp;</span><span class="number">0x00000000fb078608</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="9" title="借HSDB来探索HotSpot VM的运行时数据">_metadata._compressed_klass: InstanceKlass for Test2 @ 0x00000000fb078608</pre>
+<br>不幸因为这个版本的HotSpot VM里带的SA有bug所以没显示出来。此bug在新版里已修。
+<br>
+<br>还想看到更裸的数据的同学可以用mem命令来看实际内存里的数据长啥样：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20mem%200x00000000fa49a710%202%0A0x00000000fa49a710%3A%200x0000000000000001%20%0A0x00000000fa49a718%3A%200x00000000fb078608%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;mem&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;</span><span class="number">2</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a710</span><span>:&nbsp;</span><span class="number">0x0000000000000001</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a718</span><span>:&nbsp;</span><span class="number">0x00000000fb078608</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="10" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; mem 0x00000000fa49a710 2
+0x00000000fa49a710: 0x0000000000000001 
+0x00000000fa49a718: 0x00000000fb078608 </pre>
+<br>mem命令接受的两个参数都必选，一个是起始地址，另一个是以字宽为单位的“长度”。我们知道一个Test2实例有16字节，所以给定长度为2来看。
+<br>
+<br>上面的数字都是啥来的呢？
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x00000000fa49a710%3A%20%20_mark%3A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200x0000000000000001%20%0A0x00000000fa49a718%3A%20%20_metadata._compressed_klass%3A%20%200xfb078608%0A0x00000000fa49a71c%3A%20%20(padding)%3A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200x00000000" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x00000000fa49a710</span><span>:&nbsp;&nbsp;_mark:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="number">0x0000000000000001</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a718</span><span>:&nbsp;&nbsp;_metadata._compressed_klass:&nbsp;&nbsp;</span><span class="number">0xfb078608</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fa49a71c</span><span>:&nbsp;&nbsp;(padding):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="number">0x00000000</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="11" title="借HSDB来探索HotSpot VM的运行时数据">0x00000000fa49a710:  _mark:                        0x0000000000000001 
+0x00000000fa49a718:  _metadata._compressed_klass:  0xfb078608
+0x00000000fa49a71c:  (padding):                    0x00000000</pre>
+<br>一个Test2的实例包含2个给VM用的隐含字段作为对象头，和0个Java字段。
+<br>对象头的第一个字段是mark word，记录该对象的GC状态、同步状态、identity hash code之类的多种信息。
+<br>对象头的第二个字段是个类型信息指针，klass pointer。这里因为默认开启了压缩指针，所以本来应该是64位的指针存在了32位字段里。
+<br>最后还有4个字节是为了满足对齐需求而做的填充（padding）。
+<br>以前在另一帖里也介绍过这部分内容，可以参考：<a href="http://rednaxelafx.iteye.com/blog/730461" target="_blank">借助HotSpot SA来一窥PermGen上的对象</a>
+<br>
+<br>顺带发张Inspector的截图来展示HotSpot VM里描述Test2类的VM对象长啥样吧。
+<br>在菜单里选Tools -&gt; Inspector，在地址里输入前面看到的klass地址：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6a9cea23-e512-3122-8320-6467a82e378c.png">
+<br>InstanceKlass存着Java类型的名字、继承关系、实现接口关系，字段信息，方法信息，运行时常量池的指针，还有内嵌的虚方法表（vtable）、接口方法表（itable）和记录对象里什么位置上有GC会关心的指针（oop map）等等。
+<br>
+<br>留意到这个InstanceKlass是给VM内部用的，并不直接暴露给Java层；InstanceKlass不是java.lang.Class的实例。
+<br>在HotSpot VM里，java.lang.Class的实例被称为“Java mirror”，意思是它是VM内部用的klass对象的“镜像”，把klass对象包装了一层来暴露给Java层使用。
+<br>在InstanceKlass里有个_java_mirror字段引用着它对应的Java mirror，而mirror里也有个隐藏字段指向其对应的InstanceKlass。
+<br>所以当我们写obj.getClass()，在HotSpot VM里实际上经过了两层间接引用才能找到最终的Class对象：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=obj-%3E_klass-%3E_java_mirror" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span>obj-&gt;_klass-&gt;_java_mirror&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="12" title="借HSDB来探索HotSpot VM的运行时数据">obj-&gt;_klass-&gt;_java_mirror</pre>
+<br>
+<br>在Oracle JDK7之前，Oracle/Sun JDK的HotSpot 
+VM把Java类的静态变量存在InstanceKlass结构的末尾；从Oracle 
+JDK7开始，为了配合PermGen移除的工作，Java类的静态变量被挪到Java mirror（Class对象）的末尾了。
+<br>还有就是，在JDK7之前Java mirror存放在PermGen里，而从JDK7开始Java 
+mirror默认也跟普通Java对象一样先从eden开始分配而不放在PermGen里。到JDK8则进一步彻底移除了PermGen，把诸如
+klass之类的元数据都挪到GC堆之外管理，而Java mirror的处理则跟JDK7一样。
+<br>
+<br>=============================================================================
+<br>
+<br>前面对HSDB的操作和HotSpot VM里的一些内部数据结构有了一定的了解，现在让我们回到主题：找指针！
+<br>
+<br>HotSpot VM内部使用直接指针来实现Java引用。在64位环境中有可能启用“压缩指针”的功能把64位指针压缩到只用32位来存。压缩指针与非压缩指针直接有非常简单的1对1对应关系，前者可以看作后者的特例。
+<br>
+<br>于是我们要找t1、t2、t3这三个变量，等同于找出存有指向上述3个Test2实例的地址的存储位置。
+<br>
+<br>不嫌麻烦的话手工扫描内存去找也能找到，不过幸好HSDB内建了revptrs命令，可以找出“反向指针”——如果a变量引用着b对象，那么从b对象出发去找a变量就是找一个“反向指针”。
+<br>
+<br>先拿第一个Test2的实例试试看：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20revptrs%200x00000000fa49a710%0AComputing%20reverse%20pointers...%0ADone.%0Anull%0AOop%20for%20java%2Flang%2FClass%20%40%200x00000000fa499b00" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;revptrs&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;&nbsp;</span></span></li><li><span>Computing&nbsp;reverse&nbsp;pointers...&nbsp;&nbsp;</span></li><li><span>Done.&nbsp;&nbsp;</span></li><li><span>null&nbsp;&nbsp;</span></li><li><span>Oop&nbsp;for&nbsp;java/lang/Class&nbsp;@&nbsp;<span class="number">0x00000000fa499b00</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="13" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; revptrs 0x00000000fa49a710
+Computing reverse pointers...
+Done.
+null
+Oop for java/lang/Class @ 0x00000000fa499b00</pre>
+<br>还真的找到了一个包含指向Test2实例的指针，在一个java.lang.Class的实例里。
+<br>用whatis命令来看看这个Class对象在哪里：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20whatis%200x00000000fa499b00%0AAddress%200x00000000fa499b00%3A%20In%20thread-local%20allocation%20buffer%20for%20thread%20%22main%22%20(1)%20%20%5B0x00000000fa48f490%2C0x00000000fa49a750%2C0x00000000fa49d118)%0A%20%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;whatis&nbsp;</span><span class="number">0x00000000fa499b00</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fa499b00</span><span>:&nbsp;In&nbsp;thread-local&nbsp;allocation&nbsp;buffer&nbsp;for&nbsp;thread&nbsp;</span><span class="string">"main"</span><span>&nbsp;(</span><span class="number">1</span><span>)&nbsp;&nbsp;[</span><span class="number">0x00000000fa48f490</span><span>,</span><span class="number">0x00000000fa49a750</span><span>,</span><span class="number">0x00000000fa49d118</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;</span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="14" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ whatis 0x00000000fa499b00
+Address 0x00000000fa499b00: In thread-local allocation buffer for thread
+ "main" (1)  [0x00000000fa48f490,0x00000000fa49a750,0x00000000fa49d118)
+ 
+</pre>
+<br>可以看到这个Class对象也在eden里，具体来说在main线程的TLAB里。
+<br>
+<br>这个Class对象是如何引用到Test2的实例的呢？再用inspect命令：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fa499b00%0Ainstance%20of%20Oop%20for%20java%2Flang%2FClass%20%40%200x00000000fa499b00%20%40%200x00000000fa499b00%20(size%20%3D%20120)%0A%3C%3CReverse%20pointers%3E%3E%3A%20%0At1%3A%20Oop%20for%20Test2%20%40%200x00000000fa49a710%20Oop%20for%20Test2%20%40%200x00000000fa49a710" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fa499b00</span><span>&nbsp;&nbsp;</span></span></li><li><span>instance&nbsp;of&nbsp;Oop&nbsp;for&nbsp;java/lang/Class&nbsp;@&nbsp;<span class="number">0x00000000fa499b00</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fa499b00</span><span>&nbsp;(size&nbsp;=&nbsp;</span><span class="number">120</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&lt;&lt;Reverse&nbsp;pointers&gt;&gt;:&nbsp;&nbsp;&nbsp;</span></li><li><span>t1:&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;@&nbsp;<span class="number">0x00000000fa49a710</span><span>&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;@&nbsp;</span><span class="number">0x00000000fa49a710</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="15" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fa499b00
+instance of Oop for java/lang/Class @ 0x00000000fa499b00 @ 0x00000000fa499b00 (size = 120)
+&lt;&lt;Reverse pointers&gt;&gt;: 
+t1: Oop for Test2 @ 0x00000000fa49a710 Oop for Test2 @ 0x00000000fa49a710</pre>
+<br>可以看到，这个Class对象里存着Test类的静态变量t1，指向着第一个Test2实例。
+<br>
+<br><strong>成功找到t1了！这个有点特别，本来JVM规范里也没明确规定静态变量要存在哪里，通常认为它应该在概念中的“方法区”里；但现
+在在JDK7的HotSpot VM里它实质上也被放在Java heap里了。可以把这种特例看作是HotSpot 
+VM把方法区的一部分数据也放在Java heap里了。
+<br>前面也已经提过，在JDK7之前的Oracle/Sun JDK里的HotSpot VM把静态变量存在InstanceKlass末尾，存在PermGen里。那个时候的PermGen更接近于完整的方法区一些。</strong>
+<br>关于PermGen移除计划的一些零星笔记可以参考<a href="http://rednaxelafx.iteye.com/blog/905273" target="_blank">我以前一老帖</a>。
+<br>
+<br>再接再厉，用revptrs看看第二个Test2实例有谁引用：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20revptrs%200x00000000fa49a730%0AOop%20for%20Test%20%40%200x00000000fa49a720" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;revptrs&nbsp;</span><span class="number">0x00000000fa49a730</span><span>&nbsp;&nbsp;</span></span></li><li><span>Oop&nbsp;for&nbsp;Test&nbsp;@&nbsp;<span class="number">0x00000000fa49a720</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="16" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; revptrs 0x00000000fa49a730
+Oop for Test @ 0x00000000fa49a720</pre>
+<br>找到了一个Test实例。同样用whatis来看看它在哪儿：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20whatis%200x00000000fa49a720%0AAddress%200x00000000fa49a720%3A%20In%20thread-local%20allocation%20buffer%20for%20thread%20%22main%22%20(1)%20%20%5B0x00000000fa48f490%2C0x00000000fa49a750%2C0x00000000fa49d118)%0A%20%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;whatis&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fa49a720</span><span>:&nbsp;In&nbsp;thread-local&nbsp;allocation&nbsp;buffer&nbsp;for&nbsp;thread&nbsp;</span><span class="string">"main"</span><span>&nbsp;(</span><span class="number">1</span><span>)&nbsp;&nbsp;[</span><span class="number">0x00000000fa48f490</span><span>,</span><span class="number">0x00000000fa49a750</span><span>,</span><span class="number">0x00000000fa49d118</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;</span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="17" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ whatis 0x00000000fa49a720
+Address 0x00000000fa49a720: In thread-local allocation buffer for thread
+ "main" (1)  [0x00000000fa48f490,0x00000000fa49a750,0x00000000fa49d118)
+ 
+</pre>
+<br>果然也在main线程的TLAB里。
+<br>然后看这个Test实例的内容：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fa49a720%0Ainstance%20of%20Oop%20for%20Test%20%40%200x00000000fa49a720%20%40%200x00000000fa49a720%20(size%20%3D%2016)%0A%3C%3CReverse%20pointers%3E%3E%3A%20%0A_mark%3A%201%0At2%3A%20Oop%20for%20Test2%20%40%200x00000000fa49a730%20Oop%20for%20Test2%20%40%200x00000000fa49a730" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;&nbsp;</span></span></li><li><span>instance&nbsp;of&nbsp;Oop&nbsp;for&nbsp;Test&nbsp;@&nbsp;<span class="number">0x00000000fa49a720</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;(size&nbsp;=&nbsp;</span><span class="number">16</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&lt;&lt;Reverse&nbsp;pointers&gt;&gt;:&nbsp;&nbsp;&nbsp;</span></li><li><span>_mark:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>t2:&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;@&nbsp;<span class="number">0x00000000fa49a730</span><span>&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;@&nbsp;</span><span class="number">0x00000000fa49a730</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="18" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fa49a720
+instance of Oop for Test @ 0x00000000fa49a720 @ 0x00000000fa49a720 (size = 16)
+&lt;&lt;Reverse pointers&gt;&gt;: 
+_mark: 1
+t2: Oop for Test2 @ 0x00000000fa49a730 Oop for Test2 @ 0x00000000fa49a730</pre>
+<br>可以看到这个Test实例里有个成员字段t2，指向了第二个Test2实例。
+<br>
+<br><strong>于是t2也找到了！在Java堆里，作为Test的实例的成员字段存在。</strong>
+<br>
+<br>那么赶紧试试用revptrs命令看第三个Test2实例：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20revptrs%200x00000000fa49a740%0Anull" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;revptrs&nbsp;</span><span class="number">0x00000000fa49a740</span><span>&nbsp;&nbsp;</span></span></li><li><span>null&nbsp;&nbsp;</span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="19" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; revptrs 0x00000000fa49a740
+null</pre>
+<br>啥？没找到？！SA这也太弱小了吧。明明就在那里…
+<br>回头我会做个补丁让新版HotSpot VM的SA能处理这种情况。
+<br>
+<br>这个时候的HSDB界面全貌：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/92c7f6a7-a117-36a5-9284-2441fa0266d7.png">
+<br>
+<br>0x00000000fa49a740看起来有没有点眼熟？
+<br>回到前面打开的Stack Memory窗口看，仔细看会发现那个窗口里正好就有0x00000000fa49a740这数字，位于0x000000000287f858地址上。
+<br>
+<br>实际情况是，下面这张图里红色框住的部分就是main线程上Test.fn()的调用对应的栈帧：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/5ac324ac-c030-35eb-8886-111793891158.png">
+<br>如果图里看得不清楚的话，我再用文字重新写一遍（两道横线之间的是Test.fn()的栈帧内容，前后的则是别的东西）：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x000000000287f7f0%3A%200x0000000002886298%20%0A0x000000000287f7f8%3A%200x0000000002893ca5%20%0A0x000000000287f800%3A%200x0000000002893ca5%20%0A-------------------------------------------------------------------------------------------------------------%0AStack%20frame%20for%20Test.fn()%20%40bci%3D8%2C%20line%3D6%2C%20pc%3D0x0000000002893ca5%2C%20methodOop%3D0x00000000fb077f78%20(Interpreted%20frame)%0A0x000000000287f808%3A%200x000000000287f808%20expression%20stack%20bottom%20%20%20%20%20%20%20%20%20%20%3C-%20rsp%0A0x000000000287f810%3A%200x00000000fb077f58%20bytecode%20pointer%20%20%20%20%3D%200x00000000fb077f50%20(base)%20%2B%208%20(bytecode%20index)%20in%20PermGen%0A0x000000000287f818%3A%200x000000000287f860%20pointer%20to%20locals%0A0x000000000287f820%3A%200x00000000fb078360%20constant%20pool%20cache%20%3D%20ConstantPoolCache%20for%20Test%20in%20PermGen%0A0x000000000287f828%3A%200x0000000000000000%20method%20data%20oop%20%20%20%20%20%3D%20null%0A0x000000000287f830%3A%200x00000000fb077f78%20method%20oop%20%20%20%20%20%20%20%20%20%20%3D%20Method%20for%20Test.fn()V%20in%20PermGen%0A0x000000000287f838%3A%200x0000000000000000%20last%20Java%20stack%20pointer%20(not%20set)%0A0x000000000287f840%3A%200x000000000287f860%20old%20stack%20pointer%20(saved%20rsp)%0A0x000000000287f848%3A%200x000000000287f8a8%20old%20frame%20pointer%20(saved%20rbp)%20%20%20%20%3C-%20rbp%0A0x000000000287f850%3A%200x0000000002886298%20return%20address%20%20%20%20%20%20%3D%20in%20interpreter%20codelet%20%22return%20entry%20points%22%20%5B0x00000000028858b8%2C%200x00000000028876c0)%20%207688%20bytes%0A0x000000000287f858%3A%200x00000000fa49a740%20local%5B1%5D%20%22t3%22%20%20%20%20%20%20%20%3D%20Oop%20for%20Test2%20in%20NewGen%0A0x000000000287f860%3A%200x00000000fa49a720%20local%5B0%5D%20%22this%22%20%20%20%20%20%3D%20Oop%20for%20Test%20in%20NewGen%0A-------------------------------------------------------------------------------------------------------------%0A0x000000000287f868%3A%200x000000000287f868%20%0A0x000000000287f870%3A%200x00000000fb077039%20%0A0x000000000287f878%3A%200x000000000287f8c0%20%0A0x000000000287f880%3A%200x00000000fb077350%20%0A0x000000000287f888%3A%200x0000000000000000%20%0A0x000000000287f890%3A%200x00000000fb077060%20%0A0x000000000287f898%3A%200x000000000287f860%20%0A0x000000000287f8a0%3A%200x000000000287f8c0%20%0A0x000000000287f8a8%3A%200x000000000287f9a0%20%0A0x000000000287f8b0%3A%200x000000000288062a%20%0A0x000000000287f8b8%3A%200x00000000fa49a720%20%0A0x000000000287f8c0%3A%200x00000000fa498ea8%20%0A0x000000000287f8c8%3A%200x0000000000000000%20%0A0x000000000287f8d0%3A%200x0000000000000000%20%0A0x000000000287f8d8%3A%200x0000000000000000%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x000000000287f7f0</span><span>:&nbsp;</span><span class="number">0x0000000002886298</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f7f8</span><span>:&nbsp;</span><span class="number">0x0000000002893ca5</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f800</span><span>:&nbsp;</span><span class="number">0x0000000002893ca5</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span>-------------------------------------------------------------------------------------------------------------&nbsp;&nbsp;</span></li><li><span>Stack&nbsp;frame&nbsp;for&nbsp;Test.fn()&nbsp;@bci=<span class="number">8</span><span>,&nbsp;line=</span><span class="number">6</span><span>,&nbsp;pc=</span><span class="number">0x0000000002893ca5</span><span>,&nbsp;methodOop=</span><span class="number">0x00000000fb077f78</span><span>&nbsp;(Interpreted&nbsp;frame)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f808</span><span>:&nbsp;</span><span class="number">0x000000000287f808</span><span>&nbsp;expression&nbsp;stack&nbsp;bottom&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;-&nbsp;rsp&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f810</span><span>:&nbsp;</span><span class="number">0x00000000fb077f58</span><span>&nbsp;bytecode&nbsp;pointer&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;</span><span class="number">0x00000000fb077f50</span><span>&nbsp;(base)&nbsp;+&nbsp;</span><span class="number">8</span><span>&nbsp;(bytecode&nbsp;index)&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f818</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;pointer&nbsp;to&nbsp;locals&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f820</span><span>:&nbsp;</span><span class="number">0x00000000fb078360</span><span>&nbsp;constant&nbsp;pool&nbsp;cache&nbsp;=&nbsp;ConstantPoolCache&nbsp;for&nbsp;Test&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f828</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;method&nbsp;data&nbsp;oop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;null&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f830</span><span>:&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;method&nbsp;oop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Method&nbsp;for&nbsp;Test.fn()V&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f838</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;last&nbsp;Java&nbsp;stack&nbsp;pointer&nbsp;(not&nbsp;set)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f840</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;old&nbsp;stack&nbsp;pointer&nbsp;(saved&nbsp;rsp)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f848</span><span>:&nbsp;</span><span class="number">0x000000000287f8a8</span><span>&nbsp;old&nbsp;frame&nbsp;pointer&nbsp;(saved&nbsp;rbp)&nbsp;&nbsp;&nbsp;&nbsp;&lt;-&nbsp;rbp&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f850</span><span>:&nbsp;</span><span class="number">0x0000000002886298</span><span>&nbsp;return&nbsp;address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;in&nbsp;interpreter&nbsp;codelet&nbsp;</span><span class="string">"return&nbsp;entry&nbsp;points"</span><span>&nbsp;[</span><span class="number">0x00000000028858b8</span><span>,&nbsp;</span><span class="number">0x00000000028876c0</span><span>)&nbsp;&nbsp;</span><span class="number">7688</span><span>&nbsp;bytes&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f858</span><span>:&nbsp;</span><span class="number">0x00000000fa49a740</span><span>&nbsp;local[</span><span class="number">1</span><span>]&nbsp;</span><span class="string">"t3"</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Oop&nbsp;for&nbsp;Test2&nbsp;in&nbsp;NewGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f860</span><span>:&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;local[</span><span class="number">0</span><span>]&nbsp;</span><span class="string">"this"</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Oop&nbsp;for&nbsp;Test&nbsp;in&nbsp;NewGen&nbsp;&nbsp;</span></span></li><li><span>-------------------------------------------------------------------------------------------------------------&nbsp;&nbsp;</span></li><li><span><span class="number">0x000000000287f868</span><span>:&nbsp;</span><span class="number">0x000000000287f868</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f870</span><span>:&nbsp;</span><span class="number">0x00000000fb077039</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f878</span><span>:&nbsp;</span><span class="number">0x000000000287f8c0</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f880</span><span>:&nbsp;</span><span class="number">0x00000000fb077350</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f888</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f890</span><span>:&nbsp;</span><span class="number">0x00000000fb077060</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f898</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8a0</span><span>:&nbsp;</span><span class="number">0x000000000287f8c0</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8a8</span><span>:&nbsp;</span><span class="number">0x000000000287f9a0</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8b0</span><span>:&nbsp;</span><span class="number">0x000000000288062a</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8b8</span><span>:&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8c0</span><span>:&nbsp;</span><span class="number">0x00000000fa498ea8</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8c8</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8d0</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8d8</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="20" title="借HSDB来探索HotSpot VM的运行时数据">0x000000000287f7f0:
+ 0x0000000002886298 
+0x000000000287f7f8: 0x0000000002893ca5 
+0x000000000287f800: 0x0000000002893ca5 
+-------------------------------------------------------------------------------------------------------------
+Stack
+ frame for Test.fn() @bci=8, line=6, pc=0x0000000002893ca5, 
+methodOop=0x00000000fb077f78 (Interpreted frame)
+0x000000000287f808: 0x000000000287f808 expression stack bottom          
+&lt;- rsp
+0x000000000287f810: 0x00000000fb077f58 bytecode pointer    = 
+0x00000000fb077f50 (base) + 8 (bytecode index) in PermGen
+0x000000000287f818: 0x000000000287f860 pointer to locals
+0x000000000287f820: 0x00000000fb078360 constant pool cache = 
+ConstantPoolCache for Test in PermGen
+0x000000000287f828: 0x0000000000000000 method data oop     = null
+0x000000000287f830: 0x00000000fb077f78 method oop          = Method for 
+Test.fn()V in PermGen
+0x000000000287f838: 0x0000000000000000 last Java stack pointer (not set)
+0x000000000287f840: 0x000000000287f860 old stack pointer (saved rsp)
+0x000000000287f848: 0x000000000287f8a8 old frame pointer (saved rbp)    
+&lt;- rbp
+0x000000000287f850: 0x0000000002886298 return address      = in 
+interpreter codelet "return entry points" [0x00000000028858b8, 
+0x00000000028876c0)  7688 bytes
+0x000000000287f858: 0x00000000fa49a740 local[1] "t3"       = Oop for 
+Test2 in NewGen
+0x000000000287f860: 0x00000000fa49a720 local[0] "this"     = Oop for 
+Test in NewGen
+-------------------------------------------------------------------------------------------------------------
+0x000000000287f868:
+ 0x000000000287f868 
+0x000000000287f870: 0x00000000fb077039 
+0x000000000287f878: 0x000000000287f8c0 
+0x000000000287f880: 0x00000000fb077350 
+0x000000000287f888: 0x0000000000000000 
+0x000000000287f890: 0x00000000fb077060 
+0x000000000287f898: 0x000000000287f860 
+0x000000000287f8a0: 0x000000000287f8c0 
+0x000000000287f8a8: 0x000000000287f9a0 
+0x000000000287f8b0: 0x000000000288062a 
+0x000000000287f8b8: 0x00000000fa49a720 
+0x000000000287f8c0: 0x00000000fa498ea8 
+0x000000000287f8c8: 0x0000000000000000 
+0x000000000287f8d0: 0x0000000000000000 
+0x000000000287f8d8: 0x0000000000000000 </pre>
+<br>
+<br>回顾<a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.6" target="_blank">JVM规范里所描述的Java栈帧结构</a>，包括：
+<br id=""><pre class="" name="code" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="21" title="借HSDB来探索HotSpot VM的运行时数据">[ 操作数栈  (operand stack)   ]
+[ 栈帧信息  (dynamic linking) ]
+[ 局部变量区 (local variables) ]</pre>
+<br>
+<br>上张<a href="http://www.valleytalk.org/2011/07/28/java-%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%BC%96%E8%AF%91%EF%BC%8C%E5%8A%A0%E8%BD%BD-%E5%92%8C-%E6%89%A7%E8%A1%8C/" target="_blank">我以前做的投影稿</a>里的图：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/09a0f79f-d129-37fa-828b-0e4551d710af.png">
+<br>
+<br>再跟HotSpot VM的解释器所使用的栈帧布局对比看看，是不是正好能对应上？局部变量区（locals）有了，VM所需的栈帧信息也有了；执行到这个位置operand stack正好是空的所以看不到它。
+<br>（HotSpot VM里把operand stack叫做expression stack。这是因为operand stack通常只在表达式求值过程中才有内容）
+<br>
+<br><strong>从Test.fn()的栈帧中我们可以看到t3变量就在locals[1]的位置上。t3变量也找到了！大功告成！</strong>
+<br>
+<br>栈帧信息里具体都是些啥，以后有机会再展开讲吧。
+<br>
+<br>都看到这里了，干脆把main方法的栈帧也如法炮制分析一下。先上图：
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/f0a117f7-0077-3a38-b633-077c2a67d3c2.png">
+<br>然后再用文字写一次：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x000000000287f7f0%3A%200x0000000002886298%20%0A0x000000000287f7f8%3A%200x0000000002893ca5%20%0A0x000000000287f800%3A%200x0000000002893ca5%20%0A0x000000000287f808%3A%200x000000000287f808%20%0A0x000000000287f810%3A%200x00000000fb077f58%20%0A0x000000000287f818%3A%200x000000000287f860%20%0A0x000000000287f820%3A%200x00000000fb078360%20%0A0x000000000287f828%3A%200x0000000000000000%20%0A0x000000000287f830%3A%200x00000000fb077f78%20%0A0x000000000287f838%3A%200x0000000000000000%20%0A0x000000000287f840%3A%200x000000000287f860%20%0A0x000000000287f848%3A%200x000000000287f8a8%20%0A0x000000000287f850%3A%200x0000000002886298%20%0A0x000000000287f858%3A%200x00000000fa49a740%20%0A-------------------------------------------------------------------------------------------------------------%0AStack%20frame%20for%20Main.main(java.lang.String%5B%5D)%20%40bci%3D9%2C%20line%3D4%2C%20pc%3D0x0000000002886298%2C%20methodOop%3D0x00000000fb077060%20(Interpreted%20frame)%0A0x000000000287f860%3A%200x00000000fa49a720%20expression%20stack%5B0%5D%20%3D%20Oop%20for%20Test%20in%20NewGen%0A0x000000000287f868%3A%200x000000000287f868%20expression%20stack%20bottom%0A0x000000000287f870%3A%200x00000000fb077039%20bytecode%20pointer%20%20%20%20%3D%200x00000000fb077030%20(base)%20%2B%209%20(bytecode%20index)%20in%20PermGen%0A0x000000000287f878%3A%200x000000000287f8c0%20pointer%20to%20locals%0A0x000000000287f880%3A%200x00000000fb077350%20constant%20pool%20cache%20%3D%20ConstantPoolCache%20for%20Main%20in%20PermGen%0A0x000000000287f888%3A%200x0000000000000000%20method%20data%20oop%20%20%20%20%20%3D%20null%0A0x000000000287f890%3A%200x00000000fb077060%20method%20oop%20%20%20%20%20%20%20%20%20%20%3D%20Method%20for%20Main.main(%5BLjava%2Flang%2FString%3B)V%20in%20PermGen%0A0x000000000287f898%3A%200x000000000287f860%20last%20Java%20stack%20pointer%0A0x000000000287f8a0%3A%200x000000000287f8c0%20old%20stack%20pointer%0A0x000000000287f8a8%3A%200x000000000287f9a0%20old%20frame%20pointer%0A0x000000000287f8b0%3A%200x000000000288062a%20return%20address%20%20%20%20%20%20%3D%20in%20StubRoutines%0A0x000000000287f8b8%3A%200x00000000fa49a720%20local%5B1%5D%20%22test%22%20%20%20%20%20%3D%20Oop%20for%20Test%20in%20NewGen%0A0x000000000287f8c0%3A%200x00000000fa498ea8%20local%5B0%5D%20%22args%22%20%20%20%20%20%3D%20Oop%20for%20java.lang.String%5B%5D%20in%20NewGen%0A-------------------------------------------------------------------------------------------------------------%0A0x000000000287f8c8%3A%200x0000000000000000%20%0A0x000000000287f8d0%3A%200x0000000000000000%20%0A0x000000000287f8d8%3A%200x0000000000000000%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x000000000287f7f0</span><span>:&nbsp;</span><span class="number">0x0000000002886298</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f7f8</span><span>:&nbsp;</span><span class="number">0x0000000002893ca5</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f800</span><span>:&nbsp;</span><span class="number">0x0000000002893ca5</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f808</span><span>:&nbsp;</span><span class="number">0x000000000287f808</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f810</span><span>:&nbsp;</span><span class="number">0x00000000fb077f58</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f818</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f820</span><span>:&nbsp;</span><span class="number">0x00000000fb078360</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f828</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f830</span><span>:&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f838</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f840</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f848</span><span>:&nbsp;</span><span class="number">0x000000000287f8a8</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f850</span><span>:&nbsp;</span><span class="number">0x0000000002886298</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f858</span><span>:&nbsp;</span><span class="number">0x00000000fa49a740</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span>-------------------------------------------------------------------------------------------------------------&nbsp;&nbsp;</span></li><li><span>Stack&nbsp;frame&nbsp;for&nbsp;Main.main(java.lang.String[])&nbsp;@bci=<span class="number">9</span><span>,&nbsp;line=</span><span class="number">4</span><span>,&nbsp;pc=</span><span class="number">0x0000000002886298</span><span>,&nbsp;methodOop=</span><span class="number">0x00000000fb077060</span><span>&nbsp;(Interpreted&nbsp;frame)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f860</span><span>:&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;expression&nbsp;stack[</span><span class="number">0</span><span>]&nbsp;=&nbsp;Oop&nbsp;for&nbsp;Test&nbsp;in&nbsp;NewGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f868</span><span>:&nbsp;</span><span class="number">0x000000000287f868</span><span>&nbsp;expression&nbsp;stack&nbsp;bottom&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f870</span><span>:&nbsp;</span><span class="number">0x00000000fb077039</span><span>&nbsp;bytecode&nbsp;pointer&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;</span><span class="number">0x00000000fb077030</span><span>&nbsp;(base)&nbsp;+&nbsp;</span><span class="number">9</span><span>&nbsp;(bytecode&nbsp;index)&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f878</span><span>:&nbsp;</span><span class="number">0x000000000287f8c0</span><span>&nbsp;pointer&nbsp;to&nbsp;locals&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f880</span><span>:&nbsp;</span><span class="number">0x00000000fb077350</span><span>&nbsp;constant&nbsp;pool&nbsp;cache&nbsp;=&nbsp;ConstantPoolCache&nbsp;for&nbsp;Main&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f888</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;method&nbsp;data&nbsp;oop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;null&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f890</span><span>:&nbsp;</span><span class="number">0x00000000fb077060</span><span>&nbsp;method&nbsp;oop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Method&nbsp;for&nbsp;Main.main([Ljava/lang/String;)V&nbsp;in&nbsp;PermGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f898</span><span>:&nbsp;</span><span class="number">0x000000000287f860</span><span>&nbsp;last&nbsp;Java&nbsp;stack&nbsp;pointer&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8a0</span><span>:&nbsp;</span><span class="number">0x000000000287f8c0</span><span>&nbsp;old&nbsp;stack&nbsp;pointer&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8a8</span><span>:&nbsp;</span><span class="number">0x000000000287f9a0</span><span>&nbsp;old&nbsp;frame&nbsp;pointer&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8b0</span><span>:&nbsp;</span><span class="number">0x000000000288062a</span><span>&nbsp;return&nbsp;address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;in&nbsp;StubRoutines&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8b8</span><span>:&nbsp;</span><span class="number">0x00000000fa49a720</span><span>&nbsp;local[</span><span class="number">1</span><span>]&nbsp;</span><span class="string">"test"</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Oop&nbsp;for&nbsp;Test&nbsp;in&nbsp;NewGen&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8c0</span><span>:&nbsp;</span><span class="number">0x00000000fa498ea8</span><span>&nbsp;local[</span><span class="number">0</span><span>]&nbsp;</span><span class="string">"args"</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;Oop&nbsp;for&nbsp;java.lang.String[]&nbsp;in&nbsp;NewGen&nbsp;&nbsp;</span></span></li><li><span>-------------------------------------------------------------------------------------------------------------&nbsp;&nbsp;</span></li><li><span><span class="number">0x000000000287f8c8</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8d0</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x000000000287f8d8</span><span>:&nbsp;</span><span class="number">0x0000000000000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="22" title="借HSDB来探索HotSpot VM的运行时数据">0x000000000287f7f0:
+ 0x0000000002886298 
+0x000000000287f7f8: 0x0000000002893ca5 
+0x000000000287f800: 0x0000000002893ca5 
+0x000000000287f808: 0x000000000287f808 
+0x000000000287f810: 0x00000000fb077f58 
+0x000000000287f818: 0x000000000287f860 
+0x000000000287f820: 0x00000000fb078360 
+0x000000000287f828: 0x0000000000000000 
+0x000000000287f830: 0x00000000fb077f78 
+0x000000000287f838: 0x0000000000000000 
+0x000000000287f840: 0x000000000287f860 
+0x000000000287f848: 0x000000000287f8a8 
+0x000000000287f850: 0x0000000002886298 
+0x000000000287f858: 0x00000000fa49a740 
+-------------------------------------------------------------------------------------------------------------
+Stack
+ frame for Main.main(java.lang.String[]) @bci=9, line=4, 
+pc=0x0000000002886298, methodOop=0x00000000fb077060 (Interpreted frame)
+0x000000000287f860: 0x00000000fa49a720 expression stack[0] = Oop for 
+Test in NewGen
+0x000000000287f868: 0x000000000287f868 expression stack bottom
+0x000000000287f870: 0x00000000fb077039 bytecode pointer    = 
+0x00000000fb077030 (base) + 9 (bytecode index) in PermGen
+0x000000000287f878: 0x000000000287f8c0 pointer to locals
+0x000000000287f880: 0x00000000fb077350 constant pool cache = 
+ConstantPoolCache for Main in PermGen
+0x000000000287f888: 0x0000000000000000 method data oop     = null
+0x000000000287f890: 0x00000000fb077060 method oop          = Method for 
+Main.main([Ljava/lang/String;)V in PermGen
+0x000000000287f898: 0x000000000287f860 last Java stack pointer
+0x000000000287f8a0: 0x000000000287f8c0 old stack pointer
+0x000000000287f8a8: 0x000000000287f9a0 old frame pointer
+0x000000000287f8b0: 0x000000000288062a return address      = in 
+StubRoutines
+0x000000000287f8b8: 0x00000000fa49a720 local[1] "test"     = Oop for 
+Test in NewGen
+0x000000000287f8c0: 0x00000000fa498ea8 local[0] "args"     = Oop for 
+java.lang.String[] in NewGen
+-------------------------------------------------------------------------------------------------------------
+0x000000000287f8c8:
+ 0x0000000000000000 
+0x000000000287f8d0: 0x0000000000000000 
+0x000000000287f8d8: 0x0000000000000000 </pre>
+<br>main的栈帧的operand stack就不是空的了，有一个元素，用来传递参数给其调用的Test.fn()方法（作为“this”）。
+<br>仔细的同学可能发现了，0x000000000287f860这个地址前面不是说是调用Test.fn()产生的栈帧么？怎么这里又变成调用main()方法的栈帧的一部分了呢？
+<br>
+<br>其实栈帧直接可以有重叠：（再上一张以前做的投影稿里的图）
+<br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/2b8b6666-72ed-315f-b8ad-c0989b060788.png">
+<br>这样可以减少传递参数所需的数据拷贝，也节省了空间。
+<br>
+<br>
+<br>回到HSDB，我们换个方式来把t3变量找出来。这里就需要编译Test.java时给的-g参数所生成的LocalVariableTable的信息了：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20jseval%20%22ts%20%3D%20jvm.threads%22%0A%5BThread%20(address%3D0x00000000fa48fb38%2C%20name%3DService%20Thread)%2C%20Thread%20(address%3D0x00000000fa48fa18%2C%20name%3DC2%20CompilerThread1)%2C%20Thread%20(address%3D0x00000000fa48f8f8%2C%20name%3DC2%20CompilerThread0)%2C%20Thread%20(address%3D0x00000000fa49d178%2C%20name%3DJDWP%20Command%20Reader)%2C%20Thread%20(address%3D0x00000000fa48f820%2C%20name%3DJDWP%20Event%20Helper%20Thread)%2C%20Thread%20(address%3D0x00000000fa48f6d8%2C%20name%3DJDWP%20Transport%20Listener%3A%20dt_shmem)%2C%20Thread%20(address%3D0x00000000fa48dc88%2C%20name%3DAttach%20Listener)%2C%20Thread%20(address%3D0x00000000fa48db68%2C%20name%3DSignal%20Dispatcher)%2C%20Thread%20(address%3D0x00000000fa405828%2C%20name%3DFinalizer)%2C%20Thread%20(address%3D0x00000000fa4053a0%2C%20name%3DReference%20Handler)%2C%20Thread%20(address%3D0x00000000fa404860%2C%20name%3Dmain)%5D%20%0Ahsdb%3E%20jseval%20%22t%20%3D%20ts%5Bts.length%20-%201%5D%22%0AThread%20(address%3D0x00000000fa404860%2C%20name%3Dmain)%20%0Ahsdb%3E%20jseval%20%22fs%20%3D%20t.frames%22%0A%5BFrame%20(method%3DTest.fn()%2C%20bci%3D8%2C%20line%3D6)%2C%20Frame%20(method%3DMain.main(java.lang.String%5B%5D)%2C%20bci%3D9%2C%20line%3D4)%5D%20%0Ahsdb%3E%20jseval%20%22f0%20%3D%20fs%5B0%5D%22%0AFrame%20(method%3DTest.fn()%2C%20bci%3D8%2C%20line%3D6)%20%0Ahsdb%3E%20jseval%20%22f1%20%3D%20fs%5B1%5D%22%0AFrame%20(method%3DMain.main(java.lang.String%5B%5D)%2C%20bci%3D9%2C%20line%3D4)%20%0Ahsdb%3E%20jseval%20%22f0.locals%22%0A%7Bt3%3DObject%200x00000000fa49a740%7D%20%0Ahsdb%3E%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;jseval&nbsp;</span><span class="string">"ts&nbsp;=&nbsp;jvm.threads"</span><span>&nbsp;&nbsp;</span></span></li><li><span>[Thread&nbsp;(address=<span class="number">0x00000000fa48fb38</span><span>,&nbsp;name=Service&nbsp;Thread),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48fa18</span><span>,&nbsp;name=C2&nbsp;CompilerThread1),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48f8f8</span><span>,&nbsp;name=C2&nbsp;CompilerThread0),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa49d178</span><span>,&nbsp;name=JDWP&nbsp;Command&nbsp;Reader),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48f820</span><span>,&nbsp;name=JDWP&nbsp;Event&nbsp;Helper&nbsp;Thread),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48f6d8</span><span>,&nbsp;name=JDWP&nbsp;Transport&nbsp;Listener:&nbsp;dt_shmem),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48dc88</span><span>,&nbsp;name=Attach&nbsp;Listener),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa48db68</span><span>,&nbsp;name=Signal&nbsp;Dispatcher),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa405828</span><span>,&nbsp;name=Finalizer),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa4053a0</span><span>,&nbsp;name=Reference&nbsp;Handler),&nbsp;Thread&nbsp;(address=</span><span class="number">0x00000000fa404860</span><span>,&nbsp;name=main)]&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;jseval&nbsp;<span class="string">"t&nbsp;=&nbsp;ts[ts.length&nbsp;-&nbsp;1]"</span><span>&nbsp;&nbsp;</span></span></li><li><span>Thread&nbsp;(address=<span class="number">0x00000000fa404860</span><span>,&nbsp;name=main)&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;jseval&nbsp;<span class="string">"fs&nbsp;=&nbsp;t.frames"</span><span>&nbsp;&nbsp;</span></span></li><li><span>[Frame&nbsp;(method=Test.fn(),&nbsp;bci=<span class="number">8</span><span>,&nbsp;line=</span><span class="number">6</span><span>),&nbsp;Frame&nbsp;(method=Main.main(java.lang.String[]),&nbsp;bci=</span><span class="number">9</span><span>,&nbsp;line=</span><span class="number">4</span><span>)]&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;jseval&nbsp;<span class="string">"f0&nbsp;=&nbsp;fs[0]"</span><span>&nbsp;&nbsp;</span></span></li><li><span>Frame&nbsp;(method=Test.fn(),&nbsp;bci=<span class="number">8</span><span>,&nbsp;line=</span><span class="number">6</span><span>)&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;jseval&nbsp;<span class="string">"f1&nbsp;=&nbsp;fs[1]"</span><span>&nbsp;&nbsp;</span></span></li><li><span>Frame&nbsp;(method=Main.main(java.lang.String[]),&nbsp;bci=<span class="number">9</span><span>,&nbsp;line=</span><span class="number">4</span><span>)&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;jseval&nbsp;<span class="string">"f0.locals"</span><span>&nbsp;&nbsp;</span></span></li><li><span>{t3=Object&nbsp;<span class="number">0x00000000fa49a740</span><span>}&nbsp;&nbsp;&nbsp;</span></span></li><li><span>hsdb&gt;&nbsp;&nbsp;&nbsp;</span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="23" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ jseval "ts = jvm.threads"
+[Thread (address=0x00000000fa48fb38, name=Service Thread), Thread 
+(address=0x00000000fa48fa18, name=C2 CompilerThread1), Thread 
+(address=0x00000000fa48f8f8, name=C2 CompilerThread0), Thread 
+(address=0x00000000fa49d178, name=JDWP Command Reader), Thread 
+(address=0x00000000fa48f820, name=JDWP Event Helper Thread), Thread 
+(address=0x00000000fa48f6d8, name=JDWP Transport Listener: dt_shmem), 
+Thread (address=0x00000000fa48dc88, name=Attach Listener), Thread 
+(address=0x00000000fa48db68, name=Signal Dispatcher), Thread 
+(address=0x00000000fa405828, name=Finalizer), Thread 
+(address=0x00000000fa4053a0, name=Reference Handler), Thread 
+(address=0x00000000fa404860, name=main)] 
+hsdb&gt; jseval "t = ts[ts.length - 1]"
+Thread (address=0x00000000fa404860, name=main) 
+hsdb&gt; jseval "fs = t.frames"
+[Frame (method=Test.fn(), bci=8, line=6), Frame 
+(method=Main.main(java.lang.String[]), bci=9, line=4)] 
+hsdb&gt; jseval "f0 = fs[0]"
+Frame (method=Test.fn(), bci=8, line=6) 
+hsdb&gt; jseval "f1 = fs[1]"
+Frame (method=Main.main(java.lang.String[]), bci=9, line=4) 
+hsdb&gt; jseval "f0.locals"
+{t3=Object 0x00000000fa49a740} 
+hsdb&gt; </pre>
+<br>
+<br>=============================================================================
+<br>
+<br>上面讲栈帧布局的时候出现了“bytecode pointer”字眼。既然之前被不少好奇的同学问过“JVM里字节码存在哪里”，这里就一并回答掉好了。
+<br>
+<br>强调一点：“字节码”只是元数据的一部分。它只负责描述运行逻辑，而其它信息像是类型名、成员的个数、类型、名字等等都<strong><span style="color: red;">不是字节码</span></strong>。在Class文件里是如此，到运行时在JVM里仍然是如此。
+<br>
+<br>HotSpot VM里有一套对象专门用来存放元数据，它们包括：
+<br><ul>
+<li> Klass系对象。元数据的最主要入口。用于描述类型的总体信息
+</li><li> ConstantPool/ConstantPoolCache对象。每个InstanceKlass关联着一个ConstantPool，作为该类型的运行时常量池。这个常量池的结构跟Class文件里的常量池基本上是对应的。可以参考<a href="http://hllvm.group.iteye.com/group/topic/26412#post-187861" target="_blank">我以前的一个回帖</a>。
+ConstantPoolCache主要用于存储某些字节码指令所需的解析（resolve）好的常量项，例如给[get|put]static、
+[get|put]field、invoke[static|special|virtual|interface|dynamic]等指令对应的常量池
+项用。
+</li><li> Method对象，用来描述Java方法的总体信息，像是方法入口地址、调用/循环计数器等等
+</li><li> ConstMethod对象，记录着Java方法的不变的描述信息，包括方法名、方法的访问修饰符、<strong>字节码</strong>、行号表、局部变量表等等。注意了，字节码就嵌在这ConstMethod对象里面。
+</li><li> Symbol对象，对应Class文件常量池里的JVM_CONSTANT_Utf8类型的常量。有一个VM全局的SymbolTable管理着所有Symbol。Symbol由所有Java类所共享。
+</li><li> 
+MethodData对象，记录着Java方法执行时的profile信息，例如某方法里的某个字节码之类是否从来没遇到过null，某个条件跳转是否总
+是走同一个分支，等等。这些信息在解释器（多层编译模式下也在低层的编译生成的代码里）收集，然后供给HotSpot Server 
+Compiler用于做激进优化。
+</li></ul>
+<br>
+<br>在PermGen移除前，上述元数据对象都在PermGen里，直接被GC管理着。
+<br>JDK8彻底移除PermGen后，这些对象被挪到GC堆外的一块叫做Metaspace的空间里做特殊管理，仍然间接的受GC管理。
+<br>
+<br>介绍了背景，让我们回到HSDB里。前面不是说“bytecode pointer (bcp)”嘛，从背景介绍可以知道字节码存在ConstMethod对象里，那就让我们用Test.fn()栈帧里存的bcp来验证一下是否真的如此。
+<br>还是用whatis命令：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20whatis%200x00000000fb077f58%0AAddress%200x00000000fb077f58%3A%20In%20perm%20generation%20%20%20perm%20%5B0x00000000fae00000%2C0x00000000fb078898%2C0x00000000fc2c0000)%20space%20capacity%20%3D%2021757952%2C%2011.90770160721009%20used%20%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;whatis&nbsp;</span><span class="number">0x00000000fb077f58</span><span>&nbsp;&nbsp;</span></span></li><li><span>Address&nbsp;<span class="number">0x00000000fb077f58</span><span>:&nbsp;In&nbsp;perm&nbsp;generation&nbsp;&nbsp;&nbsp;perm&nbsp;[</span><span class="number">0x00000000fae00000</span><span>,</span><span class="number">0x00000000fb078898</span><span>,</span><span class="number">0x00000000fc2c0000</span><span>)&nbsp;space&nbsp;capacity&nbsp;=&nbsp;</span><span class="number">21757952</span><span>,&nbsp;</span><span class="number">11.90770160721009</span><span>&nbsp;used&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="24" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt;
+ whatis 0x00000000fb077f58
+Address 0x00000000fb077f58: In perm generation   perm 
+[0x00000000fae00000,0x00000000fb078898,0x00000000fc2c0000) space 
+capacity = 21757952, 11.90770160721009 used 
+</pre>
+<br>这地址确实在PermGen里了。那么inspect一下看看？
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fb077f58%0AError%3A%20sun.jvm.hotspot.debugger.UnalignedAddressException%3A%20100011%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fb077f58</span><span>&nbsp;&nbsp;</span></span></li><li><span>Error:&nbsp;sun.jvm.hotspot.debugger.UnalignedAddressException:&nbsp;<span class="number">100011</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="25" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fb077f58
+Error: sun.jvm.hotspot.debugger.UnalignedAddressException: 100011
+</pre>
+<br>呃，这样不行。inspect命令只能接受对象的起始地址，但字节码是嵌在ConstMethod对象中间的。
+<br>
+<br>那换条路子。栈帧里还有method oop，指向该栈帧对应的Method对象。先从它入手：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fb077f78%0Ainstance%20of%20Method%20fn()V%400x00000000fb077f78%20%40%200x00000000fb077f78%20%40%200x00000000fb077f78%20(size%20%3D%20136)%0A_mark%3A%201%0A_constMethod%3A%20ConstMethod%20fn()V%400x00000000fb077f08%20%40%200x00000000fb077f08%20Oop%20%40%200x00000000fb077f08%0A_constants%3A%20ConstantPool%20for%20Test%20%40%200x00000000fb077c68%20Oop%20%40%200x00000000fb077c68%0A_method_size%3A%2017%0A_max_stack%3A%202%0A_max_locals%3A%202%0A_size_of_parameters%3A%201%0A_access_flags%3A%201%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;&nbsp;</span></span></li><li><span>instance&nbsp;of&nbsp;Method&nbsp;fn()V@<span class="number">0x00000000fb077f78</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;(size&nbsp;=&nbsp;</span><span class="number">136</span><span>)&nbsp;&nbsp;</span></span></li><li><span>_mark:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>_constMethod:&nbsp;ConstMethod&nbsp;fn()V@<span class="number">0x00000000fb077f08</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f08</span><span>&nbsp;Oop&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f08</span><span>&nbsp;&nbsp;</span></span></li><li><span>_constants:&nbsp;ConstantPool&nbsp;for&nbsp;Test&nbsp;@&nbsp;<span class="number">0x00000000fb077c68</span><span>&nbsp;Oop&nbsp;@&nbsp;</span><span class="number">0x00000000fb077c68</span><span>&nbsp;&nbsp;</span></span></li><li><span>_method_size:&nbsp;<span class="number">17</span><span>&nbsp;&nbsp;</span></span></li><li><span>_max_stack:&nbsp;<span class="number">2</span><span>&nbsp;&nbsp;</span></span></li><li><span>_max_locals:&nbsp;<span class="number">2</span><span>&nbsp;&nbsp;</span></span></li><li><span>_size_of_parameters:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>_access_flags:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="26" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fb077f78
+instance of Method fn()V@0x00000000fb077f78 @ 0x00000000fb077f78 @ 0x00000000fb077f78 (size = 136)
+_mark: 1
+_constMethod: ConstMethod fn()V@0x00000000fb077f08 @ 0x00000000fb077f08 Oop @ 0x00000000fb077f08
+_constants: ConstantPool for Test @ 0x00000000fb077c68 Oop @ 0x00000000fb077c68
+_method_size: 17
+_max_stack: 2
+_max_locals: 2
+_size_of_parameters: 1
+_access_flags: 1
+</pre>
+<br>这样就找到了Test.fn()的Method对象，看到里面的_constMethod字段所指向的ConstMethod对象：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20inspect%200x00000000fb077f08%0Ainstance%20of%20ConstMethod%20fn()V%400x00000000fb077f08%20%40%200x00000000fb077f08%20%40%200x00000000fb077f08%20(size%20%3D%20112)%0A_mark%3A%201%0A_method%3A%20Method%20fn()V%400x00000000fb077f78%20%40%200x00000000fb077f78%20Oop%20%40%200x00000000fb077f78%0A_exception_table%3A%20%5BI%20%40%200x00000000fae01d50%20Oop%20for%20%5BI%20%40%200x00000000fae01d50%0A_constMethod_size%3A%2014%0A_flags%3A%205%0A_code_size%3A%209%0A_name_index%3A%2018%0A_signature_index%3A%2012%0A_generic_signature_index%3A%200%0A_code_size%3A%209%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;inspect&nbsp;</span><span class="number">0x00000000fb077f08</span><span>&nbsp;&nbsp;</span></span></li><li><span>instance&nbsp;of&nbsp;ConstMethod&nbsp;fn()V@<span class="number">0x00000000fb077f08</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f08</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f08</span><span>&nbsp;(size&nbsp;=&nbsp;</span><span class="number">112</span><span>)&nbsp;&nbsp;</span></span></li><li><span>_mark:&nbsp;<span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>_method:&nbsp;Method&nbsp;fn()V@<span class="number">0x00000000fb077f78</span><span>&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;Oop&nbsp;@&nbsp;</span><span class="number">0x00000000fb077f78</span><span>&nbsp;&nbsp;</span></span></li><li><span>_exception_table:&nbsp;[I&nbsp;@&nbsp;<span class="number">0x00000000fae01d50</span><span>&nbsp;Oop&nbsp;for&nbsp;[I&nbsp;@&nbsp;</span><span class="number">0x00000000fae01d50</span><span>&nbsp;&nbsp;</span></span></li><li><span>_constMethod_size:&nbsp;<span class="number">14</span><span>&nbsp;&nbsp;</span></span></li><li><span>_flags:&nbsp;<span class="number">5</span><span>&nbsp;&nbsp;</span></span></li><li><span>_code_size:&nbsp;<span class="number">9</span><span>&nbsp;&nbsp;</span></span></li><li><span>_name_index:&nbsp;<span class="number">18</span><span>&nbsp;&nbsp;</span></span></li><li><span>_signature_index:&nbsp;<span class="number">12</span><span>&nbsp;&nbsp;</span></span></li><li><span>_generic_signature_index:&nbsp;<span class="number">0</span><span>&nbsp;&nbsp;</span></span></li><li><span>_code_size:&nbsp;<span class="number">9</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="27" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; inspect 0x00000000fb077f08
+instance of ConstMethod fn()V@0x00000000fb077f08 @ 0x00000000fb077f08 @ 0x00000000fb077f08 (size = 112)
+_mark: 1
+_method: Method fn()V@0x00000000fb077f78 @ 0x00000000fb077f78 Oop @ 0x00000000fb077f78
+_exception_table: [I @ 0x00000000fae01d50 Oop for [I @ 0x00000000fae01d50
+_constMethod_size: 14
+_flags: 5
+_code_size: 9
+_name_index: 18
+_signature_index: 12
+_generic_signature_index: 0
+_code_size: 9
+</pre>
+<br>这个ConstMethod对象从0x00000000fb077f08开始，长度112字节，也就是这个对象的范围是
+[0x00000000fb077f08, 
+0x00000000fb077f78)。bcp指向0x00000000fb077f58，确实在这个ConstMethod范围内。
+<br>
+<br>通过经验可以知道实际上这里字节码的起始地址是0x00000000fb077f50。经验就是：字节码是ConstMethod内嵌的第一个变
+长表，紧帖在ConstMethod的最后一个显式C++字段后面。所以只要知道sizeof(constMethodOopDesc)，字节码就会从这
+个偏移量开始。
+<br>通过ConstMethod的_code_size字段可以知道该方法的字节码有9字节。找出来用mem命令看看内存里的数据：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Hsdb代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20mem%200x00000000fb077f50%202%0A0x00000000fb077f50%3A%200x4c0001b7590200ca%20%0A0x00000000fb077f58%3A%200x00000000004105b1%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;mem&nbsp;</span><span class="number">0x00000000fb077f50</span><span>&nbsp;</span><span class="number">2</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f50</span><span>:&nbsp;</span><span class="number">0x4c0001b7590200ca</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f58</span><span>:&nbsp;</span><span class="number">0x00000000004105b1</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="hsdb" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="28" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; mem 0x00000000fb077f50 2
+0x00000000fb077f50: 0x4c0001b7590200ca 
+0x00000000fb077f58: 0x00000000004105b1 </pre>
+<br>
+<br>这串数字是什么东西呢？展开来写清楚一点就是：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x00000000fb077f50%3A%20%20bb%2000%2002%20%20new%20%3Ccp%20index%20%232%3E%20%5BClass%20Test2%5D%0A0x00000000fb077f53%3A%20%2059%20%20%20%20%20%20%20%20dup%0A0x00000000fb077f54%3A%20%20b7%2001%2000%20%20invokespecial%20%3Ccp%20cache%20index%20%231%3E%20%5BMethod%20Test2.%3Cinit%3E()V%5D%0A0x00000000fb077f57%3A%20%204c%20%20%20%20%20%20%20%20astore_1%0A0x00000000fb077f58%3A%20%20b1%20%20%20%20%20%20%20%20return" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x00000000fb077f50</span><span>:&nbsp;&nbsp;bb&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;&nbsp;new&nbsp;&lt;cp&nbsp;index&nbsp;#</span><span class="number">2</span><span>&gt;&nbsp;[Class&nbsp;Test2]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f53</span><span>:&nbsp;&nbsp;</span><span class="number">59</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dup&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f54</span><span>:&nbsp;&nbsp;b7&nbsp;</span><span class="number">01</span><span>&nbsp;</span><span class="number">00</span><span>&nbsp;&nbsp;invokespecial&nbsp;&lt;cp&nbsp;cache&nbsp;index&nbsp;#</span><span class="number">1</span><span>&gt;&nbsp;[Method&nbsp;Test2.&lt;init&gt;()V]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f57</span><span>:&nbsp;&nbsp;4c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;astore_1&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077f58</span><span>:&nbsp;&nbsp;b1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="29" title="借HSDB来探索HotSpot VM的运行时数据">0x00000000fb077f50:  bb 00 02  new &lt;cp index #2&gt; [Class Test2]
+0x00000000fb077f53:  59        dup
+0x00000000fb077f54:  b7 01 00  invokespecial &lt;cp cache index #1&gt; [Method Test2.&lt;init&gt;()V]
+0x00000000fb077f57:  4c        astore_1
+0x00000000fb077f58:  b1        return</pre>
+<br>
+<br>眼尖的同学要吐槽了：在0x00000000fb077f50的字节不是0xca么，怎么变成0xbb了？
+<br>其实0xca是JVM规范里有描述的一个可选字节码指令，<a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-6.html#jvms-6.2" target="_blank">breakpoint</a>
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x00000000fb077f50%3A%20%20ca%2000%2002%20%20breakpoint%20%2F%2F%2000%2002%20not%20used" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x00000000fb077f50</span><span>:&nbsp;&nbsp;ca&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;&nbsp;breakpoint&nbsp;//&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;not&nbsp;used&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="30" title="借HSDB来探索HotSpot VM的运行时数据">0x00000000fb077f50:  ca 00 02  breakpoint // 00 02 not used</pre>
+<br>还记得本文的实验一开始用了jdb在Test.fn()的入口设置了断点吗？这就是结果——入口处的字节码指令被改写为breakpoint了。当然，原本的字节码指令也还在别的地方存着，等断点解除之后这个位置就会被恢复成原本的0xbb指令。
+<br>
+<br>把ConstMethod里存的字节码跟Class文件里存的比较一下看看。用<a href="http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javap.html" target="_blank">javap</a>工具来看Class文件的内容：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Javap代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=%20%20public%20void%20fn()%3B%0A%20%20%20%20Code%3A%0A%20%20%20%20%20%20stack%3D2%2C%20locals%3D2%2C%20args_size%3D1%0A%20%20%20%20%20%20%20%20%200%3A%20%20bb%2000%2002%20%20new%20%20%20%20%20%20%20%20%20%20%20%232%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20class%20Test2%0A%20%20%20%20%20%20%20%20%203%3A%20%2059%20%20%20%20%20%20%20%20dup%0A%20%20%20%20%20%20%20%20%204%3A%20%20b7%2000%2003%20%20invokespecial%20%233%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20Method%20Test2.%22%3Cinit%3E%22%3A()V%0A%20%20%20%20%20%20%20%20%207%3A%20%204c%20%20%20%20%20%20%20%20astore_1%0A%20%20%20%20%20%20%20%20%208%3A%20%20b1%20%20%20%20%20%20%20%20return" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>public&nbsp;void&nbsp;fn();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;Code:&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;stack=<span class="number">2</span><span>,&nbsp;locals=</span><span class="number">2</span><span>,&nbsp;args_size=</span><span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">0</span><span>:&nbsp;&nbsp;bb&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;&nbsp;new&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;class&nbsp;Test2&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">3</span><span>:&nbsp;&nbsp;</span><span class="number">59</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dup&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">4</span><span>:&nbsp;&nbsp;b7&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">03</span><span>&nbsp;&nbsp;invokespecial&nbsp;#</span><span class="number">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Method&nbsp;Test2.</span><span class="string">"&lt;init&gt;"</span><span>:()V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">7</span><span>:&nbsp;&nbsp;4c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;astore_1&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">8</span><span>:&nbsp;&nbsp;b1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;&nbsp;</span></span></li></ol></div><pre class="javap" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="31" title="借HSDB来探索HotSpot VM的运行时数据">  public void fn();
+    Code:
+      stack=2, locals=2, args_size=1
+         0:  bb 00 02  new           #2                  // class Test2
+         3:  59        dup
+         4:  b7 00 03  invokespecial #3                  // Method Test2."&lt;init&gt;":()V
+         7:  4c        astore_1
+         8:  b1        return</pre>
+<br>几乎一模一样。唯一的不同也是个有趣的小细节：invokespecial的参数的常量池号码不一样了。HotSpot 
+VM执行new指令的时候用的还是Class文件里的常量池号和字节序。而在执行invokespecial时，光是ConstantPool里的的常量
+项不够地方放解析（resolve）出来的信息，所以把这些信息放在ConstantPoolCache里，然后也把invokespecial指令里的
+参数改写过来，顺带变成了平台相关的字节序。
+<br>
+<br>同样也看看Main.main()方法。内存内容：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=hsdb%3E%20mem%200x00000000fb077030%202%0A0x00000000fb077030%3A%200x4c0001b7590200bb%20%0A0x00000000fb077038%3A%200x214103b10002b62b%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>hsdb&gt;&nbsp;mem&nbsp;</span><span class="number">0x00000000fb077030</span><span>&nbsp;</span><span class="number">2</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077030</span><span>:&nbsp;</span><span class="number">0x4c0001b7590200bb</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077038</span><span>:&nbsp;</span><span class="number">0x214103b10002b62b</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="32" title="借HSDB来探索HotSpot VM的运行时数据">hsdb&gt; mem 0x00000000fb077030 2
+0x00000000fb077030: 0x4c0001b7590200bb 
+0x00000000fb077038: 0x214103b10002b62b </pre>
+<br>展开来注解：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Memory代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x00000000fb077030%3A%20%20bb%2000%2002%20%20new%20%3Ccp%20index%20%232%3E%20%5BClass%20Test%5D%0A0x00000000fb077033%3A%20%2059%20%20%20%20%20%20%20%20dup%0A0x00000000fb077034%3A%20%20b7%2001%2000%20%20invokespecial%20%3Ccp%20cache%20index%20%231%3E%20%5BMethod%20Test.%3Cinit%3E()V%5D%0A0x00000000fb077037%3A%20%204c%20%20%20%20%20%20%20%20astore_1%0A0x00000000fb077038%3A%20%202b%20%20%20%20%20%20%20%20aload_1%0A0x00000000fb077039%3A%20%20b6%2002%2000%20%20invokevirtual%20%3Ccp%20cache%20index%20%232%3E%20%5BMethod%20Test.fn()V%5D%0A0x00000000fb07703c%3A%20%20b1%20%20%20%20%20%20%20%20return" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x00000000fb077030</span><span>:&nbsp;&nbsp;bb&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;&nbsp;new&nbsp;&lt;cp&nbsp;index&nbsp;#</span><span class="number">2</span><span>&gt;&nbsp;[Class&nbsp;Test]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077033</span><span>:&nbsp;&nbsp;</span><span class="number">59</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dup&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077034</span><span>:&nbsp;&nbsp;b7&nbsp;</span><span class="number">01</span><span>&nbsp;</span><span class="number">00</span><span>&nbsp;&nbsp;invokespecial&nbsp;&lt;cp&nbsp;cache&nbsp;index&nbsp;#</span><span class="number">1</span><span>&gt;&nbsp;[Method&nbsp;Test.&lt;init&gt;()V]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077037</span><span>:&nbsp;&nbsp;4c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;astore_1&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077038</span><span>:&nbsp;&nbsp;2b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aload_1&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb077039</span><span>:&nbsp;&nbsp;b6&nbsp;</span><span class="number">02</span><span>&nbsp;</span><span class="number">00</span><span>&nbsp;&nbsp;invokevirtual&nbsp;&lt;cp&nbsp;cache&nbsp;index&nbsp;#</span><span class="number">2</span><span>&gt;&nbsp;[Method&nbsp;Test.fn()V]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x00000000fb07703c</span><span>:&nbsp;&nbsp;b1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;&nbsp;</span></span></li></ol></div><pre class="memory" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="33" title="借HSDB来探索HotSpot VM的运行时数据">0x00000000fb077030:  bb 00 02  new &lt;cp index #2&gt; [Class Test]
+0x00000000fb077033:  59        dup
+0x00000000fb077034:  b7 01 00  invokespecial &lt;cp cache index #1&gt; [Method Test.&lt;init&gt;()V]
+0x00000000fb077037:  4c        astore_1
+0x00000000fb077038:  2b        aload_1
+0x00000000fb077039:  b6 02 00  invokevirtual &lt;cp cache index #2&gt; [Method Test.fn()V]
+0x00000000fb07703c:  b1        return</pre>
+<br>对应的javap输出：
+<br><div class="dp-highlighter"><div class="bar"><div class="tools">Javap代码 <embed wmode="transparent" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=%20%20public%20static%20void%20main(java.lang.String%5B%5D)%3B%0A%20%20%20%20Code%3A%0A%20%20%20%20%20%20stack%3D2%2C%20locals%3D2%2C%20args_size%3D1%0A%20%20%20%20%20%20%20%20%200%3A%20%20bb%2000%2002%20%20new%20%20%20%20%20%20%20%20%20%20%20%232%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20class%20Test%0A%20%20%20%20%20%20%20%20%203%3A%20%2059%20%20%20%20%20%20%20%20dup%0A%20%20%20%20%20%20%20%20%204%3A%20%20b7%2000%2003%20%20invokespecial%20%233%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20Method%20Test.%22%3Cinit%3E%22%3A()V%0A%20%20%20%20%20%20%20%20%207%3A%20%204c%20%20%20%20%20%20%20%20astore_1%0A%20%20%20%20%20%20%20%20%208%3A%20%202b%20%20%20%20%20%20%20%20aload_1%0A%20%20%20%20%20%20%20%20%209%3A%20%20b6%2000%2004%20%20invokevirtual%20%234%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20Method%20Test.fn%3A()V%0A%20%20%20%20%20%20%20%2012%3A%20%20b1%20%20%20%20%20%20%20%20return" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15"></div></div><ol start="1" class="dp-default"><li><span><span>public&nbsp;static&nbsp;void&nbsp;main(java.lang.String[]);&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;Code:&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;stack=<span class="number">2</span><span>,&nbsp;locals=</span><span class="number">2</span><span>,&nbsp;args_size=</span><span class="number">1</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">0</span><span>:&nbsp;&nbsp;bb&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">02</span><span>&nbsp;&nbsp;new&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#</span><span class="number">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;class&nbsp;Test&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">3</span><span>:&nbsp;&nbsp;</span><span class="number">59</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dup&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">4</span><span>:&nbsp;&nbsp;b7&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">03</span><span>&nbsp;&nbsp;invokespecial&nbsp;#</span><span class="number">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Method&nbsp;Test.</span><span class="string">"&lt;init&gt;"</span><span>:()V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">7</span><span>:&nbsp;&nbsp;4c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;astore_1&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">8</span><span>:&nbsp;&nbsp;2b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aload_1&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">9</span><span>:&nbsp;&nbsp;b6&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">04</span><span>&nbsp;&nbsp;invokevirtual&nbsp;#</span><span class="number">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Method&nbsp;Test.fn:()V&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">12</span><span>:&nbsp;&nbsp;b1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;&nbsp;</span></span></li></ol></div><pre class="javap" name="code" style="display: none;" codeable_id="1847971" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/1847971" pre_index="34" title="借HSDB来探索HotSpot VM的运行时数据">  public static void main(java.lang.String[]);
+    Code:
+      stack=2, locals=2, args_size=1
+         0:  bb 00 02  new           #2                  // class Test
+         3:  59        dup
+         4:  b7 00 03  invokespecial #3                  // Method Test."&lt;init&gt;":()V
+         7:  4c        astore_1
+         8:  2b        aload_1
+         9:  b6 00 04  invokevirtual #4                  // Method Test.fn:()V
+        12:  b1        return</pre>
+<br>
+<br>好，今天就写到这里吧～
+  </div>
+
+  
+  <div class="attachments">
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2004/b6b03530-db8d-33b4-a7a3-f0e6c064b794.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/b6b03530-db8d-33b4-a7a3-f0e6c064b794-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 34.7 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2006/65f19d5b-e704-3790-88ce-97e2714870b5.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/65f19d5b-e704-3790-88ce-97e2714870b5-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 46.8 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2008/4a86f8b5-d778-38bb-bcde-c239d492ed2a.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/4a86f8b5-d778-38bb-bcde-c239d492ed2a-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 43.2 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2010/7a8b2ab8-620c-34aa-aa21-be933b4fd2f2.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/7a8b2ab8-620c-34aa-aa21-be933b4fd2f2-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 78.4 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2012/bf46a711-879d-3c5f-bb3d-2691e6e1d32a.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/bf46a711-879d-3c5f-bb3d-2691e6e1d32a-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 9.9 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2014/92c7f6a7-a117-36a5-9284-2441fa0266d7.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/92c7f6a7-a117-36a5-9284-2441fa0266d7-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 88 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2018/f0a117f7-0077-3a38-b633-077c2a67d3c2.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/f0a117f7-0077-3a38-b633-077c2a67d3c2-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 38.7 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2020/5ac324ac-c030-35eb-8886-111793891158.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/5ac324ac-c030-35eb-8886-111793891158-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 38 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2024/6a9cea23-e512-3122-8320-6467a82e378c.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6a9cea23-e512-3122-8320-6467a82e378c-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 41.3 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2032/09a0f79f-d129-37fa-828b-0e4551d710af.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/09a0f79f-d129-37fa-828b-0e4551d710af-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 22.1 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0083/2034/2b8b6666-72ed-315f-b8ad-c0989b060788.png" target="_blank"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/2b8b6666-72ed-315f-b8ad-c0989b060788-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 27.8 KB</li>
+        </ul>
+      
+    
+    
+      <ul>
+        <li><a href="#" onclick="$$('div.attachments ul').invoke('show');$(this).up(1).hide();return false;">查看图片附件</a></li>
+      </ul>
+    
+  </div>
+
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://rednaxelafx.iteye.com/blog/1886170" class="next" title="豆列：从表到里学习JVM实现">豆列：从表到里学习JVM实现</a>
+      |
+      <a href="http://rednaxelafx.iteye.com/blog/1814180" class="pre" title="记GreenTeaJUG第二次线下活动(杭州）">记GreenTeaJUG第二次线下活动(杭州）</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2013-04-16 09:08</li>
+      <li>浏览 60930</li>
+      <li><a href="#comments">评论(32)</a></li>
+      
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/1847971" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1455589744328_328.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36378</em>&nbsp;&nbsp;关注 <i>|</i> <em>3139</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1465887837340_340.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3156</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1479972981201_201.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>15237</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1453701371636_636.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>31630</em>&nbsp;&nbsp;关注 <i>|</i> <em>3748</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2398388">
+  <div class="comment_title">
+    32 楼
+    <a href="http://ph7-3.iteye.com/" target="_blank" title="ph7.3">ph7.3</a>
+    2017-06-08&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">jdk8下 scanoops 时出现这个问题：Windbg Error: ReadVirtual failed </div>
+</div>
+
+<div id="bc2376955">
+  <div class="comment_title">
+    31 楼
+    <a href="http://feibaliang.iteye.com/" target="_blank" title="feibaliang">feibaliang</a>
+    2015-08-22&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">你好，请问jdk 8 在window 7运行hsdb，attach process 的时候报 <br>Exception in thread "Thread-1" java.lang.UnsatisfiedLinkError: Can't load librar<br>y: D:\dev_tool\Java\jre8\bin\sawindbg.dll 该怎么解决？</div>
+</div>
+
+<div id="bc2374881">
+  <div class="comment_title">
+    30 楼
+    <a href="http://xgj1988.iteye.com/" target="_blank" title="xgj1988">xgj1988</a>
+    2015-07-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">R大。你说 “如果图里看得不清楚的话，我再用文字重新写一遍（两道横线之间的是Test.fn()的栈帧内容，前后的则是别的东西）” 。。<br><br>我相信你这里用文字重新写一遍绝对不会真是自己一个一个打出来的吧。。请问用的是哪个命令（我猜是CLHSDB）。</div>
+</div>
+
+<div id="bc2374870">
+  <div class="comment_title">
+    29 楼
+    <a href="http://xgj1988.iteye.com/" target="_blank" title="xgj1988">xgj1988</a>
+    2015-07-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">playboy0651140 写道</div><div class="quote_div">打扰下R大,我用whatis 命令<br>whatis 0x00000007d6f00000<br>总是返回的是<br>Address 0x00000007d6f00000: In unknown section of Java heap<br>不知道哪里操作有问题..用的jdk1.7的在suse和win 7下面都是这个问题</div><br>呵
+呵，那是因为Serviceability Agent对GenCollectedHeap系的GC支持得比较好，而对另外俩GC（Parallel 
+GC和G1 GC）支持得没那么好。猜您是在用Parallel GC？其实稍微改造一下Serviceability 
+Agent的Java部分就可以让whatis正确显示在哪里了。</div><br>完了。。我也是这样的。。。看来要用serial来运行啊。。</div>
+</div>
+
+<div id="bc2370114">
+  <div class="comment_title">
+    28 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2015-04-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">a11ght 写道</div><div class="quote_div">我发现个问题，我在mac上禁用掉指针压缩，即jdb -XX:-UseCompressedOops。执行inspect 【地址】 命令后 klass的地址就出来了</div><br>那是因为根本问题SA就是没实现narrowOop的_klass的支持。所以开着UseCompressedOops就会遇到这个问题。</div>
+</div>
+
+<div id="bc2369995">
+  <div class="comment_title">
+    27 楼
+    <a href="http://a11ght.iteye.com/" target="_blank" title="a11ght">a11ght</a>
+    2015-04-08&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">a11ght 写道</div><div class="quote_div">我发现个问题，我在mac上禁用掉指针压缩，即jdb -XX:-UseCompressedOops。执行inspect 【地址】 命令后 klass的地址就出来了</div><br><br><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/80377cd7-c46a-30ba-8a5e-df537aaf43df.jpg"></div>
+</div>
+
+<div id="bc2369992">
+  <div class="comment_title">
+    26 楼
+    <a href="http://a11ght.iteye.com/" target="_blank" title="a11ght">a11ght</a>
+    2015-04-08&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">我发现个问题，我在mac上禁用掉指针压缩，即jdb -XX:-UseCompressedOops。执行inspect 【地址】 命令后 klass的地址就出来了</div>
+</div>
+
+<div id="bc2366326">
+  <div class="comment_title">
+    25 楼
+    <a href="http://fl-zxf.iteye.com/" target="_blank" title="fl_zxf">fl_zxf</a>
+    2015-01-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">mark&nbsp;<img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_biggrin.gif">&nbsp;<img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_biggrin.gif"> </div>
+</div>
+
+<div id="bc2364176">
+  <div class="comment_title">
+    24 楼
+    <a href="http://jjzhk.iteye.com/" target="_blank" title="jjzhk">jjzhk</a>
+    2014-12-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">jjzhk 写道</div><div class="quote_div">而且，只有两个Test2?难道是环境的问题？<br>我用的是Virtual Box + CentOS 6.5 (64 bit) + Java1.8.<br>谢谢了<br>不好意思，我少运行了一句 next。<br>不过perm gen还是没有出来，不过Test2确实是三个了。</div><br>因为Oracle JDK8/OpenJDK8的HotSpot VM已经没有perm gen了啊</div><br>哈哈，刚看到“到JDK8则进一步彻底移除了PermGen，把诸如klass之类的元数据都挪到GC堆之外管理，而Java mirror的处理则跟JDK7一样。”</div>
+</div>
+
+<div id="bc2364175">
+  <div class="comment_title">
+    23 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-12-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">jjzhk 写道</div><div class="quote_div">而且，只有两个Test2?难道是环境的问题？<br>我用的是Virtual Box + CentOS 6.5 (64 bit) + Java1.8.<br>谢谢了<br>不好意思，我少运行了一句 next。<br>不过perm gen还是没有出来，不过Test2确实是三个了。</div><br>因为Oracle JDK8/OpenJDK8的HotSpot VM已经没有perm gen了啊</div>
+</div>
+
+<div id="bc2364174">
+  <div class="comment_title">
+    22 楼
+    <a href="http://jjzhk.iteye.com/" target="_blank" title="jjzhk">jjzhk</a>
+    2014-12-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">jjzhk 写道</div><div class="quote_div">R大，为什么我的HSDB显示不出来perm gen的信息呢？<br><br>universe<br>Heap Parameters:<br>Gen
+ 0:&nbsp;&nbsp; eden 
+[0x00000000ff600000,0x00000000ff689b98,0x00000000ff8b0000) space 
+capacity = 2818048, 20.01811182776163 used<br>&nbsp; from [0x00000000ff8b0000,0x00000000ff8b0000,0x00000000ff900000) space capacity = 327680, 0.0 used<br>&nbsp; to&nbsp;&nbsp; [0x00000000ff900000,0x00000000ff900000,0x00000000ff950000) space capacity = 327680, 0.0 usedInvocations: 0<br><br>Gen
+ 1:&nbsp;&nbsp; old&nbsp; 
+[0x00000000ff950000,0x00000000ff950000,0x0000000100000000) space 
+capacity = 7012352, 0.0 usedInvocations: 0<br><br>hsdb&gt; scanoops<br>Usage: scanoops start end [ type ]<br>hsdb&gt; scanoops<br>Usage: scanoops start end [ type ]<br>hsdb&gt; scanoops 0x00000000ff600000 0x0000000100000000 Test2<br>0x00000000ff672ce0 Test2<br>0x00000000ff672d10 Test2<br>hsdb&gt; <br>而且，只有两个Test2?难道是环境的问题？<br>我用的是Virtual Box + CentOS 6.5 (64 bit) + Java1.8.<br>谢谢了</div><br>不好意思，我少运行了一句 next。<br>不过perm gen还是没有出来，不过Test2确实是三个了。</div>
+</div>
+
+<div id="bc2364173">
+  <div class="comment_title">
+    21 楼
+    <a href="http://jjzhk.iteye.com/" target="_blank" title="jjzhk">jjzhk</a>
+    2014-12-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">R大，为什么我的HSDB显示不出来perm gen的信息呢？<br><br>universe<br>Heap Parameters:<br>Gen
+ 0:&nbsp;&nbsp; eden 
+[0x00000000ff600000,0x00000000ff689b98,0x00000000ff8b0000) space 
+capacity = 2818048, 20.01811182776163 used<br>&nbsp; from [0x00000000ff8b0000,0x00000000ff8b0000,0x00000000ff900000) space capacity = 327680, 0.0 used<br>&nbsp; to&nbsp;&nbsp; [0x00000000ff900000,0x00000000ff900000,0x00000000ff950000) space capacity = 327680, 0.0 usedInvocations: 0<br><br>Gen
+ 1:&nbsp;&nbsp; old&nbsp; 
+[0x00000000ff950000,0x00000000ff950000,0x0000000100000000) space 
+capacity = 7012352, 0.0 usedInvocations: 0<br><br>hsdb&gt; scanoops<br>Usage: scanoops start end [ type ]<br>hsdb&gt; scanoops<br>Usage: scanoops start end [ type ]<br>hsdb&gt; scanoops 0x00000000ff600000 0x0000000100000000 Test2<br>0x00000000ff672ce0 Test2<br>0x00000000ff672d10 Test2<br>hsdb&gt; <br>而且，只有两个Test2?难道是环境的问题？<br>我用的是Virtual Box + CentOS 6.5 (64 bit) + Java1.8.<br>谢谢了</div>
+</div>
+
+<div id="bc2362111">
+  <div class="comment_title">
+    20 楼
+    <a href="http://zgw06629.iteye.com/" target="_blank" title="zgw06629">zgw06629</a>
+    2014-11-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">你好，打扰！想请教一个问题。 <br>String a = "e";<br>String b = "f";<br>String c = a+b;<br>String d = a+b;<br><br>System.out.println(c == c.intern()); //true<br>System.out.println(d == d.intern()); //false<br>System.out.println(d == c.intern()); //false<br><br>我弄不明白，c和d在内存中有什么区别？是有两个"ef"对象吗？ 一个在pool中，一个在堆中其他地方？ 它们的区别表现在哪里？<br>若计算c和d的内存占用量，是48+48呢？ 还是&lt;(48+48)? 该怎么借助HSDB验证呢？<br>谢谢！</div>
+</div>
+
+<div id="bc2356026">
+  <div class="comment_title">
+    19 楼
+    <a href="http://jiewo.iteye.com/" target="_blank" title="jiewo">jiewo</a>
+    2014-08-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">被科普了。R打果真神人也！！！！</div>
+</div>
+
+<div id="bc2355195">
+  <div class="comment_title">
+    18 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-07-31&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">playboy0651140 写道</div><div class="quote_div">打扰下R大,我用whatis 命令<br>whatis 0x00000007d6f00000<br>总是返回的是<br>Address 0x00000007d6f00000: In unknown section of Java heap<br>不知道哪里操作有问题..用的jdk1.7的在suse和win 7下面都是这个问题</div><br>呵
+呵，那是因为Serviceability Agent对GenCollectedHeap系的GC支持得比较好，而对另外俩GC（Parallel 
+GC和G1 GC）支持得没那么好。猜您是在用Parallel GC？其实稍微改造一下Serviceability 
+Agent的Java部分就可以让whatis正确显示在哪里了。</div>
+</div>
+
+<div id="bc2355168">
+  <div class="comment_title">
+    17 楼
+    <a href="http://playboy0651140.iteye.com/" target="_blank" title="playboy0651140">playboy0651140</a>
+    2014-07-31&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">打扰下R大,我用whatis 命令<br>whatis 0x00000007d6f00000<br>总是返回的是<br>Address 0x00000007d6f00000: In unknown section of Java heap<br>不知道哪里操作有问题..用的jdk1.7的在suse和win 7下面都是这个问题</div>
+</div>
+
+<div id="bc2345833">
+  <div class="comment_title">
+    16 楼
+    <a href="http://minixalpha.iteye.com/" target="_blank" title="minixalpha">minixalpha</a>
+    2014-04-21&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">请问是否有什么方法可以得到运行时数据区中，线程的程序计数器在某一时刻的值，找了很久，都没有找到有什么好办法，先行谢过！</div>
+</div>
+
+<div id="bc2338375">
+  <div class="comment_title">
+    15 楼
+    <a href="http://fenghong.iteye.com/" target="_blank" title="fh63045">fh63045</a>
+    2014-01-21&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">终于找到这类文章了... 感谢大神<img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_idea.gif"> </div>
+</div>
+
+<div id="bc2329072">
+  <div class="comment_title">
+    14 楼
+    <a href="http://oooyooo.iteye.com/" target="_blank" title="oooyooo">oooyooo</a>
+    2013-10-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">oooyooo 写道</div><div class="quote_div"><div class="quote_title">oooyooo 写道</div><div class="quote_div">C:\Program Files\Java\jdk1.7.0_45\lib&gt;java -cp ./sa-jdi.jar sun.jvm.hotspot.HSDB<br><br>Exception in thread "Thread-1" java.lang.UnsatisfiedLinkError: Can't load librar<br>y: C:\Program Files\Java\jre7\bin\sawindbg.dll<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.ClassLoader.loadLibrary(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.Runtime.load0(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.System.load(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.debugger.windbg.WindbgDebuggerLocal.&lt;clinit&gt;(WindbgDe<br>buggerLocal.java:651)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.setupDebuggerWin32(HotSpotAgent.java:521<br>)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.setupDebugger(HotSpotAgent.java:336)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.go(HotSpotAgent.java:313)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.attach(HotSpotAgent.java:157)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB.attach(HSDB.java:1168)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB.access$1700(HSDB.java:53)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB$25$1.run(HSDB.java:436)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.utilities.WorkerThread$MainLoop.run(WorkerThread.java<br>:66)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.Thread.run(Unknown Source)<br><br><br>我的jdk1.7.0_45里没有sawindbg.dll这个文件，为什么呢？R大有遇到过这种情况吗？</div><br>在这个下面找到了，打扰R大了，我再看看。</div><br>C:\Program Files\Java\jdk1.7.0_45\jre\bin下面</div>
+</div>
+
+<div id="bc2329071">
+  <div class="comment_title">
+    13 楼
+    <a href="http://oooyooo.iteye.com/" target="_blank" title="oooyooo">oooyooo</a>
+    2013-10-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">oooyooo 写道</div><div class="quote_div">C:\Program Files\Java\jdk1.7.0_45\lib&gt;java -cp ./sa-jdi.jar sun.jvm.hotspot.HSDB<br><br>Exception in thread "Thread-1" java.lang.UnsatisfiedLinkError: Can't load librar<br>y: C:\Program Files\Java\jre7\bin\sawindbg.dll<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.ClassLoader.loadLibrary(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.Runtime.load0(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.System.load(Unknown Source)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.debugger.windbg.WindbgDebuggerLocal.&lt;clinit&gt;(WindbgDe<br>buggerLocal.java:651)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.setupDebuggerWin32(HotSpotAgent.java:521<br>)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.setupDebugger(HotSpotAgent.java:336)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.go(HotSpotAgent.java:313)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HotSpotAgent.attach(HotSpotAgent.java:157)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB.attach(HSDB.java:1168)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB.access$1700(HSDB.java:53)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.HSDB$25$1.run(HSDB.java:436)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at sun.jvm.hotspot.utilities.WorkerThread$MainLoop.run(WorkerThread.java<br>:66)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; at java.lang.Thread.run(Unknown Source)<br><br><br>我的jdk1.7.0_45里没有sawindbg.dll这个文件，为什么呢？R大有遇到过这种情况吗？</div><br>在这个下面找到了，打扰R大了，我再看看。</div>
+</div>
+
+
+    
+    <div class="pagination"><span class="disabled prev_page">« 上一页</span> <span class="current">1</span> <a href="http://rednaxelafx.iteye.com/blog/1847971?page=2#comments" rel="next">2</a> <a href="http://rednaxelafx.iteye.com/blog/1847971?page=2#comments" class="next_page" rel="next">下一页 »</a></div>
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://rednaxelafx.iteye.com/login" style="background-color:white;"> <img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://rednaxelafx.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 1847971;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '借HSDB来探索HotSpot VM的运行时数据');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '借HSDB来探索HotSpot VM的运行时数据');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://rednaxelafx.iteye.com/"><img alt="RednaxelaFX的博客" class="logo" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13.jpg" title="RednaxelaFX的博客: Script Ahead, Code Behind" width=""></a></div>
+  <div id="blog_owner_name">RednaxelaFX</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 2095940 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 海外</li>
+              <li><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://rednaxelafx.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://limelife.iteye.com/" target="_blank"><img alt="limelife的博客" class="logo" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/7606e836-00ca-3996-bbe3-48162fe34b38-thumb.jpg" title="limelife的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://limelife.iteye.com/" target="_blank" title="limelife">limelife</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://vinozly.iteye.com/" target="_blank"><img alt="Vinozly的博客" class="logo" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="Vinozly的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://vinozly.iteye.com/" target="_blank" title="Vinozly">Vinozly</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://enzoy.iteye.com/" target="_blank"><img alt="chencvgk的博客" class="logo" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/bcacca25-3b8c-3a4e-85b1-dc6b8a68540e-thumb.jpg" title="chencvgk的博客: ITEYE" width="48px"></a></div>
+                <div class="left"><a href="http://enzoy.iteye.com/" target="_blank" title="chencvgk">chencvgk</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://mooo.iteye.com/" target="_blank"><img alt="Mooo的博客" class="logo" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="Mooo的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://mooo.iteye.com/" target="_blank" title="Mooo">Mooo</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://rednaxelafx.iteye.com/">全部博客 (430)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21342">Programming Languages (23)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29010">Compiler (20)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/61298">Virtual Machine (57)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/162321">Garbage Collection (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/162318">HotSpot VM (26)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/78968">Mono (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/33627">SSCLI Rotor (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/60345">Harmony (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/31968">DLR (19)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29044">Ruby (28)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21339">C# (38)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/51666">F# (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/58920">Haskell (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27795">Scheme (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28215">Regular Expression (5)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/43041">Python (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/26952">ECMAScript (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22618">JavaScript (18)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22068">ActionScript (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27153">Squirrel (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/36305">C (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22307">C++ (10)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21340">D (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/66462">.NET (13)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22617">Java (86)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/146196">Scala (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/99374">Groovy (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21352">Optimization (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27144">Data Structure and Algorithm (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/34556">Books (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/52245">WPF (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24366">Game Engines (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22003">吉里吉里 (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23065">UML (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24338">Reverse Engineering (11)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22696">NSIS (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24088">Utilities (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29744">Design Patterns (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/25057">Visual Studio (9)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/54389">Windows 7 (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/73928">x86 Assembler (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22830">Android (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/25305">School Assignment / Test (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24349">Anti-virus (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27193">REST (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28651">Profiling (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23669">misc (39)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23661">NetOA (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27815">rant (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/65667">anime (5)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28622">Links (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/165300">CLR (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/165301">GC (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/226933">OpenJDK (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/251929">JVM (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/275192">KVM (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279009">Rhino (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279045">LINQ (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279221">JScript (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/280142">Nashorn (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/287977">Dalvik (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/293492">DTrace (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/302419">LLVM (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/329856">MSIL (0)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://rednaxelafx.iteye.com/blog/news">我的资讯</a> (1)</li>
+                <li>
+                  <a href="http://rednaxelafx.iteye.com/blog/post">我的论坛</a> (576)
+                </li>
+                <li><a href="http://rednaxelafx.iteye.com/blog/answered_problems">我的问答</a> (364)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2014-12">2014-12</a> (1)</li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2014-03">2014-03</a> (2)</li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2013-11">2013-11</a> (2)</li>
+                
+                <li><a href="http://rednaxelafx.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://ph7-3.iteye.com/" target="_blank" title="ph7.3">ph7.3</a>： 
+                  jdk8下 scanoops 时出现这个问题：Windbg E ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/1847971#bc2398388">借HSDB来探索HotSpot VM的运行时数据</a>
+                </li>
+                
+                <li>
+                  <a href="http://xiyueshenyan.iteye.com/" target="_blank" title="xiyueshenyan">xiyueshenyan</a>： 
+                  Virtual Machines: Versatile Pla ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/1886170#bc2398056">豆列：从表到里学习JVM实现</a>
+                </li>
+                
+                <li>
+                  <a href="http://yao88611852.iteye.com/" target="_blank" title="yao88611852">yao88611852</a>： 
+                  beneo 写道发现google的java项目灰常灰长很喜欢b ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/788306#bc2397763">Gson使用中遇到的Date格式问题</a>
+                </li>
+                
+                <li>
+                  <a href="http://twsxtd.iteye.com/" target="_blank" title="twsxtd">twsxtd</a>： 
+                  Jefen 写道RednaxelaFX 写道.....公司网络 ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/858009#bc2397452">Java虚拟机分享演示稿2010-12-28版</a>
+                </li>
+                
+                <li>
+                  <a href="http://tuzwu.iteye.com/" target="_blank" title="化蝶自在飞">化蝶自在飞</a>： 
+                  rss?n=xxxx 这个n参数已经无效了.这是不让导出的意思 ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/588507#bc2397212">JavaEye博客备份脚本订制版</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/a.gif" width="0" height="0">
+
+<script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking.js" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/async_new.js"></script>
+<script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/jquery-1.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking_002.js" type="text/javascript"></script>
+    
+	    
+	    <script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/web-storage-cache.js" type="text/javascript"></script>
+	    <script src="%E5%80%9FHSDB%E6%9D%A5%E6%8E%A2%E7%B4%A2HotSpot%20VM%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/replace.js" type="text/javascript"></script>
+    
+    
+  
+
+</body></html>

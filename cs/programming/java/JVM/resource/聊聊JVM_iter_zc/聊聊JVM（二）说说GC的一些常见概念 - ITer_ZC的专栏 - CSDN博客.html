@@ -1,0 +1,1299 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+        <script type="text/javascript" src="http://static.blog.csdn.net/scripts/tingyun-rum.js"></script>
+            <link rel="canonical" href="http://blog.csdn.net/iter_zc/article/details/41802365"/> 
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+       
+    <title>聊聊JVM（二）说说GC的一些常见概念 - ITer_ZC的专栏
+        - CSDN博客</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="上一篇总结GC的基础算法，各种GC收集器的基本原理，还是比较粗粒度的概念。这篇会整理一些GC的常见概念，理解了这些概念，相信对GC有更加深入的理解1. 什么时候会触发Minor GC?&#160;&#160;&#160; Eden区域满了，或者新创建的对象大小 &gt; Eden所剩空间&#160;&#160;&#160; CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会先做一次Minor GC" />
+
+    <meta name="keywords" content="GC,CMS" />
+
+   
+    <script src="http://static.blog.csdn.net/scripts/blog_static_head.min.js" type="text/javascript"></script>
+
+    
+        <!--new top-->
+       
+       
+        <!--new top-->
+    
+      <!-- ad begin -->
+         
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+
+    
+
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/ITer_ZC/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+
+    <link href="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.css" type="text/css" rel="stylesheet" />
+     
+         <link rel="stylesheet" href="http://static.blog.csdn.net/css/csdn_blog_detail.min.css" />
+
+  
+
+
+    <!-- 请置于所有广告位代码之前 --> 
+            <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+</head>
+
+
+<body>
+     
+        <div class="tracking-ad" data-view="true" data-mod="ad_popu_72"  data-mtp="62" data-order="40" data-con="ad_content_2072" >
+                     <script id="popuLayer_js_q" src="http://ads.csdn.net/js/popuLayer.js" defer="defer"  type="text/javascript"></script>
+                <div id="layerd" style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000">
+    	                <div class="J_close layer_close" style="display:;background-color:#efefef;padding:0px;color:#333;font:12px/24px Helvetica,Tahoma,Arial,sans-serif;text-align:right;">关闭</div><!-- 广告占位容器 --><div id="cpro_u2895327"></div></div>
+                <script>  document.getElementById("popuLayer_js_q").onload = function () { var styObjd = styObj = { width: "300px", "height": parseInt(250) + 28 }; window.CSDN.Layer.PopuLayer("#layerd", { storageName: "layerd", styleObj: styObjd, total: 50, expoire: 1000 * 60 }); }</script><!-- 投放代码 --><script type="text/javascript">                    /*服务器频道首页置顶Banner960*90，创建于2014-7-3*/    (window.cproArray = window.cproArray || []).push({ id: "u2895327" });  </script>  <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script>
+     
+        </div>
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/iter_zc">ITer_ZC的专栏</a></h2>
+            <h3></h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/iter_zc?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/iter_zc?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/iter_zc/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "ITer_ZC";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/iter_zc";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://blog.csdn.net/turingbooks/article/details/76034232">
+<font color=red><strong>评论送书 | 7月书讯：众多畅销书升级！ </strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/74550215">
+<font color=blue><strong>征文 | 你会为 AI 转型么？</strong></font></a>
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/epubit17/article/details/76066685">
+<font color=red><strong>赠书 | AI专场（AI圣经！《深度学习》中文版）</strong></font></a>
+
+</div>                        </div>
+
+                        
+
+
+
+  
+
+
+
+
+
+
+<script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+      var isBole = false; 
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%ba%8c%ef%bc%89%e8%af%b4%e8%af%b4GC%e7%9a%84%e4%b8%80%e4%ba%9b%e5%b8%b8%e8%a7%81%e6%a6%82%e5%bf%b5&u=http://blog.csdn.net/iter_zc/article/details/41802365"
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+    <h1>
+        <span class="link_title"><a href="/iter_zc/article/details/41802365">
+        聊聊JVM（二）说说GC的一些常见概念        
+           
+        </a>
+        </span>
+
+         
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/GC' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">GC</a><a href='http://www.csdn.net/tag/CMS' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">CMS</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2014-12-08 13:04</span>
+            <span class="link_view" title="阅读次数">8586人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(6)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%ba%8c%ef%bc%89%e8%af%b4%e8%af%b4GC%e7%9a%84%e4%b8%80%e4%ba%9b%e5%b8%b8%e8%a7%81%e6%a6%82%e5%bf%b5','41802365');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(41802365,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('2758863','ITer_ZC','top','41802365');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JVM<em>（10）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/ITer_ZC/article/category/2758863"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2758863">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('178970','ITer_ZC','top','41802365');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">Java<em>（81）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/ITer_ZC/article/category/178970"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_178970">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+
+<div id="article_content" class="article_content tracking-ad" data-mod=popu_307  data-dsm = "post" >
+
+<p>上一篇总结GC的基础算法，各种GC收集器的基本原理，还是比较粗粒度的概念。这篇会整理一些GC的常见概念，理解了这些概念，相信对GC有更加深入的理解</p>
+<p><br>
+</p>
+<p>1. 什么时候会触发Minor GC?</p>
+<ul>
+<li>&nbsp;&nbsp;&nbsp; Eden区域满了，或者新创建的对象大小 &gt; Eden所剩空间</li><li>&nbsp;&nbsp;&nbsp; CMS设置了CMSScavengeBeforeRemark参数，这样在CMS的Remark之前会先做一次Minor GC来清理新生代，加速之后的Remark的速度。这样整体的stop-the world时间反而断</li><li>&nbsp;&nbsp;&nbsp; Full GC的时候会先触发Minor GC</li></ul>
+<p>2. 什么时候会触发Full GC?</p>
+<ul>
+<li>Minor GC后存活的对象晋升到老年代时由于悲观策略的原因，有两种情况会触发Full GC, 1种是之前每次晋升的对象的平均大小 &gt; 老年代剩余空间</li><li>1种是Minor GC后存活的对象超过了老年代剩余空间。这两种情况都是因为老年代会为新生代对象的晋升提供担保，而每次晋升的对象的大小是无法预测的，所以只能基于统计，1个是基于历史平均水平，一个是基于下一次可能要晋升的最大水平。这两种情况都是属于<strong>promotion failure</strong></li><li>CMS失败，发生concurrent mode failure会引起Full GC，这种情况下会使用Serial Old收集器，是单线程的，对GC的影响很大。concurrent mode failure产生的原因是老年代剩余的空间不够，<strong>导致了和gc线程并发执行的用户线程创建的大对象(由PretenureSizeThreshold控制新生代直接晋升老年代的对象size阀&#20540;)不能进入到老年代</strong>，只要stop the world来暂停用户线程，执行GC清理。可以通过设置CMSInitiatingOccupancyFraction预留合适的CMS执行时剩余的空间</li><li>新生代直接晋升到老年代的大对象超过了老年代的剩余空间，引发Full GC。注意于promotion failure的区别，promotion failure指的是Minor GC后发生的担保失败<br>
+</li><li>Perm永久代空间不足会触发Full GC，可以让CMS清理永久代的空间。设置CMSClassUnloadingEnabled即可</li><li>System.gc()引起的Full GC，可以设置DisableExplicitGC来禁止调用System.gc引发Full GC</li></ul>
+<p>3. CMS不等于Full GC，很多人会认为CMS肯定会引发Minor GC。CMS是针对老年代的GC策略，原则上它不会去清理新生代，只有设置CMSScavengeBeforeRemark优化时，或者是concurrent mode failure的时候才会去做Minor GC</p>
+<p><br>
+</p>
+<p>4. 什么情况下新生代对象会晋升到老年代？</p>
+<ul>
+<li>当对象大小超过了PretenureSizeThreshold设置的对象大小阀&#20540;时，对象直接在老年代分配空间</li><li><strong>当age从1开始的对象大小累计超过了Survivor区域的1/2(TargetSurvivorRatio所定义)时，会计算一个Thenuring Threshold，超过这个年龄的新生代对象会进入到老年代，即使这时候新生代还有很多的空间。注意MaxTenuringThreshold只是设置了最大的Thenuring Threshold，不是说只有大于Max Tenuring Threshold才会进入到老年代，而是只要超过了计算出来的Tenuring Threshold就会进入老年代，MaxTenuringThreshold规定了Tenuring
+ Threshold的最大&#20540;而已。Tenuring Threshold这个&#20540;在每一轮GC后都会动态计算，它与TargetSurvivorRatio以及Survivor区的大小有关系，TargetSurivivor默认是50即Survivor的1/2, 会计算出一个Desired Survivor Size，当age从1开始的对象大小累计超过了这个Desired Survivor Size，那么这个age就是Tenuring Threshold的&#20540;<br>
+</strong></li></ul>
+<p>5. 一旦对象进入了老年代，那么只有触发CMS(只针对CMS而言)或者Full GC的时候才能被清除</p>
+<p><br>
+</p>
+<p>6. Heap什么时候会发生OOM？</p>
+<ul>
+<li>当花在GC的时间超过了GCTimeLimit，这个&#20540;默认是98%</li><li>当GC后的容量小于GCHeapFreeLimit，这个&#20540;默认是2%<br>
+</li></ul>
+<p>7. 什么是剩余空间不够？</p>
+<p>剩余空间不够不是说整体的空间不够分配某个对象，<strong>而是说连续的空间不够分配给某个对象</strong>。所以一旦内存碎片大多就可能发生剩余空间不够的问题，所以CMS这种收集器，需要在标记-清除几次之后进行压缩，进行优化。CMSFullGCsBeforeCompaction可以设置进行几次清除之后进行压缩</p>
+<p><br>
+</p>
+<p>8. Full GC的次数说的是stop the world的次数，所以一次CMS至少会让Full GC的次数&#43;2，因为CMS Initial mark和remark都会stop the world，记做2次。而CMS可能失败再引发一次Full GC</p>
+<p><br>
+</p>
+<p>9. JMI默认会一个小时调用一次System.gc()清理缓存，所以可以DisableExplicitGC，也可以设置sun.rmi.dgc.client.gcInterval和sun.rmi.dgc.server.gcInterval参数来规定JMI清理的时间</p>
+<p><br>
+</p>
+<p>10. 对于性能调优来说，应该理解对于给定的硬件，给定的算法(垃圾收集器)，单个/多个线程单位时间内能够回收的空间是接近一个常量的。如果想要缩短GC的时候，就要考虑是否要相应调小空间</p>
+<p><br>
+</p>
+<p>11. CMS收集器会了减少stop the world的时间，让GC线程和业务线程并发，这样也就相对拉长了CMS收集器单次GC的时间</p>
+<p><br>
+</p>
+<p>12. <strong>尽可能地让对象停留在新生代</strong>，因为新生代采用了复制算法，相对收回得更快，而且Minor GC的次数肯定比Full GC多，那么对象在新生代被清除的更能性会更高。而对象一旦进入到老年代，那么只有Full GC时才会回收，对象在整个系统停留的时间就会很长，很可能创建的它的线程早就死了，而它还活着</p>
+<p><br>
+</p>
+<p>13. <strong>为了尽可能让对象停留在新生代，就要注意设置Survivor区域的大小</strong>，因为它直接和对象是否进入老年代相关。之前就遇到过这种情况，明明新生代还有很大的空间，但是每次Minor GC后总是有对象进入到了老年代。后来发现由于Survivor太小，导致Tenuring Threshold为1，意思是年龄为1的对象大小超过了Survivor / 2(可通过TargetSurvivorRatio来调节，默认是50，即1/2)，年龄只要超过1的对象这时候就要直接进入老年代了。而进入老年代，对象就只有在Full
+ GC的时候才会被清除。而如果调大了Survivor空间，让对象对象尽量接近Max Tenuring Threshold时才进入到老年代，这时候会大大减少老年代的对象大小，并且让对象在新生代停留时间变长，提高了它们被快速清理出系统的概率。<br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   
+
+<!--172.16.140.13-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+
+ 
+
+
+        <div id="digg" ArticleId="41802365" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>3</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41746265';">上一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41746265" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">聊聊JVM（一）相对全面的GC总结</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41822719';">下一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41822719" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">聊聊JVM（三）两种计算Java对象大小的方法</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+            <div class="similar_article"   >
+                    <h4></h4>
+                    <div class="similar_c"style="margin:20px 0px 0px 0px">
+                        <div class="similar_c_t">
+                          &nbsp;&nbsp;相关文章推荐
+                        </div>
+                   
+                        <div class="similar_wrap tracking-ad" data-mod="popu_36" >                       
+                            <ul class="similar_list fl">    
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/zhoufanyang_china/article/details/54601311" title="【Java对象解析】不得不了解的对象头" strategy="BlogCommendFromBaidu" target="_blank">【Java对象解析】不得不了解的对象头</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/wenniuwuren/article/details/50939410" title="JVM —— Object Header（对象头）" strategy="BlogCommendFromBaidu" target="_blank">JVM —— Object Header（对象头）</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41843595" title="聊聊JVM（五）从JVM角度理解线程" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（五）从JVM角度理解线程</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41847887" title="聊聊JVM（六）理解JVM的safepoint" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（六）理解JVM的safepoint</a>
+                                   </li>
+                            </ul>
+                              <ul class="similar_list fr">      
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41822719" title="聊聊JVM（三）两种计算Java对象大小的方法" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（三）两种计算Java对象大小的方法</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/39959563" title="聊聊高并发（四）Java对象的表示模型和运行时内存表示" strategy="BlogCommendFromBaidu" target="_blank">聊聊高并发（四）Java对象的表示模型和运行时内存表示</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ZhengQuanWu/article/details/49795205" title="JVM-GC算法_复制算法&amp;&amp;标记/整理算法" strategy="BlogCommendFromBaidu" target="_blank">JVM-GC算法_复制算法&amp;&amp;标记/整理算法</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/antony9118/article/details/51375662" title="JVM GC 机制与性能优化" strategy="BlogCommendFromBaidu" target="_blank">JVM GC 机制与性能优化</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（一）相对全面的GC总结</a>
+                                   </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>   
+      
+</div>
+
+    <div>
+        
+
+        <script type="text/javascript">
+            /*博客内容页下方Banner1-728*90，创建于2016-12-13*/
+            var cpro_id = "u2843949";
+        </script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+     </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/ITer_ZC/svc/GetSuggestContent/41802365",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+        <dl class="blog-ass-articl tracking-ad" id="res-relatived" data-mod="popu_84"  > 
+             <dt><span>猜你在找</span></dt>    
+           
+    
+           
+
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5084" title="【直播】机器学习&amp;深度学习系统实战（唐宇迪）" strategy="undefined" target="_blank">【直播】机器学习&amp;深度学习系统实战（唐宇迪）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5219" title="【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）" strategy="undefined" target="_blank">【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5222" title="【直播回放】深度学习基础与TensorFlow实践（王琛）" strategy="undefined" target="_blank">【直播回放】深度学习基础与TensorFlow实践（王琛）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/52" title="【直播】计算机视觉原理及实战（屈教授）" strategy="undefined" target="_blank">【直播】计算机视觉原理及实战（屈教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/48" title="【直播】机器学习之凸优化（马博士）" strategy="undefined" target="_blank">【直播】机器学习之凸优化（马博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/47" title="【直播】机器学习之矩阵（黄博士）" strategy="undefined" target="_blank">【直播】机器学习之矩阵（黄博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/46" title="【直播】机器学习之概率与统计推断（冒教授）" strategy="undefined" target="_blank">【直播】机器学习之概率与统计推断（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/49" title="【直播】机器学习之数学基础" strategy="undefined" target="_blank">【直播】机器学习之数学基础</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/44" title="【直播】TensorFlow实战进阶（智亮）" strategy="undefined" target="_blank">【直播】TensorFlow实战进阶（智亮）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/45" title="【直播】深度学习30天系统实训（唐宇迪）" strategy="undefined" target="_blank">【直播】深度学习30天系统实训（唐宇迪）</a>
+                        </dd>
+        </dl>
+
+
+
+
+            
+                                    
+            
+                                    
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '41802365';
+    var commentscount = 6;
+    var islock = false
+</script>
+
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+    var articletitle='聊聊JVM（二）说说GC的一些常见概念';
+
+</script>
+
+
+
+
+
+
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/ITer_ZC" target="_blank">
+    <img src="http://avatar.csdn.net/7/1/A/1_iter_zc.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/ITer_ZC" class="user_name" target="_blank">ITer_ZC</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=ITer_ZC','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/zhuanlandaren.png" onmouseover="m_over_m(this,2)" onmouseout="m_out_m()" alt="5" >
+                                            </a>
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="4" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>430464次</span></li>
+    <li>积分：<span>5607</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog6.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：5607 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>115篇</span></li>
+    <li>转载：<span>0篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>157条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+    <ul class="panel_head"><span>博客专栏</span></ul>
+    <ul class="panel_body" id="sp_column">
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180345177" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank">Flume NG源码分析</a>
+    <p>文章：7篇</p>
+    <span>阅读：12815</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180229364" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank">计算机底层知识拾遗</a>
+    <p>文章：10篇</p>
+    <span>阅读：37629</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180126770" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank">聊聊JVM</a>
+    <p>文章：10篇</p>
+    <span>阅读：82730</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180050145" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank">聊聊高并发</a>
+    <p>文章：44篇</p>
+    <span>阅读：149537</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180029583" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank">Thrift源码分析</a>
+    <p>文章：9篇</p>
+    <span>阅读：37021</span>
+    </td>
+    </tr></table>
+    </ul>
+</div><div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body" class="form_search">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search csdn-tracking-statistics" target="_blank"  data-mod="popu_306">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(function () {
+        $("#btnSubmit").unbind("click");
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {           
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            if ($("#inputSearch").val() == "") {               
+                alert("请录入搜索关键词！");                         
+                return false;
+            }
+            //var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";           
+            var url = "https://www.baidu.com/s?wd=" + encodeURIComponent($("#inputSearch").val()) + "%20site%3Ablog.csdn.net"
+            window.location.href = url;
+        }   
+    });
+</script><div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/ITer_ZC/article/category/178970" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java</a><span>(82)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2562435" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">NIO</a><span>(13)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2562447" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">随手记</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2564739" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">架构设计</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2566479" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">RPC</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2567647" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">TCP/IP</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2585735" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Thrift</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2592507" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">高并发</a><span>(46)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2687261" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">序列化</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2719317" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">ZooKeeper</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2758863" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JVM</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2785017" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java内存模型</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2796737" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2796741" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机原理</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/5570277" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Flume NG</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/6053139" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式系统</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/ITer_ZC/article/month/2016/01">2016年01月</a><span>(4)</span></li><li><a href="/ITer_ZC/article/month/2015/07">2015年07月</a><span>(5)</span></li><li><a href="/ITer_ZC/article/month/2015/06">2015年06月</a><span>(9)</span></li><li><a href="/ITer_ZC/article/month/2015/05">2015年05月</a><span>(1)</span></li><li><a href="/ITer_ZC/article/month/2015/04">2015年04月</a><span>(4)</span></li><li><a href="/ITer_ZC/article/month/2015/03">2015年03月</a><span>(5)</span></li><li><a href="/ITer_ZC/article/month/2015/01">2015年01月</a><span>(6)</span></li><li><a href="/ITer_ZC/article/month/2014/12">2014年12月</a><span>(16)</span></li><li><a href="/ITer_ZC/article/month/2014/11">2014年11月</a><span>(21)</span></li><li><a href="/ITer_ZC/article/month/2014/10">2014年10月</a><span>(15)</span></li><li><a href="/ITer_ZC/article/month/2014/09">2014年09月</a><span>(26)</span></li><li><a href="/ITer_ZC/article/month/2006/04">2006年04月</a><span>(2)</span></li><li><a href="/ITer_ZC/article/month/2006/02">2006年02月</a><span>(1)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel tracking-ad" data-mod="popu_340">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(17900)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41822719" title="聊聊JVM（三）两种计算Java对象大小的方法">聊聊JVM（三）两种计算Java对象大小的方法</a><span>(10610)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结">聊聊JVM（一）相对全面的GC总结</a><span>(10411)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(9138)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念">聊聊JVM（二）说说GC的一些常见概念</a><span>(8574)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41892567" title="聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞">聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞</a><span>(7446)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41847887" title="聊聊JVM（六）理解JVM的safepoint">聊聊JVM（六）理解JVM的safepoint</a><span>(7164)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41843595" title="聊聊JVM（五）从JVM角度理解线程">聊聊JVM（五）从JVM角度理解线程</a><span>(6911)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41979189" title="聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理">聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理</a><span>(6863)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/42644229" title="计算机底层知识拾遗（一）理解虚拟内存机制">计算机底层知识拾遗（一）理解虚拟内存机制</a><span>(6339)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel tracking-ad" data-mod="popu_341">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/iter_zc/article/details/42026511" title="聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则">聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则</a><span>(13)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39317311" title="《Netty权威指南》私有协议开发的可运行源代码分享">《Netty权威指南》私有协议开发的可运行源代码分享</a><span>(13)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结">聊聊JVM（一）相对全面的GC总结</a><span>(8)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39546405" title="聊聊高并发（二）结合实例说说线程封闭和背后的设计思想">聊聊高并发（二）结合实例说说线程封闭和背后的设计思想</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/606327" title="关于如何在java的web应用获取服务器资源。">关于如何在java的web应用获取服务器资源。</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/40738561" title="聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)">聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念">聊聊JVM（二）说说GC的一些常见概念</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39341983" title="几种分布式调用技术的比较 -- RPC VS REST">几种分布式调用技术的比较 -- RPC VS REST</a><span>(6)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend">
+<ul>
+<li><a href="http://blog.csdn.net/blogdevteam/article/details/75669610" target="_blank">*  CSDN日报20170721——《为什么我们创业失败了和选择创业公司的思考》</a></li>
+<li><a href="http://blog.csdn.net/javazejian/article/details/75043422" 
+target="_blank">* 深入剖析基于并发AQS的重入锁(ReetrantLock)及其Condition实现原理</a></li>
+<li><a href="http://blog.csdn.net/jiangwei0910410003/article/details/75512732"target="_blank">* Android版本的"Wannacry"文件加密病毒样本分析(附带锁机)</a></li>
+<li><a href="http://blog.csdn.net/mindfloating/article/details/75948781" 
+target="_blank">* 工作与生活真的可以平衡吗？</a></li>
+<li><a href="http://blog.csdn.net/poem_qianmo/article/details/75943714" 
+target="_blank">* 《Real-Time Rendering 3rd》 提炼总结——高级着色：BRDF及相关技术</a></li>
+<li><a href="http://blog.csdn.net/dog250/article/details/75735806" 
+target="_blank">* 《三体》读后思考-泰勒展开/维度打击/黑暗森林</a></li>
+
+</ul></ul>
+</div>
+
+
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/iter_zc/article/details/41847887#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="/haoyifen" class="user_name">haoyifen</a>:
+https://bugs.openjdk.java.net/browse/JDK-8029060jd...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/39291647#comments">深入理解非阻塞同步IO和非阻塞异步IO</a>
+    <p style="margin:0px;"><a href="/saodilaoshu" class="user_name">saodilaoshu</a>:
+@JackieeeCheng:我觉得并没有矛盾,非阻塞同步中,是要分两个阶段的,一个是等待IO事件就...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41825395#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="/zcymz" class="user_name">zcymz</a>:
+我想还是有细微差别，不然不会起两名。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41802365#comments">聊聊JVM（二）说说GC的一些常见概念</a>
+    <p style="margin:0px;"><a href="/l543227182" class="user_name">l543227182</a>:
+关于第二问，两种情况应该是在MinorGC之前判断的吧
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。&quot;阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。&quot;阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="/long772891026" class="user_name">long772891026</a>:
+你说的怎么感觉和我之前的理解有很大差距？一次CMS怎么可能会产生两次FULL GC
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41868999#comments">聊聊JVM（八）说说GC标记阶段的一些事</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+大神啊，太厉害了！！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41853855#comments">聊聊JVM（七）一张图说明JVM运行时状态</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+那张图帮了大忙了，对于JVM内部结构的理解太棒了。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41853855#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+博主好厉害！！
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+
+                   <!-- 广告位开始 -->                    <!-- 广告位结束 -->
+                   <div class="tracking-ad" data-view="true"  data-mtp="63" data-order="40" data-con="ad_content_1260" style="width: 200px; height: 500px;">
+                         <div id="nav_show_top_stop" style="width: 200px;height: 500px;z-index:1000"><div id="cpro_u2734128"></div>
+                             <div id="cpro_u3031287"></div></div>
+                   </div>
+    <script type="text/javascript">
+        setTimeout(function () {
+            var naviga_offsetTop = 0;
+            function naviga_stay_top() { var scrollTop = jQuery(document).scrollTop(); if (scrollTop > naviga_offsetTop) { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": "0px" }); } else { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": naviga_offsetTop - scrollTop + "px" }); } }
+            function onload_function() { naviga_offsetTop = jQuery("#nav_show_top_stop").position().top; jQuery(window).bind("scroll", naviga_stay_top); jQuery(window).bind("mousewheel", naviga_stay_top); jQuery(document).bind("scroll", naviga_stay_top); jQuery(document).bind("mousewheel", naviga_stay_top); } jQuery(document).ready(onload_function);
+
+        }, 200);
+    </script>
+<script type="text/javascript">(window.cproArray = window.cproArray || []).push({ id: "u2734128" });  </script> 
+                    <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script> 
+                   <script type="text/javascript">
+                       /*PC端-博客内容页左侧Button2-200*200-2017/7/10*/
+                       (window.cproArray = window.cproArray || []).push({ id: "u3031287" });
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+
+     
+
+   
+   
+     <!--new top-->
+   
+   
+
+    
+    
+    
+   
+
+   
+
+
+       <script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+          <script type="text/javascript">
+              //$(function () {
+              //    setTimeout(function () {
+              //        var searchtitletags = articletitle + ',' + $("#tags").html();
+              //        searchService({
+              //            index: 'blog',
+              //            query: searchtitletags,
+              //            from: 5,
+              //            size: 5,
+              //            appendTo: '#res',
+              //            url: 'recommend',
+              //            his: 2,
+              //            client: "blog_cf_enhance",
+              //            tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+              //        });
+              //    }, 1000);
+              //});
+
+         </script>
+    
+    <script src="http://static.blog.csdn.net/scripts/csdn_blog_detail.min.js" type="text/javascript"></script>
+        
+    <script type="text/javascript" src="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.js?20170719001"></script>
+
+    <script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=106551"></script>
+
+     
+    
+
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    
+    
+        
+     
+
+    
+          
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" ></iframe>
+    </div>
+
+
+        <script type="text/javascript">
+
+            $(function () {
+                var fromjs = $("#fromjs");
+                if (fromjs.length > 0) {
+                    $("#fromjs .markdown_views pre").addClass("prettyprint");
+                    prettyPrint();
+
+                    $('pre.prettyprint code').each(function () {
+                        var lines = $(this).text().split('\n').length;
+                        var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                        $(this).addClass('has-numbering').parent().append($numbering);
+                        for (i = 1; i <= lines; i++) {
+                            $numbering.append($('<li/>').text(i));
+                        };
+                        $numbering.fadeIn(1700);
+                    });
+
+                    $('.pre-numbering li').css("color", "#999");
+                }
+            });
+
+            $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+            //$(".toc a[target='_blank']").attr("target", "");
+
+            setTimeout(function () {
+                $(".toc a[target='_blank']").attr("target", "");
+            }, 500);
+
+        </script>
+    
+</body>
+</html>   

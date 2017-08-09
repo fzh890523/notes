@@ -1,0 +1,985 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>如何dump出一个Java进程里的类对应的Class文件？ - Script Ahead, Code Behind - ITeye博客</title>
+    <meta name="description" content="如何dump出一个Java进程里的类对应的Class文件？ 大家可能对JVM很好奇，想看看运行中某时刻上JVM里各种内部数据结构的状态。可能有人想看堆上所有对象都有哪些，分别位于哪个分代之类；可能有人想看当前所有线程的stack trace；可能有人想看一个方法是否被JIT编译过，被编译后的native代码是怎样的。对Sun HotSpot JVM而言，这些需求都有现成的API可以满足——通过Ser ..." />
+    <meta name="keywords" content="Java, Groovy, SUN, JVM, JDK 如何dump出一个Java进程里的类对应的Class文件？" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="/rss" rel="alternate" title="Script Ahead, Code Behind" type="application/rss+xml" />
+    <link href="http://www.iteye.com/stylesheets/blog.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/blog/black.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/weiboshare.js?1448702469" type="text/javascript"></script>
+
+    
+  </head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="/">Script Ahead, Code Behind</a></h1>
+        </div>
+        <div id='fd'></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class='blog_navbar_for'><a href="http://rednaxelafx.iteye.com"><strong>博客</strong></a></li>
+            <li ><a href="/weibo">微博</a></li>
+            <li ><a href="/album">相册</a></li>
+            <li ><a href="/link">收藏</a></li>
+            <li ><a href="/blog/guest_book">留言</a></li>
+            <li ><a href="/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text" value="" />
+              <input class="submit_search" type="submit" value="" />
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style='display:none'>
+  <a href="http://rednaxelafx.iteye.com" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="/blog/727938">如何dump出一个Java进程里的类对应的Class文件？</a>
+      <em class="actions">      </em>
+    </h3>
+    <ul class='blog_categories'><strong>博客分类：</strong> <li><a href="/category/22617">Java</a></li> </ul>
+        <div class='news_tag'><a href="http://www.iteye.com/blogs/tag/Java">Java</a><a href="http://www.iteye.com/blogs/tag/Groovy">Groovy</a><a href="http://www.iteye.com/blogs/tag/SUN">SUN</a><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/JDK">JDK</a>&nbsp;</div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    如何dump出一个Java进程里的类对应的Class文件？<br /><br />大家可能对JVM很好奇，想看看运行中某时刻上JVM里各种内部数据结构的状态。可能有人想看堆上所有对象都有哪些，分别位于哪个分代之类；可能有人想看当前所有线程的stack trace；可能有人想看一个方法是否被JIT编译过，被编译后的native代码是怎样的。对Sun HotSpot JVM而言，这些需求都有现成的API可以满足——通过<a href="http://openjdk.java.net/groups/hotspot/docs/Serviceability.html" target="_blank">Serviceability Agent</a>（下面简称SA）。大家熟悉的jstack、jmap等工具在使用-F参数启动时其实就是通过SA来实现功能的。<br /><br />这里介绍的是按需把class给dump出来的方法。<br />为什么我们要dump运行中的JVM里的class呢？直接从classpath上把Class文件找到不就好了么？这样的话只要用ClassLoader.getResourceAsStream(name)就能行了。例如说要找foo.bar.Baz的Class文件，类似这样就行：<br /><pre class="java" name="code">ClassLoader loader = Thread.currentThread().getContextClassLoader();
+InputStream in = loader.getResourceAsStream("foo/bar/Baz.class");
+// 从in把内容拿出来，然后随便怎么处理
+</pre><br />用Groovy的交互式解释器shell来演示一下：<br /><pre class="groovysh" name="code">D:\&gt;\sdk\groovy-1.7.2\bin\groovysh
+Groovy Shell (1.7.2, JVM: 1.6.0_20)
+Type 'help' or '\h' for help.
+-----------------------------------------------------------------------------
+groovy:000&gt; loader = Thread.currentThread().contextClassLoader
+===&gt; org.codehaus.groovy.tools.RootLoader@61de33
+groovy:000&gt; stream = loader.getResourceAsStream('java/util/ArrayList.class')
+===&gt; sun.net.www.protocol.jar.JarURLConnection$JarURLInputStream@5dfaf1
+groovy:000&gt; file = new File('ArrayList.class')
+===&gt; ArrayList.class
+groovy:000&gt; file.createNewFile()
+===&gt; true
+groovy:000&gt; file &lt;&lt; stream
+===&gt; ArrayList.class
+groovy:000&gt; quit</pre><br />这样就在当前目录建了个ArrayList.class文件，把java.util.ArrayList对应的Class文件拿到手了。<br /><br />问题是，上述方式其实只是借助ClassLoader把它在classpath上能找到的Class文件复制了一份而已。如果我们想dump的类在加载时被修改过（例如说某些AOP的实现会这么做），或者在运行过程中被修改过（通过HotSwap），或者干脆就是运行时才创建出来的，那就没有现成的Class文件了。<br /><br />需要注意，java.lang.Class&lt;T&gt;这个类虽然实现了java.io.Serializable接口，但直接将一个Class对象序列化是得不到对应的Class文件的。参考<a href="http://hg.openjdk.java.net/jdk6/jdk6/jdk/file/2d585507a41b/src/share/classes/java/lang/Class.java" target="_blank">src/share/classes/java/lang/Class.java</a>里的注释：<br /><pre class="java" name="code">package java.lang;
+
+import java.io.ObjectStreamField;
+// ...
+
+public final
+    class Class&lt;T&gt; implements java.io.Serializable, 
+			      java.lang.reflect.GenericDeclaration, 
+			      java.lang.reflect.Type,
+                              java.lang.reflect.AnnotatedElement {
+    /**
+     * Class Class is special cased within the Serialization Stream Protocol. 
+     *
+     * A Class instance is written initially into an ObjectOutputStream in the 
+     * following format:
+     * &lt;pre&gt;
+     *      &lt;code&gt;TC_CLASS&lt;/code&gt; ClassDescriptor
+     *      A ClassDescriptor is a special cased serialization of 
+     *      a &lt;code&gt;java.io.ObjectStreamClass&lt;/code&gt; instance. 
+     * &lt;/pre&gt;
+     * A new handle is generated for the initial time the class descriptor
+     * is written into the stream. Future references to the class descriptor
+     * are written as references to the initial class descriptor instance.
+     *
+     * @see java.io.ObjectStreamClass
+     */
+    private static final ObjectStreamField[] serialPersistentFields = 
+        new ObjectStreamField[0];
+    
+    // ...
+}</pre><br /><br />=================================================================<br /><br />HotSpot有一套私有API提供了对JVM内部数据结构的审视功能，称为Serviceability Agent。它是一套Java API，虽然HotSpot是用C++写的，但SA提供了HotSpot中重要数据结构的Java镜像类，所以可以直接写Java代码来查看一个跑在HotSpot上的Java进程的内部状态。它也提供了一些封装好的工具，可以直接在命令行上跑，包括下面提到的ClassDump工具。<br />SA的一个重要特征是它是“进程外审视工具”。也就是说，SA并不运行在要审视的目标进程中，而是运行在一个独立的Java进程中，通过操作系统上提供的调试API来连接到目标进程上。这样，SA的运行不会受到目标进程状态的影响，因而可以用于审视一个已经挂起的Java进程，或者是core dump文件。当然，这也就意味这一个SA进程不能用于审视自己。<br />一个被调试器连接上的进程会被暂停下来。所以在SA连接到目标进程时，目标进程也是一直处于暂停状态的，直到SA解除连接。如果需要在线上使用SA的话需要小心，不要通过SA做过于耗时的分析，宁可先把数据都抓出来，把SA的连接解除掉之后再离线分析。目前的使用经验是，连接上一个小Java进程的话很快就好了，但连接上一个“大”的Java进程（堆比较大、加载的类比较多）可能会在连接阶段卡住好几分钟，线上需要慎用。<br /><br />目前（JDK6）在Windows上SA没有随HotSpot一起发布，所以无法在Windows上使用；在Linux、Solaris、Mac上使用都没问题。从JDK7 build 64开始Windows版JDK也带上SA，如果有兴趣尝鲜JDK7的话可以试试（<a href="http://dlc.sun.com.edgesuite.net/jdk7/binaries/index.html" target="_blank">http://dlc.sun.com.edgesuite.net/jdk7/binaries/index.html</a>），当前版本是build 103；正式的JDK7今年10月份应该有指望吧。<br />在Windows版JDK里带上SA的相关bug是：<br /><a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6743339" target="_blank">Bug 6743339: Enable building sa-jdi.jar and sawindbg.dll on Windows with hotspot build</a><br /><a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6755621" target="_blank">Bug 6755621: Include SA binaries into Windows JDK</a><br /><br />前面废话了那么多，接下来回到正题，介绍一下ClassDump工具。<br />SA自带了一个能把当前在HotSpot中加载了的类dump成Class文件的工具，称为ClassDump。它的全限定类名是sun.jvm.hotspot.tools.jcore.ClassDump，有main()方法，可以直接从命令行执行；接收一个命令行参数，是目标Java进程的进程ID，可以通过JDK自带的jps工具查找Java进程的ID。要执行该工具需要确保SA的JAR包在classpath上，位于$JAVA_HOME/lib/sa-jdi.jar。<br />默认条件下执行ClassDump会把当前加载的所有Java类都dump到当前目录下，如果有全限定名相同但内容不同的类同时存在于一个Java进程中，那么dump的时候会有覆盖现象，实际dump出来的是同名的类的最后一个（根据ClassDump工具的遍历顺序）。<br />如果需要指定被dump的类的范围，可以自己写一个过滤器，在启动ClassDump工具时指定-Dsun.jvm.hotspot.tools.jcore.filter=filterClassName，具体方法见下面例子；如果需要指定dump出来的Class文件的存放路径，可以用-Dsun.jvm.hotspot.tools.jcore.outputDir=path来指定，path替换为实际路径。<br /><br />以下演示在Linux上进行。大家或许已经知道，Sun JDK对反射调用方法有一些特别的优化，会<a href="http://rednaxelafx.iteye.com/blog/548536" target="_blank">在运行时生成专门的“调用类”来提高反射调用的性能</a>。这次演示就来看看生成的类是什么样子的。<br /><br />首先编写一个自定义的过滤器。只要实现sun.jvm.hotspot.tools.jcore.ClassFilter接口即可。<br /><pre class="java" name="code">import sun.jvm.hotspot.tools.jcore.ClassFilter;
+import sun.jvm.hotspot.oops.InstanceKlass;
+
+public class MyFilter implements ClassFilter {
+    @Override
+    public boolean canInclude(InstanceKlass kls) {
+        String klassName = kls.getName().asString();
+        return klassName.startsWith("sun/reflect/GeneratedMethodAccessor");
+    }
+}</pre><br />InstanceKlass对应于HotSpot中表示Java类的内部对象。Sun JDK为反射调用生成的类的名字形如sun/reflect/GeneratedMethodAccessorN，其中N是一个整数；所以只要看看类名是否以"sun/reflect/GeneratedMethodAccessor"开头就能找出来了。留意到这里包名的分隔符是“/”而不是“.”，这是Java类在JVM中的“内部名称”形式，参考<a href="http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html#14757" target="_blank">Java虚拟机规范第二版4.2小节</a>。<br /><br />接下来写一个会引发JDK生成反射调用类的演示程序：<br /><pre class="java" name="code">import java.lang.reflect.Method;
+
+public class Demo {
+    public static void main(String[] args) throws Exception {
+        Method p = System.out.getClass().getMethod("println", String.class);
+        for (int i = 0; i &lt; 16; i++) {
+            p.invoke(System.out, "demo");
+        }
+        System.in.read(); // block the program
+    }
+}</pre><br /><br />让Demo跑起来，然后先不要让它结束。通过jps工具看看它的进程ID是多少：<br /><pre class="command prompt" name="code">[sajia@sajia class_dump]$ jps
+20542 Demo
+20554 Jps</pre><br /><br />接下来执行ClassDump，指定上面自定义的过滤器（过滤器的类要在classpath上，本例中它在./bin）：<br /><pre class="command prompt" name="code">[sajia@sajia class_dump]$ java -classpath ".:./bin:$JAVA_HOME/lib/sa-jdi.jar" -Dsun.jvm.hotspot.tools.jcore.filter=MyFilter sun.jvm.hotspot.tools.jcore.ClassDump 20542</pre><br />执行结束后，可以看到dump出了一个Class文件，在./sun/reflect/GeneratedMethodAccessor1.class；.是默认的输出目录，后面的目录结构对应包名。<br /><br />用javap看看这个Class文件有啥内容：<br /><pre class="javap" name="code">[sajia@sajia class_dump]$ javap -verbose sun.reflect.GeneratedMethodAccessor1
+public class sun.reflect.GeneratedMethodAccessor1 extends sun.reflect.MethodAccessorImpl
+  minor version: 0
+  major version: 46
+  Constant pool:
+const #1 = Asciz        sun/reflect/GeneratedMethodAccessor1;
+const #2 = class        #1;     //  sun/reflect/GeneratedMethodAccessor1
+const #3 = Asciz        sun/reflect/MethodAccessorImpl;
+const #4 = class        #3;     //  sun/reflect/MethodAccessorImpl
+const #5 = Asciz        java/io/PrintStream;
+const #6 = class        #5;     //  java/io/PrintStream
+const #7 = Asciz        println;
+const #8 = Asciz        (Ljava/lang/String;)V;
+const #9 = NameAndType  #7:#8;//  println:(Ljava/lang/String;)V
+const #10 = Method      #6.#9;  //  java/io/PrintStream.println:(Ljava/lang/String;)V
+const #11 = Asciz       invoke;
+const #12 = Asciz       (Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;;
+const #13 = Asciz       java/lang/String;
+const #14 = class       #13;    //  java/lang/String
+const #15 = Asciz       java/lang/Throwable;
+const #16 = class       #15;    //  java/lang/Throwable
+const #17 = Asciz       java/lang/ClassCastException;
+const #18 = class       #17;    //  java/lang/ClassCastException
+const #19 = Asciz       java/lang/NullPointerException;
+const #20 = class       #19;    //  java/lang/NullPointerException
+const #21 = Asciz       java/lang/IllegalArgumentException;
+const #22 = class       #21;    //  java/lang/IllegalArgumentException
+const #23 = Asciz       java/lang/reflect/InvocationTargetException;
+const #24 = class       #23;    //  java/lang/reflect/InvocationTargetException
+const #25 = Asciz       &lt;init&gt;;
+const #26 = Asciz       ()V;
+const #27 = NameAndType #25:#26;//  "&lt;init&gt;":()V
+const #28 = Method      #20.#27;        //  java/lang/NullPointerException."&lt;init&gt;":()V
+const #29 = Method      #22.#27;        //  java/lang/IllegalArgumentException."&lt;init&gt;":()V
+const #30 = Asciz       (Ljava/lang/String;)V;
+const #31 = NameAndType #25:#30;//  "&lt;init&gt;":(Ljava/lang/String;)V
+const #32 = Method      #22.#31;        //  java/lang/IllegalArgumentException."&lt;init&gt;":(Ljava/lang/String;)V
+const #33 = Asciz       (Ljava/lang/Throwable;)V;
+const #34 = NameAndType #25:#33;//  "&lt;init&gt;":(Ljava/lang/Throwable;)V
+const #35 = Method      #24.#34;        //  java/lang/reflect/InvocationTargetException."&lt;init&gt;":(Ljava/lang/Throwable;)V
+const #36 = Method      #4.#27; //  sun/reflect/MethodAccessorImpl."&lt;init&gt;":()V
+const #37 = Asciz       java/lang/Object;
+const #38 = class       #37;    //  java/lang/Object
+const #39 = Asciz       toString;
+const #40 = Asciz       ()Ljava/lang/String;;
+const #41 = NameAndType #39:#40;//  toString:()Ljava/lang/String;
+const #42 = Method      #38.#41;        //  java/lang/Object.toString:()Ljava/lang/String;
+const #43 = Asciz       Code;
+const #44 = Asciz       Exceptions;
+const #45 = Asciz       java/lang/Boolean;
+const #46 = class       #45;    //  java/lang/Boolean
+const #47 = Asciz       (Z)V;
+const #48 = NameAndType #25:#47;//  "&lt;init&gt;":(Z)V
+const #49 = Method      #46.#48;        //  java/lang/Boolean."&lt;init&gt;":(Z)V
+const #50 = Asciz       booleanValue;
+const #51 = Asciz       ()Z;
+const #52 = NameAndType #50:#51;//  booleanValue:()Z
+const #53 = Method      #46.#52;        //  java/lang/Boolean.booleanValue:()Z
+const #54 = Asciz       java/lang/Byte;
+const #55 = class       #54;    //  java/lang/Byte
+const #56 = Asciz       (B)V;
+const #57 = NameAndType #25:#56;//  "&lt;init&gt;":(B)V
+const #58 = Method      #55.#57;        //  java/lang/Byte."&lt;init&gt;":(B)V
+const #59 = Asciz       byteValue;
+const #60 = Asciz       ()B;
+const #61 = NameAndType #59:#60;//  byteValue:()B
+const #62 = Method      #55.#61;        //  java/lang/Byte.byteValue:()B
+const #63 = Asciz       java/lang/Character;
+const #64 = class       #63;    //  java/lang/Character
+const #65 = Asciz       (C)V;
+const #66 = NameAndType #25:#65;//  "&lt;init&gt;":(C)V
+const #67 = Method      #64.#66;        //  java/lang/Character."&lt;init&gt;":(C)V
+const #68 = Asciz       charValue;
+const #69 = Asciz       ()C;
+const #70 = NameAndType #68:#69;//  charValue:()C
+const #71 = Method      #64.#70;        //  java/lang/Character.charValue:()C
+const #72 = Asciz       java/lang/Double;
+const #73 = class       #72;    //  java/lang/Double
+const #74 = Asciz       (D)V;
+const #75 = NameAndType #25:#74;//  "&lt;init&gt;":(D)V
+const #76 = Method      #73.#75;        //  java/lang/Double."&lt;init&gt;":(D)V
+const #77 = Asciz       doubleValue;
+const #78 = Asciz       ()D;
+const #79 = NameAndType #77:#78;//  doubleValue:()D
+const #80 = Method      #73.#79;        //  java/lang/Double.doubleValue:()D
+const #81 = Asciz       java/lang/Float;
+const #82 = class       #81;    //  java/lang/Float
+const #83 = Asciz       (F)V;
+const #84 = NameAndType #25:#83;//  "&lt;init&gt;":(F)V
+const #85 = Method      #82.#84;        //  java/lang/Float."&lt;init&gt;":(F)V
+const #86 = Asciz       floatValue;
+const #87 = Asciz       ()F;
+const #88 = NameAndType #86:#87;//  floatValue:()F
+const #89 = Method      #82.#88;        //  java/lang/Float.floatValue:()F
+const #90 = Asciz       java/lang/Integer;
+const #91 = class       #90;    //  java/lang/Integer
+const #92 = Asciz       (I)V;
+const #93 = NameAndType #25:#92;//  "&lt;init&gt;":(I)V
+const #94 = Method      #91.#93;        //  java/lang/Integer."&lt;init&gt;":(I)V
+const #95 = Asciz       intValue;
+const #96 = Asciz       ()I;
+const #97 = NameAndType #95:#96;//  intValue:()I
+const #98 = Method      #91.#97;        //  java/lang/Integer.intValue:()I
+const #99 = Asciz       java/lang/Long;
+const #100 = class      #99;    //  java/lang/Long
+const #101 = Asciz      (J)V;
+const #102 = NameAndType        #25:#101;//  "&lt;init&gt;":(J)V
+const #103 = Method     #100.#102;      //  java/lang/Long."&lt;init&gt;":(J)V
+const #104 = Asciz      longValue;
+const #105 = Asciz      ()J;
+const #106 = NameAndType        #104:#105;//  longValue:()J
+const #107 = Method     #100.#106;      //  java/lang/Long.longValue:()J
+const #108 = Asciz      java/lang/Short;
+const #109 = class      #108;   //  java/lang/Short
+const #110 = Asciz      (S)V;
+const #111 = NameAndType        #25:#110;//  "&lt;init&gt;":(S)V
+const #112 = Method     #109.#111;      //  java/lang/Short."&lt;init&gt;":(S)V
+const #113 = Asciz      shortValue;
+const #114 = Asciz      ()S;
+const #115 = NameAndType        #113:#114;//  shortValue:()S
+const #116 = Method     #109.#115;      //  java/lang/Short.shortValue:()S
+
+{
+public sun.reflect.GeneratedMethodAccessor1();
+  Code:
+   Stack=1, Locals=1, Args_size=1
+   0:   aload_0
+   1:   invokespecial   #36; //Method sun/reflect/MethodAccessorImpl."&lt;init&gt;":()V
+   4:   return
+
+public java.lang.Object invoke(java.lang.Object, java.lang.Object[])   throws java.lang.reflect.InvocationTargetException;
+  Exceptions: 
+   throws java.lang.reflect.InvocationTargetException  Code:
+   Stack=5, Locals=3, Args_size=3
+   0:   aload_1
+   1:   ifnonnull       12
+   4:   new     #20; //class java/lang/NullPointerException
+   7:   dup
+   8:   invokespecial   #28; //Method java/lang/NullPointerException."&lt;init&gt;":()V
+   11:  athrow
+   12:  aload_1
+   13:  checkcast       #6; //class java/io/PrintStream
+   16:  aload_2
+   17:  arraylength
+   18:  sipush  1
+   21:  if_icmpeq       32
+   24:  new     #22; //class java/lang/IllegalArgumentException
+   27:  dup
+   28:  invokespecial   #29; //Method java/lang/IllegalArgumentException."&lt;init&gt;":()V
+   31:  athrow
+   32:  aload_2
+   33:  sipush  0
+   36:  aaload
+   37:  checkcast       #14; //class java/lang/String
+   40:  invokevirtual   #10; //Method java/io/PrintStream.println:(Ljava/lang/String;)V
+   43:  aconst_null
+   44:  areturn
+   45:  invokespecial   #42; //Method java/lang/Object.toString:()Ljava/lang/String;
+   48:  new     #22; //class java/lang/IllegalArgumentException
+   51:  dup_x1
+   52:  swap
+   53:  invokespecial   #32; //Method java/lang/IllegalArgumentException."&lt;init&gt;":(Ljava/lang/String;)V
+   56:  athrow
+   57:  new     #24; //class java/lang/reflect/InvocationTargetException
+   60:  dup_x1
+   61:  swap
+   62:  invokespecial   #35; //Method java/lang/reflect/InvocationTargetException."&lt;init&gt;":(Ljava/lang/Throwable;)V
+   65:  athrow
+  Exception table:
+   from   to  target type
+    12    40    45   Class java/lang/ClassCastException
+
+    12    40    45   Class java/lang/NullPointerException
+
+    40    43    57   Class java/lang/Throwable
+
+
+}</pre><br /><br />用Java来表现这个类的话，就是：<br /><pre class="java" name="code">package sun.reflect;
+
+public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
+    public GeneratedMethodAccessor1() {
+        super();
+    }
+    
+    public Object invoke(Object obj, Object[] args)
+            throws IllegalArgumentException, InvocationTargetException {
+        // prepare the target and parameters
+        if (obj == null) throw new NullPointerException();
+        try {
+            PrintStream target = (PrintStream) obj;
+            if (args.length != 1) throw new IllegalArgumentException();
+            String arg0 = (String) args[0];
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException(e.toString());
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(e.toString());
+        }
+        // make the invocation
+        try {
+            target.println(arg0);
+            return null;
+        } catch (Throwable t) {
+            throw new InvocationTargetException(t);
+        }
+    }
+}</pre><br />这段Java代码跟实际的Class文件最主要的不同的地方在于实际的Class文件是用同一个异常处理器来处理ClassCastException与NullPointerException的。如果用<a href="http://blogs.sun.com/darcy/entry/project_coin_multi_catch_rethrow" target="_blank">Java 7的多重catch语法</a>来写的话就是：<br /><pre class="java" name="code">package sun.reflect;
+
+public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
+    public GeneratedMethodAccessor1() {
+        super();
+    }
+    
+    public Object invoke(Object obj, Object[] args)
+            throws IllegalArgumentException, InvocationTargetException {
+        // prepare the target and parameters
+        if (obj == null) throw new NullPointerException();
+        try {
+            PrintStream target = (PrintStream) obj;
+            if (args.length != 1) throw new IllegalArgumentException();
+            String arg0 = (String) args[0];
+        } catch (final ClassCastException | NullPointerException e) {
+            throw new IllegalArgumentException(e.toString());
+        }
+        // make the invocation
+        try {
+            target.println(arg0);
+            return null;
+        } catch (Throwable t) {
+            throw new InvocationTargetException(t);
+        }
+    }
+}</pre><br /><br />本来想顺带演示一下用Java反编译器把例子里的Class文件反编译为Java源码的，但用了<a href="http://java.decompiler.free.fr/" target="_blank">JD</a>和<a href="http://www.varaneckas.com/jad" target="_blank">Jad</a>都无法正确识别这里比较特别的Exceptions属性表，只好人肉反编译写出来……识别不出来也正常，毕竟Java 7之前在Java源码这层是没办法对同一个异常处理器处理指定多个异常类型。<br /><br />要深究的话，上面人肉反编译的Java文件跟实际Class文件还有些细节差异。<br />例如说JDK在生成Class文件时为了方便所以把一大堆“很可能会用到”的常量都写到常量池里了，但在代码里可能并没有用到常量池里的所有项；如果用javac编译Java源码就不会出现这种状况。<br />又例如生成的Class文件里一个局部变量也没用，locals=3之中三个都是参数：第一个是this，第二个是obj，第三个是args。求值的中间结果全部都直接在操作数栈上用掉了。而在Java源码里无法写出这样的代码，像是说try块不能从一个表达式的中间开始之类的。<br /><br />这次就写到这里吧～<br />A. Sundararajan有篇不错的文章也是讲如何从Java进程dump出Class文件的，使用的是JVMTI系的API：<br /><a href="http://blogs.sun.com/sundararajan/entry/retrieving_class_files_from_a" target="_blank">Retrieving .class files from a running app</a><br />然后也有一篇使用SA从core dump文件中dump出Class文件的文章：<br /><a href="http://blogs.sun.com/sundararajan/entry/retrieving_class_files_from_a1" target="_blank">Retrieving .class files from a Java core dump</a>
+  </div>
+
+  
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript"
+              src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type='sina' href="javascript:;" title="分享到新浪微博"><img src="/images/sina.jpg"></a>
+      <a data-type='qq' href="javascript:;" title="分享到腾讯微博"><img src="/images/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="/blog/729214" class="next" title="借助HotSpot SA来反汇编">借助HotSpot SA来反汇编</a>
+      |
+      <a href="/blog/716918" class="pre" title="Sun的JDK里获取当前进程ID的方法（hack）">Sun的JDK里获取当前进程ID的方法（hack）</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2010-08-03 14:03</li>
+      <li>浏览 11617</li>
+      <li><a href="#comments">评论(7)</a></li>
+      
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class='last'><a href="http://www.iteye.com/wiki/blog/727938" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/javase"><img src="http://img.knowledge.csdn.net/upload/base/1453169124297_297.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/javase" classs="title">Java SE知识库</a>
+              <span>
+                 <em>27712</em>&nbsp;&nbsp;关注 <i>|</i> <em>578</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="http://img.knowledge.csdn.net/upload/base/1453701371636_636.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>31614</em>&nbsp;&nbsp;关注 <i>|</i> <em>3748</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/javaee"><img src="http://img.knowledge.csdn.net/upload/base/1456818035722_722.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/javaee" classs="title">Java EE知识库</a>
+              <span>
+                 <em>20981</em>&nbsp;&nbsp;关注 <i>|</i> <em>1416</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/javascript"><img src="http://img.knowledge.csdn.net/upload/base/1458106113412_412.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/javascript" classs="title">JavaScript知识库</a>
+              <span>
+                 <em>16181</em>&nbsp;&nbsp;关注 <i>|</i> <em>1517</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/jquery"><img src="http://img.knowledge.csdn.net/upload/base/1459143634568_568.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/jquery" classs="title">jQuery知识库</a>
+              <span>
+                 <em>9932</em>&nbsp;&nbsp;关注 <i>|</i> <em>948</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/angularjs"><img src="http://img.knowledge.csdn.net/upload/base/1458526868366_366.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/angularjs" classs="title">AngularJS知识库</a>
+              <span>
+                 <em>5230</em>&nbsp;&nbsp;关注 <i>|</i> <em>586</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2200534">
+  <div class="comment_title">
+    7 楼
+    <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+    2011-06-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">all_wmh 写道</div><div class="quote_div">撒加 貌似JAVA代码 缺少返回值了；）</div><br />你说得没错…加上去～</div>
+</div>
+
+<div id="bc2200526">
+  <div class="comment_title">
+    6 楼
+    <a href='http://all-wmh.iteye.com' target='_blank' title='all_wmh'>all_wmh</a>
+    2011-06-30&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">撒加 貌似JAVA代码 缺少返回值了；）</div>
+</div>
+
+<div id="bc2187469">
+  <div class="comment_title">
+    5 楼
+    <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+    2011-06-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">all_wmh 写道</div><div class="quote_div">我用windows下操作的时候 报了一个异常："please start SwDbgSrv.exe" 看了windows的services也没有这个服务&nbsp; 不知道是不是要加载什么类呢？</div><br />Serviceability Agent在Windows上一直杯具。<br />如果你在用JDK6的话那没指望，完全用不了SA。<br />如果你想试用JDK7的话，那可以试试自己用OpenJDK7的源码build一个完整的OpenJDK出来，然后到hotspot/agent/make目录里去根据那边的README.txt提示来把SA的一些JAR包build出来，然后那边就会生成出SwDbgSrv.exe出来。然后试试把它注册成NT服务，重启机器，再试试能不能连接吧。<br /><br />顺带一说，我以前试过但是没成功…源码里有些地方会编译不过去，修改之后总算能build出SwDbgSrv.exe，但注册成服务却没反应。我肯定是有什么步骤没弄对…<img src="/images/smiles/icon_cry.gif" /> <br />但是我决定不折磨自己，回到Linux上用SA。反正我自己的机器和公司的服务器都是Linux的，现在就只有公司的工作机上还装着Windows…</div>
+</div>
+
+<div id="bc2187371">
+  <div class="comment_title">
+    4 楼
+    <a href='http://all-wmh.iteye.com' target='_blank' title='all_wmh'>all_wmh</a>
+    2011-06-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">我用windows下操作的时候 报了一个异常："please start SwDbgSrv.exe" 看了windows的services也没有这个服务&nbsp; 不知道是不是要加载什么类呢？</div>
+</div>
+
+<div id="bc1779868">
+  <div class="comment_title">
+    3 楼
+    <a href='http://stone2083.iteye.com' target='_blank' title='stone2083'>stone2083</a>
+    2010-11-29&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">一直在找如何dump class。非常感谢。 ：）</div>
+</div>
+
+<div id="bc1689492">
+  <div class="comment_title">
+    2 楼
+    <a href='http://yangguo.iteye.com' target='_blank' title='yangguo'>yangguo</a>
+    2010-09-27&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">你真是很大的一头牛。</div>
+</div>
+
+<div id="bc1609208">
+  <div class="comment_title">
+    1 楼
+    <a href='http://lwwin.iteye.com' target='_blank' title='lwwin'>lwwin</a>
+    2010-08-03&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">很好，这篇给某人去看看^-^～</div>
+</div>
+
+
+    
+    
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="/login" style="background-color:white;"> <img src="/images/login_icon.png" style="vertical-align:middle; margin-right: 10px;" /></a><a href="/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 727938;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '如何dump出一个Java进程里的类对应的Class文件？');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '如何dump出一个Java进程里的类对应的Class文件？');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href='http://rednaxelafx.iteye.com'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="" /></a></div>
+  <div id="blog_owner_name">RednaxelaFX</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 2095801 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="http://www.iteye.com/images/icon_minigender_1.gif?1448702469" title="男" /></li>
+              <li>来自: 海外</li>
+              <li><img src='/images/status/offline.gif'/></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style='font-weight:normal;font-size:12px;padding-left:30px;'><a href="/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://limelife.iteye.com' target='_blank'><img alt="limelife的博客" class="logo" src="http://www.iteye.com/upload/logo/user/833099/7606e836-00ca-3996-bbe3-48162fe34b38-thumb.jpg?1366203215" title="limelife的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://limelife.iteye.com' target='_blank' title='limelife'>limelife</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://vinozly.iteye.com' target='_blank'><img alt="Vinozly的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="Vinozly的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://vinozly.iteye.com' target='_blank' title='Vinozly'>Vinozly</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://enzoy.iteye.com' target='_blank'><img alt="chencvgk的博客" class="logo" src="http://www.iteye.com/upload/logo/user/920631/bcacca25-3b8c-3a4e-85b1-dc6b8a68540e-thumb.jpg?1386772226" title="chencvgk的博客: ITEYE" width="48px" /></a></div>
+                <div class="left"><a href='http://enzoy.iteye.com' target='_blank' title='chencvgk'>chencvgk</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://mooo.iteye.com' target='_blank'><img alt="Mooo的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="Mooo的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://mooo.iteye.com' target='_blank' title='Mooo'>Mooo</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="/">全部博客 (430)</a></li>
+                
+                  <li><a href="/category/21342">Programming Languages (23)</a></li>
+                
+                  <li><a href="/category/29010">Compiler (20)</a></li>
+                
+                  <li><a href="/category/61298">Virtual Machine (57)</a></li>
+                
+                  <li><a href="/category/162321">Garbage Collection (4)</a></li>
+                
+                  <li><a href="/category/162318">HotSpot VM (26)</a></li>
+                
+                  <li><a href="/category/78968">Mono (2)</a></li>
+                
+                  <li><a href="/category/33627">SSCLI Rotor (1)</a></li>
+                
+                  <li><a href="/category/60345">Harmony (0)</a></li>
+                
+                  <li><a href="/category/31968">DLR (19)</a></li>
+                
+                  <li><a href="/category/29044">Ruby (28)</a></li>
+                
+                  <li><a href="/category/21339">C# (38)</a></li>
+                
+                  <li><a href="/category/51666">F# (3)</a></li>
+                
+                  <li><a href="/category/58920">Haskell (0)</a></li>
+                
+                  <li><a href="/category/27795">Scheme (1)</a></li>
+                
+                  <li><a href="/category/28215">Regular Expression (5)</a></li>
+                
+                  <li><a href="/category/43041">Python (4)</a></li>
+                
+                  <li><a href="/category/26952">ECMAScript (2)</a></li>
+                
+                  <li><a href="/category/22618">JavaScript (18)</a></li>
+                
+                  <li><a href="/category/22068">ActionScript (7)</a></li>
+                
+                  <li><a href="/category/27153">Squirrel (2)</a></li>
+                
+                  <li><a href="/category/36305">C (6)</a></li>
+                
+                  <li><a href="/category/22307">C++ (10)</a></li>
+                
+                  <li><a href="/category/21340">D (2)</a></li>
+                
+                  <li><a href="/category/66462">.NET (13)</a></li>
+                
+                  <li><a href="/category/22617">Java (86)</a></li>
+                
+                  <li><a href="/category/146196">Scala (1)</a></li>
+                
+                  <li><a href="/category/99374">Groovy (3)</a></li>
+                
+                  <li><a href="/category/21352">Optimization (6)</a></li>
+                
+                  <li><a href="/category/27144">Data Structure and Algorithm (3)</a></li>
+                
+                  <li><a href="/category/34556">Books (4)</a></li>
+                
+                  <li><a href="/category/52245">WPF (1)</a></li>
+                
+                  <li><a href="/category/24366">Game Engines (7)</a></li>
+                
+                  <li><a href="/category/22003">吉里吉里 (12)</a></li>
+                
+                  <li><a href="/category/23065">UML (1)</a></li>
+                
+                  <li><a href="/category/24338">Reverse Engineering (11)</a></li>
+                
+                  <li><a href="/category/22696">NSIS (4)</a></li>
+                
+                  <li><a href="/category/24088">Utilities (3)</a></li>
+                
+                  <li><a href="/category/29744">Design Patterns (1)</a></li>
+                
+                  <li><a href="/category/25057">Visual Studio (9)</a></li>
+                
+                  <li><a href="/category/54389">Windows 7 (3)</a></li>
+                
+                  <li><a href="/category/73928">x86 Assembler (1)</a></li>
+                
+                  <li><a href="/category/22830">Android (2)</a></li>
+                
+                  <li><a href="/category/25305">School Assignment / Test (6)</a></li>
+                
+                  <li><a href="/category/24349">Anti-virus (1)</a></li>
+                
+                  <li><a href="/category/27193">REST (1)</a></li>
+                
+                  <li><a href="/category/28651">Profiling (1)</a></li>
+                
+                  <li><a href="/category/23669">misc (39)</a></li>
+                
+                  <li><a href="/category/23661">NetOA (12)</a></li>
+                
+                  <li><a href="/category/27815">rant (6)</a></li>
+                
+                  <li><a href="/category/65667">anime (5)</a></li>
+                
+                  <li><a href="/category/28622">Links (12)</a></li>
+                
+                  <li><a href="/category/165300">CLR (7)</a></li>
+                
+                  <li><a href="/category/165301">GC (1)</a></li>
+                
+                  <li><a href="/category/226933">OpenJDK (2)</a></li>
+                
+                  <li><a href="/category/251929">JVM (4)</a></li>
+                
+                  <li><a href="/category/275192">KVM (0)</a></li>
+                
+                  <li><a href="/category/279009">Rhino (1)</a></li>
+                
+                  <li><a href="/category/279045">LINQ (2)</a></li>
+                
+                  <li><a href="/category/279221">JScript (0)</a></li>
+                
+                  <li><a href="/category/280142">Nashorn (0)</a></li>
+                
+                  <li><a href="/category/287977">Dalvik (1)</a></li>
+                
+                  <li><a href="/category/293492">DTrace (0)</a></li>
+                
+                  <li><a href="/category/302419">LLVM (0)</a></li>
+                
+                  <li><a href="/category/329856">MSIL (0)</a></li>
+                
+              </ul>
+            </div>
+            <div id='month_blogs'>
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="/blog/news">我的资讯</a> (1)</li>
+                <li>
+                  <a href="/blog/post">我的论坛</a> (576)
+                </li>
+                <li><a href="/blog/answered_problems">我的问答</a> (364)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="/blog/monthblog/2014-12">2014-12</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2014-03">2014-03</a> (2)</li>
+                
+                  <li><a href="/blog/monthblog/2013-11">2013-11</a> (2)</li>
+                
+                <li><a href="/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href='http://ph7-3.iteye.com' target='_blank' title='ph7.3'>ph7.3</a>： 
+                  jdk8下 scanoops 时出现这个问题：Windbg E ...<br />
+                  <a href="/blog/1847971#bc2398388">借HSDB来探索HotSpot VM的运行时数据</a>
+                </li>
+                
+                <li>
+                  <a href='http://xiyueshenyan.iteye.com' target='_blank' title='xiyueshenyan'>xiyueshenyan</a>： 
+                  Virtual Machines: Versatile Pla ...<br />
+                  <a href="/blog/1886170#bc2398056">豆列：从表到里学习JVM实现</a>
+                </li>
+                
+                <li>
+                  <a href='http://yao88611852.iteye.com' target='_blank' title='yao88611852'>yao88611852</a>： 
+                  beneo 写道发现google的java项目灰常灰长很喜欢b ...<br />
+                  <a href="/blog/788306#bc2397763">Gson使用中遇到的Date格式问题</a>
+                </li>
+                
+                <li>
+                  <a href='http://twsxtd.iteye.com' target='_blank' title='twsxtd'>twsxtd</a>： 
+                  Jefen 写道RednaxelaFX 写道.....公司网络 ...<br />
+                  <a href="/blog/858009#bc2397452">Java虚拟机分享演示稿2010-12-28版</a>
+                </li>
+                
+                <li>
+                  <a href='http://tuzwu.iteye.com' target='_blank' title='化蝶自在飞'>化蝶自在飞</a>： 
+                  rss?n=xxxx 这个n参数已经无效了.这是不让导出的意思 ...<br />
+                  <a href="/blog/588507#bc2397212">JavaEye博客备份脚本订制版</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr/>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br />
+          &copy; 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript"
+                  src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>
+<script src="http://c.csdnimg.cn/public/common/libs/jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="http://ads.csdn.net/js/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="http://www.iteye.com/javascripts/web-storage-cache.min.js?1461122561" type="text/javascript"></script>
+	    <script src="http://www.iteye.com/javascripts/replace.min.js?1464163001" type="text/javascript"></script>
+    
+    
+  </body>
+</html>

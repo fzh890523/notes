@@ -1,0 +1,1849 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+        <script type="text/javascript" src="http://static.blog.csdn.net/scripts/tingyun-rum.js"></script>
+            <link rel="canonical" href="http://blog.csdn.net/iter_zc/article/details/41822719"/> 
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+       
+    <title>聊聊JVM（三）两种计算Java对象大小的方法 - ITer_ZC的专栏
+        - CSDN博客</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="这篇说说如何计算Java对象大小的方法。之前在聊聊高并发（四）Java对象的表示模型和运行时内存表示 这篇中已经说了Java对象的内存表示模型是Oop-Klass模型。普通对象的结构如下，按64位机器的长度计算1. 对象头(_mark)， 8个字节2. Oop指针，如果是32G内存以下的，默认开启对象指针压缩，4个字节3. 数据区4.Padding(内存对齐)，按照8的倍数" />
+
+    <meta name="keywords" content="JVM,java.lang.instrument,Unsafe" />
+
+   
+    <script src="http://static.blog.csdn.net/scripts/blog_static_head.min.js" type="text/javascript"></script>
+
+    
+        <!--new top-->
+       
+       
+        <!--new top-->
+    
+      <!-- ad begin -->
+         
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+
+    
+
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/ITer_ZC/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+
+    <link href="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.css" type="text/css" rel="stylesheet" />
+     
+         <link rel="stylesheet" href="http://static.blog.csdn.net/css/csdn_blog_detail.min.css" />
+
+  
+
+
+    <!-- 请置于所有广告位代码之前 --> 
+            <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+</head>
+
+
+<body>
+     
+        <div class="tracking-ad" data-view="true" data-mod="ad_popu_72"  data-mtp="62" data-order="40" data-con="ad_content_2072" >
+                     <script id="popuLayer_js_q" src="http://ads.csdn.net/js/popuLayer.js" defer="defer"  type="text/javascript"></script>
+                <div id="layerd" style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000">
+    	                <div class="J_close layer_close" style="display:;background-color:#efefef;padding:0px;color:#333;font:12px/24px Helvetica,Tahoma,Arial,sans-serif;text-align:right;">关闭</div><!-- 广告占位容器 --><div id="cpro_u2895327"></div></div>
+                <script>  document.getElementById("popuLayer_js_q").onload = function () { var styObjd = styObj = { width: "300px", "height": parseInt(250) + 28 }; window.CSDN.Layer.PopuLayer("#layerd", { storageName: "layerd", styleObj: styObjd, total: 50, expoire: 1000 * 60 }); }</script><!-- 投放代码 --><script type="text/javascript">                    /*服务器频道首页置顶Banner960*90，创建于2014-7-3*/    (window.cproArray = window.cproArray || []).push({ id: "u2895327" });  </script>  <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script>
+     
+        </div>
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/iter_zc">ITer_ZC的专栏</a></h2>
+            <h3></h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/iter_zc?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/iter_zc?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/iter_zc/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "ITer_ZC";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/iter_zc";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://blog.csdn.net/turingbooks/article/details/76034232">
+<font color=red><strong>评论送书 | 7月书讯：众多畅销书升级！ </strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/74550215">
+<font color=blue><strong>征文 | 你会为 AI 转型么？</strong></font></a>
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/epubit17/article/details/76066685">
+<font color=red><strong>赠书 | AI专场（AI圣经！《深度学习》中文版）</strong></font></a>
+
+</div>                        </div>
+
+                        
+
+
+
+  
+
+
+
+
+
+
+<script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+      var isBole = false; 
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%b8%89%ef%bc%89%e4%b8%a4%e7%a7%8d%e8%ae%a1%e7%ae%97Java%e5%af%b9%e8%b1%a1%e5%a4%a7%e5%b0%8f%e7%9a%84%e6%96%b9%e6%b3%95&u=http://blog.csdn.net/iter_zc/article/details/41822719"
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+    <h1>
+        <span class="link_title"><a href="/iter_zc/article/details/41822719">
+        聊聊JVM（三）两种计算Java对象大小的方法        
+           
+        </a>
+        </span>
+
+         
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/JVM' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">JVM</a><a href='http://www.csdn.net/tag/java.lang.instrument' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">java.lang.instrument</a><a href='http://www.csdn.net/tag/Unsafe' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">Unsafe</a><a href='http://www.csdn.net/tag/Java%e5%af%b9%e8%b1%a1%e5%a4%a7%e5%b0%8f' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">Java对象大小</a><a href='http://www.csdn.net/tag/%e5%86%85%e5%ad%98%e5%88%86%e5%b8%83' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">内存分布</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2014-12-09 13:21</span>
+            <span class="link_view" title="阅读次数">10625人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(4)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('%e8%81%8a%e8%81%8aJVM%ef%bc%88%e4%b8%89%ef%bc%89%e4%b8%a4%e7%a7%8d%e8%ae%a1%e7%ae%97Java%e5%af%b9%e8%b1%a1%e5%a4%a7%e5%b0%8f%e7%9a%84%e6%96%b9%e6%b3%95','41822719');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(41822719,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('178970','ITer_ZC','top','41822719');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">Java<em>（81）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/ITer_ZC/article/category/178970"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_178970">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('2758863','ITer_ZC','top','41822719');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JVM<em>（10）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/ITer_ZC/article/category/2758863"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_2758863">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+
+<div id="article_content" class="article_content tracking-ad" data-mod=popu_307  data-dsm = "post" >
+
+<p>这篇说说如何计算Java对象大小的方法。之前在<a target="_blank" target="_blank" href="http://blog.csdn.net/iter_zc/article/details/39959563">聊聊高并发（四）Java对象的表示模型和运行时内存表示</a><span class="gray"></span> 这篇中已经说了Java对象的内存表示模型是Oop-Klass模型。</p>
+<p><strong>普通对象的结构</strong>如下，按64位机器的长度计算</p>
+<p>1. 对象头(_mark)， 8个字节<br>
+</p>
+<p>2. Oop指针，如果是32G内存以下的，默认开启对象指针压缩，4个字节</p>
+<p>3. 数据区</p>
+<p>4.Padding(内存对齐)，按照8的倍数对齐<br>
+</p>
+<p><br>
+</p>
+<p><strong>数组对象结构是</strong></p>
+<p></p>
+<p>1. 对象头(_mark)， 8个字节<br>
+</p>
+<p>2. Oop指针，如果是32G内存以下的，默认开启对象指针压缩，4个字节</p>
+<p>3. 数组长度，4个字节</p>
+<p>4. 数据区<br>
+</p>
+<p>5. Padding(内存对齐)，按照8的倍数对齐</p>
+<p><img src="http://img.blog.csdn.net/20141209133015567?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvSVRlcl9aQw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt=""><br>
+</p>
+<p>清楚了对象在内存的基本布局后，咱们说两种计算Java对象大小的方法</p>
+<p>1. 通过java.lang.instrument.Instrumentation的getObjectSize(obj)直接获取对象的大小<br>
+</p>
+<p>2. 通过sun.misc.Unsafe对象的objectFieldOffset(field)等方法结合反射来计算对象的大小<br>
+</p>
+<p><br>
+</p>
+<p><strong>java.lang.instrument.Instrumentation.getObjectSize()的方式</strong><br>
+</p>
+<p>先讲讲java.lang.instrument.Instrumentation.getObjectSize()的方式，这种方法得到的是Shallow Size，即遇到引用时，只计算引用的长度，不计算所引用的对象的实际大小。如果要计算所引用对象的实际大小，可以通过递归的方式去计算。</p>
+<p>java.lang.instrument.Instrumentation的实例必须通过指定javaagent的方式才能获得，具体的步骤如下：</p>
+<p>1. 定义一个类，提供一个premain方法: public static void premain(String agentArgs, Instrumentation instP)</p>
+<p>2. 创建META-INF/MANIFEST.MF文件，内容是指定PreMain的类是哪个： Premain-Class: sizeof.ObjectShallowSize</p>
+<p>3. 把这个类打成jar，然后用java -javaagent XXXX.jar XXX.main的方式执行</p>
+<p><br>
+</p>
+<p>下面先定义一个类来获得java.lang.instrument.Instrumentation的实例,并提供了一个static的sizeOf方法对外提供Instrumentation的能力<br>
+</p>
+<p></p>
+<pre name="code" class="java">package sizeof;
+
+import java.lang.instrument.Instrumentation;
+
+public class ObjectShallowSize {
+	private static Instrumentation inst;
+	
+	public static void premain(String agentArgs, Instrumentation instP){
+		inst = instP;
+	}
+	
+	public static long sizeOf(Object obj){
+		return inst.getObjectSize(obj);
+	}
+}
+</pre>
+<p></p>
+<p>定义META-INF/MANIFEST.MF文件</p>
+<p></p>
+<pre name="code" class="java">Premain-Class: sizeof.ObjectShallowSize</pre><br>
+打成jar包
+<p></p>
+<p></p>
+<pre name="code" class="html">cd 编译后的类和META-INF文件夹所在目录
+jar cvfm java-agent-sizeof.jar META-INF/MANIFEST.MF  .</pre><br>
+准备好了这个jar之后，我们可以写测试类来测试Instrumentation的getObjectSize方法了。在这之前我们先来看对象在内存中是按照什么顺序排列的
+<p></p>
+<p>有如下这个类，字段的定义按如下顺序<br>
+</p>
+<p></p>
+<pre name="code" class="java">private static class ObjectA {
+		String str;  // 4
+		int i1; // 4
+		byte b1; // 1
+		byte b2; // 1
+		int i2;	 // 4 
+		ObjectB obj; //4
+		byte b3;  // 1
+	}</pre><br>
+按照我们之前说的方法来计算一下这个对象所占大小，注意按8对齐
+<p></p>
+<p>8(_mark) &#43; 4(oop指针) &#43; 4(str) &#43; 4(i1) &#43; 1(b1) &#43; 1(b2) &#43; 2(padding) &#43; 4(i2) &#43; 4(obj) &#43; 1(b3) &#43; 7(padding) = 40 ?</p>
+<p>但事实上是这样的吗？ 我们来用Instrumentation的getObjectSize来计算一下先:</p>
+<p></p>
+<pre name="code" class="java">package test;
+
+import sizeof.ObjectShallowSize;
+
+public class SizeofWithInstrumetation {
+	private static class ObjectA {
+		String str;  // 4
+		int i1; // 4
+		byte b1; // 1
+		byte b2; // 1
+		int i2;	 // 4 
+		ObjectB obj; //4
+		byte b3;  // 1
+	}
+	
+	private static class ObjectB {
+		
+	}
+	
+	public static void main(String[] args){
+		System.out.println(ObjectShallowSize.sizeOf(new ObjectA()));
+	}
+}
+</pre><br>
+<img src="http://img.blog.csdn.net/20141209140734842?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvSVRlcl9aQw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt=""><br>
+<p></p>
+<p><br>
+</p>
+<p>得到的结果是32！不是会按8对齐吗，b3之前的数据加起来已经是32了，多了1个b3，为33，应该对齐到40才对啊。事实上，HotSpot创建的对象的字段会先按照给定顺序排列一下,默认的顺序如下，<strong>从长到短排列，引用排最后</strong>:&nbsp; long/double --&gt; int/float --&gt;&nbsp; short/char --&gt; byte/boolean --&gt; Reference</p>
+<p>这个顺序可以使用JVM参数:&nbsp; -XX:FieldsAllocationSylte=0(默认是1)来改变。</p>
+<p>我们使用sun.misc.Unsafe对象的objectFieldOffset方法来验证一下:</p>
+<p></p>
+<pre name="code" class="java">Field[] fields = ObjectA.class.getDeclaredFields();
+        for(Field f: fields){
+        	System.out.println(f.getName() + &quot; offset: &quot; +unsafe.objectFieldOffset(f));
+        }</pre><br>
+<img src="http://img.blog.csdn.net/20141209141606336?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvSVRlcl9aQw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt=""><br>
+<p></p>
+<p>可以看到确实是按照<strong>从长到短，引用排最后</strong>的方式在内存中排列的。按照这种方法我们来重新计算下ObjectA创建的对象的长度:</p>
+<p>8(_mark) &#43; 4(oop指针) &#43; 4(i1) &#43; &#43; 4(i2) &#43; 1(b1) &#43; 1(b2) &#43; 1(b3) &#43; 1(padding) &#43;&nbsp; 4(str) &#43; 4(obj) = 32<br>
+</p>
+<p>得到的结果和java.lang.instrument.Instrumentation.getObjectSize()的结果是一样的，证明我们的计算方式是正确的。</p>
+<p><br>
+</p>
+<p><strong>sun.misc.Unsafe的方式</strong><br>
+</p>
+<p>下面说一下通过sun.misc.Unsafe对象的objectFieldOffset(field)等方法结合反射来计算对象的大小。基本的思路如下:</p>
+<p>1. 通过反射获得一个类的Field</p>
+<p>2. 通过Unsafe的objectFieldOffset()获得每个Field的offSet</p>
+<p>3. 对Field按照offset排序，取得最大的offset，然后加上这个field的长度，再加上Padding对齐</p>
+<p>上面三步就可以获得一个对象的Shallow size。可以进一步通过递归去计算所引用对象的大小，从而可以计算出一个对象所占用的实际大小。</p>
+<p><br>
+</p>
+<p>如何获得Unsafe对象已经在这篇中<a target="_blank" target="_blank" href="http://blog.csdn.net/iter_zc/article/details/40820919">聊聊序列化（二）使用sun.misc.Unsafe绕过new机制来创建Java对象</a><span class="gray"></span>说过了，可以通过反射的机制来获得.</p>
+<p>Oop指针是4还是未压缩的8也可以通过unsafe.arrayIndexScale(Object[].class)来获得，这个方法返回一个引用所占用的长度<br>
+</p>
+<p></p>
+<pre name="code" class="java">static {
+		try {
+			Field field = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+			field.setAccessible(true);
+			unsafe = (Unsafe) field.get(null);
+
+			objectRefSize = unsafe.arrayIndexScale(Object[].class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}</pre><br>
+下面的源码摘自 http://java-performance.info/memory-introspection-using-sun-misc-unsafe-and-reflection/， 原文中的代码在计算对象大小的时候有问题，我做了微调，并加上了内存对齐的方法，这样计算出的结果和Instrumentation的getObjectSize方法是一样的。
+<p></p>
+<p></p>
+<pre name="code" class="java">package test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+ 
+/**
+ * This class contains object info generated by ClassIntrospector tool
+ */
+public class ObjectInfo {
+    /** Field name */
+    public final String name;
+    /** Field type name */
+    public final String type;
+    /** Field data formatted as string */
+    public final String contents;
+    /** Field offset from the start of parent object */
+    public final int offset;
+    /** Memory occupied by this field */
+    public final int length;
+    /** Offset of the first cell in the array */
+    public final int arrayBase;
+    /** Size of a cell in the array */
+    public final int arrayElementSize;
+    /** Memory occupied by underlying array (shallow), if this is array type */
+    public final int arraySize;
+    /** This object fields */
+    public final List&lt;ObjectInfo&gt; children;
+ 
+    public ObjectInfo(String name, String type, String contents, int offset, int length, int arraySize,
+    int arrayBase, int arrayElementSize)
+    {
+        this.name = name;
+        this.type = type;
+        this.contents = contents;
+        this.offset = offset;
+        this.length = length;
+        this.arraySize = arraySize;
+        this.arrayBase = arrayBase;
+        this.arrayElementSize = arrayElementSize;
+        children = new ArrayList&lt;ObjectInfo&gt;( 1 );
+    }
+ 
+    public void addChild( final ObjectInfo info )
+    {
+        if ( info != null )
+            children.add( info );
+    }
+ 
+    /**
+    * Get the full amount of memory occupied by a given object. This value may be slightly less than
+    * an actual value because we don&#39;t worry about memory alignment - possible padding after the last object field.
+    *
+    * The result is equal to the last field offset + last field length + all array sizes + all child objects deep sizes
+    * @return Deep object size
+    */
+    public long getDeepSize()
+    {
+        //return length + arraySize + getUnderlyingSize( arraySize != 0 );
+        return addPaddingSize(arraySize + getUnderlyingSize( arraySize != 0 ));
+    }
+ 
+    long size = 0;
+    
+    private long getUnderlyingSize( final boolean isArray )
+    {
+        //long size = 0;
+        for ( final ObjectInfo child : children )
+            size += child.arraySize + child.getUnderlyingSize( child.arraySize != 0 );
+		if ( !isArray &amp;&amp; !children.isEmpty() ){
+            int tempSize = children.get( children.size() - 1 ).offset + children.get( children.size() - 1 ).length;
+            size += addPaddingSize(tempSize);
+		}
+        	
+        return size;
+    }
+ 
+    private static final class OffsetComparator implements Comparator&lt;ObjectInfo&gt;
+    {
+        @Override
+        public int compare( final ObjectInfo o1, final ObjectInfo o2 )
+        {
+            return o1.offset - o2.offset; //safe because offsets are small non-negative numbers
+        }
+    }
+ 
+    //sort all children by their offset
+    public void sort()
+    {
+        Collections.sort( children, new OffsetComparator() );
+    }
+ 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toStringHelper( sb, 0 );
+        return sb.toString();
+    }
+ 
+    private void toStringHelper( final StringBuilder sb, final int depth )
+    {
+        depth( sb, depth ).append(&quot;name=&quot;).append( name ).append(&quot;, type=&quot;).append( type )
+            .append( &quot;, contents=&quot;).append( contents ).append(&quot;, offset=&quot;).append( offset )
+            .append(&quot;, length=&quot;).append( length );
+        if ( arraySize &gt; 0 )
+        {
+            sb.append(&quot;, arrayBase=&quot;).append( arrayBase );
+            sb.append(&quot;, arrayElemSize=&quot;).append( arrayElementSize );
+            sb.append( &quot;, arraySize=&quot;).append( arraySize );
+        }
+        for ( final ObjectInfo child : children )
+        {
+            sb.append( &#39;\n&#39; );
+            child.toStringHelper(sb, depth + 1);
+        }
+    }
+ 
+    private StringBuilder depth( final StringBuilder sb, final int depth )
+    {
+        for ( int i = 0; i &lt; depth; ++i )
+            sb.append( &quot;\t&quot;);
+        return sb;
+    }
+    
+    private long addPaddingSize(long size){
+    	if(size % 8 != 0){
+    		return (size / 8 + 1) * 8;
+    	}
+    	return size;
+    }
+    
+}
+
+
+package test;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+import sun.misc.Unsafe;
+
+/**
+&#160;* This class could be used for any object contents/memory layout printing.
+&#160;*/
+public class ClassIntrospector {
+
+&#160;&#160; &#160;private static final Unsafe unsafe;
+&#160;&#160; &#160;/** Size of any Object reference */
+&#160;&#160; &#160;private static final int objectRefSize;
+&#160;&#160; &#160;static {
+&#160;&#160; &#160;&#160;&#160; &#160;try {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;Field field = Unsafe.class.getDeclaredField(&quot;theUnsafe&quot;);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;field.setAccessible(true);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;unsafe = (Unsafe) field.get(null);
+
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;objectRefSize = unsafe.arrayIndexScale(Object[].class);
+&#160;&#160; &#160;&#160;&#160; &#160;} catch (Exception e) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;throw new RuntimeException(e);
+&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;/** Sizes of all primitive values */
+&#160;&#160; &#160;private static final Map&lt;Class, Integer&gt; primitiveSizes;
+
+&#160;&#160; &#160;static {
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes = new HashMap&lt;Class, Integer&gt;(10);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(byte.class, 1);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(char.class, 2);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(int.class, 4);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(long.class, 8);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(float.class, 4);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(double.class, 8);
+&#160;&#160; &#160;&#160;&#160; &#160;primitiveSizes.put(boolean.class, 1);
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;/**
+&#160;&#160; &#160; * Get object information for any Java object. Do not pass primitives to
+&#160;&#160; &#160; * this method because they will boxed and the information you will get will
+&#160;&#160; &#160; * be related to a boxed version of your value.
+&#160;&#160; &#160; * 
+&#160;&#160; &#160; * @param obj
+&#160;&#160; &#160; *&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Object to introspect
+&#160;&#160; &#160; * @return Object info
+&#160;&#160; &#160; * @throws IllegalAccessException
+&#160;&#160; &#160; */
+&#160;&#160; &#160;public ObjectInfo introspect(final Object obj)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;throws IllegalAccessException {
+&#160;&#160; &#160;&#160;&#160; &#160;try {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return introspect(obj, null);
+&#160;&#160; &#160;&#160;&#160; &#160;} finally { // clean visited cache before returning in order to make
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;// this object reusable
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;m_visited.clear();
+&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;// we need to keep track of already visited objects in order to support
+&#160;&#160; &#160;// cycles in the object graphs
+&#160;&#160; &#160;private IdentityHashMap&lt;Object, Boolean&gt; m_visited = new IdentityHashMap&lt;Object, Boolean&gt;(
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;100);
+
+&#160;&#160; &#160;private ObjectInfo introspect(final Object obj, final Field fld)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;throws IllegalAccessException {
+&#160;&#160; &#160;&#160;&#160; &#160;// use Field type only if the field contains null. In this case we will
+&#160;&#160; &#160;&#160;&#160; &#160;// at least know what&#39;s expected to be
+&#160;&#160; &#160;&#160;&#160; &#160;// stored in this field. Otherwise, if a field has interface type, we
+&#160;&#160; &#160;&#160;&#160; &#160;// won&#39;t see what&#39;s really stored in it.
+&#160;&#160; &#160;&#160;&#160; &#160;// Besides, we should be careful about primitives, because they are
+&#160;&#160; &#160;&#160;&#160; &#160;// passed as boxed values in this method
+&#160;&#160; &#160;&#160;&#160; &#160;// (first arg is object) - for them we should still rely on the field
+&#160;&#160; &#160;&#160;&#160; &#160;// type.
+&#160;&#160; &#160;&#160;&#160; &#160;boolean isPrimitive = fld != null &amp;&amp; fld.getType().isPrimitive();
+&#160;&#160; &#160;&#160;&#160; &#160;boolean isRecursive = false; // will be set to true if we have already
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;// seen this object
+&#160;&#160; &#160;&#160;&#160; &#160;if (!isPrimitive) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if (m_visited.containsKey(obj))
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;isRecursive = true;
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;m_visited.put(obj, true);
+&#160;&#160; &#160;&#160;&#160; &#160;}
+
+&#160;&#160; &#160;&#160;&#160; &#160;final Class type = (fld == null || (obj != null &amp;&amp; !isPrimitive)) ? obj
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;.getClass() : fld.getType();
+&#160;&#160; &#160;&#160;&#160; &#160;int arraySize = 0;
+&#160;&#160; &#160;&#160;&#160; &#160;int baseOffset = 0;
+&#160;&#160; &#160;&#160;&#160; &#160;int indexScale = 0;
+&#160;&#160; &#160;&#160;&#160; &#160;if (type.isArray() &amp;&amp; obj != null) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;baseOffset = unsafe.arrayBaseOffset(type);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;indexScale = unsafe.arrayIndexScale(type);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;arraySize = baseOffset + indexScale * Array.getLength(obj);
+&#160;&#160; &#160;&#160;&#160; &#160;}
+
+&#160;&#160; &#160;&#160;&#160; &#160;final ObjectInfo root;
+&#160;&#160; &#160;&#160;&#160; &#160;if (fld == null) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;root = new ObjectInfo(&quot;&quot;, type.getCanonicalName(), getContents(obj,
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;type), 0, getShallowSize(type), arraySize, baseOffset,
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;indexScale);
+&#160;&#160; &#160;&#160;&#160; &#160;} else {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;final int offset = (int) unsafe.objectFieldOffset(fld);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;root = new ObjectInfo(fld.getName(), type.getCanonicalName(),
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;getContents(obj, type), offset, getShallowSize(type),
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;arraySize, baseOffset, indexScale);
+&#160;&#160; &#160;&#160;&#160; &#160;}
+
+&#160;&#160; &#160;&#160;&#160; &#160;if (!isRecursive &amp;&amp; obj != null) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if (isObjectArray(type)) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;// introspect object arrays
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;final Object[] ar = (Object[]) obj;
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;for (final Object item : ar)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if (item != null)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;root.addChild(introspect(item, null));
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;} else {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;for (final Field field : getAllFields(type)) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if ((field.getModifiers() &amp; Modifier.STATIC) != 0) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;continue;
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;field.setAccessible(true);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;root.addChild(introspect(field.get(obj), field));
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;&#160;&#160; &#160;}
+
+&#160;&#160; &#160;&#160;&#160; &#160;root.sort(); // sort by offset
+&#160;&#160; &#160;&#160;&#160; &#160;return root;
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;// get all fields for this class, including all superclasses fields
+&#160;&#160; &#160;private static List&lt;Field&gt; getAllFields(final Class type) {
+&#160;&#160; &#160;&#160;&#160; &#160;if (type.isPrimitive())
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Collections.emptyList();
+&#160;&#160; &#160;&#160;&#160; &#160;Class cur = type;
+&#160;&#160; &#160;&#160;&#160; &#160;final List&lt;Field&gt; res = new ArrayList&lt;Field&gt;(10);
+&#160;&#160; &#160;&#160;&#160; &#160;while (true) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;Collections.addAll(res, cur.getDeclaredFields());
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if (cur == Object.class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;break;
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;cur = cur.getSuperclass();
+&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;&#160;&#160; &#160;return res;
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;// check if it is an array of objects. I suspect there must be a more
+&#160;&#160; &#160;// API-friendly way to make this check.
+&#160;&#160; &#160;private static boolean isObjectArray(final Class type) {
+&#160;&#160; &#160;&#160;&#160; &#160;if (!type.isArray())
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return false;
+&#160;&#160; &#160;&#160;&#160; &#160;if (type == byte[].class || type == boolean[].class
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;|| type == char[].class || type == short[].class
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;|| type == int[].class || type == long[].class
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;|| type == float[].class || type == double[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return false;
+&#160;&#160; &#160;&#160;&#160; &#160;return true;
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;// advanced toString logic
+&#160;&#160; &#160;private static String getContents(final Object val, final Class type) {
+&#160;&#160; &#160;&#160;&#160; &#160;if (val == null)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return &quot;null&quot;;
+&#160;&#160; &#160;&#160;&#160; &#160;if (type.isArray()) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;if (type == byte[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((byte[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == boolean[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((boolean[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == char[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((char[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == short[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((short[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == int[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((int[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == long[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((long[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == float[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((float[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else if (type == double[].class)
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((double[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;else
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return Arrays.toString((Object[]) val);
+&#160;&#160; &#160;&#160;&#160; &#160;}
+&#160;&#160; &#160;&#160;&#160; &#160;return val.toString();
+&#160;&#160; &#160;}
+
+&#160;&#160; &#160;// obtain a shallow size of a field of given class (primitive or object
+&#160;&#160; &#160;// reference size)
+&#160;&#160; &#160;private static int getShallowSize(final Class type) {
+&#160;&#160; &#160;&#160;&#160; &#160;if (type.isPrimitive()) {
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;final Integer res = primitiveSizes.get(type);
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return res != null ? res : 0;
+&#160;&#160; &#160;&#160;&#160; &#160;} else
+&#160;&#160; &#160;&#160;&#160; &#160;&#160;&#160; &#160;return objectRefSize;
+&#160;&#160; &#160;}
+}
+</pre><br>
+<p></p>
+<p>先一个测试类来验证一下Unsafe的方式计算出的结果</p>
+<p></p>
+<pre name="code" class="html">public class ClassIntrospectorTest
+{
+    public static void main(String[] args) throws IllegalAccessException {
+        final ClassIntrospector ci = new ClassIntrospector();
+
+        ObjectInfo res;
+        
+        res = ci.introspect( new ObjectA() );
+        System.out.println( res.getDeepSize() );
+    }
+ 
+    private static class ObjectA {
+		String str;  // 4
+		int i1; // 4
+		byte b1; // 1
+		byte b2; // 1
+		int i2;	 // 4 
+		ObjectB obj; //4
+		byte b3;  // 1
+	}
+    
+    private static class ObjectB {
+		
+	}
+}</pre><br>
+计算结果如下：
+<p></p>
+<p>32</p>
+<p>和我们之前计算结果是一致的，证明是正确的。</p>
+<p><br>
+</p>
+<p>最后再来测试一下数组对象的长度。有两个类如下:</p>
+<p></p>
+<pre name="code" class="java">private static class ObjectC {
+    	ObjectD[] array = new ObjectD[2];
+    }
+    
+    private static class ObjectD {
+    	int value;
+    }
+
+</pre>
+<p></p>
+<p>它们在内存的大体分布如下图:</p>
+<p><img src="http://img.blog.csdn.net/20141209145355672?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvSVRlcl9aQw==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt=""><br>
+</p>
+<p><br>
+</p>
+<p>我们可以手工计算一下ObjectC obj = new ObjectC()的大小：</p>
+<p>ObjectC的Shallow size = 8(_mark) &#43; 4(oop指针)&nbsp; &#43; 4(ObjectD[]引用) = 16</p>
+<p>new ObjectD[2]数组的长度 =&nbsp; 8(_mark) &#43; 4(oop指针) &#43; 4(数组长度占4个字节) &#43; 4(ObjectD[0]引用) &#43; 4(ObjectD[1]引用) = 24</p>
+<p>由于ObjectD[]数组没有指向具体的对象大小，所以我们手工计算的结果是16 &#43; 24 = 40</p>
+<p>使用Unsafe对象的方式来计算一下:</p>
+<p></p>
+<pre name="code" class="java">public static void main(String[] args) throws IllegalAccessException {
+        final ClassIntrospector ci = new ClassIntrospector();
+
+        ObjectInfo res;
+        
+        res = ci.introspect( new ObjectC() );
+        System.out.println( res.getDeepSize() );
+    }</pre><br>
+计算结果如下，和我们计算的结果是一致的，证明是正确的:
+<p></p>
+<p>40<br>
+</p>
+<p><br>
+</p>
+<p>再给ObjectD[]数组指向具体的ObjectD对象，再测试一下结果：</p>
+<p></p>
+<pre name="code" class="java"> public static void main(String[] args) throws IllegalAccessException {
+        final ClassIntrospector ci = new ClassIntrospector();
+
+        ObjectInfo res;
+        
+        res = ci.introspect( new ObjectC() );
+        System.out.println( res.getDeepSize() );
+    }
+    
+    private static class ObjectC {
+    	ObjectD[] array = new ObjectD[2];
+    	
+    	public ObjectC(){
+    		array[0] = new ObjectD();
+    		array[1] = new ObjectD();
+    	}
+    }
+    
+    private static class ObjectD {
+    	int value;
+    }</pre><br>
+我们可以手工计算一下ObjectC obj = new ObjectC()的大小：
+<p></p>
+<p>ObjectC的Shallow size = 8(_mark) &#43; 4(oop指针)&nbsp; &#43; 4(ObjectD[]引用) = 16</p>
+<p>new ObjectD[2]数组的长度 =&nbsp; 8(_mark) &#43; 4(oop指针) &#43; 4(数组长度占4个字节) &#43; 4(ObjectD[0]引用) &#43; 4(ObjectD[1]引用) = 24</p>
+<p>ObjectD对象长度 = 8(_mark) &#43; 4(oop指针) &#43; 4(value) = 16</p>
+<p>所以ObjectC实际占用的空间 = 16 &#43; 24 &#43; 2 * 16 = 72</p>
+<p>使用Unsafe的方式计算的结果也是72，和我们手工计算的方式一致。<br>
+</p>
+<p><br>
+</p>
+<p>参考:&nbsp; <a target="_blank" target="_blank" href="http://java-performance.info/memory-introspection-using-sun-misc-unsafe-and-reflection/">
+Memory introspection using sun.misc.Unsafe and reflection</a><br>
+</p>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+<div id="xunlei_com_thunder_helper_plugin_d462f475-c18e-46be-bd10-327458d045bd"></div>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   
+
+<!--172.16.140.13-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+
+ 
+
+
+        <div id="digg" ArticleId="41822719" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>2</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41802365';">上一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41802365" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">聊聊JVM（二）说说GC的一些常见概念</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='http://blog.csdn.net/ITer_ZC/article/details/41825395';">下一篇</span><a href="http://blog.csdn.net/ITer_ZC/article/details/41825395" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+            <div class="similar_article"   >
+                    <h4></h4>
+                    <div class="similar_c"style="margin:20px 0px 0px 0px">
+                        <div class="similar_c_t">
+                          &nbsp;&nbsp;相关文章推荐
+                        </div>
+                   
+                        <div class="similar_wrap tracking-ad" data-mod="popu_36" >                       
+                            <ul class="similar_list fl">    
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/zhoufanyang_china/article/details/54601311" title="【Java对象解析】不得不了解的对象头" strategy="BlogCommendFromBaidu" target="_blank">【Java对象解析】不得不了解的对象头</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（二）说说GC的一些常见概念</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/wenniuwuren/article/details/50939410" title="JVM —— Object Header（对象头）" strategy="BlogCommendFromBaidu" target="_blank">JVM —— Object Header（对象头）</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41843595" title="聊聊JVM（五）从JVM角度理解线程" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（五）从JVM角度理解线程</a>
+                                   </li>
+                            </ul>
+                              <ul class="similar_list fr">      
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/41847887" title="聊聊JVM（六）理解JVM的safepoint" strategy="BlogCommendFromBaidu" target="_blank">聊聊JVM（六）理解JVM的safepoint</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/ITer_ZC/article/details/39959563" title="聊聊高并发（四）Java对象的表示模型和运行时内存表示" strategy="BlogCommendFromBaidu" target="_blank">聊聊高并发（四）Java对象的表示模型和运行时内存表示</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/antony9118/article/details/54317637" title="两种计算Java对象大小的方法" strategy="BlogCommendFromBaidu" target="_blank">两种计算Java对象大小的方法</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/wenniuwuren/article/details/50958892" title="JVM —— Java 对象占用空间大小计算" strategy="BlogCommendFromBaidu" target="_blank">JVM —— Java 对象占用空间大小计算</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/aaa1117a8w5s6d/article/details/8254922" title="java Object类占用内存大小计算" strategy="BlogCommendFromBaidu" target="_blank">java Object类占用内存大小计算</a>
+                                   </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>   
+      
+</div>
+
+    <div>
+        
+
+        <script type="text/javascript">
+            /*博客内容页下方Banner1-728*90，创建于2016-12-13*/
+            var cpro_id = "u2843949";
+        </script>
+        <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+     </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/ITer_ZC/svc/GetSuggestContent/41822719",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+        <dl class="blog-ass-articl tracking-ad" id="res-relatived" data-mod="popu_84"  > 
+             <dt><span>猜你在找</span></dt>    
+           
+    
+           
+
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5084" title="【直播】机器学习&amp;深度学习系统实战（唐宇迪）" strategy="undefined" target="_blank">【直播】机器学习&amp;深度学习系统实战（唐宇迪）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5219" title="【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）" strategy="undefined" target="_blank">【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5222" title="【直播回放】深度学习基础与TensorFlow实践（王琛）" strategy="undefined" target="_blank">【直播回放】深度学习基础与TensorFlow实践（王琛）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/52" title="【直播】计算机视觉原理及实战（屈教授）" strategy="undefined" target="_blank">【直播】计算机视觉原理及实战（屈教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/48" title="【直播】机器学习之凸优化（马博士）" strategy="undefined" target="_blank">【直播】机器学习之凸优化（马博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/47" title="【直播】机器学习之矩阵（黄博士）" strategy="undefined" target="_blank">【直播】机器学习之矩阵（黄博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/46" title="【直播】机器学习之概率与统计推断（冒教授）" strategy="undefined" target="_blank">【直播】机器学习之概率与统计推断（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/49" title="【直播】机器学习之数学基础" strategy="undefined" target="_blank">【直播】机器学习之数学基础</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/44" title="【直播】TensorFlow实战进阶（智亮）" strategy="undefined" target="_blank">【直播】TensorFlow实战进阶（智亮）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/45" title="【直播】深度学习30天系统实训（唐宇迪）" strategy="undefined" target="_blank">【直播】深度学习30天系统实训（唐宇迪）</a>
+                        </dd>
+        </dl>
+
+
+
+
+            
+                                    
+            
+                                    
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '41822719';
+    var commentscount = 4;
+    var islock = false
+</script>
+
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+    var articletitle='聊聊JVM（三）两种计算Java对象大小的方法';
+
+</script>
+
+
+
+
+
+
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/ITer_ZC" target="_blank">
+    <img src="http://avatar.csdn.net/7/1/A/1_iter_zc.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/ITer_ZC" class="user_name" target="_blank">ITer_ZC</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=ITer_ZC','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/zhuanlandaren.png" onmouseover="m_over_m(this,2)" onmouseout="m_out_m()" alt="5" >
+                                            </a>
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="4" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>430482次</span></li>
+    <li>积分：<span>5607</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog6.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：5607 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>115篇</span></li>
+    <li>转载：<span>0篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>157条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+    <ul class="panel_head"><span>博客专栏</span></ul>
+    <ul class="panel_body" id="sp_column">
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180345177" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/flume-ng.html" target="_blank">Flume NG源码分析</a>
+    <p>文章：7篇</p>
+    <span>阅读：12815</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180229364" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/computer-os-network.html" target="_blank">计算机底层知识拾遗</a>
+    <p>文章：10篇</p>
+    <span>阅读：37629</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180126770" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/talk-about-jvm.html" target="_blank">聊聊JVM</a>
+    <p>文章：10篇</p>
+    <span>阅读：82730</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180050145" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/loveconcurrency.html" target="_blank">聊聊高并发</a>
+    <p>文章：44篇</p>
+    <span>阅读：149537</span>
+    </td>
+    </tr></table>
+    <table cellpadding="0" cellspacing="0"><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank"><img src="http://img.blog.csdn.net/20151123180029583" style="width:75px;height:75px;" /></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/thrift.html" target="_blank">Thrift源码分析</a>
+    <p>文章：9篇</p>
+    <span>阅读：37021</span>
+    </td>
+    </tr></table>
+    </ul>
+</div><div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body" class="form_search">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search csdn-tracking-statistics" target="_blank"  data-mod="popu_306">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(function () {
+        $("#btnSubmit").unbind("click");
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {           
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            if ($("#inputSearch").val() == "") {               
+                alert("请录入搜索关键词！");                         
+                return false;
+            }
+            //var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";           
+            var url = "https://www.baidu.com/s?wd=" + encodeURIComponent($("#inputSearch").val()) + "%20site%3Ablog.csdn.net"
+            window.location.href = url;
+        }   
+    });
+</script><div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/ITer_ZC/article/category/178970" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java</a><span>(82)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2562435" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">NIO</a><span>(13)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2562447" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">随手记</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2564739" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">架构设计</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2566479" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">RPC</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2567647" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">TCP/IP</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2585735" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Thrift</a><span>(9)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2592507" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">高并发</a><span>(46)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2687261" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">序列化</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2719317" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">ZooKeeper</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2758863" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JVM</a><span>(11)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2785017" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Java内存模型</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2796737" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">操作系统</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/2796741" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">计算机原理</a><span>(10)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/5570277" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Flume NG</a><span>(7)</span>
+                </li>
+                 <li>
+                    <a href="/ITer_ZC/article/category/6053139" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">分布式系统</a><span>(2)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/ITer_ZC/article/month/2016/01">2016年01月</a><span>(4)</span></li><li><a href="/ITer_ZC/article/month/2015/07">2015年07月</a><span>(5)</span></li><li><a href="/ITer_ZC/article/month/2015/06">2015年06月</a><span>(9)</span></li><li><a href="/ITer_ZC/article/month/2015/05">2015年05月</a><span>(1)</span></li><li><a href="/ITer_ZC/article/month/2015/04">2015年04月</a><span>(4)</span></li><li><a href="/ITer_ZC/article/month/2015/03">2015年03月</a><span>(5)</span></li><li><a href="/ITer_ZC/article/month/2015/01">2015年01月</a><span>(6)</span></li><li><a href="/ITer_ZC/article/month/2014/12">2014年12月</a><span>(16)</span></li><li><a href="/ITer_ZC/article/month/2014/11">2014年11月</a><span>(21)</span></li><li><a href="/ITer_ZC/article/month/2014/10">2014年10月</a><span>(15)</span></li><li><a href="/ITer_ZC/article/month/2014/09">2014年09月</a><span>(26)</span></li><li><a href="/ITer_ZC/article/month/2006/04">2006年04月</a><span>(2)</span></li><li><a href="/ITer_ZC/article/month/2006/02">2006年02月</a><span>(1)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel tracking-ad" data-mod="popu_340">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(17900)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41822719" title="聊聊JVM（三）两种计算Java对象大小的方法">聊聊JVM（三）两种计算Java对象大小的方法</a><span>(10610)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结">聊聊JVM（一）相对全面的GC总结</a><span>(10411)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(9138)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念">聊聊JVM（二）说说GC的一些常见概念</a><span>(8574)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41892567" title="聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞">聊聊JVM（九）理解进入safepoint时如何让Java线程全部阻塞</a><span>(7446)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41847887" title="聊聊JVM（六）理解JVM的safepoint">聊聊JVM（六）理解JVM的safepoint</a><span>(7164)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41843595" title="聊聊JVM（五）从JVM角度理解线程">聊聊JVM（五）从JVM角度理解线程</a><span>(6911)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41979189" title="聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理">聊聊高并发（三十四）Java内存模型那些事（二）理解CPU高速缓存的工作原理</a><span>(6863)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/42644229" title="计算机底层知识拾遗（一）理解虚拟内存机制">计算机底层知识拾遗（一）理解虚拟内存机制</a><span>(6339)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel tracking-ad" data-mod="popu_341">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/iter_zc/article/details/42026511" title="聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则">聊聊高并发（三十六）Java内存模型那些事（四）理解Happens-before规则</a><span>(13)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39317311" title="《Netty权威指南》私有协议开发的可运行源代码分享">《Netty权威指南》私有协议开发的可运行源代码分享</a><span>(13)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41746265" title="聊聊JVM（一）相对全面的GC总结">聊聊JVM（一）相对全面的GC总结</a><span>(8)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39546405" title="聊聊高并发（二）结合实例说说线程封闭和背后的设计思想">聊聊高并发（二）结合实例说说线程封闭和背后的设计思想</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39291647" title="深入理解非阻塞同步IO和非阻塞异步IO">深入理解非阻塞同步IO和非阻塞异步IO</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41825395" title="聊聊JVM（四）深入理解Major GC, Full GC, CMS">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a><span>(7)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/606327" title="关于如何在java的web应用获取服务器资源。">关于如何在java的web应用获取服务器资源。</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/40738561" title="聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)">聊聊高并发（十五）实现一个简单的读-写锁(共享-排他锁)</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/41802365" title="聊聊JVM（二）说说GC的一些常见概念">聊聊JVM（二）说说GC的一些常见概念</a><span>(6)</span>
+</li>
+<li>
+<a href="/iter_zc/article/details/39341983" title="几种分布式调用技术的比较 -- RPC VS REST">几种分布式调用技术的比较 -- RPC VS REST</a><span>(6)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend">
+<ul>
+<li><a href="http://blog.csdn.net/blogdevteam/article/details/75669610" target="_blank">*  CSDN日报20170721——《为什么我们创业失败了和选择创业公司的思考》</a></li>
+<li><a href="http://blog.csdn.net/javazejian/article/details/75043422" 
+target="_blank">* 深入剖析基于并发AQS的重入锁(ReetrantLock)及其Condition实现原理</a></li>
+<li><a href="http://blog.csdn.net/jiangwei0910410003/article/details/75512732"target="_blank">* Android版本的"Wannacry"文件加密病毒样本分析(附带锁机)</a></li>
+<li><a href="http://blog.csdn.net/mindfloating/article/details/75948781" 
+target="_blank">* 工作与生活真的可以平衡吗？</a></li>
+<li><a href="http://blog.csdn.net/poem_qianmo/article/details/75943714" 
+target="_blank">* 《Real-Time Rendering 3rd》 提炼总结——高级着色：BRDF及相关技术</a></li>
+<li><a href="http://blog.csdn.net/dog250/article/details/75735806" 
+target="_blank">* 《三体》读后思考-泰勒展开/维度打击/黑暗森林</a></li>
+
+</ul></ul>
+</div>
+
+
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/iter_zc/article/details/41847887#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="/haoyifen" class="user_name">haoyifen</a>:
+https://bugs.openjdk.java.net/browse/JDK-8029060jd...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/39291647#comments">深入理解非阻塞同步IO和非阻塞异步IO</a>
+    <p style="margin:0px;"><a href="/saodilaoshu" class="user_name">saodilaoshu</a>:
+@JackieeeCheng:我觉得并没有矛盾,非阻塞同步中,是要分两个阶段的,一个是等待IO事件就...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41825395#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="/zcymz" class="user_name">zcymz</a>:
+我想还是有细微差别，不然不会起两名。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41802365#comments">聊聊JVM（二）说说GC的一些常见概念</a>
+    <p style="margin:0px;"><a href="/l543227182" class="user_name">l543227182</a>:
+关于第二问，两种情况应该是在MinorGC之前判断的吧
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。&quot;阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊高并发（六）实现几种自旋锁（一）</a>
+    <p style="margin:0px;"><a href="/xj20305" class="user_name">xj20305</a>:
+楼主，你好，文章中这段话，我理解不了。&quot;阻塞的缺点显而易见，线程一旦进入阻塞(Block)，再被唤醒...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/40373881#comments">聊聊JVM（四）深入理解Major GC, Full GC, CMS</a>
+    <p style="margin:0px;"><a href="/long772891026" class="user_name">long772891026</a>:
+你说的怎么感觉和我之前的理解有很大差距？一次CMS怎么可能会产生两次FULL GC
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41868999#comments">聊聊JVM（八）说说GC标记阶段的一些事</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+大神啊，太厉害了！！
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41853855#comments">聊聊JVM（七）一张图说明JVM运行时状态</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+那张图帮了大忙了，对于JVM内部结构的理解太棒了。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/iter_zc/article/details/41853855#comments">聊聊JVM（六）理解JVM的safepoint</a>
+    <p style="margin:0px;"><a href="/u013038861" class="user_name">u013038861</a>:
+博主好厉害！！
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+
+                   <!-- 广告位开始 -->                    <!-- 广告位结束 -->
+                   <div class="tracking-ad" data-view="true"  data-mtp="63" data-order="40" data-con="ad_content_1260" style="width: 200px; height: 500px;">
+                         <div id="nav_show_top_stop" style="width: 200px;height: 500px;z-index:1000"><div id="cpro_u2734128"></div>
+                             <div id="cpro_u3031287"></div></div>
+                   </div>
+    <script type="text/javascript">
+        setTimeout(function () {
+            var naviga_offsetTop = 0;
+            function naviga_stay_top() { var scrollTop = jQuery(document).scrollTop(); if (scrollTop > naviga_offsetTop) { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": "0px" }); } else { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": naviga_offsetTop - scrollTop + "px" }); } }
+            function onload_function() { naviga_offsetTop = jQuery("#nav_show_top_stop").position().top; jQuery(window).bind("scroll", naviga_stay_top); jQuery(window).bind("mousewheel", naviga_stay_top); jQuery(document).bind("scroll", naviga_stay_top); jQuery(document).bind("mousewheel", naviga_stay_top); } jQuery(document).ready(onload_function);
+
+        }, 200);
+    </script>
+<script type="text/javascript">(window.cproArray = window.cproArray || []).push({ id: "u2734128" });  </script> 
+                    <script src="http://cpro.baidustatic.com/cpro/ui/c.js" type="text/javascript"></script> 
+                   <script type="text/javascript">
+                       /*PC端-博客内容页左侧Button2-200*200-2017/7/10*/
+                       (window.cproArray = window.cproArray || []).push({ id: "u3031287" });
+</script>
+<script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+
+     
+
+   
+   
+     <!--new top-->
+   
+   
+
+    
+    
+    
+   
+
+   
+
+
+       <script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+          <script type="text/javascript">
+              //$(function () {
+              //    setTimeout(function () {
+              //        var searchtitletags = articletitle + ',' + $("#tags").html();
+              //        searchService({
+              //            index: 'blog',
+              //            query: searchtitletags,
+              //            from: 5,
+              //            size: 5,
+              //            appendTo: '#res',
+              //            url: 'recommend',
+              //            his: 2,
+              //            client: "blog_cf_enhance",
+              //            tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+              //        });
+              //    }, 1000);
+              //});
+
+         </script>
+    
+    <script src="http://static.blog.csdn.net/scripts/csdn_blog_detail.min.js" type="text/javascript"></script>
+        
+    <script type="text/javascript" src="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.js?20170719001"></script>
+
+    <script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=106551"></script>
+
+     
+    
+
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    
+    
+        
+     
+
+    
+          
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" ></iframe>
+    </div>
+
+
+        <script type="text/javascript">
+
+            $(function () {
+                var fromjs = $("#fromjs");
+                if (fromjs.length > 0) {
+                    $("#fromjs .markdown_views pre").addClass("prettyprint");
+                    prettyPrint();
+
+                    $('pre.prettyprint code').each(function () {
+                        var lines = $(this).text().split('\n').length;
+                        var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                        $(this).addClass('has-numbering').parent().append($numbering);
+                        for (i = 1; i <= lines; i++) {
+                            $numbering.append($('<li/>').text(i));
+                        };
+                        $numbering.fadeIn(1700);
+                    });
+
+                    $('.pre-numbering li').css("color", "#999");
+                }
+            });
+
+            $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+            //$(".toc a[target='_blank']").attr("target", "");
+
+            setTimeout(function () {
+                $(".toc a[target='_blank']").attr("target", "");
+            }, 500);
+
+        </script>
+    
+</body>
+</html>   

@@ -1,0 +1,971 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>借助HotSpot SA来反汇编 - Script Ahead, Code Behind - ITeye博客</title>
+    <meta name="description" content="接前一篇日志，再记一些HotSpot中Serviceability Agent（以下简称SA）的有趣用法。 前面提到过，要在Windows上使用SA的话，可以使用Sun JDK 7 build 64或者更新的版本。下面我们用JDK 7 build 96来跑VisualVM 1.3和Groovy 1.7.2的groovysh做个例子。 （要用JDK7来启动groovysh的话，一个简单的办法是在命令行 ...">
+    <meta name="keywords" content="Windows, SUN, Groovy, XP, JVM 借助HotSpot SA来反汇编">
+    <link rel="shortcut icon" href="http://rednaxelafx.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://rednaxelafx.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://rednaxelafx.iteye.com/rss" rel="alternate" title="Script Ahead, Code Behind" type="application/rss+xml">
+    <link href="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/black.css" media="screen" rel="stylesheet" type="text/css">
+    <script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/application.js" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hotkey.js" type="text/javascript"></script>
+  <script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/code_favorites.js" type="text/javascript"></script>
+<script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/weiboshare.js" type="text/javascript"></script>
+
+    
+  <style type="text/css">.dp-default .number { color: #C00000; }</style><style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style><style type="text/css">.dp-default .number { color: #C00000; }</style></head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://rednaxelafx.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://rednaxelafx.iteye.com/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://rednaxelafx.iteye.com/">Script Ahead, Code Behind</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://rednaxelafx.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://rednaxelafx.iteye.com/weibo">微博</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/album">相册</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/link">收藏</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://rednaxelafx.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text">
+              <input class="submit_search" value="" type="submit">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://rednaxelafx.iteye.com/" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="http://rednaxelafx.iteye.com/blog/729214">借助HotSpot SA来反汇编</a>
+      <em class="actions">      </em>
+    </h3>
+    <ul class="blog_categories"><strong>博客分类：</strong> <li><a href="http://rednaxelafx.iteye.com/category/73928">x86 Assembler</a></li><li><a href="http://rednaxelafx.iteye.com/category/22617">Java</a></li><li><a href="http://rednaxelafx.iteye.com/category/162318">HotSpot VM</a></li><li><a href="http://rednaxelafx.iteye.com/category/61298">Virtual Machine</a></li> </ul>
+        <div class="news_tag"><a href="http://www.iteye.com/blogs/tag/Windows">Windows</a><a href="http://www.iteye.com/blogs/tag/SUN">SUN</a><a href="http://www.iteye.com/blogs/tag/Groovy">Groovy</a><a href="http://www.iteye.com/blogs/tag/XP">XP</a><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a>&nbsp;</div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    接<a href="http://rednaxelafx.iteye.com/blog/727938" target="_blank">前一篇日志</a>，再记一些HotSpot中Serviceability Agent（以下简称SA）的有趣用法。
+<br>前面提到过，要在Windows上使用SA的话，可以使用<a href="http://dlc.sun.com.edgesuite.net/jdk7/binaries/index.html" target="_blank">Sun JDK 7 build 64或者更新的版本</a>。下面我们用JDK 7 build 96来跑<a href="https://visualvm.dev.java.net/" target="_blank">VisualVM</a> 1.3和<a href="http://groovy.codehaus.org/" target="_blank">Groovy</a> 1.7.2的groovysh做个例子。
+<br>（要用JDK7来启动groovysh的话，一个简单的办法是在命令行里把JAVA_HOME设置到JDK7的目录上。
+<br>另外，要让Groovy使用某些Java参数启动的话，可以设置JAVA_OPTS环境变量）
+<br>
+<br>在启动VisualVM的时候，确保它使用的是JDK7。可以用--jdkhome参数或者在VisualVM安装目录下的
+etc/visualvm.conf文件中设置jdkhome。启动后在VisualVM主菜单的Tools -&gt; 
+Plugins里，选择Available Plugins选项卡，在列表里可以看到一个称为<a href="https://visualvm.dev.java.net/saplugin.html" target="_blank">SAPlugin</a>的插件，把它装上。SAPlugin是VisualVM为SA提供的图形界面插件，可以方便的使用SA的部分封装好的功能。
+<br>
+<br>然后用JDK7来启动一个groovysh，再在VisualVM里通过SAPlugin接进去，可以看到：
+<br><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/8cfb7237-7867-338b-a17e-b26ec5829f57.png" title="点击查看原始大小图片" class="magplus" height="543" width="700">
+<br>SAPlugin还有这样的功能，可以看到被JIT编译过的方法以及解释器的汇编代码：
+<br><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/9d1ca318-fee0-3962-8dac-f2474c7caee6.png" title="点击查看原始大小图片" class="magplus" height="543" width="700">
+<br>
+<br>那SA是不是有内建的反汇编器，可以把任意x86、x64、IA64、SPARC等架构的机器码给反汇编为汇编代码呢？答案是肯定的，有足够方便的现成的API可用。（x64版尚未实现完，暂时还用了）
+<br>（顺带提一下：“反汇编”（disassemble）与“反编译”（decompile）是不一样的，请不要弄混了。）
+<br>
+<br>设想有个场景，HotSpot VM突然crash了，并在退出过程中打出了一个hs_err_pidXXXX.log的日志文件。其中开头的部分是：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Hotspot crash log代码 <embed wmode="transparent" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=%23%0A%23%20A%20fatal%20error%20has%20been%20detected%20by%20the%20Java%20Runtime%20Environment%3A%0A%23%0A%23%20%20EXCEPTION_ACCESS_VIOLATION%20(0xc0000005)%20at%20pc%3D0x6d9039f1%2C%20pid%3D3628%2C%20tid%3D3664%0A%23%0A%23%20JRE%20version%3A%206.0_18-b07%0A%23%20Java%20VM%3A%20Java%20HotSpot(TM)%20Client%20VM%20(16.0-b13%20mixed%20mode%2C%20sharing%20windows-x86%20)%0A%23%20Problematic%20frame%3A%0A%23%20V%20%20%5Bjvm.dll%2B0x1039f1%5D%0A%23%0A%23%20If%20you%20would%20like%20to%20submit%20a%20bug%20report%2C%20please%20visit%3A%0A%23%20%20%20http%3A%2F%2Fjava.sun.com%2Fwebapps%2Fbugreport%2Fcrash.jsp%0A%23%0A%0A---------------%20%20T%20H%20R%20E%20A%20D%20%20---------------%0A%0ACurrent%20thread%20(0x0084c000)%3A%20%20JavaThread%20%22main%22%20%5B_thread_in_vm%2C%20id%3D3664%2C%20stack(0x008e0000%2C0x00930000)%5D%0A%0Asiginfo%3A%20ExceptionCode%3D0xc0000005%2C%20reading%20address%200x00000008%0A%0ARegisters%3A%0AEAX%3D0x00000000%2C%20EBX%3D0x0084c000%2C%20ECX%3D0x00000008%2C%20EDX%3D0x0092e134%0AESP%3D0x0092dbf8%2C%20EBP%3D0x0092dc3c%2C%20ESI%3D0x00000000%2C%20EDI%3D0x0084c8ec%0AEIP%3D0x6d9039f1%2C%20EFLAGS%3D0x00010246%0A%0ATop%20of%20Stack%3A%20(sp%3D0x0092dbf8)%0A0x0092dbf8%3A%20%20%200084c110%200092e134%200092e134%200092e134%0A0x0092dc08%3A%20%20%2004506fef%200092dc30%201000781f%2000000000%0A0x0092dc18%3A%20%20%2000000001%2000000000%200092e054%200084c000%0A0x0092dc28%3A%20%20%2000000000%2000000002%200084c110%20f910dbcd%0A0x0092dc38%3A%20%20%200084c000%200084c110%2062f01296%200084c8e8%0A0x0092dc48%3A%20%20%200092e134%2062f0f17c%2000000049%2000000000%0A0x0092dc58%3A%20%20%2000000000%2000000000%2000000000%2000000000%0A0x0092dc68%3A%20%20%2000000000%2000000000%2000000000%2000000000%20%0A%0AInstructions%3A%20(pc%3D0x6d9039f1)%0A0x6d9039e1%3A%20%20%208b%20f0%20eb%2007%2089%2051%2008%2089%2030%208b%20f0%208b%2000%208d%2048%2008%0A0x6d9039f1%3A%20%20%208b%2001%2053%20ff%2050%202c%208b%2043%2004%2085%20c0%200f%2085%208f%2000%2000%20" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span>#&nbsp;&nbsp;</span></span></li><li><span>#&nbsp;A&nbsp;fatal&nbsp;error&nbsp;has&nbsp;been&nbsp;detected&nbsp;by&nbsp;the&nbsp;Java&nbsp;Runtime&nbsp;Environment:&nbsp;&nbsp;</span></li><li><span>#&nbsp;&nbsp;</span></li><li><span>#&nbsp;&nbsp;EXCEPTION_ACCESS_VIOLATION&nbsp;(<span class="number">0xc0000005</span><span>)&nbsp;at&nbsp;pc=</span><span class="number">0x6d9039f1</span><span>,&nbsp;pid=</span><span class="number">3628</span><span>,&nbsp;tid=</span><span class="number">3664</span><span>&nbsp;&nbsp;</span></span></li><li><span>#&nbsp;&nbsp;</span></li><li><span>#&nbsp;JRE&nbsp;version:&nbsp;<span class="number">6</span><span>.0_18-b07&nbsp;&nbsp;</span></span></li><li><span>#&nbsp;Java&nbsp;VM:&nbsp;Java&nbsp;HotSpot(TM)&nbsp;Client&nbsp;VM&nbsp;(<span class="number">16.0</span><span>-b13&nbsp;mixed&nbsp;mode,&nbsp;sharing&nbsp;windows-x86&nbsp;)&nbsp;&nbsp;</span></span></li><li><span>#&nbsp;Problematic&nbsp;frame:&nbsp;&nbsp;</span></li><li><span>#&nbsp;V&nbsp;&nbsp;[jvm.dll+<span class="number">0x1039f1</span><span>]&nbsp;&nbsp;</span></span></li><li><span>#&nbsp;&nbsp;</span></li><li><span>#&nbsp;If&nbsp;you&nbsp;would&nbsp;like&nbsp;to&nbsp;submit&nbsp;a&nbsp;bug&nbsp;report,&nbsp;please&nbsp;visit:&nbsp;&nbsp;</span></li><li><span>#&nbsp;&nbsp;&nbsp;http://java.sun.com/webapps/bugreport/crash.jsp&nbsp;&nbsp;</span></li><li><span>#&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>---------------&nbsp;&nbsp;T&nbsp;H&nbsp;R&nbsp;E&nbsp;A&nbsp;D&nbsp;&nbsp;---------------&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Current&nbsp;thread&nbsp;(<span class="number">0x0084c000</span><span>):&nbsp;&nbsp;JavaThread&nbsp;</span><span class="string">"main"</span><span>&nbsp;[_thread_in_vm,&nbsp;id=</span><span class="number">3664</span><span>,&nbsp;stack(</span><span class="number">0x008e0000</span><span>,</span><span class="number">0x00930000</span><span>)]&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>siginfo:&nbsp;ExceptionCode=<span class="number">0xc0000005</span><span>,&nbsp;reading&nbsp;address&nbsp;</span><span class="number">0x00000008</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Registers:&nbsp;&nbsp;</span></li><li><span>EAX=<span class="number">0x00000000</span><span>,&nbsp;EBX=</span><span class="number">0x0084c000</span><span>,&nbsp;ECX=</span><span class="number">0x00000008</span><span>,&nbsp;EDX=</span><span class="number">0x0092e134</span><span>&nbsp;&nbsp;</span></span></li><li><span>ESP=<span class="number">0x0092dbf8</span><span>,&nbsp;EBP=</span><span class="number">0x0092dc3c</span><span>,&nbsp;ESI=</span><span class="number">0x00000000</span><span>,&nbsp;EDI=</span><span class="number">0x0084c8ec</span><span>&nbsp;&nbsp;</span></span></li><li><span>EIP=<span class="number">0x6d9039f1</span><span>,&nbsp;EFLAGS=</span><span class="number">0x00010246</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Top&nbsp;of&nbsp;Stack:&nbsp;(sp=<span class="number">0x0092dbf8</span><span>)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dbf8</span><span>:&nbsp;&nbsp;&nbsp;0084c110&nbsp;0092e134&nbsp;0092e134&nbsp;0092e134&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc08</span><span>:&nbsp;&nbsp;&nbsp;04506fef&nbsp;0092dc30&nbsp;1000781f&nbsp;</span><span class="number">00000000</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc18</span><span>:&nbsp;&nbsp;&nbsp;</span><span class="number">00000001</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;0092e054&nbsp;0084c000&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc28</span><span>:&nbsp;&nbsp;&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000002</span><span>&nbsp;0084c110&nbsp;f910dbcd&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc38</span><span>:&nbsp;&nbsp;&nbsp;0084c000&nbsp;0084c110&nbsp;62f01296&nbsp;0084c8e8&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc48</span><span>:&nbsp;&nbsp;&nbsp;0092e134&nbsp;62f0f17c&nbsp;</span><span class="number">00000049</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc58</span><span>:&nbsp;&nbsp;&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x0092dc68</span><span>:&nbsp;&nbsp;&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;</span><span class="number">00000000</span><span>&nbsp;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>Instructions:&nbsp;(pc=<span class="number">0x6d9039f1</span><span>)&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039e1</span><span>:&nbsp;&nbsp;&nbsp;8b&nbsp;f0&nbsp;eb&nbsp;</span><span class="number">07</span><span>&nbsp;</span><span class="number">89</span><span>&nbsp;</span><span class="number">51</span><span>&nbsp;</span><span class="number">08</span><span>&nbsp;</span><span class="number">89</span><span>&nbsp;</span><span class="number">30</span><span>&nbsp;8b&nbsp;f0&nbsp;8b&nbsp;</span><span class="number">00</span><span>&nbsp;8d&nbsp;</span><span class="number">48</span><span>&nbsp;</span><span class="number">08</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039f1</span><span>:&nbsp;&nbsp;&nbsp;8b&nbsp;</span><span class="number">01</span><span>&nbsp;</span><span class="number">53</span><span>&nbsp;ff&nbsp;</span><span class="number">50</span><span>&nbsp;2c&nbsp;8b&nbsp;</span><span class="number">43</span><span>&nbsp;</span><span class="number">04</span><span>&nbsp;</span><span class="number">85</span><span>&nbsp;c0&nbsp;0f&nbsp;</span><span class="number">85</span><span>&nbsp;8f&nbsp;</span><span class="number">00</span><span>&nbsp;</span><span class="number">00</span><span>&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="HotSpot crash log" name="code" style="display: none;" codeable_id="729214" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/729214" pre_index="0" title="借助HotSpot SA来反汇编">#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x6d9039f1, pid=3628, tid=3664
+#
+# JRE version: 6.0_18-b07
+# Java VM: Java HotSpot(TM) Client VM (16.0-b13 mixed mode, sharing windows-x86 )
+# Problematic frame:
+# V  [jvm.dll+0x1039f1]
+#
+# If you would like to submit a bug report, please visit:
+#   http://java.sun.com/webapps/bugreport/crash.jsp
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x0084c000):  JavaThread "main" [_thread_in_vm, id=3664, stack(0x008e0000,0x00930000)]
+
+siginfo: ExceptionCode=0xc0000005, reading address 0x00000008
+
+Registers:
+EAX=0x00000000, EBX=0x0084c000, ECX=0x00000008, EDX=0x0092e134
+ESP=0x0092dbf8, EBP=0x0092dc3c, ESI=0x00000000, EDI=0x0084c8ec
+EIP=0x6d9039f1, EFLAGS=0x00010246
+
+Top of Stack: (sp=0x0092dbf8)
+0x0092dbf8:   0084c110 0092e134 0092e134 0092e134
+0x0092dc08:   04506fef 0092dc30 1000781f 00000000
+0x0092dc18:   00000001 00000000 0092e054 0084c000
+0x0092dc28:   00000000 00000002 0084c110 f910dbcd
+0x0092dc38:   0084c000 0084c110 62f01296 0084c8e8
+0x0092dc48:   0092e134 62f0f17c 00000049 00000000
+0x0092dc58:   00000000 00000000 00000000 00000000
+0x0092dc68:   00000000 00000000 00000000 00000000 
+
+Instructions: (pc=0x6d9039f1)
+0x6d9039e1:   8b f0 eb 07 89 51 08 89 30 8b f0 8b 00 8d 48 08
+0x6d9039f1:   8b 01 53 ff 50 2c 8b 43 04 85 c0 0f 85 8f 00 00 </pre>
+<br>可以看到HotSpot遇到了<a href="http://msdn.microsoft.com/en-us/library/aa363082%28VS.85%29.aspx" target="_blank">访问异常（EXCEPTION_ACCESS_VIOLATION）</a>。访问异常有很多时候是由本地代码中的空指针访问而引起的，这里是否也是如此呢？
+<br>至少得看看出错的指令长啥样吧。可以看到日志里有一块写着“Instructions”，有两行十六进制表示的数据跟在后面。这就是出错位置前后的机器码，其中第二行开头处是出错指令的开头位置。
+<br>
+<br>借助SA里内建的反汇编器，我们可以写段代码来看看日志里出错的机器码到底是什么：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=import%20sun.jvm.hotspot.asm.CPUHelper%3B%0Aimport%20sun.jvm.hotspot.asm.Disassembler%3B%0Aimport%20sun.jvm.hotspot.asm.Instruction%3B%0Aimport%20sun.jvm.hotspot.asm.InstructionVisitor%3B%0Aimport%20sun.jvm.hotspot.asm.SymbolFinder%3B%0Aimport%20sun.jvm.hotspot.asm.x86.X86Helper%3B%0A%0A%2F**%0A%20*%20%40author%20sajia%0A%20*%0A%20*%2F%0Apublic%20class%20TestX86Disassembler%20%7B%0A%20%20%20%20%2F**%0A%20%20%20%20%20*%20%40param%20args%0A%20%20%20%20%20*%2F%0A%20%20%20%20public%20static%20void%20main(String%5B%5D%20args)%20%7B%0A%20%20%20%20%20%20%20%20CodeSnippet%20code%20%3D%20makeSampleCode()%3B%0A%20%20%20%20%20%20%20%20%0A%20%20%20%20%20%20%20%20CPUHelper%20cpuHelper%20%3D%20new%20X86Helper()%3B%0A%20%20%20%20%20%20%20%20Disassembler%20dasm%20%3D%20cpuHelper.createDisassembler(code.startPc%2C%20code.code)%3B%0A%20%20%20%20%20%20%20%20StringBuilder%20buf%20%3D%20new%20StringBuilder()%3B%0A%20%20%20%20%20%20%20%20dasm.decode(new%20RawCodeVisitor(buf))%3B%0A%20%20%20%20%20%20%20%20String%20dasmStr%20%3D%20buf.toString()%3B%0A%20%20%20%20%20%20%20%20%0A%20%20%20%20%20%20%20%20System.out.println(dasmStr)%3B%0A%20%20%20%20%7D%0A%20%20%20%20%0A%20%20%20%20private%20static%20CodeSnippet%20makeSampleCode()%20%7B%0A%20%20%20%20%20%20%20%20CodeSnippet%20code%20%3D%20new%20CodeSnippet()%3B%0A%20%20%20%20%20%20%20%20code.startPc%20%3D%200x6d9039f1%3B%0A%20%20%20%20%20%20%20%20code.code%20%3D%20new%20byte%5B%5D%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200x8b%2C%20(byte)%200x01%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200x53%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200xff%2C%20(byte)%200x50%2C%20(byte)%200x2c%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200x8b%2C%20(byte)%200x43%2C%20(byte)%200x04%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200x85%2C%20(byte)%200xc0%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20(byte)%200x0f%2C%20(byte)%200x85%2C%20(byte)%200x8f%2C%20(byte)%200x00%2C%20(byte)%200x00%0A%20%20%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20%20%20return%20code%3B%0A%20%20%20%20%7D%0A%20%20%20%20%0A%20%20%20%20private%20static%20class%20CodeSnippet%20%7B%0A%20%20%20%20%20%20%20%20long%20startPc%3B%0A%20%20%20%20%20%20%20%20byte%5B%5D%20code%3B%0A%20%20%20%20%7D%0A%20%20%20%20%0A%20%20%20%20private%20static%20class%20RawCodeVisitor%20implements%20InstructionVisitor%20%7B%0A%20%20%20%20%20%20%20%20private%20final%20StringBuilder%20buf%3B%0A%20%20%20%20%20%20%20%20private%20final%20SymbolFinder%20symFinder%20%3D%20new%20DummySymbolFinder()%3B%0A%20%20%20%20%20%20%20%20%0A%20%20%20%20%20%20%20%20public%20RawCodeVisitor(StringBuilder%20buf)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20this.buf%20%3D%20buf%3B%0A%20%20%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20%20%20%40Override%0A%20%20%20%20%20%20%20%20public%20void%20prologue()%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20do%20nothing%0A%20%20%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20%20%20%40Override%0A%20%20%20%20%20%20%20%20public%20void%20visit(long%20currentPc%2C%20Instruction%20instr)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20buf.append(%220x%22)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.append(Long.toHexString(currentPc))%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.append(%22%3A%20%20%22)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.append(instr.asString(currentPc%2C%20symFinder))%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.append(%22%5Cn%22)%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%0A%20%20%20%20%20%20%20%20%40Override%0A%20%20%20%20%20%20%20%20public%20void%20epilogue()%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%2F%2F%20do%20nothing%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20%0A%20%20%20%20public%20static%20class%20DummySymbolFinder%20implements%20SymbolFinder%20%7B%0A%20%20%20%20%20%20%20%20public%20String%20getSymbolFor(long%20address)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20return%20%220x%22%20%2B%20Long.toHexString(address)%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.CPUHelper;&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.Disassembler;&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.Instruction;&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.InstructionVisitor;&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.SymbolFinder;&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">import</span><span>&nbsp;sun.jvm.hotspot.asm.x86.X86Helper;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span><span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;*&nbsp;@author&nbsp;sajia</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;*</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;TestX86Disassembler&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;args</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;main(String[]&nbsp;args)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CodeSnippet&nbsp;code&nbsp;=&nbsp;makeSampleCode();&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CPUHelper&nbsp;cpuHelper&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;X86Helper();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Disassembler&nbsp;dasm&nbsp;=&nbsp;cpuHelper.createDisassembler(code.startPc,&nbsp;code.code);&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;StringBuilder&nbsp;buf&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;StringBuilder();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dasm.decode(<span class="keyword">new</span><span>&nbsp;RawCodeVisitor(buf));&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;dasmStr&nbsp;=&nbsp;buf.toString();&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(dasmStr);&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;CodeSnippet&nbsp;makeSampleCode()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CodeSnippet&nbsp;code&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;CodeSnippet();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;code.startPc&nbsp;=&nbsp;<span class="number">0x6d9039f1</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;code.code&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[]&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x8b</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x01</span><span>,&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x53</span><span>,&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0xff</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x50</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x2c</span><span>,&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x8b</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x43</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x04</span><span>,&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x85</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0xc0</span><span>,&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x0f</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x85</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x8f</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x00</span><span>,&nbsp;(</span><span class="keyword">byte</span><span>)&nbsp;</span><span class="number">0x00</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span><span>&nbsp;code;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;CodeSnippet&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">long</span><span>&nbsp;startPc;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;code;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;RawCodeVisitor&nbsp;</span><span class="keyword">implements</span><span>&nbsp;InstructionVisitor&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">final</span><span>&nbsp;StringBuilder&nbsp;buf;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">final</span><span>&nbsp;SymbolFinder&nbsp;symFinder&nbsp;=&nbsp;</span><span class="keyword">new</span><span>&nbsp;DummySymbolFinder();&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;RawCodeVisitor(StringBuilder&nbsp;buf)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span><span>.buf&nbsp;=&nbsp;buf;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@Override</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;prologue()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;do&nbsp;nothing</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@Override</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;visit(</span><span class="keyword">long</span><span>&nbsp;currentPc,&nbsp;Instruction&nbsp;instr)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf.append(<span class="string">"0x"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.append(Long.toHexString(currentPc))&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.append(<span class="string">":&nbsp;&nbsp;"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.append(instr.asString(currentPc,&nbsp;symFinder))&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.append(<span class="string">"\n"</span><span>);&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@Override</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;epilogue()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;do&nbsp;nothing</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;DummySymbolFinder&nbsp;</span><span class="keyword">implements</span><span>&nbsp;SymbolFinder&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;String&nbsp;getSymbolFor(</span><span class="keyword">long</span><span>&nbsp;address)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span><span>&nbsp;</span><span class="string">"0x"</span><span>&nbsp;+&nbsp;Long.toHexString(address);&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;" codeable_id="729214" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/729214" pre_index="1" title="借助HotSpot SA来反汇编">import sun.jvm.hotspot.asm.CPUHelper;
+import sun.jvm.hotspot.asm.Disassembler;
+import sun.jvm.hotspot.asm.Instruction;
+import sun.jvm.hotspot.asm.InstructionVisitor;
+import sun.jvm.hotspot.asm.SymbolFinder;
+import sun.jvm.hotspot.asm.x86.X86Helper;
+
+/**
+ * @author sajia
+ *
+ */
+public class TestX86Disassembler {
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        CodeSnippet code = makeSampleCode();
+        
+        CPUHelper cpuHelper = new X86Helper();
+        Disassembler dasm = cpuHelper.createDisassembler(code.startPc, code.code);
+        StringBuilder buf = new StringBuilder();
+        dasm.decode(new RawCodeVisitor(buf));
+        String dasmStr = buf.toString();
+        
+        System.out.println(dasmStr);
+    }
+    
+    private static CodeSnippet makeSampleCode() {
+        CodeSnippet code = new CodeSnippet();
+        code.startPc = 0x6d9039f1;
+        code.code = new byte[] {
+            (byte) 0x8b, (byte) 0x01,
+            (byte) 0x53,
+            (byte) 0xff, (byte) 0x50, (byte) 0x2c,
+            (byte) 0x8b, (byte) 0x43, (byte) 0x04,
+            (byte) 0x85, (byte) 0xc0,
+            (byte) 0x0f, (byte) 0x85, (byte) 0x8f, (byte) 0x00, (byte) 0x00
+        };
+        return code;
+    }
+    
+    private static class CodeSnippet {
+        long startPc;
+        byte[] code;
+    }
+    
+    private static class RawCodeVisitor implements InstructionVisitor {
+        private final StringBuilder buf;
+        private final SymbolFinder symFinder = new DummySymbolFinder();
+        
+        public RawCodeVisitor(StringBuilder buf) {
+            this.buf = buf;
+        }
+
+        @Override
+        public void prologue() {
+            // do nothing
+        }
+
+        @Override
+        public void visit(long currentPc, Instruction instr) {
+            buf.append("0x")
+                .append(Long.toHexString(currentPc))
+                .append(":  ")
+                .append(instr.asString(currentPc, symFinder))
+                .append("\n");
+        }
+        
+        @Override
+        public void epilogue() {
+            // do nothing
+        }
+    }
+    
+    public static class DummySymbolFinder implements SymbolFinder {
+        public String getSymbolFor(long address) {
+            return "0x" + Long.toHexString(address);
+        }
+    }
+}</pre>
+<br>确保$JAVA_HOME/lib/sa-jdi.jar在classpath上，运行该程序可以看到输出为：
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Command prompt代码 <embed wmode="transparent" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=0x6d9039f1%3A%20%20movl%09%25eax%2C%20%5B%25ecx%5D%0A0x6d9039f3%3A%20%20pushl%09%25ebx%0A0x6d9039f4%3A%20%20call%0944%5B%25eax%5D%0A0x6d9039f7%3A%20%20movl%09%25eax%2C%204%5B%25ebx%5D%0A0x6d9039fa%3A%20%20testl%09%25eax%2C%20%25eax%0A0x6d9039fc%3A%20%20jne%090x6d903a91" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" height="15" width="14">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-default"><li><span><span class="number">0x6d9039f1</span><span>:&nbsp;&nbsp;movl&nbsp;&nbsp;&nbsp;%eax,&nbsp;[%ecx]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039f3</span><span>:&nbsp;&nbsp;pushl&nbsp;&nbsp;%ebx&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039f4</span><span>:&nbsp;&nbsp;call&nbsp;&nbsp;&nbsp;</span><span class="number">44</span><span>[%eax]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039f7</span><span>:&nbsp;&nbsp;movl&nbsp;&nbsp;&nbsp;%eax,&nbsp;</span><span class="number">4</span><span>[%ebx]&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039fa</span><span>:&nbsp;&nbsp;testl&nbsp;&nbsp;%eax,&nbsp;%eax&nbsp;&nbsp;</span></span></li><li><span><span class="number">0x6d9039fc</span><span>:&nbsp;&nbsp;jne&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="number">0x6d903a91</span><span>&nbsp;&nbsp;</span></span></li></ol></div><pre class="command prompt" name="code" style="display: none;" codeable_id="729214" codeable_type="Blog" source_url="http://rednaxelafx.iteye.com/blog/729214" pre_index="2" title="借助HotSpot SA来反汇编">0x6d9039f1:  movl	%eax, [%ecx]
+0x6d9039f3:  pushl	%ebx
+0x6d9039f4:  call	44[%eax]
+0x6d9039f7:  movl	%eax, 4[%ebx]
+0x6d9039fa:  testl	%eax, %eax
+0x6d9039fc:  jne	0x6d903a91</pre>
+<br>可以看到在地址0x6d9039f1的指令是mov eax, 
+[ecx]，对ECX寄存器有一个间接读访问，而从日志上可以看到此时ECX寄存器的值为0x00000008。在32位Windows 
+XP上0x00000000-0x0000FFFF是保护区域，尝试对该区域读写会引发访问异常。这里程序试图从0x00000008读取一个DWORD
+赋值给EAX，印证了它是日志中访问异常的事发地。当然，真正导致该问题的代码肯定在更前面的地方，但确认事发地的状况也算是个好的开始。
+<br>
+<br>SA反汇编出来的汇编代码语法既不是AT&amp;T系的（<a href="http://www.gnu.org/software/binutils/" target="_blank">GNU as</a>用这种），也不是Intel系的（<a href="http://www.masm32.com/" target="_blank">MASM</a>、<a href="http://www.nasm.us/" target="_blank">NASM</a>用这种），感觉有那么点怪。
+<br>与Intel系的相似点是参数顺序，目标在前，源在后；间接引用以方括号表示。
+<br>与AT&amp;T系相似的是寄存器带有%前缀，而且间接引用的偏移量写在括号的前面；指令带有宽度后缀。
+<br>总之需要点时间来习惯…
+<br>
+<br>反汇编器这部分的实现与SA的其它相对独立，要抽出来单独用也没什么问题。有需要的话抽个出来改造成纯MASM语法输出或许会有用。
+<br>
+<br>Alright，今天就废话到这里～
+  </div>
+
+  
+  <div class="attachments">
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0028/8278/8cfb7237-7867-338b-a17e-b26ec5829f57.png" target="_blank"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/8cfb7237-7867-338b-a17e-b26ec5829f57-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 199.8 KB</li>
+        </ul>
+      
+    
+      
+        <ul style="display:none;">
+          <li><a href="http://dl2.iteye.com/upload/attachment/0028/8280/9d1ca318-fee0-3962-8dac-f2474c7caee6.png" target="_blank"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/9d1ca318-fee0-3962-8dac-f2474c7caee6-thumb.png" class="magplus" title="点击查看原始大小图片"></a></li>
+          
+          <li>大小: 205.1 KB</li>
+        </ul>
+      
+    
+    
+      <ul>
+        <li><a href="#" onclick="$$('div.attachments ul').invoke('show');$(this).up(1).hide();return false;">查看图片附件</a></li>
+      </ul>
+    
+  </div>
+
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://rednaxelafx.iteye.com/blog/730461" class="next" title="借助HotSpot SA来一窥PermGen上的对象">借助HotSpot SA来一窥PermGen上的对象</a>
+      |
+      <a href="http://rednaxelafx.iteye.com/blog/727938" class="pre" title="如何dump出一个Java进程里的类对应的Class文件？">如何dump出一个Java进程里的类对应的Class ...</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2010-08-04 20:59</li>
+      <li>浏览 6071</li>
+      <li><a href="#comments">评论(18)</a></li>
+      
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/729214" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1455589744328_328.jpg" alt="" height="58" width="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36374</em>&nbsp;&nbsp;关注 <i>|</i> <em>3139</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1465887837340_340.jpg" alt="" height="58" width="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3153</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1479972981201_201.jpg" alt="" height="58" width="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>15234</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1453701371636_636.jpg" alt="" height="58" width="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>31620</em>&nbsp;&nbsp;关注 <i>|</i> <em>3748</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2361400">
+  <div class="comment_title">
+    18 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-10-25&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">Ferdiknight 写道</div><div class="quote_div">R大，HSDB有什么命令是可以拿到对应方法的机器码数据的吗，比如某个方法地址是0x35xxxxx,pc=0x2bxxxxx，然后mem 0x35xxxxx size 这个得到的是不是对应这个方法的native code 的内容啊？</div><br>看help就知道了。如果你的HSDB正常启动了的话（sa.js正确加载了），那么“dis”命令就是把机器指令反汇编的。它的格式是<br id=""><pre class="" name="code">dis address [length]</pre><br>其中address是机器指令的起始地址。length是想反汇编的数据的长度。<br><br>你问的问题的话pc那个值才是机器码相关的。<br><br>还有个比较新的disassemble命令也行。这个接收的参数是CodeBlob或者nmethod的起始地址。<br><br>注意：在<a rel="nofollow" href="https://bugs.openjdk.java.net/browse/JDK-6879063" target="_blank">JDK-6879063: SA should use hsdis for disassembly</a>之后，SA会用hsdis插件来反汇编，这样只要支持hsdis的平台都能在SA里看反汇编；在它之前SA只能在x86（32位）上反汇编。<br></div>
+</div>
+
+<div id="bc2361388">
+  <div class="comment_title">
+    17 楼
+    <a href="http://ferdiknight.iteye.com/" target="_blank" title="Ferdiknight">Ferdiknight</a>
+    2014-10-24&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">R大，HSDB有什么命令是可以拿到对应方法的机器码数据的吗，比如某个方法地址是0x35xxxxx,pc=0x2bxxxxx，然后mem 0x35xxxxx size 这个得到的是不是对应这个方法的native code 的内容啊？</div>
+</div>
+
+<div id="bc2361186">
+  <div class="comment_title">
+    16 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-10-23&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">Ferdiknight 写道</div><div class="quote_div">今天在新机器上搞了个1.3.8，用的jdk7u55 ，为啥只显示oop的地址了，不显示klass的地址了-_- 不幸福，这个是跟saplugin有关，还是跟jdk的sa-jdi.jar有关系啊</div><br>跟sa-jdi.jar的实现有关，而跟SAPlugin没关系。JDK7u的SA有些bug使得metadata字段不一定会显示出来。</div>
+</div>
+
+<div id="bc2361168">
+  <div class="comment_title">
+    15 楼
+    <a href="http://ferdiknight.iteye.com/" target="_blank" title="Ferdiknight">Ferdiknight</a>
+    2014-10-22&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">今天在新机器上搞了个1.3.8，用的jdk7u55 ，为啥只显示oop的地址了，不显示klass的地址了-_- 不幸福，这个是跟saplugin有关，还是跟jdk的sa-jdi.jar有关系啊</div>
+</div>
+
+<div id="bc2342628">
+  <div class="comment_title">
+    14 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-03-19&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">zking3 写道</div><div class="quote_div">R，我晚上下载了好几个版本的VisualVM，然后添加SAPlugin，但是重启后，选项卡那里还是没有，没有那个蓝色的小图标SAPlugin。试了好几个版本都没。</div><br>您用的VisualVM是不是很新的，或者说是很新的JDK自带的？<br>如果是的话，试试用stand-alone的VisualVM。如果不行的话试试1.3.1之前的版本。</div>
+</div>
+
+<div id="bc2342377">
+  <div class="comment_title">
+    13 楼
+    <a href="http://guanping1.iteye.com/" target="_blank" title="zking3">zking3</a>
+    2014-03-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">R，我晚上下载了好几个版本的VisualVM，然后添加SAPlugin，但是重启后，选项卡那里还是没有，没有那个蓝色的小图标SAPlugin。试了好几个版本都没。</div>
+</div>
+
+<div id="bc2225534">
+  <div class="comment_title">
+    12 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2011-10-29&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">bluesleaf 写道</div><div class="quote_div">撒迦同学，我用的win7，<a rel="nofollow" href="http://www.oracle.com/technetwork/java/javase/downloads/jdk-7u1-download-513651.html" target="_blank">JDK 1.7.0_01</a>，visualvm 1.3.3，jdkhome也指定了，安装完SA插件，程序也是用JDK7跑的，但打开进程就是看不到SA Plugin的tab，visual gc的tab也可以看到，不知道是为啥呢<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_redface.gif"> </div><br>据说VisualVM 1.3.x都有点诡异？回头我找台Windows的机器来试试</div>
+</div>
+
+<div id="bc2225527">
+  <div class="comment_title">
+    11 楼
+    <a href="http://bluesleaf.iteye.com/" target="_blank" title="bluesleaf">bluesleaf</a>
+    2011-10-29&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">撒迦同学，我用的win7，<a rel="nofollow" href="http://www.oracle.com/technetwork/java/javase/downloads/jdk-7u1-download-513651.html" target="_blank">JDK 1.7.0_01</a>，visualvm 1.3.3，jdkhome也指定了，安装完SA插件，程序也是用JDK7跑的，但打开进程就是看不到SA Plugin的tab，visual gc的tab也可以看到，不知道是为啥呢<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_redface.gif"> </div>
+</div>
+
+<div id="bc2175472">
+  <div class="comment_title">
+    10 楼
+    <a href="http://igotti.iteye.com/" target="_blank" title="igotti">igotti</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">igotti 写道</div><div class="quote_div">哦，话说翻译的有点不给力啊。只能先“读书不求甚解”式的把前6章看一遍。</div><br>翻译怎样个不给力法？我没读过中文版的，一直不知道这本的翻译质量如何</div><br>没读过英文版，且中文版目前只读了前两章。这只是一种感觉，抑或是这本书本身的难度对阅<br><br>读造成的影响。<br></div>
+</div>
+
+<div id="bc2175432">
+  <div class="comment_title">
+    9 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">igotti 写道</div><div class="quote_div">哦，话说翻译的有点不给力啊。只能先“读书不求甚解”式的把前6章看一遍。</div><br>翻译怎样个不给力法？我没读过中文版的，一直不知道这本的翻译质量如何</div>
+</div>
+
+<div id="bc2175419">
+  <div class="comment_title">
+    8 楼
+    <a href="http://igotti.iteye.com/" target="_blank" title="igotti">igotti</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">计算机组织与结构相关的内容如果有比较好的基础的话，对理解虚拟机也会有帮助。<br>毕竟要虚拟机要模拟的东西就是某种体系结构。<br>不过我觉得读不懂的话完全不需要着急。记得我是08年左右买到的那本书的影印版，前后已经读了很多遍了，花了颇长时间才渐渐觉得里面的内容变得易懂了。<br>哦，话说翻译的有点不给力啊。只能先“读书不求甚解”式的把前6章看一遍。</div>
+</div>
+
+<div id="bc2175367">
+  <div class="comment_title">
+    7 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">igotti 写道</div><div class="quote_div">最近在读虚拟机：系统与进程的通用平台，发现很多知识点对我来说比较朦胧，好想知道，但是又不能全然领悟书中的观点。是不是知识储备不够？需要补充哪方面的知识？</div><br>计算机组织与结构相关的内容如果有比较好的基础的话，对理解虚拟机也会有帮助。<br>毕竟要虚拟机要模拟的东西就是某种体系结构。<br>不过我觉得读不懂的话完全不需要着急。记得我是08年左右买到的那本书的影印版，前后已经读了很多遍了，花了颇长时间才渐渐觉得里面的内容变得易懂了。</div>
+</div>
+
+<div id="bc2175349">
+  <div class="comment_title">
+    6 楼
+    <a href="http://igotti.iteye.com/" target="_blank" title="igotti">igotti</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">igotti 写道</div><div class="quote_div">为什么安装saplugin的时候提示实用程序 API 版本 太低。 我是用jdkhome选项启动的visualvm。<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_confused.gif"> </div><br>你用的JDK版本是什么？这篇的开头就写了在Windows上的话一定要用JDK7才行。我的建议是安装一个新版本的JDK7，并且去下载一个单独的VisualVM（因为现在JDK7里的VisualVM有点小问题所以去下单独的版本吧）。</div><br>哦，正在下载visualvm。<br><br>那啥顺道再问个问题：<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_biggrin.gif"> <br><br>最近在读虚拟机：系统与进程的通用平台，发现很多知识点对我来说比较朦胧，好想知道，但是又不能全然领悟书中的观点。是不是知识储备不够？需要补充哪方面的知识？</div>
+</div>
+
+<div id="bc2175290">
+  <div class="comment_title">
+    5 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">igotti 写道</div><div class="quote_div">为什么安装saplugin的时候提示实用程序 API 版本 太低。 我是用jdkhome选项启动的visualvm。<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_confused.gif"> </div><br>你用的JDK版本是什么？这篇的开头就写了在Windows上的话一定要用JDK7才行。我的建议是安装一个新版本的JDK7，并且去下载一个单独的VisualVM（因为现在JDK7里的VisualVM有点小问题所以去下单独的版本吧）。</div>
+</div>
+
+<div id="bc2175285">
+  <div class="comment_title">
+    4 楼
+    <a href="http://igotti.iteye.com/" target="_blank" title="igotti">igotti</a>
+    2011-06-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">为什么安装saplugin的时候提示实用程序 API 版本 太低。 我是用jdkhome选项启动的visualvm。<img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_confused.gif"> </div>
+</div>
+
+<div id="bc1671365">
+  <div class="comment_title">
+    3 楼
+    <a href="http://lwwin.iteye.com/" target="_blank" title="lwwin">lwwin</a>
+    2010-09-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">好吧－ －其实想着反得－ －打字就偏偏少了一个字……</div>
+</div>
+
+<div id="bc1611426">
+  <div class="comment_title">
+    2 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2010-08-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">lwwin 写道</div><div class="quote_div">就是可以用它汇编－ －？水水没怎么用过GNU系列的，那种符号感觉更贴近GNU的=0=！</div>
+<br>是用它“反汇编”，不是“汇编”……这玩儿只能从机器码转换到汇编，没法从汇编转换到机器码啦。</div>
+</div>
+
+<div id="bc1611365">
+  <div class="comment_title">
+    1 楼
+    <a href="http://lwwin.iteye.com/" target="_blank" title="lwwin">lwwin</a>
+    2010-08-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">就是可以用它汇编－ －？水水没怎么用过GNU系列的，那种符号感觉更贴近GNU的=0=！
+<br>
+<br>一时间前面几个名字没看懂……</div>
+</div>
+
+
+    
+    
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://rednaxelafx.iteye.com/login" style="background-color:white;"> <img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://rednaxelafx.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 729214;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '借助HotSpot SA来反汇编');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '借助HotSpot SA来反汇编');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://rednaxelafx.iteye.com/"><img alt="RednaxelaFX的博客" class="logo" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13.jpg" title="RednaxelaFX的博客: Script Ahead, Code Behind" width=""></a></div>
+  <div id="blog_owner_name">RednaxelaFX</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 2095800 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 海外</li>
+              <li><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://rednaxelafx.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://limelife.iteye.com/" target="_blank"><img alt="limelife的博客" class="logo" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/7606e836-00ca-3996-bbe3-48162fe34b38-thumb.jpg" title="limelife的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://limelife.iteye.com/" target="_blank" title="limelife">limelife</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://vinozly.iteye.com/" target="_blank"><img alt="Vinozly的博客" class="logo" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="Vinozly的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://vinozly.iteye.com/" target="_blank" title="Vinozly">Vinozly</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://enzoy.iteye.com/" target="_blank"><img alt="chencvgk的博客" class="logo" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/bcacca25-3b8c-3a4e-85b1-dc6b8a68540e-thumb.jpg" title="chencvgk的博客: ITEYE" width="48px"></a></div>
+                <div class="left"><a href="http://enzoy.iteye.com/" target="_blank" title="chencvgk">chencvgk</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://mooo.iteye.com/" target="_blank"><img alt="Mooo的博客" class="logo" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="Mooo的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://mooo.iteye.com/" target="_blank" title="Mooo">Mooo</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://rednaxelafx.iteye.com/">全部博客 (430)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21342">Programming Languages (23)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29010">Compiler (20)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/61298">Virtual Machine (57)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/162321">Garbage Collection (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/162318">HotSpot VM (26)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/78968">Mono (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/33627">SSCLI Rotor (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/60345">Harmony (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/31968">DLR (19)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29044">Ruby (28)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21339">C# (38)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/51666">F# (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/58920">Haskell (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27795">Scheme (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28215">Regular Expression (5)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/43041">Python (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/26952">ECMAScript (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22618">JavaScript (18)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22068">ActionScript (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27153">Squirrel (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/36305">C (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22307">C++ (10)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21340">D (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/66462">.NET (13)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22617">Java (86)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/146196">Scala (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/99374">Groovy (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/21352">Optimization (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27144">Data Structure and Algorithm (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/34556">Books (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/52245">WPF (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24366">Game Engines (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22003">吉里吉里 (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23065">UML (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24338">Reverse Engineering (11)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22696">NSIS (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24088">Utilities (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/29744">Design Patterns (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/25057">Visual Studio (9)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/54389">Windows 7 (3)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/73928">x86 Assembler (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/22830">Android (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/25305">School Assignment / Test (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/24349">Anti-virus (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27193">REST (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28651">Profiling (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23669">misc (39)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/23661">NetOA (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/27815">rant (6)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/65667">anime (5)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/28622">Links (12)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/165300">CLR (7)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/165301">GC (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/226933">OpenJDK (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/251929">JVM (4)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/275192">KVM (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279009">Rhino (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279045">LINQ (2)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/279221">JScript (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/280142">Nashorn (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/287977">Dalvik (1)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/293492">DTrace (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/302419">LLVM (0)</a></li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/category/329856">MSIL (0)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://rednaxelafx.iteye.com/blog/news">我的资讯</a> (1)</li>
+                <li>
+                  <a href="http://rednaxelafx.iteye.com/blog/post">我的论坛</a> (576)
+                </li>
+                <li><a href="http://rednaxelafx.iteye.com/blog/answered_problems">我的问答</a> (364)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2014-12">2014-12</a> (1)</li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2014-03">2014-03</a> (2)</li>
+                
+                  <li><a href="http://rednaxelafx.iteye.com/blog/monthblog/2013-11">2013-11</a> (2)</li>
+                
+                <li><a href="http://rednaxelafx.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://ph7-3.iteye.com/" target="_blank" title="ph7.3">ph7.3</a>： 
+                  jdk8下 scanoops 时出现这个问题：Windbg E ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/1847971#bc2398388">借HSDB来探索HotSpot VM的运行时数据</a>
+                </li>
+                
+                <li>
+                  <a href="http://xiyueshenyan.iteye.com/" target="_blank" title="xiyueshenyan">xiyueshenyan</a>： 
+                  Virtual Machines: Versatile Pla ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/1886170#bc2398056">豆列：从表到里学习JVM实现</a>
+                </li>
+                
+                <li>
+                  <a href="http://yao88611852.iteye.com/" target="_blank" title="yao88611852">yao88611852</a>： 
+                  beneo 写道发现google的java项目灰常灰长很喜欢b ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/788306#bc2397763">Gson使用中遇到的Date格式问题</a>
+                </li>
+                
+                <li>
+                  <a href="http://twsxtd.iteye.com/" target="_blank" title="twsxtd">twsxtd</a>： 
+                  Jefen 写道RednaxelaFX 写道.....公司网络 ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/858009#bc2397452">Java虚拟机分享演示稿2010-12-28版</a>
+                </li>
+                
+                <li>
+                  <a href="http://tuzwu.iteye.com/" target="_blank" title="化蝶自在飞">化蝶自在飞</a>： 
+                  rss?n=xxxx 这个n参数已经无效了.这是不让导出的意思 ...<br>
+                  <a href="http://rednaxelafx.iteye.com/blog/588507#bc2397212">JavaEye博客备份脚本订制版</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/a.gif" height="0" width="0">
+
+<script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking.js" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/async_new.js"></script>
+<script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/jquery-1.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking_002.js" type="text/javascript"></script>
+    
+	    
+	    <script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/web-storage-cache.js" type="text/javascript"></script>
+	    <script src="%E5%80%9F%E5%8A%A9HotSpot%20SA%E6%9D%A5%E5%8F%8D%E6%B1%87%E7%BC%96%20-%20Script%20Ahead,%20Code%20Behind%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/replace.js" type="text/javascript"></script>
+    
+    
+  
+
+</body></html>

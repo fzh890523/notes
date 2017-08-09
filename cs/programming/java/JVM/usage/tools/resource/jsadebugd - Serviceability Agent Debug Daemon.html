@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="copyright" content="2004, 2010" />
+ 
+
+  <title>jsadebugd - Serviceability Agent Debug Daemon</title>
+
+</head>
+
+<body>
+<!-- BEGIN A2 COMPONENT V.1 -->
+<div class="a2w0"
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/popUp.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/sniff.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucontent.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucode.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/developer.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/other/js/search.js"></script>
+<link rel="stylesheet" href="../../../../../webdesign/pubs/css/default_developer.css" />
+<meta name="collection" content="reference"> <div class="a2" id="a2v1">
+<div class="a2w1"><div class="a2w2"><div class="a2w3"><div class="a2w4">
+<div class="a2topiclinks">
+<a href="http://www.oracle.com" title="Oracle Home Page" id="sunlogo"><img src="../../../../../webdesign/pubs/im/a.gif" alt="Home Page" width="98" height="58" border="0" /></a>
+
+<ul id="mtopics">
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="See Oracle Technology Network" href="http://oracle.com/technology">Oracle Technology Network</a></li>
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="Software Downloads" href="http://www.oracle.com/technology/software/index.html">Software Downloads</a></li>
+<li id="mtopic2"><a id="glink2" class="tpclink a2menu" title="See All Documentation" href="http://www.oracle.com/technology/documentation/index.html">Documentation</a></li>
+</ul>
+
+<div class="a2search">
+<a href="../../../../../search.html" target="_blank">Search</a>
+</div>
+
+</div>
+</div></div></div></div>
+</div></div>
+<!-- END A2 COMPONENT V.1 -->
+
+<div class="a0 a0v1" id="a0v1">
+
+<!-- BEGIN SEPARATOR -->
+<div class="hr"><hr /></div>
+<!-- END SEPARATOR -->
+
+<!-- ============ -->
+<!-- MAIN CONTENT -->
+<!-- ============ -->
+  <div class="smallpagetitle"><h1>jsadebugd - Serviceability Agent Debug Daemon</h1></div>
+
+  <ul>
+    <li><a href="#synopsis">Synopsis</a></li>
+
+    <li><a href="#parameters">Parameters</a></li>
+
+    <li><a href="#description">Description</a></li>
+
+    <li><a href="#seealso">See Also</a></li>
+  </ul>
+
+  <h2><a name="synopsis"/>SYNOPSIS</h2>
+
+  <blockquote>
+    <pre>
+<b>jsadebugd</b> pid [ server-id ]
+<b>jsadebugd</b> executable core [ server-id ]
+</pre>
+  </blockquote>
+
+  <h2><a name="parameters"/>PARAMETERS</h2>
+
+  <blockquote>
+    <dl>
+      <dt><span style="font-weight: bold;">pid</span></dt>
+
+      <dd>process id of the process to which the debug server
+      should attach. The process must be a Java process. To get a
+      list of Java processes running on a machine, <a href=
+      "jps.html">jps</a> may be used. At most one instance of the
+      debug server may be attached to a single process.</dd>
+    </dl>
+
+    <dl>
+      <dt><span style="font-weight: bold;">executable</span></dt>
+    </dl>
+
+    <dl style="margin-left: 40px;">
+      <dt>Java executable from which the core dump was
+      produced</dt>
+    </dl>
+
+    <dl>
+      <dt><span style="font-weight: bold;">core</span></dt>
+
+      <dd>Core file to which the debug server should attach.</dd>
+    </dl>
+    <dl>
+    <dt>
+    <span style="font-weight: bold;">server-id</span></dt>
+
+    <dd>
+      Optional unique id, needed if multiple debug servers are
+      started on the same machine. This ID must be used by remote
+      clients to identify the particular debug server to attach.
+      Within a single machine, this ID must be unique.
+    </dd></dl>
+  </blockquote>
+
+  <h2><a name="description" id="description">DESCRIPTION</a></h2>
+
+  <blockquote>
+  <p>
+    <b>jsadebugd</b> attaches to a Java process or core file and
+    acts as a debug server. Remote clients such as <a href=
+    "jstack.html">jstack</a>, <a href="jmap.html">jmap</a>, and
+    <a href="jinfo.html">jinfo</a> can attach to the server using
+    Java Remote Method Invocation (RMI). Before starting
+    <code>jsadebugd</code>, <a href=
+    "../index.html#rmi">rmiregistry</a> must be started with:
+</p>
+    <blockquote>
+      <pre>
+<code>rmiregistry -J-Xbootclasspath/p:$JAVA_HOME/lib/sajdi.jar</code>
+</pre>
+    </blockquote>
+    <p>
+    where <code>$JAVA_HOME</code> is the JDK
+    installation directory. If rmiregistry was not started,
+    jsadebugd will start an rmiregistry in a standard (1099) port
+    internally. Debug server may be stopped by sending SIGINT
+    (pressing Ctrl-C) to it.
+</p>
+    <p><b>NOTE - This utility is unsupported and may or may not be available in future versions of the JDK. In Windows Systems where <tt>dbgeng.dll</tt> is not present, 'Debugging Tools for Windows' needs to be installed to have these tools working.  Also, the <tt>PATH</tt> environment variable should contain the location of <tt>jvm.dll</tt> used by the target process or the location from which the Crash Dump file was produced.</b></p>
+<p>
+<b>For example, <tt>set PATH=&lt;jdk&gt;\jre\bin\client;%PATH%</b></p>
+  </blockquote>
+
+  <h2><a name="seealso">SEE ALSO</a></h2>
+
+    <ul>
+      <li><a href="jinfo.html">jinfo</a></li>
+
+      <li><a href="jmap.html">jmap</a></li>
+
+      <li><a href="jps.html">jps</a></li>
+
+      <li><a href="jstack.html">jstack</a></li>
+
+      <li><a href="../index.html#rmi">rmiregistry</a></li>
+    </ul>
+
+
+
+
+<div class="hr"><hr /></div>
+<table summary="layout" border="0" width="100%">
+<tr valign="TOP">
+<td width="30%"> <img src="../../../../../webdesign/pubs/im/logo_oracle_footer.gif" alt="Oracle and/or its affiliates" border="0" width="100" height="29" /><br />
+<font size="+1"> <i>Java Technology</i></font> </td>
+
+<td width="30%">
+<p><font size ="-2">
+<a href="../../../legal/cpyr.html">Copyright &#169;</a> 1993, 2016, Oracle and/or its affiliates. All rights reserved.
+</font></p> 
+</td>
+<td width="30%">
+<p align="right"><font size="-2"><a href="http://download.oracle.com/javase/feedback.html">Contact Us</a></p>
+</td>
+</tr>
+</table> 
+<div class="hr"><hr /></div>
+</div>
+
+<!-- Start SiteCatalyst code   -->
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code_download.js"></script>
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code.js"></script>
+ 
+<!-- ********** DO NOT ALTER ANYTHING BELOW THIS LINE ! *********** -->
+<!--  Below code will send the info to Omniture server -->
+<script language="javascript">var s_code=s.t();if(s_code)document.write(s_code)</script>
+ 
+<!-- End SiteCatalyst code -->
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>epoll LT/ET 深度剖析 - dongfuye - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=m_FXmwz3wxZoecUwNEK23PAzc-j9vbX_C6MblJ5ouMc1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/ClearGertrude/bundle-ClearGertrude.css?v=nXd7A2mXPlCDquT0Fv2noIJmYNlG9k_aSdW4dtprbvg1"/>
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="/skins/ClearGertrude/bundle-ClearGertrude-mobile.css?v=KHI1Jz2mwH4BJTdg34zd6Kp3VwhYzr7HQOHQJNbIdw41"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/dongfuye/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/dongfuye/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/dongfuye/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'dongfuye', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=E1-LyrzANB2jbN9omtnpOHx3eU0Kt3DyislfhU0b5p81" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<div id="header">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/dongfuye/">dongfuye</a></h1>
+<p id="tagline"></p></div>
+<div id="main">
+	
+<div id="post_detail">
+	<div class="post">
+		<h2>
+			<a id="cb_post_title_url" href="http://www.cnblogs.com/dongfuye/p/5274544.html">epoll LT/ET 深度剖析</a>
+		</h2>
+		<div class="postText"><div id="cnblogs_post_body" class="cnblogs-markdown"><h3 id="epoll事件的两种模型">EPOLL事件的两种模型：</h3>
+<p>Level Triggered (LT) 水平触发<br />
+.socket接收缓冲区不为空 有数据可读 读事件一直触发<br />
+.socket发送缓冲区不满 可以继续写入数据 写事件一直触发<br />
+符合思维习惯，epoll_wait返回的事件就是socket的状态</p>
+<p>Edge Triggered (ET) 边沿触发<br />
+.socket的接收缓冲区状态变化时触发读事件，即空的接收缓冲区刚接收到数据时触发读事件<br />
+.socket的发送缓冲区状态变化时触发写事件，即满的缓冲区刚空出空间时触发读事件<br />
+仅在状态变化时触发事件</p>
+<h3 id="et还是lt">ET还是LT?</h3>
+<p>LT的处理过程：<br />
+. accept一个连接，添加到epoll中监听EPOLLIN事件<br />
+. 当EPOLLIN事件到达时，read fd中的数据并处理<br />
+. 当需要写出数据时，把数据write到fd中；如果数据较大，无法一次性写出，那么在epoll中监听EPOLLOUT事件<br />
+. 当EPOLLOUT事件到达时，继续把数据write到fd中；如果数据写出完毕，那么在epoll中关闭EPOLLOUT事件</p>
+<p>ET的处理过程：<br />
+. accept一个一个连接，添加到epoll中监听EPOLLIN|EPOLLOUT事件<br />
+. 当EPOLLIN事件到达时，read fd中的数据并处理，read需要一直读，直到返回EAGAIN为止<br />
+. 当需要写出数据时，把数据write到fd中，直到数据全部写完，或者write返回EAGAIN<br />
+. 当EPOLLOUT事件到达时，继续把数据write到fd中，直到数据全部写完，或者write返回EAGAIN</p>
+<p>从ET的处理过程中可以看到，ET的要求是需要一直读写，直到返回EAGAIN，否则就会遗漏事件。而LT的处理过程中，直到返回EAGAIN不是硬性要求，但通常的处理过程都会读写直到返回EAGAIN，但LT比ET多了一个开关EPOLLOUT事件的步骤</p>
+<p>LT的编程与poll/select接近，符合一直以来的习惯，不易出错<br />
+ET的编程可以做到更加简洁，某些场景下更加高效，但另一方面容易遗漏事件，容易产生bug</p>
+<h3 id="例子与测试">例子与测试</h3>
+<p>这里有两个简单的例子演示了LT与ET的用法(其中epoll-et的代码比epoll要少10行)：<br />
+<a href="https://github.com/yedf/handy/blob/master/raw-examples/epoll.cc" class="uri">https://github.com/yedf/handy/blob/master/raw-examples/epoll.cc</a><br />
+<a href="https://github.com/yedf/handy/blob/master/raw-examples/epoll-et.cc" class="uri">https://github.com/yedf/handy/blob/master/raw-examples/epoll-et.cc</a></p>
+<p>针对容易触发LT开关EPOLLOUT事件的情景（让服务器返回1M大小的数据），我用ab做了性能测试<br />
+测试的结果显示ET的性能稍好，详情如下：<br />
+LT 启动命令 ./epoll a<br />
+ET 启动命令 ./epoll-et a<br />
+ab 命令：ab -n 1000 -k 127.0.0.1/<br />
+LT 结果：Requests per second: 42.56 [#/sec] (mean)<br />
+ET 结果：Requests per second: 48.55 [#/sec] (mean)</p>
+<p>当我把服务器返回的数据大小改为48576时，开关EPOLLOUT更加频繁，性能的差异更大<br />
+ab 命令：ab -n 5000 -k 127.0.0.1/<br />
+LT 结果：Requests per second: 745.30 [#/sec] (mean)<br />
+ET 结果：Requests per second: 927.56 [#/sec] (mean)</p>
+<p>对于nginx这种高性能服务器，ET模式是很好的，而其他的通用网络库，很多是使用LT，避免使用的过程中出现bug</p>
+</div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+</div>
+		<p class="postfoot">
+			posted on <span id="post-date">2016-03-14 09:04</span> <a href='http://www.cnblogs.com/dongfuye/'>dongfuye</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>)  <a href ="https://i.cnblogs.com/EditPosts.aspx?postid=5274544" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(5274544);return false;">收藏</a>
+		</p>
+	</div>
+	<script src="//common.cnblogs.com/highlight/9.1.0/highlight.min.js?id=20160127"></script><script>markdown_highlight();</script><script type="text/javascript">var allowComments=true,cb_blogId=193658,cb_entryId=5274544,cb_blogApp=currentBlogApp,cb_blogUserGuid='9d1f4b4b-a91a-e411-8d02-90b11c0b17d6',cb_entryCreatedDate='2016/3/14 9:04:00';loadViewCount(cb_entryId);</script>
+	
+	</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+</div>
+<div id="rightmenu">
+	
+		
+<h3>导航</h3>
+<ul>
+<li><a id="blog_nav_sitehome" href="http://www.cnblogs.com/">博客园</a></li>
+<li><a id="blog_nav_myhome" href="http://www.cnblogs.com/dongfuye/">首页</a></li>
+<li><a id="blog_nav_newpost" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+<li><a id="blog_nav_contact" accesskey="9" rel="nofollow" href="https://msg.cnblogs.com/send/dongfuye">联系</a></li>
+<li><a id="blog_nav_rss" href="http://www.cnblogs.com/dongfuye/rss">订阅</a><a id="blog_nav_rss_image" href="http://www.cnblogs.com/dongfuye/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a></li>
+<li><a id="blog_nav_admin" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		
+<h3>公告</h3>
+<div class="newsItem">
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>					
+		<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+		<div id="blog_stats">
+<h3>统计</h3>
+<ul>
+	<li>随笔 - 10</li>
+	<li>文章 - 0</li>
+	<li>评论 - 7</li>
+	<li>引用 - 0</li>
+ </ul></div>
+		<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+		
+<div id="footer">
+	Powered by: 
+	<br />
+	<a id="Footer1_Hyperlink3" href="http://www.cnblogs.com/" style="font-family:Verdana;font-size:12px;">博客园</a>
+	<br />
+	Copyright &copy; dongfuye
+</div>
+	
+</div>			
+			
+	
+
+</body>
+</html>

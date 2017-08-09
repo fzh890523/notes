@@ -1,0 +1,1326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=us-ascii" /><meta http-equiv="CONTENT-TYPE" content="text/html; charset=us-ascii" /><meta name="GENERATOR" content="StarOffice 8 (Solaris Sparc)" /><meta name="AUTHOR" content="Peter Kessler" /><meta name="CREATED" content="20061026;16255300" /><meta name="CHANGEDBY" content="Peter Kessler" /><meta name="CHANGED" content="20061208;15145100" /><title></title><link rel="shortcut icon" href="../../../images/nanoduke.ico" /><link rel="stylesheet" type="text/css" href="../../../page.css" /><script type="text/javascript" src="../../../page.js"><noscript></noscript></script><style>
+
+        &lt;!--
+                @page { size: 8.5in 11in; margin: 0.79in }
+                P { margin-bottom: 0.08in; widows: 2; orphans: 2; page-break-before: auto }
+                H2 { margin-bottom: 0.08in; widows: 2; orphans: 2; page-break-before: auto }
+                H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+                H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
+                H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
+                H3 { margin-bottom: 0.08in }
+                H4 { margin-bottom: 0.08in }
+                H4.western { font-family: "Albany", sans-serif; font-size: 11pt; font-style: italic }
+                H4.cjk { font-family: "Mincho"; font-size: 11pt; font-style: italic }
+                H4.ctl { font-size: 11pt; font-style: italic }
+                P.sdfootnote { margin-left: 0.2in; text-indent: -0.2in; margin-bottom: 0in; font-size: 10pt }
+        --&gt;
+
+</style></head><body><div id="main">
+<h2 class="western">HotSpot Runtime Overview</h2>
+<p style="margin-bottom: 0.2in"><font size="3">This section
+introduces key concepts associated with the major subsystems of the
+HotSpot runtime system. The following topics are
+covered:</font></p>
+<ul>
+<li>
+<dl>
+<dt><a href="#Command-Line%20Argument%20Processing|outline">Command-Line
+Argument Processing</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#VM%20Lifecycle|outline">VM Lifecycle</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#VM%20Class%20Loading|outline">VM Class
+Loading</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Bytecode%20Verifier%20and%20Format%20Checker|outline">Bytecode
+Verifier and Format Checker</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Class%20Data%20Sharing|outline">Class Data
+Sharing</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Interpreter|outline">Interpreter</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Java%20Exception%20Handling|outline">Java Exception
+Handling</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Synchronization|outline">Synchronization</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Thread%20Management|outline">Thread
+Management</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#C++%20Heap%20Management|outline">C++ Heap
+Management</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Java%20Native%20Interface%20(JNI)|outline">Java
+Native Interface (JNI)</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#VM%20Fatal%20Error%20Handling|outline">VM Fatal Error
+Handling</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#References|outline">References</a></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><a href="#Further%20Reading|outline">Further Reading</a></dt>
+</dl>
+</li>
+</ul>
+<h3><a name="commandline" id="commandline"></a><a name="Command-Line Argument Processing|outline" id="Command-Line Argument Processing|outline"></a> Command-Line
+Argument Processing</h3>
+<p>There are a number of command-line options and environment
+variables that can affect the performance characteristics of the
+Java HotSpot Virtual Machine. Some of these options are consumed by
+the launcher (such as &#8216;<font face="Courier New, monospace">-server</font>&#8217; or
+&#8216;<font face="Courier New, monospace">-client</font>&#8217;),
+some are processed by the launcher and passed to the JVM, while
+most are consumed directly by the JVM.</p>
+<p>There are three main categories of options: standard options,
+non-standard options, and developer options. Standard options are
+expected to be accepted by all JVM implementations and are stable
+between releases (though they can be deprecated). Options that
+begin with <font face="Courier New, monospace">-X</font> are
+non-standard (not guaranteed to be supported on all JVM
+implementations), and are subject to change without notice in
+subsequent releases of the Java SDK. Options that begin with
+<font face="Courier New, monospace">-XX</font> are developer
+options and often have specific system requirements for correct
+operation and may require privileged access to system configuration
+parameters; they are not recommended for casual use. These options
+are also subject to change without notice.</p>
+<p>Command-line flags control the values of internal variables in
+the JVM, all of which have a type and a default value. For boolean
+values, the mere presence or lack of presence of a flag on the
+command-line can control the value of the variables. For
+<font face="Courier New, monospace">-XX</font> boolean flags, a
+&#8216;<font face="Courier New, monospace">+</font>&#8217; or
+'<font face="Courier New, monospace">-</font>' prefix before the
+name indicates a true or false value, respectively. For variables
+that require additional data, there are a number of different
+mechanisms used to pass that data in. Some flags accept the data
+passed in directly after the name of the flag without any
+delineator, while for other flags you have to separate the flag
+name from the data with a &#8216;<font face="Courier New, monospace">:</font>&#8217; or a &#8216;<font face="Courier New, monospace">=</font>&#8217; character. Unfortunately
+the method depends on the particular flag and its parsing
+mechanism. Developer flags (the <font face="Courier New, monospace">-XX</font> flags) appear in only three
+different forms: <font face="Courier New, monospace">-XX:+</font><font face="Courier New, monospace"><i>OptionName</i></font>, <font face="Courier New, monospace">-XX:-</font><font face="Courier New, monospace"><i>OptionName</i></font>, and <font face="Courier New, monospace">-XX:</font><font face="Courier New, monospace"><i>OptionName</i></font><font face="Courier New, monospace">=</font>.</p>
+<p>Most all of the options that take an integer size value will
+accept &#8216;<font face="Courier New, monospace">k</font>&#8217;,
+&#8216;<font face="Courier New, monospace">m</font>&#8217;, or
+&#8216;<font face="Courier New, monospace">g</font>&#8217; suffixes
+which are used a kilo-, mega-, or giga- multipliers for the number.
+These are most often used for arguments that control memory
+sizes.</p>
+<h3 style="page-break-before: always"><a name="startup" id="startup"></a><a name="VM Lifecycle|outline" id="VM Lifecycle|outline"></a> VM Lifecycle</h3>
+<p>The following sections gives an overview of the general purpose
+java launcher pertaining to the lifecyle of the HotSpot VM.</p>
+<h4 class="western">Launcher</h4>
+<p>There are several HotSpot VM launchers in the Java Standard
+Edition, the general purpose launcher typically used is the java
+command on Unix and on Windows java and javaw commands, not to be
+confused with javaws which is a network based launcher.</p>
+<p>The launcher operations pertaining to VM startup are:</p>
+<ol>
+<li>
+<dl>
+<dt>Parse the command line options, some of the command line
+options are consumed by the launcher itself, for example
+<font face="Courier New, monospace">-client</font> or <font face="Courier New, monospace">-server</font> is used to determine and
+load the appropriate VM library, others are passed to the VM using
+<font face="Courier New, monospace"><font size="3">JavaVMInitArgs</font></font>.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Establish the heap sizes and the compiler type (client or
+server) if these options are not explicitly specified on the
+command line.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Establishes the environment variables such as <font face="Courier New, monospace">LD_LIBRARY_PATH</font> and <font face="Courier New, monospace">CLASSPATH</font>.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>If the java Main-Class is not specified on the command line it
+fetches the Main-Class name from the JAR's manifest.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Creates the VM using <font face="Courier New, monospace"><font size="3">JNI_CreateJavaVM</font></font> in a newly created thread (non
+primordial thread). Note: creating the VM in the primordial thread
+greatly reduces the ability to customize the VM, for example the
+stack size on Windows, and many other limitations</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Once the VM is created and initialized, the Main-Class is
+loaded, and the launcher gets the main method's attributes from the
+Main-Class.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The java main method is then invoked in the VM using
+<font face="Courier New, monospace"><font size="3">CallStaticVoidMethod</font></font>, using the marshalled
+arguments from the command line.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Once the java main method completes, its very important to
+check and clear any pending exceptions that may have occurred and
+also pass back the exit status, the exception is cleared by calling
+<font face="Courier New, monospace"><font size="3">ExceptionOccurred</font></font>, the return value of this
+method is 0 if successful, any other value otherwise, this value is
+passed back to the calling process.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The main thread is detached using <font face="Courier New, monospace"><font size="3">DetachCurrentThread</font></font>, by doing so we decrement the
+thread count so the <font face="Courier New, monospace"><font size="3">DestroyJavaVM</font></font> can be called safely, also to
+ensure that the thread is not performing operations in the vm and
+that there are no active java frames on its stack.</dt>
+</dl>
+</li>
+</ol>
+<p>The most important phases are the <font face="Courier New, monospace"><font size="3">JNI_CreateJavaVM</font></font> and <font face="Courier New, monospace"><font size="3">DestroyJavaVM</font></font>
+these are described in the next sections.</p>
+<h4 class="western">JNI_CreateJavaVM</h4>
+<p>The JNI invocation method performs, the following:</p>
+<ol>
+<li>
+<dl>
+<dt>Ensures that no two threads call this method at the same time
+and that no two VM instances are created in the same process.
+Noting that a VM cannot be created in the same process space once a
+point in initialization is reached, &#8220;point of no
+return&#8221;. This is so because the VM creates static data
+structures that cannot be re-initialized, at this time.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Checks to make sure the JNI version is supported, and the
+ostream is initialized for gc logging. The OS modules are
+initialized such as the random number generator, the current pid,
+high-resolution time, memory page sizes, and the guard pages.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The arguments and properties passed in are parsed and stored
+away for later use. The standard java system properties are
+initialized.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The OS modules are further created and initialized, based on
+the parsed arguments and properties, are initialized for
+synchronization, stack, memory, and safepoint pages. At this time
+other libraries such as libzip, libhpi, libjava, libthread are
+loaded, signal handlers are initialized and set, and the thread
+library is initialized.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The output stream logger is initialized. Any agent libraries
+(hprof, jdi) required are initialized and started.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The thread states and the thread local storage (TLS), which
+holds several thread specific data required for the operation of
+threads, are initialized.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The global data is initialized as part of the I phase, such as
+event log, OS synchronization primitives, perfMemory (performance
+memory), chunkPool (memory allocator).</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>At this point, we can create <font face="Courier New, monospace"><font size="3">Threads</font></font>. The
+Java version of the main thread is created and attached to the
+current OS thread. However this thread will not be yet added to the
+known list of the <font face="Courier New, monospace"><font size="3">Threads</font></font>. The Java level synchronization is
+initialized and enabled.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The rest of the global modules are initialized such as the
+<font face="Courier New, monospace"><font size="3">BootClassLoader</font></font>, <font face="Courier New, monospace"><font size="3">CodeCache</font></font>,
+<font face="Courier New, monospace"><font size="3">Interpreter</font></font>, <font face="Courier New, monospace"><font size="3">Compiler</font></font>,
+JNI, <font face="Courier New, monospace"><font size="3">SystemDictionary</font></font>, and <font face="Courier New, monospace"><font size="3">Universe</font></font>.
+Noting that, we have reached our &#8220;point of no return&#8221;,
+ie. We can no longer create another VM in the same process address
+space.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The main thread is added to the list, by first locking the
+<font face="Courier New, monospace"><font size="3">Thread_Lock</font></font>. The Universe, a set of required
+global data structures, is sanity checked. The <font face="Courier New, monospace"><font size="3">VMThread</font></font>,
+which performs all the VM's critical functions, is created. At this
+point the appropriate JVMTI events are posted to notify the current
+state.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The following classes <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.String</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.System</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.ThreadGroup</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.reflect.Method</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.ref.Finalizer</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Class</font></font>, and the rest of the <font face="Lucida Sans Typewriter, monospace"><font size="3">System</font></font> classes, are loaded and initialized. At
+this point, the VM is initialized and operational, but not yet
+fully functional.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The Signal Handler thread is started, the compilers are
+initialized and the CompileBroker thread is started. The other
+helper threads StatSampler and WatcherThreads are started, at this
+time the VM is fully functional, the <font face="Courier New, monospace"><font size="3">JNIEnv</font></font> is
+populated and returned to the caller, and the VM is ready to
+service new JNI requests.</dt>
+</dl>
+</li>
+</ol>
+<h4 class="western">DestroyJavaVM</h4>
+<p>This method can be called from the launcher to tear down the VM,
+it can also be called by the VM itself when a very serious error
+occurs.</p>
+<p>The tear down of the VM takes the following steps:</p>
+<ol>
+<li>
+<dl>
+<dt>Wait until we are the last non-daemon thread to execute, noting
+that the VM is still functional.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Call <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Shutdown.shutdown()</font></font>, which will invoke
+Java level shutdown hooks, run finalizers if
+finalization-on-exit.</dt>
+</dl>
+</li>
+</ol>
+<ol start="2">
+<li>
+<dl>
+<dt>Call <font face="Courier New, monospace"><font size="3">before_exit()</font></font>, prepare for VM exit run VM level
+shutdown hooks (they are registered through <font face="Courier New, monospace"><font size="3">JVM_OnExit()</font></font>), stop the <font face="Courier New, monospace"><font size="3">Profiler</font></font>,
+<font face="Courier New, monospace"><font size="3">StatSampler</font></font>, <font face="Courier New, monospace"><font size="3">Watcher</font></font> and
+<font face="Courier New, monospace"><font size="3">GC</font></font>
+threads. Post the status events to JVMTI/PI, disable JVMPI, and
+stop the Signal thread.</dt>
+</dl>
+</li>
+</ol>
+<ol start="3">
+<li>
+<dl>
+<dt>Call <font face="Courier New, monospace"><font size="3">JavaThread::exit()</font></font>, to release JNI handle blocks,
+remove stack guard pages, and remove this thread from Threads list.
+From this point on we cannot execute any more Java code.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Stop VM thread, it will bring the remaining VM to a safepoint
+and stop the compiler threads. At a safepoint, care should that we
+should not use anything that could get blocked by a Safepoint.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Disable tracing at JNI/JVM/JVMPI barriers.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Set <font face="Courier New, monospace"><font size="3">_vm_exited</font></font> flag for threads that are still
+running native code.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Delete this thread.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Call <font face="Courier New, monospace"><font size="3">exit_globals()</font></font>, which deletes IO and <font face="Courier New, monospace"><font size="3">PerfMemory</font></font>
+resources.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Return to caller.</dt>
+</dl>
+</li>
+</ol>
+<h3><a name="classloading" id="classloading"></a><a name="VM Class Loading|outline" id="VM Class Loading|outline"></a> VM Class Loading</h3>
+<p>The Java Hotspot VM supports class loading as defined by the
+Java Language Specification, Third Edition [1], the Java Virtual
+Machine Specification (JVMS), Second Edition [2] and as amended by
+the updated JVMS chapter 5, Loading, Linking and Initializing
+[3].</p>
+<p>The VM is responsible for resolving constant pool symbols, which
+requires loading, linking and then initializing classes and
+interfaces. We will use the term &#8220;class loading&#8221; to
+describe the overall process of mapping a class or interface name
+to a class object, and the more specific terms loading, linking and
+initializing for the phases of class loading as defined by the
+JVMS.</p>
+<p>The most common reason for class loading is during bytecode
+resolution, when a constant pool symbol in the classfile requires
+resolution. Java APIs such as <font face="Lucida Sans Typewriter, monospace"><font size="3">Class.forName()</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">classLoader.loadClass()</font></font>, reflection APIs, and
+<font face="Courier New, monospace"><font size="3">JNI_FindClass</font></font> can initiate class loading. The VM
+itself can initiate class loading. The VM loads core classes such
+as <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Object</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font>, etc. at JVM startup. Loading a
+class requires loading all superclasses and superinterfaces. And
+classfile verification, which is part of the linking phase, can
+require loading additional classes.</p>
+<p>The VM and Java SE class loading libraries share the
+responsibility for class loading. The VM performs constant pool
+resolution, linking and initialization for classes and interfaces.
+The loading phase is a cooperative effort between the VM and
+specific class loaders (<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.classLoader</font></font>).</p>
+<h4 class="western">Class Loading Phases</h4>
+<p>The load class phase takes a class or interface name, finds the
+binary in classfile format, defines the class and creates the
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Class</font></font> object. The load class phase can
+throw a <font face="Lucida Sans Typewriter, monospace"><font size="3">NoClassDefFound</font></font> error if a binary representation
+can not be found. In addition, the load class phase does format
+checking on the syntax of the classfile, which can throw a
+<font face="Lucida Sans Typewriter, monospace"><font size="3">ClassFormatError</font></font> or <font face="Lucida Sans Typewriter, monospace"><font size="3">UnsupportedClassVersionError</font></font>. Prior to completing
+loading of a class, the VM must load all of its superclasses and
+superinterfaces. If the class hierarchy has a problem such that
+this class is its own superclass or superinterface (recursively),
+then the VM will throw a <font face="Lucida Sans Typewriter, monospace"><font size="3">ClassCircularityError</font></font>. The VM also throws
+<font face="Lucida Sans Typewriter, monospace"><font size="3">IncompatibleClassChangeError</font></font> if the direct
+superinterface is not an interface, or the direct superclass is an
+interface.</p>
+<p>The link class phase first does verification, which checks the
+classfile semantics, checks the constant pool symbols and does type
+checking. These checks can throw a <font face="Lucida Sans Typewriter, monospace"><font size="3">VerifyError</font></font>. Linking then does preparation, which
+creates and initializes static fields to standard defaults and
+allocates method tables. Note that no Java code has yet been run.
+Linking then optionally does resolution of symbolic references.</p>
+<p>Class initialization runs the static initializers, and
+initializers for static fields. This is the first Java code which
+runs for this class. Note that class initialization requires
+superclass initialization, although not superinterface
+initialization.</p>
+<p>The JVMS specifies that class initialization occurs on the first
+&#8220;active use&#8221; of a class. The JLS allows flexibility in
+when the symbolic resolution step of linking occurs as long as we
+respect the semantics of the language, finish each step of loading,
+linking and initializing before performing the next step, and throw
+errors when programs would expect them. For performance, the
+HotSpot VM generally waits until class initialization to load and
+link a class. So if class <font face="Lucida Sans Typewriter, monospace"><font size="3">A</font></font>
+references class <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>,
+loading class <font face="Lucida Sans Typewriter, monospace"><font size="3">A</font></font>
+will not necessarily cause loading of class <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>
+(unless required for verification). Execution of the first
+instruction that references <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>
+will cause initialization of <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>,
+which requires loading and linking of class <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>.</p>
+<h4 class="western">Class Loader Delegation</h4>
+<p>When a class loader is asked to find and load a class, it can
+ask another class loader to do the actual loading. This is called
+class loader delegation. The first loader is an initiating loader,
+and the class loading that ultimately defines the class is called
+the defining loader. In the case of bytecode resolution, the
+initiating loader is the class loader for the class whose constant
+pool symbol we are resolving.</p>
+<p>Class loaders are defined hierarchically and each class loader
+has a delegation parent. The delegation defines a search order for
+binary class representations. The Java SE class loader hierarchy
+searches the bootstrap class loader, the extension class loader and
+the system class loader in that order. The system class loader is
+the default application class loader, which runs &#8220;main&#8221;
+and loads classes from the classpath. The application class loader
+can be a class loader from the Java SE class loader libraries, or
+it can be provided by an application developer. The Java SE class
+loader libraries implement the extension class loader which loads
+classes from the lib/ext directory of the JRE.</p>
+<h4 class="western">Bootstrap Class Loader</h4>
+<p>The VM implements the bootstrap class loader, which loads
+classes from the <font face="Courier New, monospace">BOOTPATH</font>, including for example
+rt.jar. For faster startup, the VM can also process preloaded
+classes via Class Data Sharing.</p>
+<h4 class="western">Type Safety</h4>
+<p>A class or interface name is defined as a fully qualified name
+which includes the package name. A class type is uniquely
+determined by that fully qualified name and the class loader. So a
+class loader defines a namespace, and the same class name loaded by
+two distinct defining class loaders results in two distinct class
+types.</p>
+<p>Given the existence of custom class loaders, the VM is
+responsible for ensuring that non-well-behaved class loaders can
+not violate type safety. See Dynamic Class Loading in the Java
+Virtual Machine [4], and the JVMS 5.3.4 [2]. The VM ensures that
+when class <font face="Lucida Sans Typewriter, monospace"><font size="3">A</font></font>
+calls <font face="Lucida Sans Typewriter, monospace"><font size="3">B.foo()</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">A</font></font>&#8217;s class loader and <font face="Lucida Sans Typewriter, monospace"><font size="3">B</font></font>&#8217;s class loader agree on <font face="Lucida Sans Typewriter, monospace"><font size="3">foo</font></font>&#8217;s parameters and return value, by
+tracking and checking loader constraints.</p>
+<h4 class="western">Class Metadata in HotSpot</h4>
+<p>Class loading creates either an <font face="Courier New, monospace"><font size="3">instanceKlass</font></font>
+or an <font face="Courier New, monospace"><font size="3">arrayKlass</font></font> in the GC permanent generation. The
+instanceKlass refers to a java mirror, which is the instance of
+<font face="Courier New, monospace">java.lang.Class</font>
+mirroring this class. The VM C++ access to the <font face="Courier New, monospace"><font size="3">instanceKlass</font></font>
+is via a <font face="Courier New, monospace"><font size="3">klassOop</font></font>.</p>
+<h4 class="western">HotSpot Internal Class Loading Data</h4>
+<p>The HotSpot VM maintains three main hash tables to track class
+loading. The <font face="Courier New, monospace"><font size="3">SystemDictionary</font></font> contains loaded classes, which
+maps a class name/class loader pair to a <font face="Courier New, monospace"><font size="3">klassOop</font></font>. The
+<font face="Courier New, monospace"><font size="3">SystemDictionary</font></font> contains both class
+name/initiating loader pairs and class name/defining loader pairs.
+Entries are currently only removed at a safepoint. The <font face="Courier New, monospace"><font size="3">PlaceholderTable</font></font> contains classes which are
+currently being loaded. It is used for <font face="Lucida Sans Typewriter, monospace"><font size="3">ClassCircularityError</font></font> checking and for parallel
+class loading for class loaders that support multi-threaded
+classloading. The <font face="Courier New, monospace"><font size="3">LoaderConstraintTable</font></font> tracks constraints for type
+safety checking.</p>
+<p>These hash tables are all protected by the <font face="Courier New, monospace"><font size="3">SystemDictionary_lock</font></font>. In general the load class
+phase in the VM is serialized using the Class loader object
+lock.</p>
+<h3><a name="verifier" id="verifier"></a><a name="Bytecode Verifier and Format Checker|outline" id="Bytecode Verifier and Format Checker|outline"></a> Bytecode
+Verifier and Format Checker</h3>
+<p style="margin-bottom: 0in"><font size="3">The Java language is a
+type-safe language, and standard Java compilers produce valid
+classfiles and type-safe code, but the JVM can't guarantee that the
+code was produced by a trustworthy compiler, so it must reestablish
+that type-safety through a process at link-time called bytecode
+verification.</font></p>
+<p><font size="3">Bytecode verification is specified in section 4.8
+of the Java Virtual Machine Specification. The specification
+prescribes both static and dynamic constraints on the code which
+the JVM verifies. If any violations are found, the VM will throw a
+VerifyError and prevent the class from being linked.</font></p>
+<p><font size="3">Many of the constraints on the bytecodes can be
+checked statically, such as the operand of an
+&#8216;</font><font face="Lucida Sans Typewriter, monospace"><font size="3">ldc</font></font>&#8217;<font size="3">code must be a valid
+constant pool index whose type is</font> <font face="Lucida Sans Typewriter, monospace"><font size="3"><font size="2">CONSTANT_Integer</font></font></font><font size="3">,</font>
+<font face="Lucida Sans Typewriter, monospace"><font size="3"><font size="2">CONSTANT_String</font></font></font><font size="3">or</font> <font face="Lucida Sans Typewriter, monospace"><font size="3"><font size="2">CONSTANT_Float</font></font></font><font size="3">. Other
+constraints which check the type and number of arguments for other
+instructions requires dynamic analysis of the code to determine
+which operands will be present on the expression stack during
+execution.</font></p>
+<p><font size="3">There are currently two methods of analyzing the
+bytecodes to determine the types and number of operands that will
+be present for each instruction. The traditional method is called
+&#8220;type inference&#8221;, and operates by performing an
+abstract interpretation of each bytecode and merging type states at
+branch targets or exception handles. The analysis iterates over the
+bytecode until a steady state for the types are found. If a steady
+state cannot be found, or if the resulting types violate some
+bytecode constraint, then a <font face="Lucida Sans Typewriter, monospace"><font size="3">VerifyError</font></font> is thrown. The code for this
+verification step is present in the <font face="Courier New, monospace"><font size="3">libverify.so</font></font>
+external library, and uses JNI to gather whatever information is
+needed about classes and types.</font></p>
+<p><font size="3">New in JDK6 is the second method for verification
+which is called &#8220;type verification&#8221;. In this method the
+Java compiler provides the steady-state type information for each
+branch or exception target, via the code attribute, <font face="Lucida Sans Typewriter, monospace"><font size="3">StackMapTable</font></font>. The <font face="Lucida Sans Typewriter, monospace"><font size="3">StackMapTable</font></font> consists of a number of stack map
+frames, each which indicates the types of the items on the
+expression stack and in the local variables at some offset in the
+method. The JVM needs to then only perform one pass through the
+bytecode to verify the correctness of the types to verify the
+bytecode. This is the method already used by JavaME CLDC. Since it
+it smaller and faster, this method of verification is built
+directly in the VM itself.</font></p>
+<p><font size="3">For all classfiles with a version number less
+than 50, such as those created prior to JDK6, the JVM will use the
+traditional type inference method to verify the classfiles. For
+classfiles greater than or equal to 50, the <font face="Lucida Sans Typewriter, monospace"><font size="3">StackMapTable</font></font> attributes will be present and the
+new verifier will be used. Because of the possibility of older
+external tools that might instrument the bytecode but neglect to
+update the <font face="Lucida Sans Typewriter, monospace"><font size="3">StackMapTable</font></font> attribute, certain verification
+errors that occur during type-checking verification may failover to
+the type-inference method. Should that pass succeed, the class file
+will be verified.</font></p>
+<h3><a name="sharing" id="sharing"></a><a name="Class Data Sharing|outline" id="Class Data Sharing|outline"></a>Class Data Sharing</h3>
+<p>Class data sharing (CDS) is a feature introduced in J2SE 5.0
+that is intended to reduce the startup time for Java programming
+language applications, in particular smaller applications, as well
+as reduce footprint. When the JRE is installed on 32-bit platforms
+using the Sun provided installer, the installer loads a set of
+classes from the system jar file into a private internal
+representation, and dumps that representation to a file, called a
+&#8220;shared archive&#8221;. If the Sun JRE installer is not being
+used, this can be done manually, as explained below. During
+subsequent JVM invocations, the shared archive is memory-mapped in,
+saving the cost of loading those classes and allowing much of the
+JVM's metadata for these classes to be shared among multiple JVM
+processes.</p>
+<p>Class data sharing is supported only with the Java HotSpot
+Client VM, and only with the serial garbage collector.</p>
+<p>The primary motivation for including CDS is the decrease in
+startup time it provides. CDS produces better results for smaller
+applications because it eliminates a fixed cost: that of loading
+certain core classes. The smaller the application relative to the
+number of core classes it uses, the larger the saved fraction of
+startup time.</p>
+<p>The footprint cost of new JVM instances has been reduced in two
+ways. First, a portion of the shared archive, currently between
+five and six megabytes, is mapped read-only and therefore shared
+among multiple JVM processes. Previously this data was replicated
+in each JVM instance. Second, since the shared archive contains
+class data in the form in which the Java Hotspot VM uses it, the
+memory which would otherwise be required to access the original
+class information in <font face="Courier New, monospace">rt.jar</font> is not needed. These savings
+allow more applications to be run concurrently on the same machine.
+On Microsoft Windows, the footprint of a process, as measured by
+various tools, may appear to increase, because a larger number of
+pages are being mapped in to the process' address space. This is
+offset by the reduction in the amount of memory (inside Microsoft
+Windows) which is needed to hold portions on <font face="Courier New, monospace"><font size="3">rt.jar</font></font>.
+Reducing footprint remains a high priority.</p>
+<p>In HotSpot, the class data sharing implementation introduces new
+Spaces into the permanent generation which contain the shared data.
+The classes.jsa shared archive is memory mapped into these Spaces
+at VM startup. Subsequently, the shared region is managed by the
+existing VM memory management subsystem.</p>
+<p>Read-only shared data includes constant method objects
+(<font face="Courier New, monospace"><font size="3">constMethodOops</font></font>), symbol objects (<font face="Courier New, monospace"><font size="3">symbolOops</font></font>),
+and arrays of primitives, mostly character arrays.</p>
+<p>Read-write shared data consists of mutable method objects
+(<font face="Courier New, monospace"><font size="3">methodOops</font></font>), constant pool objects (<font face="Courier New, monospace"><font size="3">constantPoolOops</font></font>), VM internal representation of
+Java classes and arrays (<font face="Courier New, monospace"><font size="3">instanceKlass</font></font>es and <font face="Courier New, monospace"><font size="3">arrayKlass</font></font>es), and various <font face="Lucida Sans Typewriter, monospace"><font size="3">String</font></font>, <font face="Lucida Sans Typewriter, monospace"><font size="3">Class</font></font>, and <font face="Lucida Sans Typewriter, monospace"><font size="3">Exception</font></font> objects.</p>
+<h3><a name="interpreter" id="interpreter"></a><a name="Interpreter|outline" id="Interpreter|outline"></a>Interpreter</h3>
+<p>The current HotSpot interpreter, which is used for executing
+bytecodes, is a template based interpreter. The HotSpot runtime
+a.k.a. <font face="Courier New, monospace"><font size="3">InterpreterGenerator</font></font> generates an interpreter in
+memory at the startup using the information in the <font face="Courier New, monospace"><font size="3">TemplateTable</font></font>
+(assembly code corresponding to each bytecode). A template is a
+description of each bytecode. The <font face="Courier New, monospace"><font size="3">TemplateTable</font></font>
+defines all the templates and provides accessor functions to get
+the template for a given bytecode. The non-product flag <font face="Courier New, monospace">-XX:+PrintInterpreter</font> can be used
+to view the template table generated in memory during the VM's
+startup process.</p>
+<p>The template design performs better than a classic
+switch-statement loop for several reasons. First, the switch
+statement performs repeated compare operations, and in the worst
+case it may be required to compare a given command with all but one
+bytecodes to locate the required one. Second, it uses a separate
+software stack to pass Java arguments, while the native C stack is
+used by the VM itself. A number of JVM internal variables, such as
+the program counter or the stack pointer for a Java thread, are
+stored in C variables, which are not guaranteed to be always kept
+in the hardware registers. Management of these software interpreter
+structures consumes a considerable share of total execution
+time.[5]</p>
+<p>Overall, the gap between the VM and the real machine is
+significantly narrowed by the HotSpot interpreter, which makes the
+interpretation speed considerably higher. This, however, comes at a
+price of e.g. large machine-specific chunks of code (roughly about
+10 KLOC (thousand lines of code) of Intel-specific and 14 KLOC of
+SPARC-specific code). Overall code size and complexity is also
+significantly higher, since e.g. the code supporting dynamic code
+generation is needed. Obviously, debugging dynamically generated
+machine code is significantly more difficult than static code.
+These properties certainly do not facilitate implementation of
+runtime evolution, but they don&#8217;t make it infeasible
+either.[5]</p>
+<p>The interpreter calls out to the VM runtime for complex
+operations (basically anything too complicated to do in assembly
+language) such as constant pool lookup.</p>
+<p>The HotSpot interpreter is also a critical part of the overall
+HotSpot adaptive optimization story. Adaptive optimization solves
+the problems of JIT compilation by taking advantage of an
+interesting program property. Virtually all programs spend the vast
+majority of their time executing a minority of their code. Rather
+than compiling method by method, just in time, the Java HotSpot VM
+immediately runs the program using an interpreter, and analyzes the
+code as it runs to detect the critical hot spots in the program.
+Then it focuses the attention of a global native-code optimizer on
+the hot spots. By avoiding compilation of infrequently executed
+code (most of the program), the Java HotSpot compiler can devote
+more attention to the performance-critical parts of the program,
+without necessarily increasing the overall compilation time. This
+hot spot monitoring is continued dynamically as the program runs,
+so that it literally adapts its performance on the fly to the
+user's needs.</p>
+<h3><a name="exceptions" id="exceptions"></a><a name="Java Exception Handling|outline" id="Java Exception Handling|outline"></a> Java Exception Handling</h3>
+<p>Java virtual machines use exceptions to signal that a program
+has violated the semantic constraints of the Java language. For
+example, an attempt to index outside the bounds of an array will
+cause an exception. An exception causes a non-local transfer of
+control from the point where the exception occurred (or was
+<i>thrown</i>) to a point specified by the programmer (or where the
+exception is <i>caught)</i>.[6]</p>
+<p>The HotSpot interpreter, dynamic compilers, and runtime all
+cooperate to implement exception handling. There are two general
+cases of exception handling: either the exception is thrown or
+caught in the same method, or it's caught by a caller. The latter
+case is more complicated and requires <i>stack unwinding</i> to
+find the appropriate handler.</p>
+<p>Exceptions can be initiated by the <i>throw</i> bytecode, a
+return from a VM-internal call, a return from a JNI call, or a
+return from a Java call. (The last case is really just a later
+stage of the first 3.) When the VM recognizes that an exception has
+been thrown, the runtime system is invoked to find the nearest
+handler for that exception. Three pieces of information are used to
+find the handler; the current method, the current bytecode, and the
+exception object. If a handler is not found in the current method,
+as mentioned above, the current activation stack frame is popped
+and the process is iteratively repeated for previous frames.</p>
+<p>Once the correct handler is found, the VM execution state is
+updated, and we jump to the handler as Java code execution is
+resumed.</p>
+<h3><a name="synchronization" id="synchronization"></a><a name="Synchronization|outline" id="Synchronization|outline"></a>
+Synchronization</h3>
+<p>Broadly, we can define &#8220;synchronization&#8221; as a
+mechanism that prevents, avoids or recovers from the inopportune
+interleavings (commonly called &#8220;races&#8221;) of concurrent
+operations. In Java, concurrency is expressed through the thread
+construct. Mutual exclusion is a special case of synchronization
+where at most a single thread is permitted access to protected code
+or data.</p>
+<p>HotSpot provides Java monitors by which threads running
+application code may participate in a mutual exclusion protocol. A
+monitor is either locked or unlocked, and only one thread may own
+the monitor at any one time. Only after acquiring ownership of a
+monitor may a thread enter the critical section protected by the
+monitor. In Java, critical sections are referred to as
+"synchronized blocks", and are delineated in code by the
+<font face="Lucida Sans Typewriter, monospace"><font size="3"><span style="font-style: normal">synchronized</span></font></font>
+statement.</p>
+<p>If a thread attempts to lock a monitor and the monitor is in an
+unlocked state, the thread will immediately gain ownership of the
+monitor. If a subsequent thread attempts to gain ownership of the
+monitor while the monitor is locked that thread will not be
+permitted to proceed into the critical section until the owner
+releases the lock and the 2nd thread manages to gain (or is
+granted) exclusive ownership of the lock.</p>
+<p>Some additional terminology: to &#8220;enter&#8221; a monitor
+means to acquire exclusive ownership of the monitor and enter the
+associated critical section. Likewise, to &#8220;exit&#8221; a
+monitor means to release ownership of the monitor and exit the
+critical section. We also say that a thread that has locked a
+monitor now &#8220;owns&#8221; that monitor.
+&#8220;Uncontended&#8221; refers to synchronization operations on
+an otherwise unowned monitor by only a single thread.</p>
+<p>The HotSpot VM incorporates leading-edge techniques for both
+uncontended and contended synchronization operations which boost
+synchronization performance by a large factor.</p>
+<p>Uncontended synchronization operations, which comprise the
+majority of synchronizations, are implemented with constant-time
+techniques. With <i>biased locking</i>, in the best case these
+operations are essentially free of cost. Since most objects are
+locked by at most one thread during their lifetime, we allow that
+thread to <em>bias</em> an object toward itself. Once biased, that
+thread can subsequently lock and unlock the object without
+resorting to expensive atomic instructions.[7]</p>
+<p>Contended synchronization operations use advanced adaptive
+spinning techniques to improve throughput even for applications
+with significant amounts of lock contention. As a result,
+synchronization performance becomes so fast that it is not a
+significant performance issue for the vast majority of real-world
+programs.</p>
+<p>In HotSpot, most synchronization is handled through what we call
+&#8221;&#8221;fast-path&#8221; code. We have two just-in-time
+compilers (JITs) and an interpreter, all of which will emit
+fast-path code. The two JITs are &#8220;C1&#8221;, which is the
+<font face="Courier New, monospace">-client</font> compiler, and
+&#8220;C2&#8221;, which is the <font face="Courier New, monospace">-server</font> compiler. C1 and C2 both
+emit fast-path code directly at the synchronization site. In the
+normal case when there's no contention, the synchronization
+operation will be completed entirely in the fast-path. If, however,
+we need to block or wake a thread (in monitorenter or monitorexit,
+respectively), the fast-path code will call into the slow-path. The
+slow-path implementation is in native C++ code while the fast-path
+is emitted by the JITs.</p>
+<p>Per-object synchronization state is encoded in the first word
+(the so-called <i>mark word</i>) of the VM's object representation.
+For several states, the mark word is multiplexed to point to
+additional synchronization metadata. (As an aside, in addition, the
+mark word is also multiplexed to contain GC age data, and the
+object's identity hashCode value.) The states are:</p>
+<ul>
+<li>
+<dl>
+<dt>Neutral: Unlocked</dt>
+</dl>
+</li>
+<li value="1">
+<dl>
+<dt>Biased: Locked/Unlocked + Unshared</dt>
+</dl>
+</li>
+<li value="1">
+<dl>
+<dt>Stack-Locked: Locked + Shared but uncontended<br />
+The mark points to displaced mark word on the owner thread's
+stack.</dt>
+</dl>
+</li>
+<li value="1">
+<dl>
+<dt>Inflated: Locked/Unlocked + Shared and contended<br />
+Threads are blocked in monitorenter or wait().<br />
+The mark points to heavy-weight "objectmonitor" structure.[8]</dt>
+</dl>
+</li>
+</ul>
+<h3><a name="threads" id="threads"></a><a name="Thread Management|outline" id="Thread Management|outline"></a>Thread Management</h3>
+<p>Thread management covers all aspects of the thread lifecycle,
+from creation through to termination, and the coordination of
+threads within the VM. This involves management of threads created
+from Java code (whether application code or library code), native
+threads that attach directly to the VM, or internal VM threads
+created for a range of purposes. While the broader aspects of
+thread management are platform independent, the details necessarily
+vary depending on the underlying operating system.</p>
+<h4 class="western">Threading Model</h4>
+<p>The basic threading model in Hotspot is a 1:1 mapping between
+Java threads (an instance of <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font>) and native operating system
+threads. The native thread is created when the Java thread is
+started, and is reclaimed once it terminates. The operating system
+is responsible for scheduling all threads and dispatching to any
+available CPU.</p>
+<p>The relationship between Java thread priorities and operating
+system thread priorities is a complex one that varies across
+systems. These details are covered later.</p>
+<h4 class="western">Thread Creation and Destruction</h4>
+<p>There are two basic ways for a thread to be introduced into the
+VM: execution of Java code that calls <font face="Lucida Sans Typewriter, monospace"><font size="3">start()</font></font> on a <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> object; or attaching an existing
+native thread to the VM using JNI. Other threads created by the VM
+for internal purposes are discussed below.</p>
+<p>There are a number of objects associated with a given thread in
+the VM (remembering that Hotspot is written in the C++
+object-oriented programming language):</p>
+<ul>
+<li>
+<dl>
+<dt>The <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> instance that represents a
+thread in Java code</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>A <font face="Courier New, monospace"><font size="3">JavaThread</font></font> instance that represents the
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> instance inside the VM. It
+contains additional information to track the state of the thread. A
+<font face="Courier New, monospace"><font size="3">JavaThread</font></font> holds a reference to its associated
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> object (as an <font face="Courier New, monospace"><font size="3">oop</font></font>), and the
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> object also stores a reference
+to its <font face="Lucida Sans Typewriter, monospace"><font size="3">JavaThread</font></font> (as a raw <font face="Lucida Sans Typewriter, monospace"><font size="3">int</font></font>). A <font face="Courier New, monospace"><font size="3">JavaThread</font></font>
+also holds a reference to its associated <font face="Courier New, monospace"><font size="3">OSThread</font></font>
+instance.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>An <font face="Courier New, monospace"><font size="3">OSThread</font></font> instance represents an operating system
+thread, and contains additional operating-system-level information
+needed to track thread state. The <font face="Courier New, monospace"><font size="3">OSThread</font></font> then
+contains a platform specific &#8220;handle&#8221; to identify the
+actual thread to the operating system</dt>
+</dl>
+</li>
+</ul>
+<p>When a <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font>
+is started the VM creates the associated <font face="Courier New, monospace"><font size="3">JavaThread</font></font>
+and <font face="Courier New, monospace"><font size="3">OSThread</font></font> objects, and ultimately the native
+thread. After preparing all of the VM state (such as thread-local
+storage and allocation buffers, synchronization objects and so
+forth) the native thread is started. The native thread completes
+initialization and then executes a start-up method that leads to
+the execution of the <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> object's <font face="Lucida Sans Typewriter, monospace"><font size="3">run()</font></font> method, and then, upon its return,
+terminates the thread after dealing with any uncaught exceptions,
+and interacting with the VM to check if termination of this thread
+requires termination of the whole VM. Thread termination releases
+all allocated resources, removes the <font face="Courier New, monospace">JavaThread</font> from the set of known
+threads, invokes destructors for the <font face="Courier New, monospace"><font size="3">OSThread</font></font> and
+<font face="Courier New, monospace"><font size="3">JavaThread</font></font> and ultimately ceases execution when
+it's initial startup method completes.</p>
+<p>A native thread attaches to the VM using the JNI call
+<font face="Courier New, monospace"><font size="3">AttachCurrentThread</font></font>. In response to this an
+associated <font face="Courier New, monospace"><font size="3">OSThread</font></font> and <font face="Courier New, monospace"><font size="3">JavaThread</font></font>
+instance is created and basic initialization is performed. Next a
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> object must be created for the
+attached thread, which is done by reflectively invoking the Java
+code for the <font face="Lucida Sans Typewriter, monospace"><font size="3">Thread</font></font> class constructor, based on the arguments
+supplied when the thread attached. Once attached, a thread can
+invoke whatever Java code it needs to via the other JNI methods
+available. Finally when the native thread no longer wishes to be
+involved with the VM it can call the JNI <font face="Courier New, monospace"><font size="3">DetachCurrentThread</font></font> method to disassociate it
+from the VM (release resources, drop the reference to the
+<font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread</font></font> instance, destruct the
+<font face="Courier New, monospace"><font size="3">JavaThread</font></font> and <font face="Courier New, monospace"><font size="3">OSThread</font></font>
+objects and so forth).</p>
+<p>A special case of attaching a native thread is the initial
+creation of the VM via the JNI <font face="Courier New, monospace"><font size="3">CreateJavaVM</font></font>
+call, which can be done by a native application or by the launcher
+(<font face="Courier New, monospace">java.c</font>). This causes a
+range of initialization operations to take place and then acts
+effectively as if a call to <font face="Courier New, monospace"><font size="3">AttachCurrentThread</font></font> was made. The thread can then
+invoke Java code as needed, such as reflective invocation of the
+<font face="Lucida Sans Typewriter, monospace"><font size="3">main</font></font> method of an application. See the JNI
+section for further details.</p>
+<h4 class="western">Thread States</h4>
+<p>The VM uses a number of different internal thread states to
+characterize what each thread is doing. This is necessary both for
+coordinating the interactions of threads, and for providing useful
+debugging information if things go wrong. A thread's state
+transitions as different actions are performed, and these
+transition points are used to check that it is appropriate for a
+thread to proceed with the requested action at that point in time
+&#8211; see the discussion of safepoints below.</p>
+<p>The main thread states from the VM perspective are as
+follows:</p>
+<ul>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">_thread_new</span></font></font><span style="text-decoration: none">:
+a new thread in the process of being initialized</span></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">_thread_in_Java</span></font></font><span style="text-decoration: none">:
+a thread that is executing Java code</span></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">_thread_in_vm</span></font></font><span style="text-decoration: none">:
+a thread that is executing inside the VM</span></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">_thread_blocked</span></font></font><span style="text-decoration: none">:
+the thread is blocked for some reason (acquiring a lock, waiting
+for a condition, sleeping, performing a blocking I/O operation and
+so forth)</span></dt>
+</dl>
+</li>
+</ul>
+<p><span style="text-decoration: none">For debugging purposes
+additional state information is also maintained for reporting by
+tools, in thread dumps, stack traces etc. This is maintained in
+the</span> <font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">OSThread</span></font></font><span style="text-decoration: none">and some of it has fallen into dis-use, but
+states reported in thread dumps etc include:</span></p>
+<ul>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">MONITOR_WAIT</span></font></font><span style="text-decoration: none">:
+a thread is waiting to acquire a contended monitor lock</span></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">CONDVAR_WAIT</span></font></font><span style="text-decoration: none">:
+a thread is waiting on an internal condition variable used by the
+VM (not associated with any Java level object)</span></dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">OBJECT_WAIT</span></font></font><span style="text-decoration: none">:
+a thread is performing an</span> <font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">Object.wait()</span></font></font>
+<span style="text-decoration: none">call</span></dt>
+</dl>
+</li>
+</ul>
+<p><span style="text-decoration: none">Other subsystems and
+libraries impose their own state information, such as the JVMTI
+system and the</span> <font face="Courier New, monospace"><font size="3"><span style="text-decoration: none">ThreadState</span></font></font><span style="text-decoration: none">exposed
+by the</span> <font face="Lucida Sans Typewriter, monospace"><font size="3"><span style="text-decoration: none">java.lang.Thread</span></font></font><span style="text-decoration: none">class
+itself. Such information is generally not accessible to, nor
+relevant to, the management of threads inside the VM.</span></p>
+<h4 class="western">Internal VM Threads</h4>
+<p>People are often surprised to discover that even executing a
+simple &#8220;Hello World&#8221; program can result in the creation
+of a dozen or more threads in the system. These arise from a
+combination of internal VM threads, and library related threads
+(such as reference handler and finalizer threads). The main kinds
+of VM threads are as follows:</p>
+<ul>
+<li>
+<dl>
+<dt>VM thread: This singleton instance of <font face="Courier New, monospace"><font size="3">VMThread</font></font> is
+responsible for executing VM operations, which are discussed
+below</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Periodic task thread: This singleton instance of <font face="Courier New, monospace"><font size="3">WatcherThread</font></font>
+simulates timer interrupts for executing periodic operations within
+the VM</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>GC threads: These threads, of different types, support parallel
+and concurrent garbage collection</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Compiler threads: These threads perform runtime compilation of
+bytecode to native code</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>Signal dispatcher thread: This thread waits for process
+directed signals and dispatches them to a Java level signal
+handling method</dt>
+</dl>
+</li>
+</ul>
+<p>All threads are instances of the <font face="Courier New, monospace"><font size="3">Thread</font></font> class,
+and all threads that execute Java code are <font face="Courier New, monospace"><font size="3">JavaThread</font></font>
+instances (a subclass of <font face="Courier New, monospace"><font size="3">Thread</font></font>). The
+VM keeps track of all threads in a linked-list known as the
+<font face="Courier New, monospace"><font size="3">Threads_list</font></font>, and which is protected by the
+<font face="Courier New, monospace"><font size="3">Threads_lock</font></font> &#8211; one of the key
+synchronization locks used within the VM.</p>
+<h4 class="western">VM Operations and Safepoints</h4>
+<p>The <font face="Courier New, monospace"><font size="3">VMThread</font></font> spends its time waiting for operations
+to appear in the <font face="Courier New, monospace"><font size="3">VMOperationQueue</font></font>, and then executing those
+operations. Typically these operations are passed on to the
+<font face="Courier New, monospace"><font size="3">VMThread</font></font> because they require that the VM reach a
+<i>safepoin</i>t before they can be executed. In simple terms, when
+the VM is at safepoint all threads inside the VM have been blocked,
+and any threads executing in native code are prevented from
+returning to the VM while the safepoint is in progress. This means
+that the VM operation can be executed knowing that no thread can be
+in the middle of modifying the Java heap, and all threads are in a
+state such that their Java stacks are unchanging and can be
+examined.</p>
+<p>The most familiar VM operation is for garbage collection, or
+more specifically for the &#8220;stop-the-world&#8221; phase of
+garbage collection that is common to many garbage collection
+algorithms. But many other safepoint based VM operations exist, for
+example: biased locking revocation, thread stack dumps, thread
+suspension or stopping (i.e. The <font face="Lucida Sans Typewriter, monospace"><font size="3">java.lang.Thread.stop()</font></font> method) and numerous
+inspection/modification operations requested through JVMTI.</p>
+<p>Many VM operations are synchronous, that is the requestor blocks
+until the operation has completed, but some are asynchronous or
+concurrent, meaning that the requestor can proceed in parallel with
+the <font face="Courier New, monospace"><font size="3">VMThread</font></font> (assuming no safepoint is initiated of
+course).</p>
+<p>Safepoints are initiated using a cooperative, polling-based
+mechanism. In simple terms, every so often a thread asks
+&#8220;should I block for a safepoint?&#8221;. Asking this question
+efficiently is not so simple. One place where the question is often
+asked is during a thread state transition. Not all state
+transitions do this, for example a thread leaving the VM to go to
+native code, but many do. The other places where a thread asks are
+in compiled code when returning from a method or at certain stages
+during loop iteration. Threads executing interpreted code don't
+usually ask the question, instead when the safepoint is requested
+the interpreter switches to a different dispatch table that
+includes the code to ask the question; when the safepoint is over,
+the dispatch table is switched back again. Once a safepoint has
+been requested, the <font face="Courier New, monospace"><font size="3">VMThread</font></font> must wait until all threads are known to
+be in a safepoint-safe state before proceeding to execute the VM
+operation. During a safepoint the <font face="Courier New, monospace"><font size="3">Threads_lock</font></font>
+is used to block any threads that were running, with the
+<font face="Courier New, monospace"><font size="3">VMThread</font></font> finally releasing the <font face="Courier New, monospace"><font size="3">Threads_lock</font></font>
+after the VM operation has been performed.</p>
+<h3><a name="c++heap" id="c++heap"></a><a name="C++ Heap Management|outline" id="C++ Heap Management|outline"></a>C++ Heap Management</h3>
+<p>In addition to the Java heap, which is maintained by the Java
+heap manager and garbage collectors, HotSpot also uses the C/C++
+heap (also called the malloc heap) for storage of VM-internal
+objects and data. A set of C++ classes derived from the base class
+<font face="Courier New, monospace"><font size="3"><i>Arena</i></font></font> is used to manage C++ heap
+operations.</p>
+<p><font face="Courier New, monospace"><font size="3">Arena</font></font> and its subclasses provide a fast
+allocation layer that sits on top of malloc/free. Each <font face="Courier New, monospace"><font size="3">Arena</font></font>
+allocates memory blocks (or <font face="Courier New, monospace"><font size="3"><i>Chunks</i></font></font><i>)</i> out of 3 global <font face="Courier New, monospace"><font size="3"><i>ChunkPool</i></font></font><i>s.</i> Each <font face="Courier New, monospace"><font size="3">ChunkPool</font></font>
+satisfies allocation requests for a distinct range of allocation
+sizes. For example, a request for 1k of memory will be allocated
+from the &#8220;small&#8221; <font face="Courier New, monospace"><font size="3">ChunkPool</font></font>,
+while a 10K allocation will be made from the "medium" <font face="Courier New, monospace"><font size="3">ChunkPool</font></font>.
+This is done to avoid wasteful memory fragmentation.</p>
+<p>The <font face="Courier New, monospace"><font size="3">Arena</font></font> system also provides better performance
+than pure malloc/free. The latter operations may require
+acquisition of global OS locks, which affects scalability and can
+hurt performance. <font face="Courier New, monospace"><font size="3">Arena</font></font>s are thread-local objects which cache a
+certain amount of storage, so that in the fast-path allocation case
+a lock is not required. Likewise, <font face="Courier New, monospace"><font size="3">Arena</font></font> free
+operations do not require a lock in the common case.</p>
+<p><font face="Courier New, monospace"><font size="3">Arena</font></font>s are used for thread-local resource
+management (<font face="Courier New, monospace"><font size="3"><i>ResourceArea</i></font></font>) and handle management
+(<font face="Courier New, monospace"><font size="3"><i>HandleArea</i></font></font>). They are also used by both
+the client and server compilers during compilation.</p>
+<h3><a name="jni" id="jni"></a><a name="Java Native Interface (JNI)|outline" id="Java Native Interface (JNI)|outline"></a> Java Native Interface
+(JNI)</h3>
+<p>The JNI is a native programming interface. It allows Java code
+that runs inside a Java virtual machine to interoperate with
+applications and libraries written in other programming languages,
+such as C, C++, and assembly.</p>
+<p>While applications can be written entirely in Java, there are
+situations where Java alone does not meet the needs of an
+application. Programmers use the JNI to write <em>Java native
+methods</em> to handle those situations when an application cannot
+be written entirely in Java.</p>
+<p><a name="wp16407" id="wp16407"></a><a name="wp16398" id="wp16398"></a>JNI native methods can be used to create, inspect,
+and update Java objects, call Java methods, catch and throw
+exceptions, load classes and obtain class information, and perform
+runtime type checking.</p>
+<p>The JNI may also be used with the <em>Invocation API</em> to
+enable an arbitrary native application to embed the Java VM. This
+allows programmers to easily make their existing applications
+Java-enabled without having to link with the VM source code.
+[9]</p>
+<p><font size="3">It is important to remember that once an
+application uses the JNI, it risks losing two benefits of the Java
+platform.</font></p>
+<p>First, Java applications that depend on the JNI can no longer
+readily run on multiple host environments. Even though the part of
+an application written in the Java programming language is portable
+to multiple host environments, it will be necessary to recompile
+the part of the application written in native programming
+languages.</p>
+<p><a name="69451" id="69451"></a>Second, while the Java
+programming language is type-safe and secure, native languages such
+as C or C++ are not. As a result, Java developers must use extra
+care when writing applications using the JNI. A misbehaving native
+method can corrupt the entire application. For this reason, Java
+applications are subject to security checks before invoking JNI
+features.</p>
+<p><font size="3">As a general rule, developers should architect
+the application so that native methods are defined in as few
+classes as possible. This entails a cleaner isolation between
+native code and the rest of the application.[10]</font></p>
+<p><font size="3">In HotSpot, the implementation of the JNI
+functions is relatively straightforward. It uses various VM
+internal primitives to perform activities such as object creation,
+method invocation, etc. In general, these are the same runtime
+primitives used by other subsystems such as the
+interpreter.</font></p>
+<p>A command line option, <font face="Courier New, monospace">-Xcheck:jni</font>, is provided to aid in
+debugging problems in JNI usage by native methods. Specifying
+<font face="Courier New, monospace">-Xcheck:jni</font> causes an
+alternate set of debugging interfaces to be used by JNI calls. The
+alternate interface verifies arguments to JNI calls more
+stringently, as well as performing additional internal consistency
+checks.</p>
+<p>HotSpot must take special care to keep track of which threads
+are currently executing in native methods. During some VM
+activities, notably some phases of garbage collection, one or more
+threads must be halted at a <i>safepoint</i> in order to guarantee
+that the Java memory heap is not modified during the sensitive
+activity. When we wish to bring a thread executing in native code
+to a safepoint, it is allowed to continue executing native code,
+but the thread will be stopped when it attempts to return into Java
+code or make a JNI call.</p>
+<h3><a name="fatal" id="fatal"></a><a name="VM Fatal Error Handling|outline" id="VM Fatal Error Handling|outline"></a> VM Fatal Error Handling</h3>
+<p>It is very important to provide easy ways to handle fatal errors
+for any software. Java Virtual Machine, i.e. JVM is not an
+exception. A typical fatal error would be <font face="Lucida Sans Typewriter, monospace"><font size="3">OutOfMemoryError</font></font>. Another common fatal error on
+Windows is called <font face="Courier New, monospace"><font size="3">Access Violation</font></font> error which is equivalent to
+<font face="Courier New, monospace"><font size="3">Segmentation
+Fault</font></font> on Solaris/Linux platforms. It is critical to
+understand the cause of these kind of fatal errors in order to fix
+them either in your application or sometimes, in JVM itself.</p>
+<p>Usually when JVM crashes on a fatal error, it will dump a
+hotspot error log file called <font face="Courier New, monospace">hs_err_pid</font><font face="Courier New, monospace"><i>&lt;pid&gt;</i></font><font face="Courier New, monospace">.log</font>, (where <font face="Courier New, monospace"><i>&lt;pid&gt;</i></font> is replaced by
+the crashed java process id) to the Windows desktop or the current
+application directory on Solaris/Linux. Several enhancements have
+been made to improve the diagnosability of this file since JDK 6
+and many of them have been back ported to the JDK-1.4.2_09 release.
+Here are some highlights of these improvements:</p>
+<ul>
+<li>
+<dl>
+<dt>Memory map is included in the error log file so it is easy to
+see how memory was laid out during crash.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Courier New, monospace">-XX:ErrorFile=</font>
+option is provided so that user can set the path name of the error
+log file.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt><font face="Lucida Sans Typewriter, monospace"><font size="3">OutOfMemoryError</font></font> will trigger the file to be
+generated as well.</dt>
+</dl>
+</li>
+</ul>
+<p>Another important feature is you can specify <font face="Courier New, monospace">-XX:OnError=<font face="Courier New, monospace">"</font><font face="Courier New, monospace"><i>cmd1 args...;com2
+...</i></font>"</font> to the java command so that whenever VM
+crashes, it will execute a list of commands you specified within
+the quotes shown above. A typical usage of this feature is you can
+invoke the debugger such as dbx or Windbg to look into the crash
+when that happens. For the earlier releases, you can specify<br />
+<font face="Courier New, monospace">-XX:+ShowMessageBoxOnError</font> as a
+runtime option so that when VM crashes, you can attach the running
+Java process to your favorite debugger.</p>
+<p>Having said something about HotSpot error log files, here is a
+brief summary on how JVM internally handles fatal errors.</p>
+<ul>
+<li>
+<dl>
+<dt>The <font face="Courier New, monospace"><font size="3">VMError</font></font> class was invented for aggregating and
+dumping the <font face="Courier New, monospace">hs_err_pid</font><font face="Courier New, monospace"><i>&lt;pid&gt;</i></font><font face="Courier New, monospace">.log</font> file. It is invoked by the
+OS-specific code when an unrecognized signal/exception is
+seen.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The VM uses signals internally for communication. The fatal
+error handler is invoked when the signal is not recognized. In the
+unrecognized case, it may come from a fault in application JNI
+code, OS native libraries, JRE native libraries, or the JVM
+itself.</dt>
+</dl>
+</li>
+<li>
+<dl>
+<dt>The fatal error handler was carefully written to avoid causing
+faults itself, in the case of <font face="Lucida Sans Typewriter, monospace"><font size="3">StackOverflow</font></font> or crashes when critical locks are
+held (like malloc lock).</dt>
+</dl>
+</li>
+</ul>
+<p>Since <font face="Lucida Sans Typewriter, monospace"><font size="3">OutOfMemoryError</font></font> is so common to some large scale
+applications, it is critical to provide useful diagnostic message
+to users so that they could quickly identify a solution, sometimes
+by just specifying a larger Java heap size. When <font face="Lucida Sans Typewriter, monospace"><font size="3">OutOfMemoryError</font></font> happens, the error message will
+indicate which type of memory is problematic. For example, it could
+be Java heap space or PermGen space etc. Since JDK 6, a stack trace
+will be included in the error message. Also,<br />
+<font face="Courier New, monospace">-XX:OnOutOfMemoryError=<font face="Courier New, monospace">"</font><font face="Courier New, monospace"><i>&lt;cmd&gt;</i></font><font face="Courier New, monospace">"</font></font> option was invented so
+that a command will be run when the first OutOfMemoryError is
+thrown. Another nice feature that is worth mentioning is a built-in
+heap dump at OutOfMemoryError. It is enabled by specifying
+<font face="Courier New, monospace">-XX:+HeapDumpOnOutOfMemoryError</font>
+option and you can also tell the VM where to put the heap dump file
+by specifying<br />
+<font face="Courier New, monospace">-XX:HeapDumpPath=<font face="Courier New, monospace"><i>&lt;pathname&gt;</i></font></font>.</p>
+<p>Even though applications are carefully written to avoid
+deadlocks, sometimes it still happens. When deadlock occurs, you
+can type &#8220;Ctrl+Break&#8221; on Windows or grab the Java
+process id and send SIGQUIT to the hang process on Solaris/Linux. A
+Java level stack trace will be dumped out to the standard out so
+that you can analyze the reasons of deadlock. Since JDK 6, this
+feature has been built into jconsole which is a very useful tool in
+the JDK. So when the application hangs on a deadlock, use jconsole
+to attach the process and it will analyze which lock is
+problematic. Most of the time, the deadlock is caused by acquiring
+locks in the wrong order.</p>
+<p>We strongly encourage you to check out the
+&#8220;Trouble-Shooting and Diagnostic Guide&#8221;[11]. It
+contains a lot of information which might be very useful to
+diagnose fatal errors.</p>
+<h3><a name="Further Reading|outline" id="Further Reading|outline"></a>Further Reading</h3>
+<p style="margin-bottom: 0in; widows: 0; orphans: 0; page-break-before: auto">
+&#8220;Resolving the Mysteries of Java SE Classloader&#8221;, Jeff
+Nisewanger, Karen Kinnear, JavaOne 2006.</p>
+<h3><a name="References|outline" id="References|outline"></a>References</h3>
+<p class="sdfootnote">[1] Java Language Specification, Third
+Edition. Gosling, Joy, Steele, Bracha. <a href="http://java.sun.com/docs/books/jls/third_edition/html/execution.html#12.2">
+http://java.sun.com/docs/books/jls/third_edition/html/execution.html#12.2</a></p>
+<p class="sdfootnote">[2] Java Virtual Machine Specification,
+Second Edition. Tim Lindholm, Frank Yellin. <a href="http://java.sun.com/docs/books/vmspec/2nd-edition/html/VMSpecTOC.doc.html">
+http://java.sun.com/docs/books/vmspec/2nd-edition/html/VMSpecTOC.doc.html</a></p>
+<p class="sdfootnote">[3] Amendment to Java Virtual Machine
+Specification. Chapter 5: Loading, Linking and Initializing.
+<a href="http://java.sun.com/docs/books/vmspec/2nd-edition/ConstantPool.pdf">
+http://java.sun.com/docs/books/vmspec/2nd-edition/ConstantPool.pdf</a></p>
+<p class="sdfootnote">[4] Dynamic Class Loading in the Java Virtual
+Machine. Shen Liang, Gilad Bracha. Proc. of the ACM Conf. on
+Object-Oriented Programming, Systems, Languages and Applications,
+October 1998 <a href="http://www.bracha.org/classloaders.ps">http://www.bracha.org/classloaders.ps</a></p>
+<p class="sdfootnote">[5] &#8220;Safe Clsss and Data Evolution in
+Large and Long-Lived Java Applications&#8221;, Mikhail Dmitriev,
+<a href="http://research.sun.com/techrep/2001/smli_tr-2001-98.pdf">http://research.sun.com/techrep/2001/smli_tr-2001-98.pdf</a></p>
+<p class="sdfootnote">[6] Java Language Specification, Third
+Edition. Gosling, Joy, Steele, Bracha. <a href="http://java.sun.com/docs/books/jls/third_edition/html/exceptions.html">
+http://java.sun.com/docs/books/jls/third_edition/html/exceptions.html</a></p>
+<p class="sdfootnote">[7] &#8220;Biased Locking in HotSpot&#8221;.
+<a href="http://blogs.oracle.com/dave/entry/biased_locking_in_hotspot">http://blogs.oracle.com/dave/entry/biased_locking_in_hotspot</a></p>
+<p class="sdfootnote">[8] &#8220;Let&#8217;s say you&#8217;re
+interested in using HotSpot as a vehicle for synchronization
+research ...&#8221;. <a href="http://blogs.oracle.com/dave/entry/lets_say_you_re_interested">http://blogs.oracle.com/dave/entry/lets_say_you_re_interested</a></p>
+<p class="sdfootnote">[9] &#8220;Java Native Interface
+Specifications&#8221; <a href="http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html">
+http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html</a></p>
+<p class="sdfootnote">[10] &#8220;The Java Native Interface
+Programmer&#8217;s Guide and Specification&#8221;, Sheng Liang,
+<a href="http://java.sun.com/docs/books/jni/html/titlepage.html">http://java.sun.com/docs/books/jni/html/titlepage.html</a></p>
+<p class="sdfootnote">[11] &#8220;Trouble-Shooting and Diagnostic
+Guide&#8221; <a href="http://java.sun.com/javase/6/webnotes/trouble/">http://java.sun.com/javase/6/webnotes/trouble/</a></p>
+</div><div id="sidebar"><div id="openjdk-sidebar-logo"><a href="/"><img alt="OpenJDK logo" src="../../../images/openjdk-small.png" /></a></div><div class="links"><div class="link"><a href="/faq/">OpenJDK FAQ</a></div><div class="link"><a href="/install/">Installing</a></div><div class="link"><a href="/contribute/">Contributing</a></div><div class="link"><a href="/sponsor/">Sponsoring</a></div><div class="link"><a href="/guide/">Developers' Guide</a></div></div><div class="links"><div class="links"><a href="http://mail.openjdk.java.net">Mailing lists</a></div><div class="link"><a href="/irc">IRC</a>
+                      &#183; <a href="http://wiki.openjdk.java.net">Wiki</a></div></div><div class="links"><div class="links"><a href="/bylaws">Bylaws</a> &#183; <a href="/census">Census</a></div><div class="link"><a href="/legal/">Legal</a></div></div><div class="links"><div class="links"><a href="/jeps/0"><b>JEP Process</b></a></div></div><div class="links"><div class="link search"><form method="get" action="http://www.google.com/search"><input id="searchBox" style="color: gray" type="text" name="q" size="10" maxlength="255" value="search" /><input type="hidden" name="sitesearch" value="openjdk.java.net" /></form></div></div><div class="links"><div class="about">Source code</div><div class="link"><a href="http://hg.openjdk.java.net">Mercurial</a></div><div class="link">Bundles (<a href="http://download.java.net/openjdk/jdk6">6</a>)</div></div><div class="links"><div class="about">Groups</div><div class="link"><a href="/groups/">(overview)</a></div><div class="link"><a href="/groups/2d">2D Graphics</a></div><div class="link"><a href="/groups/adoption">Adoption</a></div><div class="link"><a href="/groups/awt">AWT</a></div><div class="link"><a href="/groups/build">Build</a></div><div class="link"><a href="/groups/csr">Compatibility &amp; Specification Review</a></div><div class="link"><a href="/groups/compiler">Compiler</a></div><div class="link"><a href="/groups/conformance">Conformance</a></div><div class="link"><a href="/groups/core-libs">Core Libraries</a></div><div class="link"><a href="/groups/gb">Governing Board</a></div><div class="link"><a href="/groups/hotspot">HotSpot</a></div><div class="link"><a href="/groups/i18n">Internationalization</a></div><div class="link"><a href="/groups/jmx">JMX</a></div><div class="link"><a href="/groups/members">Members</a></div><div class="link"><a href="/groups/net">Networking</a></div><div class="link"><a href="/groups/nb-projects">NetBeans Projects</a></div><div class="link"><a href="/groups/porters">Porters</a></div><div class="link"><a href="/groups/quality">Quality</a></div><div class="link"><a href="/groups/security">Security</a></div><div class="link"><a href="/groups/serviceability">Serviceability</a></div><div class="link"><a href="/groups/sound">Sound</a></div><div class="link"><a href="/groups/swing">Swing</a></div><div class="link"><a href="/groups/web">Web</a></div></div><div class="links"><div class="about">Projects</div><div class="link"><a href="/projects/">(overview)</a></div><div class="link"><a href="/projects/amber">Amber</a></div><div class="link"><a href="/projects/anno-pipeline">Annotations Pipeline 2.0</a></div><div class="link"><a href="/projects/audio-engine">Audio Engine</a></div><div class="link"><a href="/projects/build-infra">Build Infrastructure</a></div><div class="link"><a href="/projects/caciocavallo">Caciocavallo</a></div><div class="link"><a href="/projects/closures">Closures</a></div><div class="link"><a href="/projects/code-tools">Code Tools</a></div><div class="link"><a href="/projects/coin">Coin</a></div><div class="link"><a href="/projects/cvmi">Common VM Interface</a></div><div class="link"><a href="/projects/compiler-grammar">Compiler Grammar</a></div><div class="link"><a href="/projects/dio">Device I/O</a></div><div class="link"><a href="/projects/font-scaler">Font Scaler</a></div><div class="link"><a href="/projects/fbtoolkit">Framebuffer Toolkit</a></div><div class="link"><a href="/projects/graal">Graal</a></div><div class="link"><a href="/projects/graphics-rasterizer">Graphics Rasterizer</a></div><div class="link"><a href="/projects/harfbuzz">HarfBuzz Integration</a></div><div class="link"><a href="/projects/icedtea">IcedTea</a></div><div class="link"><a href="/projects/jdk6">JDK 6</a></div><div class="link"><a href="/projects/jdk7">JDK 7</a></div><div class="link"><a href="/projects/jdk7u">JDK 7 Updates</a></div><div class="link"><a href="/projects/jdk8">JDK 8</a>
+                      &#183; <a href="/projects/jdk8/spec">Java&#160;SE&#160;8</a></div><div class="link"><a href="/projects/jdk8u">JDK 8 Updates</a></div><div class="link"><a href="/projects/jdk9">JDK 9</a>
+                      &#183; <a href="/projects/jdk9/spec">Java&#160;SE&#160;9</a></div><div class="link"><a href="/projects/jdk10">JDK 10</a></div><div class="link"><a href="/projects/javadoc-next">JavaDoc.Next</a></div><div class="link"><a href="/projects/jigsaw">Jigsaw</a></div><div class="link"><a href="/projects/kona">Kona</a></div><div class="link"><a href="/projects/kulla">Kulla</a></div><div class="link"><a href="/projects/lambda">Lambda</a></div><div class="link"><a href="/projects/locale-enhancement">Locale Enhancement</a></div><div class="link"><a href="/projects/jmm">Memory Model Update</a></div><div class="link"><a href="/projects/mobile">Mobile</a></div><div class="link"><a href="/projects/modules">Modules</a></div><div class="link"><a href="/projects/mlvm">Multi-Language VM</a></div><div class="link"><a href="/projects/nashorn">Nashorn</a></div><div class="link"><a href="/projects/nio">New I/O</a></div><div class="link"><a href="/projects/openjfx">OpenJFX</a></div><div class="link"><a href="/projects/panama">Panama</a></div><div class="link"><a href="/projects/penrose">Penrose</a></div><div class="link"><a href="/projects/aarch32-port">Port: AArch32</a></div><div class="link"><a href="/projects/aarch64-port">Port: AArch64</a></div><div class="link"><a href="/projects/bsd-port">Port: BSD</a></div><div class="link"><a href="/projects/haiku-port">Port: Haiku</a></div><div class="link"><a href="/projects/macosx-port">Port: Mac OS X</a></div><div class="link"><a href="/projects/mips-port">Port: MIPS</a></div><div class="link"><a href="/projects/ppc-aix-port">Port: PowerPC/AIX</a></div><div class="link"><a href="/projects/s390x-port">Port: s390x</a></div><div class="link"><a href="/projects/portola">Portola</a></div><div class="link"><a href="/projects/sctp">SCTP</a></div><div class="link"><a href="/projects/shenandoah">Shenandoah</a></div><div class="link"><a href="/projects/sumatra">Sumatra</a></div><div class="link"><a href="/projects/threeten">ThreeTen</a></div><div class="link"><a href="/projects/tiered-attrib">Tiered Attribution</a></div><div class="link"><a href="/projects/type-annotations">Type Annotations</a></div><div class="link"><a href="/projects/xrender">XRender Pipeline</a></div><div class="link"><a href="/projects/valhalla">Valhalla</a></div><div class="link"><a href="/projects/verona">Verona</a></div><div class="link"><a href="/projects/visualvm">VisualVM</a></div><div class="link"><a href="/projects/zero">Zero</a></div></div><div class="links"><div class="about">Tools</div><div class="link"><a href="http://java.sun.com/javase/downloads/index.jsp">Java SE</a></div><div class="link"><a href="http://www.selenic.com/mercurial/">Mercurial</a></div><div class="link"><a href="http://netbeans.org">NetBeans</a></div><div class="link"><a href="/jtreg/index.html">jtreg harness</a></div></div><div class="links"><div class="about">Community</div><div class="link"><a href="http://planetjdk.org">Planet JDK blogs</a></div><div class="link"><a href="http://blogs.oracle.com/theaquarium">The Aquarium</a></div><div class="link"><a href="http://java.sun.com">java.sun.com</a></div><div class="link"><a href="http://jcp.org">Java Community Process</a></div></div><div class="links"><div class="about">Related</div><div class="link">JDK Snapshots (<a href="http://jdk.java.net/8/">8u</a>,
+       <a href="http://jdk.java.net/9/">9</a>) </div><div class="link"><a href="http://javaee.github.io/glassfish/">GlassFish</a></div></div><div class="buttons"><a href="http://oracle.com"><img alt="Oracle logo" src="../../../images/oracle.png" /></a></div></div><div id="footer">
+
+        &#169; 2017 Oracle Corporation and/or its affiliates
+        <br /><a href="/legal/tou/">Terms of Use</a>
+        &#183;
+        
+            License: <a href="/legal/gplv2+ce.html">GPLv2</a>
+        &#183; <a href="http://www.oracle.com/us/legal/privacy/">Privacy</a>
+        &#183; <a href="http://www.oracle.com/us/legal/third-party-trademarks/third-party-trademarks-078568.html">Trademarks</a></div><SCRIPT type="text/javascript">
+  var sc_project=2527440;
+  var sc_invisible=1;
+  var sc_partition=24;
+  var sc_security="d832a704";
+  var sc_remove_link=1;
+  </SCRIPT><script type="text/javascript" src="http://www.statcounter.com/counter/counter_xhtml.js"></script><noscript><div class="statcounter"><img class="statcounter" src="http://c25.statcounter.com/counter.php?sc_project=2527440&amp;java=0&amp;security=d832a704&amp;invisible=1" alt="web statistics" /></div></noscript></body></html>

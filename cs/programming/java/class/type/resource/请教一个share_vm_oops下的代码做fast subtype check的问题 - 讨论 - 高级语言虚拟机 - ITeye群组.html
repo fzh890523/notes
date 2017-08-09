@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>请教一个share/vm/oops下的代码做fast subtype check的问题
+ - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="刚开始这个问题我是直接去私信问R大的，R大受了我不少私信轰炸，估计不胜其扰，所以还没有回我，我也考虑过OpenJDK的邮件组，但是稍为翻了下邮件存档，觉得这种新手问题大概会石沉大海，于是先发到这里，希望各位高手给点提示。 不熟悉或者忘记fast subtype check的兄弟们请看这里http://www.everbox.com/f/jkOyJVAg6Lp6TuUockIu3ccswh 我不大理解 ..." />
+    <meta name="keywords" content="请教一个share/vm/oops下的代码做fast subtype check的问题
+ 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670872" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://silconfuse.iteye.com" class="p-author" target="_blank">hellhell</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/26896/post/new">发表回复</a></div>
+  
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/26896">请教一个share/vm/oops下的代码做fast subtype check的问题
+</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-192358">
+  <td class="post_author"><div class="logo"><a href='http://silconfuse.iteye.com' target='_blank'><img alt="hellhell的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="hellhell的博客: Walk the line" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://silconfuse.iteye.com' target='_blank' title='hellhell'>hellhell</a>
+      2011-07-27
+    </div>
+    <div class="post_body"> 
+      刚开始这个问题我是直接去私信问R大的，R大受了我不少私信轰炸，估计不胜其扰，所以还没有回我，我也考虑过OpenJDK的邮件组，但是稍为翻了下邮件存档，觉得这种新手问题大概会石沉大海，于是先发到这里，希望各位高手给点提示。<br /><br />不熟悉或者忘记fast subtype check的兄弟们请看这里<a target="_blank" href="http://www.everbox.com/f/jkOyJVAg6Lp6TuUockIu3ccswh">http://www.everbox.com/f/jkOyJVAg6Lp6TuUockIu3ccswh</a><br /><br />我不大理解paper上的算法，作者给出checking secondary types方法的时候<br /><br />s.is_subtype_of(T) := {<br />&nbsp;&nbsp;&nbsp; <span style="color: red;">if (S.cache == T) return true;</span><br />&nbsp;&nbsp;&nbsp; if (S == T) return true;<br />&nbsp;&nbsp;&nbsp; if ( S.scan_s_s_array(T) ) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; S.cache = T<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return true;<br />&nbsp;&nbsp;&nbsp; }<br />}<br /><br /><br />然后给出Combining the Checks的时候，就把这个对cache内容的检查去掉了,换成if (off != &amp;cache) return false;一句，我理解这句是off != &amp;cache的话，T根本不是一个secondary type，下面就没有必要查了，但是如果在线性扫描secondary type array前做一个对cache内容的检查，不会效率更高么？<br /><br />S.is_subtype_of(T) := {<br />&nbsp;&nbsp;&nbsp; int off = T.offset;<br />&nbsp;&nbsp;&nbsp; if (T == S[off]) return true;<br />&nbsp;&nbsp;&nbsp; <span style="color: red;">if (off != &amp;cache) return false;</span><br />&nbsp;&nbsp;&nbsp; if (S == T) return true;<br />&nbsp;&nbsp;&nbsp; if ( S.scan_s_s_array(T) ) {<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; S.cache = T<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return true;<br />&nbsp;&nbsp;&nbsp; }<br />&nbsp;&nbsp;&nbsp; return false;<br />}<br /><br /><br />我在实际的HotSpot代码中也找了，从1.5.0到最新的，没有的确没有任何地方去读这个cache的值（不是offset!!!!)，希望各位高手可以解惑，谢谢。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-192377">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-07-27
+    </div>
+    <div class="post_body"> 
+      sorry…难怪我觉得还有啥漏了的事情。<br /><br />在<a target="_blank" href="http://www.valleytalk.org/2011/07/28/java-%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%BC%96%E8%AF%91%EF%BC%8C%E5%8A%A0%E8%BD%BD-%E5%92%8C-%E6%89%A7%E8%A1%8C/">以前做分享用的PPT</a>里我写过，JDK 6的HotSpot里是这样做的（跟论文不完全一样）：<br /><pre name="code" class="java">S.is_subtype_of(T) := {
+  int off = T.offset;
+  if (S == T) return true;
+  if (T == S[off]) return true;
+  if (off != &amp;cache) return false;
+  if ( S.scan_secondary_subtype_array(T) ) {
+    S.cache = T;
+    return true;
+  }
+  return false;
+}</pre><br /><br />注意，&amp;cache是指cache的地址，不是cache的内容。<br /><br />那么看看实际是怎么实现的。用x86版的解释器代码来看，代码在src/cpu/x86/vm/assembler_x86.cpp。<br />在解释器里，instanceof指令会使用下面的程序生成的代码：<br /><pre name="code" class="c++">void MacroAssembler::check_klass_subtype(Register sub_klass,
+                           Register super_klass,
+                           Register temp_reg,
+                           Label&amp; L_success) {
+  Label L_failure;
+  check_klass_subtype_fast_path(sub_klass, super_klass, temp_reg,        &amp;L_success, &amp;L_failure, NULL);
+  check_klass_subtype_slow_path(sub_klass, super_klass, temp_reg, noreg, &amp;L_success, NULL);
+  bind(L_failure);
+}</pre><br />这里可以看到，整个检查是分为fast path和slow path两边的。<br /><br />在fast path里，这段：<br /><pre name="code" class="c++">  // This check has worked decisively for primary supers.
+  // Secondary supers are sought in the super_cache ('super_cache_addr').
+  // (Secondary supers are interfaces and very deeply nested subtypes.)
+  // This works in the same check above because of a tricky aliasing
+  // between the super_cache and the primary super display elements.
+  // (The 'super_check_addr' can address either, as the case requires.)
+  // Note that the cache is updated below if it does not help us find
+  // what we need immediately.
+  // So if it was a primary super, we can just fail immediately.
+  // Otherwise, it's the slow path for us (no success at this point).
+
+  if (super_check_offset.is_register()) {
+    local_jcc(Assembler::equal, *L_success);           // 这是if (T == S[off])后面要跳到return true的地方
+    cmpl(super_check_offset.as_register(), sc_offset); // 这是off 跟 &amp;cache在比较
+    if (L_failure == &amp;L_fallthrough) {
+      local_jcc(Assembler::equal, *L_slow_path);       // 特殊情况直接跳去slow path继续
+    } else {
+      local_jcc(Assembler::notEqual, *L_failure);      // 这个是if (off != &amp;cache)后面要跳到return false的地方
+      final_jmp(*L_slow_path);
+    }
+  }</pre><br />于是…就这样。那个cache的地址的作用被重载了。这种用法在论文里有写的，仔细读读应该能懂。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-192383">
+  <td class="post_author"><div class="logo"><a href='http://silconfuse.iteye.com' target='_blank'><img alt="hellhell的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="hellhell的博客: Walk the line" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://silconfuse.iteye.com' target='_blank' title='hellhell'>hellhell</a>
+      2011-07-27
+    </div>
+    <div class="post_body"> 
+      这里的确是paper上算法的实现，不过我觉得对cache地址的检查，只可以说明这个T是一个secondary type，所以对&amp;cache检查结果为false了就立即返回失败。但是这里具体是什么type，就不能断定。比如一个对象，实现了多个interface，在check subtype时如果传入的T是interface,还是要去slow path线性扫描。<br /><br />我的疑问是为什么不在进入slow path前先check下cache的内容？而且如果不用读cache的内容，那么把这个S.cache = T 移除不好么？(这个我还没有尝试过）
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-192389">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2011-07-27
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">hellhell 写道</div><div class="quote_div">我的疑问是为什么不在进入slow path前先check下cache的内容？而且如果不用读cache的内容，那么把这个S.cache = T 移除不好么？(这个我还没有尝试过）</div><br />因为：<br /><div class="quote_title">4.3 Combining the Checks 写道</div><div class="quote_div">But, as shown in Figure 2 below, if T is a restricted secondary type, its offset field holds the offset of cache, and so S[T.offset] is the same as S.cache.</div><br />S.cache的内容在fast path里还是check过的。只是跟S[off]合体了而已。<br />论文读仔细哦～<img src="/images/smiles/icon_lol.gif" /> 
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-192413">
+  <td class="post_author"><div class="logo"><a href='http://silconfuse.iteye.com' target='_blank'><img alt="hellhell的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="hellhell的博客: Walk the line" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://silconfuse.iteye.com' target='_blank' title='hellhell'>hellhell</a>
+      2011-07-28
+    </div>
+    <div class="post_body"> 
+      <span style="color: red;"><strong>so S[T.offset] is the same as S.cache.</strong></span><br />不好意思，我居然看漏了这一句，现在明白了，第一个检查就相当于对cache的检查。<br />感谢R大的帮助，打扰你这么多，不好意思。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/26896/post/new">发表回复</a></div>
+  
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '请教一个share/vm/oops下的代码做fast subtype check的问题
+');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/1045625" target="_blank">python 与 ruby 之间的区别</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1001771" target="_blank">Java内存模型笔记</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1123669" target="_blank">用Spring Cache 实现Hibernate的二级缓存机制</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/592944" target="_blank">Sinatra 中的缓存是如此的简单</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/295069" target="_blank">一个单链表，不知道长度，写一个函数快速找到中间节点的位置</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

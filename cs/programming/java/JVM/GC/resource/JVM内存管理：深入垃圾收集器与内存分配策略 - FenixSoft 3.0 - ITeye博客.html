@@ -1,0 +1,1171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JVM内存管理：深入垃圾收集器与内存分配策略 - FenixSoft 3.0 - ITeye博客</title>
+    <meta name="description" content="　　Java与C++之间有一堵由内存动态分配和垃圾收集技术所围成的高墙，墙外面的人想进去，墙里面的人却想出来。 概述： 　　说起垃圾收集（Garbage Collection，下文简称GC），大部分人都把这项技术当做Java语言的伴生产物。事实上GC的历史远远比Java来得久远，在1960年诞生于MIT的Lisp是第一门真正使用内存动态分配和垃圾收集技术的语言。当Lisp还在胚胎时期，人们就在思考G ...">
+    <meta name="keywords" content="JVM, 配置管理, 应用服务器, 算法, 虚拟机 JVM内存管理：深入垃圾收集器与内存分配策略">
+    <link rel="shortcut icon" href="http://icyfenix.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://icyfenix.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://icyfenix.iteye.com/rss" rel="alternate" title="FenixSoft 3.0" type="application/rss+xml">
+    <link href="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/blue.css" media="screen" rel="stylesheet" type="text/css">
+    <script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hm.js"></script><script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/application.js" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/hotkey.js" type="text/javascript"></script>
+  <script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/code_favorites.js" type="text/javascript"></script>
+<script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/weiboshare.js" type="text/javascript"></script>
+
+    
+  <style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style></head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="http://icyfenix.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://icyfenix.iteye.com/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://icyfenix.iteye.com/">FenixSoft 3.0</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://icyfenix.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://icyfenix.iteye.com/weibo">微博</a></li>
+            <li><a href="http://icyfenix.iteye.com/album">相册</a></li>
+            <li><a href="http://icyfenix.iteye.com/link">收藏</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://icyfenix.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text">
+              <input class="submit_search" value="" type="submit">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://icyfenix.iteye.com/" class="p-author" target="_blank">IcyFenix</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="http://icyfenix.iteye.com/blog/802638">JVM内存管理：深入垃圾收集器与内存分配策略</a>
+      <em class="actions">      </em>
+    </h3>
+    
+        <div class="news_tag"><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86">配置管理</a><a href="http://www.iteye.com/blogs/tag/%E5%BA%94%E7%94%A8%E6%9C%8D%E5%8A%A1%E5%99%A8">应用服务器</a><a href="http://www.iteye.com/blogs/tag/%E7%AE%97%E6%B3%95">算法</a><a href="http://www.iteye.com/blogs/tag/%E8%99%9A%E6%8B%9F%E6%9C%BA">虚拟机</a></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    　　Java与C++之间有一堵由内存动态分配和垃圾收集技术所围成的高墙，墙外面的人想进去，墙里面的人却想出来。
+<br>
+<br><strong><span style="font-size: large;">概述：</span></strong>
+<br>
+<br>　　说起垃圾收集（Garbage 
+Collection，下文简称GC），大部分人都把这项技术当做Java语言的伴生产物。事实上GC的历史远远比Java来得久远，在1960年诞生于
+MIT的Lisp是第一门真正使用内存动态分配和垃圾收集技术的语言。当Lisp还在胚胎时期，人们就在思考GC需要完成的3件事情：哪些内存需要回收？
+什么时候回收？怎么样回收？
+<br>
+<br>　　经过半个世纪的发展，目前的内存分配策略与垃圾回收技术已经相当成熟，一切看起来都进入“自动化”的时代，那为什么我们还要去了解GC和内存
+分配？答案很简单：当需要排查各种内存溢出、泄漏问题时，当垃圾收集成为系统达到更高并发量的瓶颈时，我们就需要对这些“自动化”的技术有必要的监控、调
+节手段。
+<br>
+<br>　　把时间从1960年拨回现在，回到我们熟悉的Java语言。本文第一章中介绍了Java内存运行时区域的各个部分，其中程序计数器、VM栈、
+本地方法栈三个区域随线程而生，随线程而灭；栈中的帧随着方法进入、退出而有条不紊的进行着出栈入栈操作；每一个帧中分配多少内存基本上是在Class文
+件生成时就已知的（可能会由JIT动态晚期编译进行一些优化，但大体上可以认为是编译期可知的），因此这几个区域的内存分配和回收具备很高的确定性，因此
+在这几个区域不需要过多考虑回收的问题。而Java堆和方法区（包括运行时常量池）则不一样，我们必须等到程序实际运行期间才能知道会创建哪些对象，这部
+分内存的分配和回收都是动态的，我们本文后续讨论中的“内存”分配与回收仅仅指这一部分内存。
+<br>
+<br><strong><span style="font-size: large;">对象已死？</span></strong>
+<br>
+<br>　　在堆里面存放着Java世界中几乎所有的对象，在回收前首先要确定这些对象之中哪些还在存活，哪些已经“死去”了，即不可能再被任何途径使用的对象。
+<br>
+<br>引用计数算法（Reference Counting）
+<br>
+<br>　　最初的想法，也是很多教科书判断对象是否存活的算法是这样的：给对象中添加一个引用计数器，当有一个地方引用它，计数器加1，当引用失效，计数器减1，任何时刻计数器为0的对象就是不可能再被使用的。
+<br>
+<br>　　客观的说，引用计数算法实现简单，判定效率很高，在大部分情况下它都是一个不错的算法，但引用计数算法无法解决对象循环引用的问题。举个简单
+的例子：对象A和B分别有字段b、a，令A.b=B和B.a=A，除此之外这2个对象再无任何引用，那实际上这2个对象已经不可能再被访问，但是引用计数
+算法却无法回收他们。
+<br>
+<br>根搜索算法（GC Roots Tracing）
+<br>
+<br>　　在实际生产的语言中（Java、C#、甚至包括前面提到的Lisp），都是使用根搜索算法判定对象是否存活。算法基本思路就是通过一系列的称
+为“GC Roots”的点作为起始进行向下搜索，当一个对象到GC Roots没有任何引用链（Reference 
+Chain）相连，则证明此对象是不可用的。在Java语言中，GC Roots包括：
+<br>
+<br>　　1.在VM栈（帧中的本地变量）中的引用
+<br>　　2.方法区中的静态引用
+<br>　　3.JNI（即一般说的Native方法）中的引用
+<br>
+<br>生存还是死亡？
+<br>
+<br>　　判定一个对象死亡，至少经历两次标记过程：如果对象在进行根搜索后，发现没有与GC 
+Roots相连接的引用链，那它将会被第一次标记，并在稍后执行他的finalize()方法（如果它有的话）。这里所谓的“执行”是指虚拟机会触发这个
+方法，但并不承诺会等待它运行结束。这点是必须的，否则一个对象在finalize()方法执行缓慢，甚至有死循环什么的将会很容易导致整个系统崩溃。
+finalize()方法是对象最后一次逃脱死亡命运的机会，稍后GC将进行第二次规模稍小的标记，如果在finalize()中对象成功拯救自己（只要
+重新建立到GC 
+Roots的连接即可，譬如把自己赋值到某个引用上），那在第二次标记时它将被移除出“即将回收”的集合，如果对象这时候还没有逃脱，那基本上它就真的离
+死不远了。
+<br>
+<br>　　需要特别说明的是，这里对finalize()方法的描述可能带点悲情的艺术加工，并不代表笔者鼓励大家去使用这个方法来拯救对象。相反，笔
+者建议大家尽量避免使用它，这个不是C/C++里面的析构函数，它运行代价高昂，不确定性大，无法保证各个对象的调用顺序。需要关闭外部资源之类的事情，
+基本上它能做的使用try-finally可以做的更好。
+<br>
+<br>关于方法区
+<br>
+<br>　　方法区即后文提到的永久代，很多人认为永久代是没有GC的，《Java虚拟机规范》中确实说过可以不要求虚拟机在这区实现GC，而且这区GC
+的“性价比”一般比较低：在堆中，尤其是在新生代，常规应用进行一次GC可以一般可以回收70%~95%的空间，而永久代的GC效率远小于此。虽然VM 
+Spec不要求，但当前生产中的商业JVM都有实现永久代的GC，主要回收两部分内容：废弃常量与无用类。这两点回收思想与Java堆中的对象回收很类
+似，都是搜索是否存在引用，常量的相对很简单，与对象类似的判定即可。而类的回收则比较苛刻，需要满足下面3个条件：
+<br>
+<br>　　1.该类所有的实例都已经被GC，也就是JVM中不存在该Class的任何实例。
+<br>　　2.加载该类的ClassLoader已经被GC。
+<br>　　3.该类对应的java.lang.Class 对象没有在任何地方被引用，如不能在任何地方通过反射访问该类的方法。
+<br>
+<br>　　是否对类进行回收可使用-XX:+ClassUnloading参数进行控制，还可以使用-verbose:class或者-XX:+TraceClassLoading、-XX:+TraceClassUnLoading查看类加载、卸载信息。
+<br>
+<br>　　在大量使用反射、动态代理、CGLib等bytecode框架、动态生成JSP以及OSGi这类频繁自定义ClassLoader的场景都需要JVM具备类卸载的支持以保证永久代不会溢出。
+<br>
+<br><strong><span style="font-size: large;">垃圾收集算法</span></strong>
+<br>
+<br>　　在这节里不打算大量讨论算法实现，只是简单的介绍一下基本思想以及发展过程。最基础的搜集算法是“标记－清除算法”（Mark-
+Sweep），如它的名字一样，算法分层“标记”和“清除”两个阶段，首先标记出所有需要回收的对象，然后回收所有需要回收的对象，整个过程其实前一节讲
+对象标记判定的时候已经基本介绍完了。说它是最基础的收集算法原因是后续的收集算法都是基于这种思路并优化其缺点得到的。它的主要缺点有两个，一是效率问
+题，标记和清理两个过程效率都不高，二是空间问题，标记清理之后会产生大量不连续的内存碎片，空间碎片太多可能会导致后续使用中无法找到足够的连续内存而
+提前触发另一次的垃圾搜集动作。
+<br>
+<br>　　为了解决效率问题，一种称为“复制”（Copying）的搜集算法出现，它将可用内存划分为两块，每次只使用其中的一块，当半区内存用完了，
+仅将还存活的对象复制到另外一块上面，然后就把原来整块内存空间一次过清理掉。这样使得每次内存回收都是对整个半区的回收，内存分配时也就不用考虑内存碎
+片等复杂情况，只要移动堆顶指针，按顺序分配内存就可以了，实现简单，运行高效。只是这种算法的代价是将内存缩小为原来的一半，未免太高了一点。
+<br>
+<br>　　现在的商业虚拟机中都是用了这一种收集算法来回收新生代，IBM有专门研究表明新生代中的对象98%是朝生夕死的，所以并不需要按照1：1的
+比例来划分内存空间，而是将内存分为一块较大的eden空间和2块较少的survivor空间，每次使用eden和其中一块survivor，当回收时将
+eden和survivor还存活的对象一次过拷贝到另外一块survivor空间上，然后清理掉eden和用过的survivor。Sun 
+Hotspot虚拟机默认eden和survivor的大小比例是8:1，也就是每次只有10%的内存是“浪费”的。当然，98%的对象可回收只是一般场
+景下的数据，我们没有办法保证每次回收都只有10%以内的对象存活，当survivor空间不够用时，需要依赖其他内存（譬如老年代）进行分配担保
+（Handle Promotion）。
+<br>
+<br>　　复制收集算法在对象存活率高的时候，效率有所下降。更关键的是，如果不想浪费50%的空间，就需要有额外的空间进行分配担保用于应付半区内存
+中所有对象都100%存活的极端情况，所以在老年代一般不能直接选用这种算法。因此人们提出另外一种“标记－整理”（Mark-Compact）算法，标
+记过程仍然一样，但后续步骤不是进行直接清理，而是令所有存活的对象一端移动，然后直接清理掉这端边界以外的内存。
+<br>
+<br>　　当前商业虚拟机的垃圾收集都是采用“分代收集”（Generational 
+Collecting）算法，这种算法并没有什么新的思想出现，只是根据对象不同的存活周期将内存划分为几块。一般是把Java堆分作新生代和老年代，这
+样就可以根据各个年代的特点采用最适当的收集算法，譬如新生代每次GC都有大批对象死去，只有少量存活，那就选用复制算法只需要付出少量存活对象的复制成
+本就可以完成收集。
+<br>
+<br><strong><span style="font-size: large;">垃圾收集器</span></strong>
+<br>
+<br>　　垃圾收集器就是收集算法的具体实现，不同的虚拟机会提供不同的垃圾收集器。并且提供参数供用户根据自己的应用特点和要求组合各个年代所使用的收集器。本文讨论的收集器基于Sun Hotspot虚拟机1.6版。
+<br>
+<br>图1.Sun JVM1.6的垃圾收集器
+<br><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6655c836-304d-3175-8d37-ad5203e4edc9.gif">
+<br>
+<br>　　图1展示了1.6中提供的6种作用于不同年代的收集器，两个收集器之间存在连线的话就说明它们可以搭配使用。在介绍着些收集器之前，我们先明确一个观点：没有最好的收集器，也没有万能的收集器，只有最合适的收集器。
+<br>
+<br>1.Serial收集器
+<br>　　单线程收集器，收集时会暂停所有工作线程（我们将这件事情称之为Stop The World，下称STW），使用复制收集算法，虚拟机运行在Client模式时的默认新生代收集器。
+<br>
+<br>2.ParNew收集器
+<br>　　ParNew收集器就是Serial的多线程版本，除了使用多条收集线程外，其余行为包括算法、STW、对象分配规则、回收策略等都与
+Serial收集器一摸一样。对应的这种收集器是虚拟机运行在Server模式的默认新生代收集器，在单CPU的环境中，ParNew收集器并不会比
+Serial收集器有更好的效果。
+<br>
+<br>3.Parallel Scavenge收集器
+<br>　　Parallel 
+Scavenge收集器（下称PS收集器）也是一个多线程收集器，也是使用复制算法，但它的对象分配规则与回收策略都与ParNew收集器有所不同，它是
+以吞吐量最大化（即GC时间占总运行时间最小）为目标的收集器实现，它允许较长时间的STW换取总吞吐量最大化。
+<br>
+<br>4.Serial Old收集器
+<br>　　Serial Old是单线程收集器，使用标记－整理算法，是老年代的收集器，上面三种都是使用在新生代收集器。
+<br>
+<br>5.Parallel Old收集器
+<br>　　老年代版本吞吐量优先收集器，使用多线程和标记－整理算法，JVM 1.6提供，在此之前，新生代使用了PS收集器的话，老年代除Serial Old外别无选择，因为PS无法与CMS收集器配合工作。
+<br>
+<br>6.CMS（Concurrent Mark Sweep）收集器
+<br>　　CMS是一种以最短停顿时间为目标的收集器，使用CMS并不能达到GC效率最高（总体GC时间最小），但它能尽可能降低GC时服务的停顿时
+间，这一点对于实时或者高交互性应用（譬如证券交易）来说至关重要，这类应用对于长时间STW一般是不可容忍的。CMS收集器使用的是标记－清除算法，也
+就是说它在运行期间会产生空间碎片，所以虚拟机提供了参数开启CMS收集结束后再进行一次内存压缩。
+<br>内存分配与回收策略
+<br>
+<br>　　了解GC其中很重要一点就是了解JVM的内存分配策略：即对象在哪里分配和对象什么时候回收。
+<br>
+<br>　　关于对象在哪里分配，往大方向讲，主要就在堆上分配，但也可能经过JIT进行逃逸分析后进行标量替换拆散为原子类型在栈上分配，也可能分配在
+DirectMemory中（详见本文第一章）。往细节处讲，对象主要分配在新生代eden上，也可能会直接老年代中，分配的细节决定于当前使用的垃圾收
+集器类型与VM相关参数设置。我们可以通过下面代码来验证一下Serial收集器（ParNew收集器的规则与之完全一致）的内存分配和回收的策略。读者
+看完Serial收集器的分析后，不妨自己根据JVM参数文档写一些程序去实践一下其它几种收集器的分配策略。
+<br>
+<br>清单1：内存分配测试代码
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/clipboard_new.swf" flashvars="clipboard=public%20class%20YoungGenGC%20%7B%0A%0A%09private%20static%20final%20int%20_1MB%20%3D%201024%20*%201024%3B%0A%0A%09public%20static%20void%20main(String%5B%5D%20args)%20%7B%0A%09%09%2F%2F%20testAllocation()%3B%0A%09%09testHandlePromotion()%3B%0A%09%09%2F%2F%20testPretenureSizeThreshold()%3B%0A%09%09%2F%2F%20testTenuringThreshold()%3B%0A%09%09%2F%2F%20testTenuringThreshold2()%3B%0A%09%7D%0A%0A%09%2F**%0A%09%20*%20VM%E5%8F%82%E6%95%B0%EF%BC%9A-verbose%3Agc%20-Xms20M%20-Xmx20M%20-Xmn10M%20-XX%3A%2BPrintGCDetails%20-XX%3ASurvivorRatio%3D8%0A%09%20*%2F%0A%09%40SuppressWarnings(%22unused%22)%0A%09public%20static%20void%20testAllocation()%20%7B%0A%09%09byte%5B%5D%20allocation1%2C%20allocation2%2C%20allocation3%2C%20allocation4%3B%0A%09%09allocation1%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation2%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation3%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation4%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%20%20%2F%2F%20%E5%87%BA%E7%8E%B0%E4%B8%80%E6%AC%A1Minor%20GC%0A%09%7D%0A%0A%09%2F**%0A%09%20*%20VM%E5%8F%82%E6%95%B0%EF%BC%9A-verbose%3Agc%20-Xms20M%20-Xmx20M%20-Xmn10M%20-XX%3A%2BPrintGCDetails%20-XX%3ASurvivorRatio%3D8%0A%09%20*%20-XX%3APretenureSizeThreshold%3D3145728%0A%09%20*%2F%0A%09%40SuppressWarnings(%22unused%22)%0A%09public%20static%20void%20testPretenureSizeThreshold()%20%7B%0A%09%09byte%5B%5D%20allocation%3B%0A%09%09allocation%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%20%20%2F%2F%E7%9B%B4%E6%8E%A5%E5%88%86%E9%85%8D%E5%9C%A8%E8%80%81%E5%B9%B4%E4%BB%A3%E4%B8%AD%0A%09%7D%0A%0A%09%2F**%0A%09%20*%20VM%E5%8F%82%E6%95%B0%EF%BC%9A-verbose%3Agc%20-Xms20M%20-Xmx20M%20-Xmn10M%20-XX%3A%2BPrintGCDetails%20-XX%3ASurvivorRatio%3D8%20-XX%3AMaxTenuringThreshold%3D1%0A%09%20*%20-XX%3A%2BPrintTenuringDistribution%0A%09%20*%2F%0A%09%40SuppressWarnings(%22unused%22)%0A%09public%20static%20void%20testTenuringThreshold()%20%7B%0A%09%09byte%5B%5D%20allocation1%2C%20allocation2%2C%20allocation3%3B%0A%09%09allocation1%20%3D%20new%20byte%5B_1MB%20%2F%204%5D%3B%20%20%2F%2F%20%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%BF%9B%E5%85%A5%E8%80%81%E5%B9%B4%E4%BB%A3%E5%86%B3%E5%AE%9A%E4%BA%8EXX%3AMaxTenuringThreshold%E8%AE%BE%E7%BD%AE%0A%09%09allocation2%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%09allocation3%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%09allocation3%20%3D%20null%3B%0A%09%09allocation3%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%7D%0A%0A%09%2F**%0A%09%20*%20VM%E5%8F%82%E6%95%B0%EF%BC%9A-verbose%3Agc%20-Xms20M%20-Xmx20M%20-Xmn10M%20-XX%3A%2BPrintGCDetails%20-XX%3ASurvivorRatio%3D8%20-XX%3AMaxTenuringThreshold%3D15%0A%09%20*%20-XX%3A%2BPrintTenuringDistribution%0A%09%20*%2F%0A%09%40SuppressWarnings(%22unused%22)%0A%09public%20static%20void%20testTenuringThreshold2()%20%7B%0A%09%09byte%5B%5D%20allocation1%2C%20allocation2%2C%20allocation3%2C%20allocation4%3B%0A%09%09allocation1%20%3D%20new%20byte%5B_1MB%20%2F%204%5D%3B%20%20%20%2F%2F%20allocation1%2Ballocation2%E5%A4%A7%E4%BA%8Esurvivo%E7%A9%BA%E9%97%B4%E4%B8%80%E5%8D%8A%0A%09%09allocation2%20%3D%20new%20byte%5B_1MB%20%2F%204%5D%3B%20%20%0A%09%09allocation3%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%09allocation4%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%09allocation4%20%3D%20null%3B%0A%09%09allocation4%20%3D%20new%20byte%5B4%20*%20_1MB%5D%3B%0A%09%7D%0A%0A%09%2F**%0A%09%20*%20VM%E5%8F%82%E6%95%B0%EF%BC%9A-verbose%3Agc%20-Xms20M%20-Xmx20M%20-Xmn10M%20-XX%3A%2BPrintGCDetails%20-XX%3ASurvivorRatio%3D8%20-XX%3A-HandlePromotionFailure%0A%09%20*%2F%0A%09%40SuppressWarnings(%22unused%22)%0A%09public%20static%20void%20testHandlePromotion()%20%7B%0A%09%09byte%5B%5D%20allocation1%2C%20allocation2%2C%20allocation3%2C%20allocation4%2C%20allocation5%2C%20allocation6%2C%20allocation7%3B%0A%09%09allocation1%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation2%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation3%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation1%20%3D%20null%3B%0A%09%09allocation4%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation5%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation6%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%09allocation4%20%3D%20null%3B%0A%09%09allocation5%20%3D%20null%3B%0A%09%09allocation6%20%3D%20null%3B%0A%09%09allocation7%20%3D%20new%20byte%5B2%20*%20_1MB%5D%3B%0A%09%7D%0A%7D" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" width="14" height="15">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_star.png" alt="收藏代码"><img class="spinner" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">class</span><span>&nbsp;YoungGenGC&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">private</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">final</span><span>&nbsp;</span><span class="keyword">int</span><span>&nbsp;_1MB&nbsp;=&nbsp;</span><span class="number">1024</span><span>&nbsp;*&nbsp;</span><span class="number">1024</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;main(String[]&nbsp;args)&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;testAllocation();</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;testHandlePromotion();&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;testPretenureSizeThreshold();</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;testTenuringThreshold();</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;testTenuringThreshold2();</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;VM
+参数：-verbose:gc&nbsp;-Xms20M&nbsp;-Xmx20M&nbsp;-Xmn10M&nbsp;-
+XX:+PrintGCDetails&nbsp;-XX:SurvivorRatio=8</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@SuppressWarnings</span><span>(</span><span class="string">"unused"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;testAllocation()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;allocation1,&nbsp;allocation2,&nbsp;allocation3,&nbsp;allocation4;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation2&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span><span class="comment">//&nbsp;出现一次Minor&nbsp;GC</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;VM
+参数：-verbose:gc&nbsp;-Xms20M&nbsp;-Xmx20M&nbsp;-Xmn10M&nbsp;-
+XX:+PrintGCDetails&nbsp;-XX:SurvivorRatio=8</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;-XX:PretenureSizeThreshold=3145728</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@SuppressWarnings</span><span>(</span><span class="string">"unused"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;testPretenureSizeThreshold()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;allocation;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span><span class="comment">//直接分配在老年代中</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;VM
+参数：-verbose:gc&nbsp;-Xms20M&nbsp;-Xmx20M&nbsp;-Xmn10M&nbsp;-
+XX:+PrintGCDetails&nbsp;-XX:SurvivorRatio=8&nbsp;-XX:MaxTenuringThreshold=1</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;-XX:+PrintTenuringDistribution</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@SuppressWarnings</span><span>(</span><span class="string">"unused"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;testTenuringThreshold()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;allocation1,&nbsp;allocation2,&nbsp;allocation3;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[_1MB&nbsp;/&nbsp;</span><span class="number">4</span><span>];&nbsp;&nbsp;</span><span class="comment">//&nbsp;什么时候进入老年代决定于XX:MaxTenuringThreshold设置</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation2&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;VM
+参数：-verbose:gc&nbsp;-Xms20M&nbsp;-Xmx20M&nbsp;-Xmn10M&nbsp;-
+XX:+PrintGCDetails&nbsp;-XX:SurvivorRatio=8&nbsp;-XX:MaxTenuringThreshold=15</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;-XX:+PrintTenuringDistribution</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@SuppressWarnings</span><span>(</span><span class="string">"unused"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;testTenuringThreshold2()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;allocation1,&nbsp;allocation2,&nbsp;allocation3,&nbsp;allocation4;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[_1MB&nbsp;/&nbsp;</span><span class="number">4</span><span>];&nbsp;&nbsp;&nbsp;</span><span class="comment">//&nbsp;allocation1+allocation2大于survivo空间一半</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation2&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[_1MB&nbsp;/&nbsp;</span><span class="number">4</span><span>];&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">4</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">/**</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;VM
+参数：-verbose:gc&nbsp;-Xms20M&nbsp;-Xmx20M&nbsp;-Xmn10M&nbsp;-
+XX:+PrintGCDetails&nbsp;-XX:SurvivorRatio=8&nbsp;-XX:-HandlePromotionFailure</span>&nbsp;</span></li><li><span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/</span><span>&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">@SuppressWarnings</span><span>(</span><span class="string">"unused"</span><span>)&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;testHandlePromotion()&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">byte</span><span>[]&nbsp;allocation1,&nbsp;allocation2,&nbsp;allocation3,&nbsp;allocation4,&nbsp;allocation5,&nbsp;allocation6,&nbsp;allocation7;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation2&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation3&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation1&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation5&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation6&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation4&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation5&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation6&nbsp;=&nbsp;<span class="keyword">null</span><span>;&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allocation7&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;</span><span class="keyword">byte</span><span>[</span><span class="number">2</span><span>&nbsp;*&nbsp;_1MB];&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre name="code" class="java" style="display: none;" codeable_id="" codeable_type="BlogComment" source_url="http://icyfenix.iteye.com/blog/802638#" pre_index="0" title="JVM内存管理：深入垃圾收集器与内存分配策略">public class YoungGenGC {
+
+	private static final int _1MB = 1024 * 1024;
+
+	public static void main(String[] args) {
+		// testAllocation();
+		testHandlePromotion();
+		// testPretenureSizeThreshold();
+		// testTenuringThreshold();
+		// testTenuringThreshold2();
+	}
+
+	/**
+	 * VM参数：-verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8
+	 */
+	@SuppressWarnings("unused")
+	public static void testAllocation() {
+		byte[] allocation1, allocation2, allocation3, allocation4;
+		allocation1 = new byte[2 * _1MB];
+		allocation2 = new byte[2 * _1MB];
+		allocation3 = new byte[2 * _1MB];
+		allocation4 = new byte[4 * _1MB];  // 出现一次Minor GC
+	}
+
+	/**
+	 * VM参数：-verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8
+	 * -XX:PretenureSizeThreshold=3145728
+	 */
+	@SuppressWarnings("unused")
+	public static void testPretenureSizeThreshold() {
+		byte[] allocation;
+		allocation = new byte[4 * _1MB];  //直接分配在老年代中
+	}
+
+	/**
+	 * VM参数：-verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=1
+	 * -XX:+PrintTenuringDistribution
+	 */
+	@SuppressWarnings("unused")
+	public static void testTenuringThreshold() {
+		byte[] allocation1, allocation2, allocation3;
+		allocation1 = new byte[_1MB / 4];  // 什么时候进入老年代决定于XX:MaxTenuringThreshold设置
+		allocation2 = new byte[4 * _1MB];
+		allocation3 = new byte[4 * _1MB];
+		allocation3 = null;
+		allocation3 = new byte[4 * _1MB];
+	}
+
+	/**
+	 * VM参数：-verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8 -XX:MaxTenuringThreshold=15
+	 * -XX:+PrintTenuringDistribution
+	 */
+	@SuppressWarnings("unused")
+	public static void testTenuringThreshold2() {
+		byte[] allocation1, allocation2, allocation3, allocation4;
+		allocation1 = new byte[_1MB / 4];   // allocation1+allocation2大于survivo空间一半
+		allocation2 = new byte[_1MB / 4];  
+		allocation3 = new byte[4 * _1MB];
+		allocation4 = new byte[4 * _1MB];
+		allocation4 = null;
+		allocation4 = new byte[4 * _1MB];
+	}
+
+	/**
+	 * VM参数：-verbose:gc -Xms20M -Xmx20M -Xmn10M -XX:+PrintGCDetails -XX:SurvivorRatio=8 -XX:-HandlePromotionFailure
+	 */
+	@SuppressWarnings("unused")
+	public static void testHandlePromotion() {
+		byte[] allocation1, allocation2, allocation3, allocation4, allocation5, allocation6, allocation7;
+		allocation1 = new byte[2 * _1MB];
+		allocation2 = new byte[2 * _1MB];
+		allocation3 = new byte[2 * _1MB];
+		allocation1 = null;
+		allocation4 = new byte[2 * _1MB];
+		allocation5 = new byte[2 * _1MB];
+		allocation6 = new byte[2 * _1MB];
+		allocation4 = null;
+		allocation5 = null;
+		allocation6 = null;
+		allocation7 = new byte[2 * _1MB];
+	}
+}</pre>
+<br>
+<br>规则一：通常情况下，对象在eden中分配。当eden无法分配时，触发一次Minor GC。
+<br>
+<br>　　执行testAllocation()方法后输出了GC日志以及内存分配状况。-Xms20M -Xmx20M 
+-Xmn10M这3个参数确定了Java堆大小为20M，不可扩展，其中10M分配给新生代，剩下的10M即为老年代。-
+XX:SurvivorRatio=8决定了新生代中eden与survivor的空间比例是1：8，从输出的结果也清晰的看到“eden space 
+8192K、from space 1024K、to space 
+1024K”的信息，新生代总可用空间为9216K（eden+1个survivor）。
+<br>
+<br>　　我们也注意到在执行testAllocation()时出现了一次Minor 
+GC，GC的结果是新生代6651K变为148K，而总占用内存则几乎没有减少（因为几乎没有可回收的对象）。这次GC是发生的原因是为
+allocation4分配内存的时候，eden已经被占用了6M，剩余空间已不足分配allocation4所需的4M内存，因此发生Minor 
+GC。GC期间虚拟机发现已有的3个2M大小的对象全部无法放入survivor空间（survivor空间只有1M大小），所以直接转移到老年代去。
+GC后4M的allocation4对象分配在eden中。
+<br>
+<br>清单2：testAllocation()方法输出结果
+<br>
+<br>[GC [DefNew: 6651K-&gt;148K(9216K), 0.0070106 secs] 
+6651K-&gt;6292K(19456K), 0.0070426 secs] [Times: user=0.00 sys=0.00, 
+real=0.00 secs] 
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 4326K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp; 51% used [0x029d0000, 0x02de4828, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp; 14% used [0x032d0000, 0x032f5370, 0x033d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x031d0000, 0x031d0000, 0x032d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 6144K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 60% used [0x033d0000, 0x039d0030, 0x039d0200, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2114K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fe0998, 0x03fe0a00, 0x049d0000)
+<br>No shared spaces configured.
+<br>
+<br>规则二：配置了PretenureSizeThreshold的情况下，对象大于设置值将直接在老年代分配。
+<br>
+<br>　　执行testPretenureSizeThreshold()方法后，我们看到eden空间几乎没有被使用，而老年代的10M控件被使用了
+40%，也就是4M的allocation对象直接就分配在老年代中，则是因为PretenureSizeThreshold被设置为3M，因此超过3M
+的对象都会直接从老年代分配。
+<br>
+<br>清单3：
+<br>
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 671K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp;&nbsp; 8% used [0x029d0000, 0x02a77e98, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp;&nbsp; 0% used [0x031d0000, 0x031d0000, 0x032d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x032d0000, 0x032d0000, 0x033d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 4096K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 40% used [0x033d0000, 0x037d0010, 0x037d0200, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2107K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fdefd0, 0x03fdf000, 0x049d0000)
+<br>No shared spaces configured.
+<br>
+<br>规则三：在eden经过GC后存活，并且survivor能容纳的对象，将移动到survivor空间内，如果对象在survivor中继续熬过若干次回收（默认为15次）将会被移动到老年代中。回收次数由MaxTenuringThreshold设置。
+<br>
+<br>　　分别以-XX:MaxTenuringThreshold=1和-XX:MaxTenuringThreshold=15两种设置来执行
+testTenuringThreshold()，方法中allocation1对象需要256K内存，survivor空间可以容纳。当
+MaxTenuringThreshold=1时，allocation1对象在第二次GC发生时进入老年代，新生代已使用的内存GC后非常干净的变成
+0KB。而MaxTenuringThreshold=15时，第二次GC发生后，allocation1对象则还留在新生代survivor空间，这时
+候新生代仍然有404KB被占用。
+<br>
+<br>清单4：
+<br>MaxTenuringThreshold=1
+<br>
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 1 (max 1)
+<br>- age&nbsp;&nbsp; 1:&nbsp;&nbsp;&nbsp;&nbsp; 414664 bytes,&nbsp;&nbsp;&nbsp;&nbsp; 414664 total
+<br>: 4859K-&gt;404K(9216K), 0.0065012 secs] 4859K-&gt;4500K(19456K), 0.0065283 secs] [Times: user=0.02 sys=0.00, real=0.02 secs] 
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 1 (max 1)
+<br>: 4500K-&gt;0K(9216K), 0.0009253 secs] 8596K-&gt;4500K(19456K), 0.0009458 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 4178K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp; 51% used [0x029d0000, 0x02de4828, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp;&nbsp; 0% used [0x031d0000, 0x031d0000, 0x032d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x032d0000, 0x032d0000, 0x033d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 4500K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 43% used [0x033d0000, 0x03835348, 0x03835400, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2114K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fe0998, 0x03fe0a00, 0x049d0000)
+<br>No shared spaces configured.
+<br>
+<br>MaxTenuringThreshold=15
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 15 (max 15)
+<br>- age&nbsp;&nbsp; 1:&nbsp;&nbsp;&nbsp;&nbsp; 414664 bytes,&nbsp;&nbsp;&nbsp;&nbsp; 414664 total
+<br>: 4859K-&gt;404K(9216K), 0.0049637 secs] 4859K-&gt;4500K(19456K), 0.0049932 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 15 (max 15)
+<br>- age&nbsp;&nbsp; 2:&nbsp;&nbsp;&nbsp;&nbsp; 414520 bytes,&nbsp;&nbsp;&nbsp;&nbsp; 414520 total
+<br>: 4500K-&gt;404K(9216K), 0.0008091 secs] 8596K-&gt;4500K(19456K), 0.0008305 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 4582K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp; 51% used [0x029d0000, 0x02de4828, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp; 39% used [0x031d0000, 0x03235338, 0x032d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x032d0000, 0x032d0000, 0x033d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 4096K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 40% used [0x033d0000, 0x037d0010, 0x037d0200, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2114K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fe0998, 0x03fe0a00, 0x049d0000)
+<br>No shared spaces configured.
+<br>
+<br>规则四：如果在survivor空间中相同年龄所有对象大小的累计值大于survivor空间的一半，大于或等于个年龄的对象就可以直接进入老年代，无需达到MaxTenuringThreshold中要求的年龄。
+<br>
+<br>　　执行testTenuringThreshold2()方法，并将设置-XX:MaxTenuringThreshold=15，发现运行结
+果中survivor占用仍然为0%，而老年代比预期增加了6%，也就是说allocation1、allocation2对象都直接进入了老年代，而没
+有等待到15岁的临界年龄。因为这2个对象加起来已经到达了512K，并且它们是同年的，满足同年对象达到survivor空间的一半规则。我们只要注释
+掉其中一个对象new操作，就会发现另外一个就不会晋升到老年代中去了。
+<br>
+<br>清单5：
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 1 (max 15)
+<br>- age&nbsp;&nbsp; 1:&nbsp;&nbsp;&nbsp;&nbsp; 676824 bytes,&nbsp;&nbsp;&nbsp;&nbsp; 676824 total
+<br>: 5115K-&gt;660K(9216K), 0.0050136 secs] 5115K-&gt;4756K(19456K), 0.0050443 secs] [Times: user=0.00 sys=0.01, real=0.01 secs] 
+<br>[GC [DefNew
+<br>Desired survivor size 524288 bytes, new threshold 15 (max 15)
+<br>: 4756K-&gt;0K(9216K), 0.0010571 secs] 8852K-&gt;4756K(19456K), 0.0011009 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 4178K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp; 51% used [0x029d0000, 0x02de4828, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp;&nbsp; 0% used [0x031d0000, 0x031d0000, 0x032d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x032d0000, 0x032d0000, 0x033d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 4756K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 46% used [0x033d0000, 0x038753e8, 0x03875400, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2114K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fe09a0, 0x03fe0a00, 0x049d0000)
+<br>No shared spaces configured.
+<br>
+<br>规则五：在Minor GC触发时，会检测之前每次晋升到老年代的平均大小是否大于老年代的剩余空间，如果大于，改为直接进行一次Full 
+GC，如果小于则查看HandlePromotionFailure设置看看是否允许担保失败，如果允许，那仍然进行Minor 
+GC，如果不允许，则也要改为进行一次Full GC。
+<br>
+<br>　　前面提到过，新生代才有复制收集算法，但为了内存利用率，只使用其中一个survivor空间来作为轮换备份，因此当出现大量对象在GC后仍
+然存活的情况（最极端就是GC后所有对象都存活），就需要老年代进行分配担保，把survivor无法容纳的对象直接放入老年代。与生活中贷款担保类似，
+老年代要进行这样的担保，前提就是老年代本身还有容纳这些对象的剩余空间，一共有多少对象在GC之前是无法明确知道的，所以取之前每一次GC晋升到老年代
+对象容量的平均值与老年代的剩余空间进行比较决定是否进行Full GC来让老年代腾出更多空间。
+<br>
+<br>　　取平均值进行比较其实仍然是一种动态概率的手段，也就是说如果某次Minor 
+GC存活后的对象突增，大大高于平均值的话，依然会导致担保失败，这样就只好在失败后重新进行一次Full 
+GC。虽然担保失败时做的绕的圈子是最大的，但大部分情况下都还是会将HandlePromotionFailure打开，避免Full GC过于频繁。
+<br>
+<br>清单6：
+<br>HandlePromotionFailure = false
+<br>
+<br>[GC [DefNew: 6651K-&gt;148K(9216K), 0.0078936 secs] 
+6651K-&gt;4244K(19456K), 0.0079192 secs] [Times: user=0.00 sys=0.02, 
+real=0.02 secs] 
+<br>[GC [DefNew: 6378K-&gt;6378K(9216K), 0.0000206 secs][Tenured: 
+4096K-&gt;4244K(10240K), 0.0042901 secs] 10474K-&gt;4244K(19456K), [Perm
+ : 2104K-&gt;2104K(12288K)], 0.0043613 secs] [Times: user=0.00 sys=0.00,
+ real=0.00 secs] 
+<br>
+<br>HandlePromotionFailure = true
+<br>
+<br>[GC [DefNew: 6651K-&gt;148K(9216K), 0.0054913 secs] 
+6651K-&gt;4244K(19456K), 0.0055327 secs] [Times: user=0.00 sys=0.00, 
+real=0.00 secs] 
+<br>[GC [DefNew: 6378K-&gt;148K(9216K), 0.0006584 secs] 
+10474K-&gt;4244K(19456K), 0.0006857 secs] [Times: user=0.00 sys=0.00, 
+real=0.00 secs] 
+<br>
+<br><strong><span style="font-size: large;">总结</span></strong>
+<br>
+<br>　　本章介绍了垃圾收集的算法、6款主要的垃圾收集器，以及通过代码实例具体介绍了新生代串行收集器对内存分配及回收的影响。
+<br>
+<br>　　GC在很多时候都是系统并发度的决定性因素，虚拟机之所以提供多种不同的收集器，提供大量的调节参数，是因为只有根据实际应用需求、实现方式
+选择最优的收集方式才能获取最好的性能。没有固定收集器、参数组合，也没有最优的调优方法，虚拟机也没有什么必然的行为。笔者看过一些文章，撇开具体场景
+去谈论老年代达到92%会触发Full 
+GC（92%应当来自CMS收集器触发的默认临界点）、98%时间在进行垃圾收集系统会抛出OOM异常（98%应该来自parallel收集器收集时间比
+率的默认临界点）其实意义并不太大。因此学习GC如果要到实践调优阶段，必须了解每个具体收集器的行为、优势劣势、调节参数。
+<br>
+  </div>
+
+  
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://icyfenix.iteye.com/blog/830787" class="next" title="Servlet 3.0 实战：异步 Servlet 与 Comet 风格应用程序">Servlet 3.0 实战：异步 Servlet 与 Comet ...</a>
+      |
+      <a href="http://icyfenix.iteye.com/blog/802573" class="pre" title="JVM内存管理：深入Java内存区域与OOM">JVM内存管理：深入Java内存区域与OOM</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2010-11-04 12:49</li>
+      <li>浏览 4472</li>
+      <li><a href="#comments">评论(31)</a></li>
+       <li>论坛回复 / <a href="http://icyfenix.iteye.com/topic/802638">浏览</a> (26 / 38227)</li> 
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/802638" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1455589744328_328.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36074</em>&nbsp;&nbsp;关注 <i>|</i> <em>3137</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1465887837340_340.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3055</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1479972981201_201.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>14935</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/1453701371636_636.jpg" alt="" width="58" height="58"></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>30845</em>&nbsp;&nbsp;关注 <i>|</i> <em>3747</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2344376">
+  <div class="comment_title">
+    31 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2014-04-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">xiaohu7924 写道</div><div class="quote_div">清单6： <br>HandlePromotionFailure = false <br><br>[GC
+ [DefNew: 6651K-&gt;148K(9216K), 0.0078936 secs] 
+6651K-&gt;4244K(19456K), 0.0079192 secs] [Times: user=0.00 sys=0.02, 
+real=0.02 secs] <br>[GC [DefNew: <span style="color: red;">6378K-&gt;6378K</span>(9216K),
+ 0.0000206 secs][Tenured: 4096K-&gt;4244K(10240K), 0.0042901 secs] 
+10474K-&gt;4244K(19456K), [Perm : 2104K-&gt;2104K(12288K)], 0.0043613 
+secs] [Times: user=0.00 sys=0.00, real=0.00 secs] <br><br>看最后堆里面的，新生代只有２Ｍ，之前的６Ｍ是回收了的，怎么红色日志显示的没有回收？这是什么意思。。。</div><br>请看这里<a rel="nofollow" href="http://hllvm.group.iteye.com/group/topic/39727#post-259733" target="_blank">http://hllvm.group.iteye.com/group/topic/39727#post-259733</a></div>
+</div>
+
+<div id="bc2344334">
+  <div class="comment_title">
+    30 楼
+    <a href="http://xiaohu7978.iteye.com/" target="_blank" title="xiaohu7924">xiaohu7924</a>
+    2014-04-03&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">清单6： <br>HandlePromotionFailure = false <br><br>[GC
+ [DefNew: 6651K-&gt;148K(9216K), 0.0078936 secs] 
+6651K-&gt;4244K(19456K), 0.0079192 secs] [Times: user=0.00 sys=0.02, 
+real=0.02 secs] <br>[GC [DefNew: <span style="color: red;">6378K-&gt;6378K</span>(9216K),
+ 0.0000206 secs][Tenured: 4096K-&gt;4244K(10240K), 0.0042901 secs] 
+10474K-&gt;4244K(19456K), [Perm : 2104K-&gt;2104K(12288K)], 0.0043613 
+secs] [Times: user=0.00 sys=0.00, real=0.00 secs] <br><br>看最后堆里面的，新生代只有２Ｍ，之前的６Ｍ是回收了的，怎么红色日志显示的没有回收？这是什么意思。。。</div>
+</div>
+
+<div id="bc2151036">
+  <div class="comment_title">
+    29 楼
+    <a href="http://aidiyuxin.iteye.com/" target="_blank" title="aidiyuxin">aidiyuxin</a>
+    2011-06-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">可惜木有g1</div>
+</div>
+
+<div id="bc1932025">
+  <div class="comment_title">
+    28 楼
+    <a href="http://zk7019311.iteye.com/" target="_blank" title="zk7019311">zk7019311</a>
+    2011-02-25&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">学习中，期待楼主更新</div>
+</div>
+
+<div id="bc1931912">
+  <div class="comment_title">
+    27 楼
+    <a href="http://wenm-owen.iteye.com/" target="_blank" title="wenm_owen">wenm_owen</a>
+    2011-02-25&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">ddddddddddddddddd</div>
+</div>
+
+<div id="bc1895915">
+  <div class="comment_title">
+    26 楼
+    <a href="http://chenxiba.iteye.com/" target="_blank" title="haigui.chen">haigui.chen</a>
+    2011-02-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div">
+<br>规则一：通常情况下，对象在eden中分配。当eden无法分配时，触发一次Minor GC。
+<br>
+<br>　　执行testAllocation()方法后输出了GC日志以及内存分配状况。-Xms20M -Xmx20M 
+-Xmn10M这3个参数确定了Java堆大小为20M，不可扩展，其中10M分配给新生代，剩下的10M即为老年代。-
+XX:SurvivorRatio=8决定了新生代中eden与survivor的空间比例是1：8，从输出的结果也清晰的看到“eden space 
+8192K、from space 1024K、to space 
+1024K”的信息，新生代总可用空间为9216K（eden+1个survivor）。
+<br>
+<br>　　我们也注意到在执行testAllocation()时出现了一次Minor 
+GC，GC的结果是新生代6651K变为148K，而总占用内存则几乎没有减少（因为几乎没有可回收的对象）。这次GC是发生的原因是为
+allocation4分配内存的时候，eden已经被占用了6M，剩余空间已不足分配allocation4所需的4M内存，因此发生Minor 
+GC。GC期间虚拟机发现已有的3个2M大小的对象全部无法放入survivor空间（survivor空间只有1M大小），所以直接转移到老年代去。
+GC后4M的allocation4对象分配在eden中。
+<br>
+<br>清单2：testAllocation()方法输出结果
+<br>
+<br>[GC [DefNew: 6651K-&gt;148K(9216K), 0.0070106 secs] 
+6651K-&gt;6292K(19456K), 0.0070426 secs] [Times: user=0.00 sys=0.00, 
+real=0.00 secs] 
+<br>Heap
+<br> def new generation&nbsp;&nbsp; total 9216K, used 4326K [0x029d0000, 0x033d0000, 0x033d0000)
+<br>&nbsp; eden space 8192K,&nbsp; 51% used [0x029d0000, 0x02de4828, 0x031d0000)
+<br>&nbsp; from space 1024K,&nbsp; <strong><span style="color: red;">14%</span> </strong>used [0x032d0000, 0x032f5370, 0x033d0000)
+<br>&nbsp; to&nbsp;&nbsp; space 1024K,&nbsp;&nbsp; 0% used [0x031d0000, 0x031d0000, 0x032d0000)
+<br> tenured generation&nbsp;&nbsp; total 10240K, used 6144K [0x033d0000, 0x03dd0000, 0x03dd0000)
+<br>&nbsp;&nbsp; the space 10240K,&nbsp; 60% used [0x033d0000, 0x039d0030, 0x039d0200, 0x03dd0000)
+<br> compacting perm gen&nbsp; total 12288K, used 2114K [0x03dd0000, 0x049d0000, 0x07dd0000)
+<br>&nbsp;&nbsp; the space 12288K,&nbsp; 17% used [0x03dd0000, 0x03fe0998, 0x03fe0a00, 0x049d0000)
+<br>No shared spaces configured.
+<br></div>
+<br>请问为什么from space里面还占用了14%,存放的是些什么呢？</div>
+</div>
+
+<div id="bc1894596">
+  <div class="comment_title">
+    25 楼
+    <a href="http://twojinyong.iteye.com/" target="_blank" title="twojinyong">twojinyong</a>
+    2011-02-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">谢谢LZ 蛮受用的<br>期待JVM内存管理：深入JVM内存异常分析与调优</div>
+</div>
+
+<div id="bc1887610">
+  <div class="comment_title">
+    24 楼
+    <a href="http://zm9913.iteye.com/" target="_blank" title="zm9913">zm9913</a>
+    2011-01-28&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">这种好贴，一般会收藏，谢谢</div>
+</div>
+
+<div id="bc1854849">
+  <div class="comment_title">
+    23 楼
+    <a href="http://bluesleaf.iteye.com/" target="_blank" title="bluesleaf">bluesleaf</a>
+    2011-01-15&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">请问LZ啥时候写第三章呢？</div>
+</div>
+
+<div id="bc1802683">
+  <div class="comment_title">
+    22 楼
+    <a href="http://c-j.iteye.com/" target="_blank" title="C_J">C_J</a>
+    2010-12-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">受益良多，谢谢，呵呵
+<br>
+<br>
+<br>分享一个harmony的GC PPT，不过没看懂，呵呵</div>
+</div>
+
+<div id="bc1802108">
+  <div class="comment_title">
+    21 楼
+    <a href="http://sunrie.iteye.com/" target="_blank" title="sunrie">sunrie</a>
+    2010-12-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">不错，进一步了解了垃圾回收的知识，期待后续章节</div>
+</div>
+
+<div id="bc1756741">
+  <div class="comment_title">
+    20 楼
+    <a href="http://eric-zhu20070610193254.iteye.com/" target="_blank" title="Eric_Zhu">Eric_Zhu</a>
+    2010-11-15&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">写得很是通俗易懂，也很容易记忆，谢谢！</div>
+</div>
+
+<div id="bc1754397">
+  <div class="comment_title">
+    19 楼
+    <a href="http://iq527.iteye.com/" target="_blank" title="iq527">iq527</a>
+    2010-11-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div">规则四：如果在survivor空间中相同年龄所有对象大小的累计值大于survivor空间的一半，大于或等于<span style="color: red;">个</span>年龄的对象就可以直接进入老年代，无需达到MaxTenuringThreshold中要求的年龄。 </div>
+<br><span style="color: red;">该</span>年龄?
+<br><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_biggrin.gif">&nbsp; 不是应该还有第三章的嘛?
+<br>
+<br>谢谢IcyFenix的分享<img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_smile.gif"> </div>
+</div>
+
+<div id="bc1745135">
+  <div class="comment_title">
+    18 楼
+    <a href="http://nithkn.iteye.com/" target="_blank" title="nithkn">nithkn</a>
+    2010-11-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">一个字：深</div>
+</div>
+
+<div id="bc1744949">
+  <div class="comment_title">
+    17 楼
+    <a href="http://kiral.iteye.com/" target="_blank" title="fantasy">fantasy</a>
+    2010-11-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">antipro 写道</div><div class="quote_div">看不太懂哦</div>
+<br>可以先看看下面这篇文章，再回头看这篇。
+<br>http://pengjiaheng.iteye.com/blog/528034</div>
+</div>
+
+<div id="bc1744734">
+  <div class="comment_title">
+    16 楼
+    <a href="http://icyfenix.iteye.com/" target="_blank" title="IcyFenix">IcyFenix</a>
+    2010-11-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div">
+<br>规则一：-XX:SurvivorRatio=8决定了新生代中eden与survivor的空间比例是<span style="color: red;"><strong>1：8</strong></span>
+<br></div>
+<br>
+<br>这里有个错误，应该是8:1，特此更正。</div>
+</div>
+
+<div id="bc1744318">
+  <div class="comment_title">
+    15 楼
+    <a href="http://icyfenix.iteye.com/" target="_blank" title="IcyFenix">IcyFenix</a>
+    2010-11-06&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div">嗯，投了精华。楼主加油～～
+<br>
+<br>不满的部分：
+<br><div class="quote_title">IcyFenix 写道</div><div class="quote_div">关于方法区 
+<br>
+<br>　　方法区即后文提到的永久代，很多人认为永久代是没有GC的，《Java虚拟机规范》中确实说过可以不要求虚拟机在这区实现GC，而且这区GC
+的“性价比”一般比较低：在堆中，尤其是在新生代，常规应用进行一次GC可以一般可以回收70%~95%的空间，而永久代的GC效率远小于此。虽然VM 
+Spec不要求，<span style="color: red;">但当前生产中的商业JVM都有实现永久代的GC</span></div>
+<br>规范里叫做方法区的抽象区域，与“永久代”并不等价。只是在现在的Oracle (Sun) HotSpot使用“永久代”来实现方法区而已。
+<br>
+<br>服务器端主流的高性能JVM现在就三种，一个是HotSpot（其中Sun的原始版本用得最多，由其衍生出来的Azul版与HP版也颇有应
+用；Apple的Mac OS上的JVM也是从Sun的版本衍生出来的，不过拿Mac来做服务器的大概不多吧）；一个是Oracle 
+(BEA)的JRockit；还有一个是IBM的JVM，现在主要在用的是J9。这之中，只有HotSpot是有PermGen的，而JRockit与
+J9都没有；连Azul版HotSpot也经过改进早已去除了PermGen。概念上说这些JVM都有符合规范的“方法区”，但并不一定要用
+PermGen来实现就是了。
+<br>
+<br>甚至连Oracle (Sun)的HotSpot也实质性开始去除PermGen的工作了。请参考最近的hotspot-dev邮件列表里的一封邮件：<a rel="nofollow" href="http://permalink.gmane.org/gmane.comp.java.openjdk.hotspot.devel/3697" target="_blank">Request for review (XL) 6990754: Use native memory and reference counting to implement SymbolTable</a>
+<br>等JDK 7正式发布的时候，里面的HotSpot多半就已经没有PermGen了。</div>
+<br>
+<br>谢谢，受教了。
+<br>
+<br>之前看过很多篇兄台关于VM以及编译原理的文章，获益良多。</div>
+</div>
+
+<div id="bc1744177">
+  <div class="comment_title">
+    14 楼
+    <a href="http://rednaxelafx.iteye.com/" target="_blank" title="RednaxelaFX">RednaxelaFX</a>
+    2010-11-06&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">嗯，投了精华。楼主加油～～
+<br>
+<br>不满的部分：
+<br><div class="quote_title">IcyFenix 写道</div><div class="quote_div">关于方法区 
+<br>
+<br>　　方法区即后文提到的永久代，很多人认为永久代是没有GC的，《Java虚拟机规范》中确实说过可以不要求虚拟机在这区实现GC，而且这区GC
+的“性价比”一般比较低：在堆中，尤其是在新生代，常规应用进行一次GC可以一般可以回收70%~95%的空间，而永久代的GC效率远小于此。虽然VM 
+Spec不要求，<span style="color: red;">但当前生产中的商业JVM都有实现永久代的GC</span></div>
+<br>规范里叫做方法区的抽象区域，与“永久代”并不等价。只是在现在的Oracle (Sun) HotSpot使用“永久代”来实现方法区而已。
+<br>
+<br>服务器端主流的高性能JVM现在就三种，一个是HotSpot（其中Sun的原始版本用得最多，由其衍生出来的Azul版与HP版也颇有应
+用；Apple的Mac OS上的JVM也是从Sun的版本衍生出来的，不过拿Mac来做服务器的大概不多吧）；一个是Oracle 
+(BEA)的JRockit；还有一个是IBM的JVM，现在主要在用的是J9。这之中，只有HotSpot是有PermGen的，而JRockit与
+J9都没有；连Azul版HotSpot也经过改进早已去除了PermGen。概念上说这些JVM都有符合规范的“方法区”，但并不一定要用
+PermGen来实现就是了。
+<br>
+<br>甚至连Oracle (Sun)的HotSpot也实质性开始去除PermGen的工作了。请参考最近的hotspot-dev邮件列表里的一封邮件：<a rel="nofollow" href="http://permalink.gmane.org/gmane.comp.java.openjdk.hotspot.devel/3697" target="_blank">Request for review (XL) 6990754: Use native memory and reference counting to implement SymbolTable</a>
+<br>等JDK 7正式发布的时候，里面的HotSpot多半就已经没有PermGen了。</div>
+</div>
+
+<div id="bc1743756">
+  <div class="comment_title">
+    13 楼
+    <a href="http://guimingyue.iteye.com/" target="_blank" title="guimingyue">guimingyue</a>
+    2010-11-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">准备学习，谢谢</div>
+</div>
+
+<div id="bc1743556">
+  <div class="comment_title">
+    12 楼
+    <a href="http://kingwood2005.iteye.com/" target="_blank" title="kingwood2005">kingwood2005</a>
+    2010-11-05&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">先收了，有空再看</div>
+</div>
+
+
+    
+    <div class="pagination"><span class="disabled prev_page">« 上一页</span> <span class="current">1</span> <a href="http://icyfenix.iteye.com/blog/802638?page=2#comments" rel="next">2</a> <a href="http://icyfenix.iteye.com/blog/802638?page=2#comments" class="next_page" rel="next">下一页 »</a></div>
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://icyfenix.iteye.com/login" style="background-color:white;"> <img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://icyfenix.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 802638;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', 'JVM内存管理：深入垃圾收集器与内存分配策略');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', 'JVM内存管理：深入垃圾收集器与内存分配策略');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://icyfenix.iteye.com/"><img alt="IcyFenix的博客" class="logo" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/6edbe3e9-9b1b-39ac-923f-e9a4155ad836.jpg" title="IcyFenix的博客: FenixSoft 3.0" width=""></a></div>
+  <div id="blog_owner_name">IcyFenix</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 243868 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 珠海</li>
+              <li><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://icyfenix.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://lei1985.iteye.com/" target="_blank"><img alt="LEI1985的博客" class="logo" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="LEI1985的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://lei1985.iteye.com/" target="_blank" title="LEI1985">LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://nicks.iteye.com/" target="_blank"><img alt="nicks的博客" class="logo" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="nicks的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://nicks.iteye.com/" target="_blank" title="nicks">nicks</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://luochuang.iteye.com/" target="_blank"><img alt="luochuang的博客" class="logo" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/aa5f543a-0920-3647-88fa-dc8bd2231a13-thumb.png" title="luochuang的博客: 罗闯的微博" width="48px"></a></div>
+                <div class="left"><a href="http://luochuang.iteye.com/" target="_blank" title="luochuang">luochuang</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://itnull.iteye.com/" target="_blank"><img alt="itnull的博客" class="logo" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/user-logo-thumb.gif" title="itnull的博客: itnull" width="48px"></a></div>
+                <div class="left"><a href="http://itnull.iteye.com/" target="_blank" title="itnull">itnull</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/">全部博客 (32)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://icyfenix.iteye.com/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="http://icyfenix.iteye.com/blog/post">我的论坛</a> (332)
+                </li>
+                <li><a href="http://icyfenix.iteye.com/blog/answered_problems">我的问答</a> (11)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2013-07">2013-07</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-05">2012-05</a> (1)</li>
+                
+                  <li><a href="http://icyfenix.iteye.com/blog/monthblog/2012-02">2012-02</a> (1)</li>
+                
+                <li><a href="http://icyfenix.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://chensixy.iteye.com/" target="_blank" title="chensixy">chensixy</a>： 
+                  周老师和Java认识也是鸡猿啊！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2398694">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://sophistica.iteye.com/" target="_blank" title="sophistica">sophistica</a>： 
+                  那个链接怎么无效了？<br>
+                  <a href="http://icyfenix.iteye.com/blog/1181634#bc2398676">征集《Java虚拟机规范（Java7版）》的译者</a>
+                </li>
+                
+                <li>
+                  <a href="http://zhangfeiyu2005.iteye.com/" target="_blank" title="zhangfeiyu2005">zhangfeiyu2005</a>： 
+                   膜拜大神<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2397152">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  致敬！！！您做什么都能做到一流，值得我学习！<br>
+                  <a href="http://icyfenix.iteye.com/blog/1256329#bc2395857">发布《Java虚拟机规范 （Java SE 7 中文版）》</a>
+                </li>
+                
+                <li>
+                  <a href="http://qinpengtaiyuan.iteye.com/" target="_blank" title="qinpengtaiyuan">qinpengtaiyuan</a>： 
+                  膜拜大神~~~<br>
+                  <a href="http://icyfenix.iteye.com/blog/1513365#bc2395856">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ 
+encodeURIComponent(document.location.href) + "&referrer=" + 
+encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0'
+ />");
+</script><img src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/a.gif" width="0" height="0">
+
+<script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking.js" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/async_new.js"></script>
+<script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/jquery-1.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/tracking_002.js" type="text/javascript"></script>
+    
+	    
+	    <script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/web-storage-cache.js" type="text/javascript"></script>
+	    <script src="JVM%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%9A%E6%B7%B1%E5%85%A5%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%20-%20FenixSoft%203.0%20-%20ITeye%E5%8D%9A%E5%AE%A2_files/replace.js" type="text/javascript"></script>
+    
+    
+  
+
+</body></html>

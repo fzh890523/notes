@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="copyright" content="2004, 2010" />
+  
+  <title>jps - Java Virtual Machine Process Status Tool</title>
+
+  
+</head>
+
+<body>
+<!-- BEGIN A2 COMPONENT V.1 -->
+<div class="a2w0"
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/popUp.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/sniff.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucontent.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/menucode.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/pubs/js/developer.js"></script>
+<script language="javascript1.2" type="text/javascript" src="../../../../../webdesign/other/js/search.js"></script>
+<link rel="stylesheet" href="../../../../../webdesign/pubs/css/default_developer.css" />
+<meta name="collection" content="reference"> <div class="a2" id="a2v1">
+<div class="a2w1"><div class="a2w2"><div class="a2w3"><div class="a2w4">
+<div class="a2topiclinks">
+<a href="http://www.oracle.com" title="Oracle Home Page" id="sunlogo"><img src="../../../../../webdesign/pubs/im/a.gif" alt="Home Page" width="98" height="58" border="0" /></a>
+
+<ul id="mtopics">
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="See Oracle Technology Network" href="http://oracle.com/technology">Oracle Technology Network</a></li>
+<li id="mtopic1"><a id="glink1" class="tpclink a2menu" title="Software Downloads" href="http://www.oracle.com/technology/software/index.html">Software Downloads</a></li>
+<li id="mtopic2"><a id="glink2" class="tpclink a2menu" title="See All Documentation" href="http://www.oracle.com/technology/documentation/index.html">Documentation</a></li>
+</ul>
+
+<div class="a2search">
+<a href="../../../../../search.html" target="_blank">Search</a>
+</div>
+
+</div>
+</div></div></div></div>
+</div></div>
+<!-- END A2 COMPONENT V.1 -->
+
+<div class="a0 a0v1" id="a0v1">
+
+<!-- BEGIN SEPARATOR -->
+<div class="hr"><hr /></div>
+<!-- END SEPARATOR -->
+
+<!-- ============ -->
+<!-- MAIN CONTENT -->
+<!-- ============ -->
+  <div class="smallpagetitle"><h1>jps - Java Virtual Machine Process Status Tool</h1></div>
+
+  <ul>
+    <li><a href="#synopsis">Synopsis</a></li>
+
+    <li><a href="#parameters">Parameters</a></li>
+
+    <li><a href="#description">Description</a></li>
+
+    <li><a href="#options">Options</a></li>
+
+    <li><a href="#hostidentifier">Host Identifier</a></li>
+
+    <li><a href="#output-format">Output Format</a></li>
+
+    <li><a href="#examples">Examples</a></li>
+
+    <li><a href="#seealso">See Also</a></li>
+  </ul>
+
+  <h2><a name="synopsis"/>SYNOPSIS</h2>
+<blockquote>
+  <pre>
+<b>jps</b> [ <i>options</i> ] [ <i>hostid</i> ]<br />
+</pre>
+</blockquote>
+  <h2><a name="parameters"/>PARAMETERS</h2>
+<blockquote>
+  <dl>
+    <dt><a href="#options"><code>options</code></a></dt>
+
+    <dd>Command-line options.</dd>
+
+    <dt><a href="#hostidentifier"><code>hostid</code></a></dt>
+
+    <dd>The <a href="#hostidentifier">host identifier</a> of the
+    host for which the process report should be generated. The
+    <i>hostid</i> may include optional components that indicate the
+    communications protocol, port number, and other implementation
+    specific data.</dd>
+  </dl>
+</blockquote>
+
+  <h2><a name="description"/>DESCRIPTION</h2>
+<blockquote>
+  <p>The <b>jps</b> tool lists the instrumented HotSpot Java
+  Virtual Machines (JVMs) on the target system. The tool is limited
+  to reporting information on JVMs for which it has the access
+  permissions.</p>
+
+  <p>If <b>jps</b> is run without specifying a <i>hostid</i>, it
+  will look for instrumented JVMs on the local host. If started
+  with a <i>hostid</i>, it will look for JVMs on the indicated
+  host, using the specified protocol and port. A <b>jstatd</b>
+  process is assumed to be running on the target host.</p>
+
+  <p>The <b>jps</b> command will report the local VM identifier, or
+  <i>lvmid</i>, for each instrumented JVM found on the target
+  system. The <b>lvmid</b> is typically, but not necessarily, the
+  operating system's process identifier for the JVM process. With
+  no options, <b>jps</b> will list each Java application's
+  <i>lvmid</i> followed by the short form of the application's
+  class name or jar file name. The short form of the class name or
+  JAR file name omits the class's package information or the JAR
+  files path information.</p>
+
+  <p>The <b>jps</b> command uses the <b>java</b> launcher to find
+  the class name and arguments passed to the <code>main</code>
+  method. If the target JVM is started with a custom launcher, the
+  class name (or JAR file name) and the arguments to the
+  <code>main</code> method will not be available. In this case, the
+  <b>jps</b> command will output the string <i>Unknown</i> for the
+  class name or JAR file name and for the arguments to the main
+  method.</p>
+
+  <p>The list of JVMs produced by the <b>jps</b> command may be
+  limited by the permissions granted to the principal running the
+  command. The command will only list the JVMs for which the
+  principle has access rights as determined by operating system
+  specific access control mechanisms.</p>
+
+  <p><b>NOTE:</b> This utility is unsupported and may not be
+  available in future versions of the JDK. It is not currently
+  available on Windows 98 and Windows ME platforms.</p>
+</blockquote>
+  <h2><a name="options"/>OPTIONS</h2>
+<blockquote>
+  <p>The <b>jps</b> command supports a number of options that
+  modify the output of the command. These options are subject to
+  change or removal in the future.</p>
+
+  <dl>
+    <dt><b>-q</b></dt>
+
+    <dd>Suppress the output of the class name, JAR file name, and
+    arguments passed to the <code>main</code> method, producing
+    only a list of local VM identifiers.</dd>
+
+    <dt><b>-m</b></dt>
+
+    <dd>Output the arguments passed to the main method. The output
+    may be null for embedded JVMs.</dd><!--
+    <dt><b>-a</b>
+  <dd>FUTURE: Search for all available Java Virtual Machines, not just
+  those owned by the same user as the user running the <b>jps</b>
+  command.
+    <p>
+    <dt><b>-u</b> <i>username</i>
+  <dd>FUTURE: Search only for available Java Virtual Machines owned by
+        the user <i>username</i>.
+    <p>
+ -->
+
+    <dt><b>-l</b></dt>
+
+    <dd>Output the full package name for the application's main
+    class or the full path name to the application's JAR file.</dd>
+
+    <dt><b>-v</b></dt>
+
+    <dd>Output the arguments passed to the JVM.</dd>
+
+    <dt><b>-V</b></dt>
+
+    <dd>Output the arguments passed to the JVM through the flags
+    file (the .hotspotrc file or the file specified by the
+    -XX:Flags=&lt;<i>filename</i>&gt; argument).</dd>
+
+    <dt><b>-J</b><i>option</i></dt>
+
+    <dd>Pass <i>option</i> to the <b>java</b> launcher called by
+    <b>jps</b>. For example, <b>-J-Xms48m</b> sets the startup
+    memory to 48 megabytes. It is a common convention for <b>-J</b>
+    to pass options to the underlying VM executing applications
+    written in Java.</dd>
+  </dl>
+</blockquote>
+  <h3><a name="hostidentifier"/>HOST
+  IDENTIFIER</h3>
+<blockquote>
+  <p>The host identifier, or <i>hostid</i> is a string that
+  indicates the target system. The syntax of the <i>hostid</i>
+  string largely corresponds to the syntax of a URI:</p>
+  <pre>
+[<i>protocol</i>:][[//]<i>hostname</i>][:<i>port</i>][/<i>servername</i>]<br />
+</pre>
+
+  <dl>
+    <dt><i><a name="protocol" id=
+    "protocol"><code>protocol</code></a></i></dt>
+
+    <dd>The communications protocol. If the <i>protocol</i> is
+    omitted and a <i>hostname</i> is not specified, the default
+    protocol is a platform specific, optimized, local protocol. If
+    the <i>protocol</i> is omitted and a <i>hostname</i> is
+    specified, then the default protocol is <b>rmi</b>.</dd>
+
+    <dt><i><a name="hostname" id=
+    "hostname"><code>hostname</code></a></i></dt>
+
+    <dd>A hostname or IP address indicating the target host. If
+    <i>hostname</i> is omitted, then the target host is the local
+    host.</dd>
+
+    <dt><i><a name="port" id="port"><code>port</code></a></i></dt>
+
+    <dd>The default port for communicating with the remote server.
+    If the <i>hostname</i> is omitted or the <i>protocol</i>
+    specifies an optimized, local protocol, then <i>port</i> is
+    ignored. Otherwise, treatment of the <i>port</i> parameter is
+    implementation specific. For the default <b>rmi</b> protocol
+    the <i>port</i> indicates the port number for the rmiregistry
+    on the remote host. If <i>port</i> is omitted, and
+    <i>protocol</i> indicates <b>rmi</b>, then the default
+    rmiregistry port (1099) is used.</dd>
+
+    <dt><i><code>servername</code></i></dt>
+
+    <dd>The treatment of this parameter depends on the
+    implementation. For the optimized, local protocol, this field
+    is ignored. For the <b>rmi</b> protocol, this parameter is a
+    string representing the name of the RMI remote object on the
+    remote host. See the <b>-n</b> option for the <a href=
+    "jstatd.html"><b>jstatd</b></a> command.</dd>
+  </dl>
+</blockquote>
+  <h2><a name="output-format"/>OUTPUT FORMAT</h2>
+  <blockquote>
+  <p>The output of the <b>jps</b> command follows the following
+  pattern:</p>
+  <pre>
+<i>lvmid</i> [ [ <i>classname</i> | <i>JARfilename</i> | "Unknown"] [ <i>arg</i>* ] [ <i>jvmarg</i>* ] ]<br />
+</pre>
+
+  <p>Where all output tokens are separated by white space. An
+  <i>arg</i> that includes embedded white space will introduce
+  ambiguity when attempting to map arguments to their actual
+  positional parameters.<br />
+  <br />
+  <b>NOTE</b>: You are advised not to write scripts to parse
+  <b>jps</b> output since the format may change in future releases.
+  If you choose to write scripts that parse <b>jps</b> output,
+  expect to modify them for future releases of this tool.<br /></p>
+
+</blockquote>
+  <h2><a name="examples"/>EXAMPLES</h2>
+<blockquote>
+  <p>This section provides examples of the <b>jps</b> command.</p>
+
+  <p>Listing the instrumented JVMs on the local host:</p>
+  <pre>
+<b>jps</b><br />
+18027 Java2Demo.JAR<br />
+18032 jps<br />
+18005 jstat<br />
+</pre>
+
+  <p>Listing the instrumented JVMs on a remote host:</p>
+
+  <p>This example assumes that the <b>jstat</b> server and either
+  the its internal RMI registry or a separate external
+  <b>rmiregistry</b> process are running on the remote host on the
+  default port (port 1099). It also assumes that the local host has
+  appropriate permissions to access the remote host. This example
+  also includes the <i>-l</i> option to output the long form of the
+  class names or JAR file names.</p>
+  <pre>
+<b>jps -l remote.domain</b><br />
+3002 /opt/jdk1.5.0/demo/jfc/Java2D/Java2Demo.JAR<br />
+2857 sun.tools.jstatd.jstatd<br />
+</pre>
+
+  <p>Listing the instrumented JVMs on a remote host with a
+  non-default port for the RMI registry</p>
+
+  <p>This example assumes that the <b>jstatd</b> server, with an
+  internal RMI registry bound to port 2002, is running on the
+  remote host. This example also uses the <i>-m</i> option to
+  include the arguments passed to the <i>main</i> method of each of
+  the listed Java applications.</p>
+  <pre>
+<b>jps -m remote.domain:2002</b><br />
+3002 /opt/jdk1.5.0/demo/jfc/Java2D/Java2Demo.JAR<br />
+3102 sun.tools.jstatd.jstatd -p 2002</pre>
+</blockquote>
+  <h2><a name="seealso"></a>SEE ALSO</h2>
+
+  <ul>
+    <li><a href="../index.html#java">java</a> - the Java Application
+    Launcher</li>
+
+    <li><a href="jstat.html">jstat</a> - the Java virtual machine
+    Statistics Monitoring Tool</li>
+
+    <li><a href="jstatd.html">jstatd</a> - the jstat daemon</li>
+
+    <li><a href="../index.html#rmiregistry">rmiregistry</a> - the Java Remote
+    Object Registry</li>
+  </ul>
+
+
+
+
+<div class="hr"><hr /></div>
+<table summary="layout" border="0" width="100%">
+<tr valign="TOP">
+<td width="30%"> <img src="../../../../../webdesign/pubs/im/logo_oracle_footer.gif" alt="Oracle and/or its affiliates" border="0" width="100" height="29" /><br />
+<font size="+1"> <i>Java Technology</i></font> </td>
+
+<td width="30%">
+<p><font size ="-2">
+<a href="../../../legal/cpyr.html">Copyright &#169;</a> 1993, 2016, Oracle and/or its affiliates. All rights reserved.
+</font></p> 
+</td>
+<td width="30%">
+<p align="right"><font size="-2"><a href="http://download.oracle.com/javase/feedback.html">Contact Us</a></p>
+</td>
+</tr>
+</table> 
+<div class="hr"><hr /></div>
+</div>
+
+<!-- Start SiteCatalyst code   -->
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code_download.js"></script>
+<script language="JavaScript" src="http://www.oracle.com/ocom/groups/systemobject/@mktg_admin/documents/systemobject/s_code.js"></script>
+ 
+<!-- ********** DO NOT ALTER ANYTHING BELOW THIS LINE ! *********** -->
+<!--  Below code will send the info to Omniture server -->
+<script language="javascript">var s_code=s.t();if(s_code)document.write(s_code)</script>
+ 
+<!-- End SiteCatalyst code -->
+
+</body>
+</html>

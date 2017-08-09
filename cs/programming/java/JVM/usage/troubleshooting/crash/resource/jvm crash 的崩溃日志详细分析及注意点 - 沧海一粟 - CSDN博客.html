@@ -1,0 +1,1338 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>  
+        <script type="text/javascript" src="http://static.blog.csdn.net/scripts/tingyun-rum.js"></script>
+            <link rel="canonical" href="http://blog.csdn.net/raintungli/article/details/7642575"/> 
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+       
+    <title>jvm crash 的崩溃日志详细分析及注意点 - 沧海一粟
+        - CSDN博客</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="生成1. 生成error 文件的路径：你可以通过参数设置-XX:ErrorFile=/path/hs_error%p.log, 默认是在java运行的当前目录&#160;[default: ./hs_err_pid%p.log]2. 参数-XX:OnError &#160;可以在crash退出的时候执行命令，格式是-XX:OnError=“string”, &#160; 可以是命令的集合，用分号做分隔符, 可以用%p" />
+
+    <meta name="keywords" content="crash,jvm,thread" />
+
+   
+    <script src="http://static.blog.csdn.net/scripts/blog_static_head.min.js" type="text/javascript"></script>
+
+    
+        <!--new top-->
+       
+       
+        <!--new top-->
+    
+      <!-- ad begin -->
+         
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/skin-yellow/css/style.css?v=1.1" />
+
+    
+
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/raintungli/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/green_black.css" />
+ 
+
+
+
+    <link href="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.css" type="text/css" rel="stylesheet" />
+     
+         <link rel="stylesheet" href="http://static.blog.csdn.net/css/csdn_blog_detail.min.css" />
+
+  
+
+
+    <!-- 请置于所有广告位代码之前 --> 
+            <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+</head>
+
+
+<body>
+     
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/raintungli">沧海一粟</a></h2>
+            <h3>Keep study, keep thinking, keep write</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/raintungli?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/raintungli?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/raintungli/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "raintungli";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/raintungli";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "yonka";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://blog.csdn.net/broadview2006/article/details/75423492">
+<font color=red><strong>评论送书 | 云原生、Docker、Web算法 </strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/75669610">
+<font color=blue><strong>为什么我们创业失败了和选择创业公司的思考</strong></font></a>
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/74550215">
+<font color=red><strong>征文 | 你会为 AI 转型么？</strong></font></a>
+
+
+</div>                        </div>
+
+                        
+
+
+
+  
+
+
+
+
+
+
+<script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+      var isBole = false; 
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=jvm+crash+%e7%9a%84%e5%b4%a9%e6%ba%83%e6%97%a5%e5%bf%97%e8%af%a6%e7%bb%86%e5%88%86%e6%9e%90%e5%8f%8a%e6%b3%a8%e6%84%8f%e7%82%b9&u=http://blog.csdn.net/raintungli/article/details/7642575"
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+    <h1>
+        <span class="link_title"><a href="/raintungli/article/details/7642575">
+        jvm crash 的崩溃日志详细分析及注意点        
+           
+        </a>
+        </span>
+
+         
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_l">
+            <span class="link_categories">
+            标签：
+              <a href='http://www.csdn.net/tag/crash' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">crash</a><a href='http://www.csdn.net/tag/jvm' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">jvm</a><a href='http://www.csdn.net/tag/thread' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">thread</a><a href='http://www.csdn.net/tag/linux' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">linux</a><a href='http://www.csdn.net/tag/report' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">report</a><a href='http://www.csdn.net/tag/java' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">java</a>
+            </span>
+        </div>
+        <div class="article_r">
+            <span class="link_postdate">2012-06-07 17:00</span>
+            <span class="link_view" title="阅读次数">18096人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(2)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('jvm+crash+%e7%9a%84%e5%b4%a9%e6%ba%83%e6%97%a5%e5%bf%97%e8%af%a6%e7%bb%86%e5%88%86%e6%9e%90%e5%8f%8a%e6%b3%a8%e6%84%8f%e7%82%b9','7642575');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(7642575,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+      <div class="category clearfix">
+        <div class="category_l">
+           <img src="http://static.blog.csdn.net/images/category_icon.jpg">
+            <span>分类：</span>
+        </div>
+        <div class="category_r">
+                    <label  onclick="GetCategoryArticles('802744','raintungli','top','7642575');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">JVM 源码分析<em>（50）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/raintungli/article/category/802744"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_802744">                            
+                            </ul>
+                        </div>
+                    </label>                    
+                    <label  onclick="GetCategoryArticles('709637','raintungli','top','7642575');">
+                        <span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">Linux 内核源码分析<em>（31）</em></span>
+                      <img class="arrow-down" src="http://static.blog.csdn.net/images/arrow_triangle _down.jpg" style="display:inline;">
+                      <img class="arrow-up" src="http://static.blog.csdn.net/images/arrow_triangle_up.jpg" style="display:none;">
+                        <div class="subItem">
+                            <div class="subItem_t"><a  href="http://blog.csdn.net/raintungli/article/category/709637"  target="_blank">作者同类文章</a><i class="J_close">X</i></div>
+                            <ul class="subItem_l" id="top_709637">                            
+                            </ul>
+                        </div>
+                    </label>                    
+        </div>
+    </div>
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+
+<div id="article_content" class="article_content tracking-ad" data-mod=popu_307  data-dsm = "post" >
+
+<h2>生成</h2>
+<p>1. 生成error 文件的路径：你可以通过参数设置-XX:ErrorFile=/path/hs_error%p.log, 默认是在java运行的当前目录&nbsp;[default: ./hs_err_pid%p.log]</p>
+<p>2. 参数-XX:OnError &nbsp;可以在crash退出的时候执行命令，&#26684;式是-XX:OnError=“string”, &nbsp;&lt;string&gt; 可以是命令的集合，用分号做分隔符, 可以用&quot;%p&quot;来取到当前进程的ID.<br>
+例如：</p>
+<p>// -XX:OnError=&quot;pmap %p&quot; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// show memory map</p>
+<p>// -XX:OnError=&quot;gcore %p; dbx - %p&quot; &nbsp; &nbsp; // dump core and launch debugger<br>
+</p>
+<p>在linux中系统会fork出一个子进程去执行shell的命令，因为是用fork可能会内存不够的情况，注意修改你的 /proc/sys/vm/overcommit_memory 参数,不清楚为什么这里不使用vfork</p>
+<p>3. -XX:&#43;ShowMessageBoxOnError 参数，当jvm crash的时候在linux里会启动gdb 去分析和调式，适合在测试环境中使用。</p>
+<p><br>
+</p>
+<h2>什么情况下不会生成error文件</h2>
+<p>linux 内核在发生OOM的时候会强制kill一些进程, 可以在/var/logs/messages中查找</p>
+<p><br>
+</p>
+<h2>Error crash 文件的几个重要部分</h2>
+<p><span style="font-size:24px"><strong>a. &nbsp;错误信息概要</strong></span></p>
+<p></p>
+<pre name="code" class="plain"># A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x0000000000043566, pid=32046, tid=1121192256
+#
+# JRE version: 6.0_17-b04
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (14.3-b01 mixed mode linux-amd64 )
+# Problematic frame:
+# C  0x0000000000043566
+#
+# If you would like to submit a bug report, please visit:
+#   http://java.sun.com/webapps/bugreport/crash.jsp
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.</pre><br>
+SIGSEGV 错误的信号类型&nbsp;
+<p></p>
+<p>pc 就是IP/PC寄存器&#20540;也就是执行指令的代码地址</p>
+<p>pid 就是进程id</p>
+<p></p>
+<pre style="margin-top:0px; margin-bottom:0px; padding:0px; font-family:'Bitstream Vera Sans Mono','Courier New',monospace; line-height:16px; text-align:left"><div class="line" id="LC8" style="margin:0px; padding:0px 0px 0px 1em; line-height:1.4em"># Problematic frame:</div><div class="line" id="LC9" style="margin:0px; padding:0px 0px 0px 1em; line-height:1.4em"># V  [libjvm.so&#43;0x593045]</div></pre>
+<p></p>
+<p>就是导致问题的动态链接库函数的地址</p>
+<p>pc 和 &#43;0x593045 指的是同一个地址，只是一个是动态的偏移地址，一个是运行的虚拟地址</p>
+<p></p>
+<p><br>
+</p>
+<p></p>
+<br>
+<p><span style="font-size:24px"><strong>b.信号信息</strong></span></p>
+<p></p>
+<p>Java中在linux 中注册的信号处理函数，中间有2个参数info, ucvoid</p>
+<p></p>
+<pre name="code" class="cpp">static void crash_handler(int sig, siginfo_t* info, void* ucVoid) {
+  // unmask current signal
+  sigset_t newset;
+  sigemptyset(&amp;newset);
+  sigaddset(&amp;newset, sig);
+  sigprocmask(SIG_UNBLOCK, &amp;newset, NULL);
+
+  VMError err(NULL, sig, NULL, info, ucVoid);
+  err.report_and_die();
+}</pre>在crash report中的信号错误提示<br>
+<p></p>
+<pre name="code" class="plain">siginfo:si_signo=SIGSEGV: si_errno=0, si_code=1 (SEGV_MAPERR), si_addr=0x0000000000043566</pre>信号的详细信息和si_addr 出错误的内存，都保存在siginfo_t的结构体中，也就是信号注册函数crash_handler里的参数info,内核会保存导致错误的内存地址在用户空间的信号结构体中siginfo_t，这样在进程在注册的信号处理函数中可以取得导致错误的地址。<br>
+<p></p>
+<p><br>
+</p>
+<p><span style="font-size:24px"><strong>c.寄存器信息</strong></span></p>
+<p></p>
+<pre name="code" class="plain">Registers:
+RAX=0x00002aacb5ae5de2, RBX=0x00002aaaaf46aa48, RCX=0x0000000000000219, RDX=0x00002aaaaf46b920
+RSP=0x0000000042d3f968, RBP=0x0000000042d3f9c8, RSI=0x0000000042d3f9e8, RDI=0x0000000045aef9b8
+R8 =0x0000000000000f80, R9 =0x00002aaab3d30ce8, R10=0x00002aaaab138ea1, R11=0x00002b017ae65110
+R12=0x0000000042d3f6f0, R13=0x00002aaaaf46aa48, R14=0x0000000042d3f9e8, R15=0x0000000045aef800
+RIP=0x0000000000043566, EFL=0x0000000000010202, CSGSFS=0x0000000000000033, ERR=0x0000000000000014
+  TRAPNO=0x000000000000000e</pre><br>
+寄存器的信息就保存在b部分的信号处理函数参数 (ucontext_t*)usVoid中
+<p></p>
+<p>在X86架构下：</p>
+<p></p>
+<pre name="code" class="cpp">void os::print_context(outputStream *st, void *context) {
+  if (context == NULL) return;
+
+  ucontext_t *uc = (ucontext_t*)context;
+  st-&gt;print_cr(&quot;Registers:&quot;);
+#ifdef AMD64
+  st-&gt;print(  &quot;RAX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RAX]);
+  st-&gt;print(&quot;, RBX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RBX]);
+  st-&gt;print(&quot;, RCX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RCX]);
+  st-&gt;print(&quot;, RDX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RDX]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;RSP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RSP]);
+  st-&gt;print(&quot;, RBP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RBP]);
+  st-&gt;print(&quot;, RSI=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RSI]);
+  st-&gt;print(&quot;, RDI=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RDI]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;R8 =&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R8]);
+  st-&gt;print(&quot;, R9 =&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R9]);
+  st-&gt;print(&quot;, R10=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R10]);
+  st-&gt;print(&quot;, R11=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R11]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;R12=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R12]);
+  st-&gt;print(&quot;, R13=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R13]);
+  st-&gt;print(&quot;, R14=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R14]);
+  st-&gt;print(&quot;, R15=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_R15]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;RIP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_RIP]);
+  st-&gt;print(&quot;, EFL=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EFL]);
+  st-&gt;print(&quot;, CSGSFS=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_CSGSFS]);
+  st-&gt;print(&quot;, ERR=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_ERR]);
+  st-&gt;cr();
+  st-&gt;print(&quot;  TRAPNO=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_TRAPNO]);
+#else
+  st-&gt;print(  &quot;EAX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EAX]);
+  st-&gt;print(&quot;, EBX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EBX]);
+  st-&gt;print(&quot;, ECX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_ECX]);
+  st-&gt;print(&quot;, EDX=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EDX]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;ESP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_UESP]);
+  st-&gt;print(&quot;, EBP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EBP]);
+  st-&gt;print(&quot;, ESI=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_ESI]);
+  st-&gt;print(&quot;, EDI=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EDI]);
+  st-&gt;cr();
+  st-&gt;print(  &quot;EIP=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EIP]);
+  st-&gt;print(&quot;, CR2=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.cr2);
+  st-&gt;print(&quot;, EFLAGS=&quot; INTPTR_FORMAT, uc-&gt;uc_mcontext.gregs[REG_EFL]);
+#endif // AMD64
+  st-&gt;cr();
+  st-&gt;cr();
+
+  intptr_t *sp = (intptr_t *)os::Linux::ucontext_get_sp(uc);
+  st-&gt;print_cr(&quot;Top of Stack: (sp=&quot; PTR_FORMAT &quot;)&quot;, sp);
+  print_hex_dump(st, (address)sp, (address)(sp + 8*sizeof(intptr_t)), sizeof(intptr_t));
+  st-&gt;cr();
+
+  // Note: it may be unsafe to inspect memory near pc. For example, pc may
+  // point to garbage if entry point in an nmethod is corrupted. Leave
+  // this at the end, and hope for the best.
+  address pc = os::Linux::ucontext_get_pc(uc);
+  st-&gt;print_cr(&quot;Instructions: (pc=&quot; PTR_FORMAT &quot;)&quot;, pc);
+  print_hex_dump(st, pc - 16, pc + 16, sizeof(char));
+}</pre>寄存器的信息在分析出错的时候是非常重要的<br>
+<br>
+打印出执行附近的部分机器码
+<p></p>
+<p></p>
+<pre name="code" class="plain">Instructions: (pc=0x00007f48f14ef51a)
+0x00007f48f14ef4fa:   90 90 55 48 89 e5 48 81 ec 98 9f 00 00 48 89 bd
+0x00007f48f14ef50a:   f8 5f ff ff 48 89 b5 f0 5f ff ff b8 00 00 00 00
+0x00007f48f14ef51a:   c7 00 01 00 00 00 c6 85 00 60 ff ff ff c9 c3 90
+0x00007f48f14ef52a:   90 90 90 90 90 90 55 48 89 e5 53 48 8d 1d 94 00
+</pre><br>
+在instruction 部分中会打印出部分的机器码
+<p></p>
+<p>&#26684;式是</p>
+<p></p>
+<pre name="code" class="cpp">地址：机器码</pre><br>
+第一种使用udis库里带的udcli工具来反汇编
+<p></p>
+<p>命令：</p>
+<p></p>
+<pre name="code" class="cpp">echo '90 90 55 48 89 e5 48 81 ec 98 9f 00 00 48 89 bd' | udcli -intel -x -64 -o 0x00007f48f14ef4fa</pre><br>
+显示出对应的汇编
+<p></p>
+<p>第二种可以用</p>
+<p></p>
+<pre name="code" class="plain">objectdump -d -C libjvm.so &gt;&gt; jvmsodisass.dump </pre>
+<p></p>
+<p>查找偏移地址 &nbsp;0x593045， 就是当时的执行的汇编，然后结合上下文，源码推测出问题的语句。</p>
+<p><br>
+</p>
+<p><span style="font-size:24px"><strong>d.寄存器对应的内存的&#20540;</strong></span></p>
+<p></p>
+<pre name="code" class="cpp">RAX=0x0000000000000000 is an unknown value
+RBX=0x000000041a07d1e8 is an oop
+{method}
+ - klass: {other class}
+RCX=0x0000000000000000 is an unknown value
+RDX=0x0000000040111800 is a thread
+RSP=0x0000000041261b88 is pointing into the stack for thread: 0x0000000040111800
+RBP=0x000000004126bb20 is pointing into the stack for thread: 0x0000000040111800
+RSI=0x000000004126bb80 is pointing into the stack for thread: 0x0000000040111800
+RDI=0x00000000401119d0 is an unknown value
+R8 =0x0000000040111c40 is an unknown value
+R9 =0x00007f48fcc8b550: &lt;offset 0xa85550&gt; in /usr/java/jdk1.6.0_30/jre/lib/amd64/server/libjvm.so at 0x00007f48fc206000
+R10=0x00007f48f8ca7d41 is an Interpreter codelet
+method entry point (kind = native)  [0x00007f48f8ca7ae0, 0x00007f48f8ca8320]  2112 bytes
+R11=0x00007f48fc98f270: &lt;offset 0x789270&gt; in /usr/java/jdk1.6.0_30/jre/lib/amd64/server/libjvm.so at 0x00007f48fc206000
+R12=0x0000000000000000 is an unknown value
+R13=0x000000041a07d1e8 is an oop
+{method}
+ - klass: {other class}
+R14=0x000000004126bb88 is pointing into the stack for thread: 0x0000000040111800
+R15=0x0000000040111800 is a thread
+</pre>jvm 会通过寄存器的&#20540;对找对应的对象，也是一个比较好的参考
+<p></p>
+<p><br>
+</p>
+<p><span style="font-size:24px"><strong>e. 其他的信息</strong></span></p>
+<p>error 里面还有一些线程信息，还有当时内存映像信息，这些都可以作为分析的部分参考</p>
+<p><br>
+</p>
+<p>crash 报告可以大概的反应出一个当时的情况，特别是在没有core dump的时候，是比较有助于帮助分析的，但如果有core dump的话，最终还是core dump能快速准确的发现问题原因。</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p><br>
+<br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   
+
+<!--172.16.140.12-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+
+ 
+
+
+        <div id="digg" ArticleId="7642575" >
+            <dl id="btnDigg" class="digg digg_enable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>3</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_enable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+                function btndigga() {
+                    $(".tracking-ad[data-mod='popu_222'] a").click();
+                }
+                function btnburya() {
+                    $(".tracking-ad[data-mod='popu_223'] a").click();
+                }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='http://blog.csdn.net/raintungli/article/details/7444980';">上一篇</span><a href="http://blog.csdn.net/raintungli/article/details/7444980" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">jstat  java工具在linux上的源码分析</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='http://blog.csdn.net/raintungli/article/details/7718645';">下一篇</span><a href="http://blog.csdn.net/raintungli/article/details/7718645" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">Hotspot jvm源码分析 Java中的Intrinsics</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+            <div class="similar_article"   >
+                    <h4></h4>
+                    <div class="similar_c"style="margin:20px 0px 0px 0px">
+                        <div class="similar_c_t">
+                          &nbsp;&nbsp;相关文章推荐
+                        </div>
+                   
+                        <div class="similar_wrap tracking-ad" data-mod="popu_36" >                       
+                            <ul class="similar_list fl">    
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/achilles12345/article/details/50887402" title="JVM崩溃日志分析1" strategy="BlogCommendFromBaidu" target="_blank">JVM崩溃日志分析1</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/maosijunzi/article/details/46410697" title="java高分局之JVM命令参数大全（高级运行时选项）" strategy="BlogCommendFromBaidu" target="_blank">java高分局之JVM命令参数大全（高级运行时选项）</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/szzt_lingpeng/article/details/50463375" title="JVM--内存参数设置及常见错误总结" strategy="BlogCommendFromBaidu" target="_blank">JVM--内存参数设置及常见错误总结</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/u010814766/article/details/46785425" title="深入理解JVM（我的总结）" strategy="BlogCommendFromBaidu" target="_blank">深入理解JVM（我的总结）</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/xb12369/article/details/49759213" title="jsp页面上img的onerror属性" strategy="BlogCommendFromBaidu" target="_blank">jsp页面上img的onerror属性</a>
+                                   </li>
+                            </ul>
+                              <ul class="similar_list fr">      
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/xyw591238/article/details/51911394" title="JVM -XX: 参数介绍" strategy="BlogCommendFromBaidu" target="_blank">JVM -XX: 参数介绍</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/buptdavid/article/details/43270997" title="JVM监控与调优" strategy="BlogCommendFromBaidu" target="_blank">JVM监控与调优</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/poisions/article/details/51516931" title="JVM监控与调优" strategy="BlogCommendFromBaidu" target="_blank">JVM监控与调优</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/liguo_lg/article/details/55518481" title="JVM详解及优化" strategy="BlogCommendFromBaidu" target="_blank">JVM详解及优化</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/u013980127/article/details/53913994" title="JVM7、8详解及优化" strategy="BlogCommendFromBaidu" target="_blank">JVM7、8详解及优化</a>
+                                   </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>   
+      
+</div>
+
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/raintungli/svc/GetSuggestContent/7642575",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+        <dl class="blog-ass-articl tracking-ad" id="res-relatived" data-mod="popu_84"  > 
+             <dt><span>猜你在找</span></dt>    
+           
+    
+           
+
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5084" title="【直播】机器学习&amp;深度学习系统实战（唐宇迪）" strategy="undefined" target="_blank">【直播】机器学习&amp;深度学习系统实战（唐宇迪）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5219" title="【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）" strategy="undefined" target="_blank">【直播】Kaggle 神器：XGBoost 从基础到实战（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/course/detail/5222" title="【直播回放】深度学习基础与TensorFlow实践（王琛）" strategy="undefined" target="_blank">【直播回放】深度学习基础与TensorFlow实践（王琛）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/52" title="【直播】计算机视觉原理及实战（屈教授）" strategy="undefined" target="_blank">【直播】计算机视觉原理及实战（屈教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/48" title="【直播】机器学习之凸优化（马博士）" strategy="undefined" target="_blank">【直播】机器学习之凸优化（马博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/47" title="【直播】机器学习之矩阵（黄博士）" strategy="undefined" target="_blank">【直播】机器学习之矩阵（黄博士）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/46" title="【直播】机器学习之概率与统计推断（冒教授）" strategy="undefined" target="_blank">【直播】机器学习之概率与统计推断（冒教授）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/49" title="【直播】机器学习之数学基础" strategy="undefined" target="_blank">【直播】机器学习之数学基础</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/44" title="【直播】TensorFlow实战进阶（智亮）" strategy="undefined" target="_blank">【直播】TensorFlow实战进阶（智亮）</a>
+                        </dd>
+                        <dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px; white-space: nowrap;">
+                             <a href="http://edu.csdn.net/huiyiCourse/series_detail/45" title="【直播】深度学习30天系统实训（唐宇迪）" strategy="undefined" target="_blank">【直播】深度学习30天系统实训（唐宇迪）</a>
+                        </dd>
+        </dl>
+
+
+
+
+            
+                                    
+            
+                                    
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '7642575';
+    var commentscount = 2;
+    var islock = false
+</script>
+
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+    var articletitle='jvm crash 的崩溃日志详细分析及注意点';
+
+</script>
+
+
+
+
+
+
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/raintungli" target="_blank">
+    <img src="http://avatar.csdn.net/D/A/6/1_raintungli.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/raintungli" class="user_name" target="_blank">raintungli</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=raintungli','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                       <div class="ico_expert"  onclick="javascript:location='http://blog.csdn.net/experts/rule.html'" title="CSDN认证专家" style="cursor:pointer;width:60px;height:60px;background:url('http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/bokezhuanjiamiddle.png') no-repeat" ></div>
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="2" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>360202次</span></li>
+    <li>积分：<span>4391</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog5.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：4391 </div>
+        </span>  </li>
+    <li>排名：<span>第6603名</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>96篇</span></li>
+    <li>转载：<span>3篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>53条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body" class="form_search">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search csdn-tracking-statistics" target="_blank"  data-mod="popu_306">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(function () {
+        $("#btnSubmit").unbind("click");
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {           
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            if ($("#inputSearch").val() == "") {               
+                alert("请录入搜索关键词！");                         
+                return false;
+            }
+            //var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";           
+            var url = "https://www.baidu.com/s?wd=" + encodeURIComponent($("#inputSearch").val()) + "%20site%3Ablog.csdn.net"
+            window.location.href = url;
+        }   
+    });
+</script><div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/raintungli/article/category/709640" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">IP/TCP</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/raintungli/article/category/802744" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JVM 源码分析</a><span>(51)</span>
+                </li>
+                 <li>
+                    <a href="/raintungli/article/category/709637" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Linux 内核源码分析</a><span>(32)</span>
+                </li>
+                 <li>
+                    <a href="/raintungli/article/category/2900077" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">攻击与防护</a><span>(12)</span>
+                </li>
+                 <li>
+                    <a href="/raintungli/article/category/6207829" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">web 协议</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/raintungli/article/category/6777591" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">大数据</a><span>(17)</span>
+                </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/raintungli/article/month/2017/07">2017年07月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2017/06">2017年06月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2017/05">2017年05月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2017/04">2017年04月</a><span>(6)</span></li><li><a href="/raintungli/article/month/2017/03">2017年03月</a><span>(5)</span></li><li><a href="/raintungli/article/month/2017/02">2017年02月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2016/12">2016年12月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2016/07">2016年07月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2016/06">2016年06月</a><span>(6)</span></li><li><a href="/raintungli/article/month/2016/04">2016年04月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2015/02">2015年02月</a><span>(7)</span></li><li><a href="/raintungli/article/month/2015/01">2015年01月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2014/10">2014年10月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2014/08">2014年08月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2014/07">2014年07月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2014/03">2014年03月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2013/11">2013年11月</a><span>(6)</span></li><li><a href="/raintungli/article/month/2013/09">2013年09月</a><span>(5)</span></li><li><a href="/raintungli/article/month/2013/08">2013年08月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2013/03">2013年03月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2013/02">2013年02月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/12">2012年12月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/11">2012年11月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/08">2012年08月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/07">2012年07月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/06">2012年06月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/04">2012年04月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2012/03">2012年03月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2012/02">2012年02月</a><span>(3)</span></li><li><a href="/raintungli/article/month/2012/01">2012年01月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2011/12">2011年12月</a><span>(4)</span></li><li><a href="/raintungli/article/month/2011/11">2011年11月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2011/10">2011年10月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2011/09">2011年09月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2011/08">2011年08月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2011/07">2011年07月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2011/06">2011年06月</a><span>(4)</span></li><li><a href="/raintungli/article/month/2011/04">2011年04月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2011/03">2011年03月</a><span>(2)</span></li><li><a href="/raintungli/article/month/2010/11">2010年11月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2010/10">2010年10月</a><span>(1)</span></li><li><a href="/raintungli/article/month/2010/07">2010年07月</a><span>(2)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls" class="panel tracking-ad" data-mod="popu_340">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/raintungli/article/details/8625126" title="java 中的connection reset 异常处理分析">java 中的connection reset 异常处理分析</a><span>(24087)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/7642575" title="jvm crash 的崩溃日志详细分析及注意点">jvm crash 的崩溃日志详细分析及注意点</a><span>(18072)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/37879907" title="linux上TCP connection timeout的原因查找">linux上TCP connection timeout的原因查找</a><span>(14177)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/37913765" title="linux里的backlog详解">linux里的backlog详解</a><span>(13196)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/11214157" title="java垃圾回收那点事（一） System.gc开始说起">java垃圾回收那点事（一） System.gc开始说起</a><span>(11304)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/6651076" title="关于file.encoding的设置">关于file.encoding的设置</a><span>(10725)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/42876073" title="java中的SecureRandom在linux中的实现">java中的SecureRandom在linux中的实现</a><span>(9957)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/11597001" title="java垃圾回收那点事（五）ParallelGCThreads参数">java垃圾回收那点事（五）ParallelGCThreads参数</a><span>(8354)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/8265009" title="jsvc 启动java 在linux下的实现原理">jsvc 启动java 在linux下的实现原理</a><span>(7742)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/14642157" title="java JNI 实现原理 (三) JNI中的RegisterNatives方法">java JNI 实现原理 (三) JNI中的RegisterNatives方法</a><span>(6909)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel tracking-ad" data-mod="popu_341">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/raintungli/article/details/37913765" title="linux里的backlog详解">linux里的backlog详解</a><span>(5)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/38595573" title="Java (JDK7)中的String常量和String.intern的实现">Java (JDK7)中的String常量和String.intern的实现</a><span>(4)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/60787630" title="Struts2远程命令执行漏洞 S2-045 源码分析">Struts2远程命令执行漏洞 S2-045 源码分析</a><span>(3)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/7444980" title="jstat  java工具在linux上的源码分析">jstat  java工具在linux上的源码分析</a><span>(3)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/67636445" title="大数据：Spark Standalone 集群调度（二）如何创建、分配Executors的资源">大数据：Spark Standalone 集群调度（二）如何创建、分配Executors的资源</a><span>(3)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/6286701" title="Java6 的类反射瓶颈">Java6 的类反射瓶颈</a><span>(3)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/7826904" title="jvm hotspot 源码分析 RandomAccessfile vs FileChannel 写文件">jvm hotspot 源码分析 RandomAccessfile vs FileChannel 写文件</a><span>(3)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/6336651" title="JAVA 里关于几个 SocketTimeoutException 对应TCP的状态 for linux">JAVA 里关于几个 SocketTimeoutException 对应TCP的状态 for linux</a><span>(2)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/21284669" title="ThreadMXBean 打出堆栈信息原理分析">ThreadMXBean 打出堆栈信息原理分析</a><span>(2)</span>
+</li>
+<li>
+<a href="/raintungli/article/details/8625126" title="java 中的connection reset 异常处理分析">java 中的connection reset 异常处理分析</a><span>(2)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend">
+<ul>
+<li><a href="http://blog.csdn.net/blogdevteam/article/details/75669610" target="_blank">*  CSDN日报20170721——《为什么我们创业失败了和选择创业公司的思考》</a></li>
+<li><a href="http://blog.csdn.net/javazejian/article/details/75043422" 
+target="_blank">* 深入剖析基于并发AQS的重入锁(ReetrantLock)及其Condition实现原理</a></li>
+<li><a href="http://blog.csdn.net/jiangwei0910410003/article/details/75512732"target="_blank">* Android版本的"Wannacry"文件加密病毒样本分析(附带锁机)</a></li>
+<li><a href="http://blog.csdn.net/mindfloating/article/details/75948781" 
+target="_blank">* 工作与生活真的可以平衡吗？</a></li>
+<li><a href="http://blog.csdn.net/poem_qianmo/article/details/75943714" 
+target="_blank">* 《Real-Time Rendering 3rd》 提炼总结——高级着色：BRDF及相关技术</a></li>
+<li><a href="http://blog.csdn.net/dog250/article/details/75735806" 
+target="_blank">* 《三体》读后思考-泰勒展开/维度打击/黑暗森林</a></li>
+
+</ul></ul>
+</div>
+
+
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/raintungli/article/details/39051435#comments">IPVS(也叫LVS)的源码分析之persistent参数</a>
+    <p style="margin:0px;"><a href="/HULIHONG" class="user_name">HULIHONG</a>:
+&amp;quot;当客户端hash算出相同的时候，通过遍历ip_vs_conn里面的c_list链表找到匹...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/7258292#comments">在centos上编译jdk 问题大全</a>
+    <p style="margin:0px;"><a href="/yjxa901" class="user_name">yjxa901</a>:
+博主好：http://www.java.net/download/jdk6/6u23/promote...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/21284669#comments">ThreadMXBean 打出堆栈信息原理分析</a>
+    <p style="margin:0px;"><a href="/lhc2207221755" class="user_name">lhc2207221755</a>:
+ThreadMXBean threadMXBean= ManagementFactory.getTh...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/21284669#comments">ThreadMXBean 打出堆栈信息原理分析</a>
+    <p style="margin:0px;"><a href="/lhc2207221755" class="user_name">lhc2207221755</a>:
+mark
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/54910152#comments">Java 8 动态类型语言Lambda表达式实现原理分析</a>
+    <p style="margin:0px;"><a href="/aubreychao" class="user_name">aubreychao</a>:
+收藏待读。。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/70807376#comments">大数据：Spark Shuffle（一）ShuffleWrite:Executor如何将Shuffle的结果进行归并写到数据文件中去</a>
+    <p style="margin:0px;"><a href="/u013035612" class="user_name">u013035612</a>:
+学习了。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/37913765#comments">linux里的backlog详解</a>
+    <p style="margin:0px;"><a href="/u013036688" class="user_name">u013036688</a>:
+谢谢分享
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/70236867#comments">大数据：Spark Core（三）Executor上是如何launch task</a>
+    <p style="margin:0px;"><a href="/u013035612" class="user_name">u013035612</a>:
+学习了。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/67636445#comments">大数据：Spark Standalone 集群调度（二）如何创建、分配Executors的资源</a>
+    <p style="margin:0px;"><a href="/raintungli" class="user_name">raintungli</a>:
+@xmh8023:你先看我的第一篇：大数据：Spark Standalone 集群调度（一）从远程调...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/raintungli/article/details/67636445#comments">大数据：Spark Standalone 集群调度（二）如何创建、分配Executors的资源</a>
+    <p style="margin:0px;"><a href="/xmh8023" class="user_name">xmh8023</a>:
+想请教关于 spark 源码阅读的方法？qq 3038085918
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+
+
+           </div>   
+
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+      <!--new top-->
+    
+
+     
+
+   
+   
+     <!--new top-->
+   
+   
+
+    
+    
+    
+   
+
+   
+
+
+       <script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+          <script type="text/javascript">
+              //$(function () {
+              //    setTimeout(function () {
+              //        var searchtitletags = articletitle + ',' + $("#tags").html();
+              //        searchService({
+              //            index: 'blog',
+              //            query: searchtitletags,
+              //            from: 5,
+              //            size: 5,
+              //            appendTo: '#res',
+              //            url: 'recommend',
+              //            his: 2,
+              //            client: "blog_cf_enhance",
+              //            tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+              //        });
+              //    }, 1000);
+              //});
+
+         </script>
+    
+    <script src="http://static.blog.csdn.net/scripts/csdn_blog_detail.min.js" type="text/javascript"></script>
+        
+    <script type="text/javascript" src="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.js?20170719001"></script>
+
+    <script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=855402"></script>
+
+     
+    
+
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+
+    
+    
+        
+     
+
+    
+          
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" ></iframe>
+    </div>
+
+
+        <script type="text/javascript">
+
+            $(function () {
+                var fromjs = $("#fromjs");
+                if (fromjs.length > 0) {
+                    $("#fromjs .markdown_views pre").addClass("prettyprint");
+                    prettyPrint();
+
+                    $('pre.prettyprint code').each(function () {
+                        var lines = $(this).text().split('\n').length;
+                        var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                        $(this).addClass('has-numbering').parent().append($numbering);
+                        for (i = 1; i <= lines; i++) {
+                            $numbering.append($('<li/>').text(i));
+                        };
+                        $numbering.fadeIn(1700);
+                    });
+
+                    $('.pre-numbering li').css("color", "#999");
+                }
+            });
+
+            $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+            //$(".toc a[target='_blank']").attr("target", "");
+
+            setTimeout(function () {
+                $(".toc a[target='_blank']").attr("target", "");
+            }, 500);
+
+        </script>
+    
+</body>
+</html>   

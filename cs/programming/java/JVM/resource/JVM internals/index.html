@@ -1,0 +1,620 @@
+<!DOCTYPE >
+<html prefix="og: http://ogp.me/ns#" xmlns:og="http://ogp.me/ns#" manifest="jamesdbloom.appcache" xmlns="http://www.w3.org/1999/html" lang="en">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+    
+    
+    <link rel="author" href="https://plus.google.com/u/0/110954472544793839756">
+	<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="css_2013_11_17_17_56/ie8_fix.css"><![endif]-->
+    <link rel="apple-touch-icon-precomposed" href="http://blog.jamesdbloom.com/apple-touch-icon_2013_11_17_17_56.png">
+    <link rel="shortcut icon" href="apple-touch-icon_2013_11_17_17_56.png">
+    <link rel="canonical" href="http://blog.jamesdbloom.com/JVMInternals.html">
+    
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="bFxWKXLJWWkwmdZPtFIT6R4yhyyqAEtOrve_ljxrtzY">
+    <meta id="description" name="description" content="Explains internal architecture of Java Virtual Machine (JVM) in simple terms describing key components and how memory is updated during execution.">
+    <meta name="title" content="JVM Internals">
+    <meta property="og:locale" content="en_GB">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://blog.jamesdbloom.com/JVMInternals.html">
+	<meta property="og:image" content="http://blog.jamesdbloom.com/apple-touch-icon_2013_11_17_17_56.png">
+    <meta property="og:site_name" content="James D Bloom">
+    <meta property="og:title" content="JVM Internals">
+    <meta property="og:description" content="Explains the internal architecture of the Java Virtual Machine (JVM) in simple terms using showing key components and how memory is updated during execution.">
+    <title>JVM Internals</title>
+
+<link media="all" href="index.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div itemscope="" itemtype="http://schema.org/Article" id="container">
+
+<a href="http://blog.jamesdbloom.com/"><h1 id="header" class="small_rounded_corners">JVM Internals</h1></a>
+
+<div id="main_content" class="medium_rounded_corners">
+    <div class="box date">
+        <div id="dzone"><iframe src="index_1.html" scrolling="no" width="155" height="25" frameborder="0"></iframe></div>
+        <p itemprop="datePublished" content="2013-04-18">2013/11/24</p>
+    </div>
+    <div class="section">
+        <div class="box">
+        <p>This article explains the internal architecture of the Java Virtual Machine (JVM).  The following diagram show the key internal components of a typical JVM that conforms to <a href="http://www.amazon.co.uk/Virtual-Machine-Specification-Edition-Series/dp/0133260445">The Java Virtual Machine Specification Java SE 7 Edition</a>.</p>
+
+        <a class="image_link" href="jvm_internal_architecture.png"><img itemprop="image" id="JVM_Internal_Architecture_image" src="jvm_internal_architecture_small.png" alt="internal architecture of Java Virtual Machine (JVM)"></a>
+
+        <p>The components shown on this diagram are each explained below in two sections.  <a href="#threads">First section</a> covers the components that are created for each thread and the <a href="#shared_between_threads">second section</a> covers the components that are created independently of threads.</p>
+
+        <div>
+            <ul>
+                <li><a href="#threads">Threads</a>
+
+                    <div>
+                        <ul>
+                            <li><a href="#jvm_system_threads">JVM System Threads</a></li>
+                            <li><a href="#per_thread">Per Thread</a></li>
+                            <li><a href="#program_counter">program Counter (PC)</a></li>
+                            <li><a href="#stack">Stack</a></li>
+                            <li><a href="#native_stack">Native Stack</a></li>
+                            <li><a href="#stack_restrictions">Stack Restrictions</a></li>
+                            <li><a href="#frame">Frame</a></li>
+                            <li><a href="#local_variables_array">Local Variables Array</a></li>
+                            <li><a href="#operand_stack">Operand Stack</a></li>
+                            <li><a href="#dynamic_linking">Dynamic Linking</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li><a href="#shared_between_threads">Shared Between Threads</a>
+
+                    <div>
+                        <ul>
+                            <li><a href="#heap">Heap</a></li>
+                            <li><a href="#memory_management">Memory Management</a></li>
+                            <li><a href="#non_heap_memory">Non-Heap Memory</a></li>
+                            <li><a href="#jit_compilation">Just In Time (JIT) Compilation</a></li>
+                            <li><a href="#method_area">Method Area</a></li>
+                            <li><a href="#class_file_structure">Class File Structure</a></li>
+                            <!--<li><a href="#">Object Memory Structure</a></li>-->
+                            <li><a href="#classloader">Classloader</a></li>
+                            <li><a href="#faster_class_loading">Faster Class Loading</a></li>
+                            <li><a href="#where_is_the_method_area">Where Is The Method Area</a></li>
+                            <li><a href="#classloader_reference">Classloader Reference</a></li>
+                            <li><a href="#constant_pool">Run Time Constant Pool</a></li>
+                            <li><a href="#exception_table">Exception Table</a></li>
+                            <li><a href="#symbol_table">Symbol Table</a></li>
+                            <li><a href="#string_table">Interned Strings (String Table)</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <h2 id="threads">Thread</h2>
+        <p>A thread is a thread of execution in a program. The JVM allows an application to have multiple threads of execution running concurrently.  In the Hotspot JVM there is a direct mapping between a Java Thread and a native operating system Thread.  After preparing all of the state for a Java thread such as thread-local storage, allocation buffers, synchronization objects, stacks and the program counter, the native thread is created.  The native thread is reclaimed once the Java thread terminates.  The operating system is therefore responsible for scheduling all threads and dispatching them to any available CPU.  Once the native thread has initialized it invokes the <span class="code inline">run()</span> method in the Java thread.  When the <span class="code inline">run()</span> method returns, uncaught exceptions are handled, then the native thread confirms if the JVM needs to be terminated as a result of the thread terminating (i.e. is it the last non-deamon thread).  When the thread terminates all resources for both the native and Java thread are released.</p>
+        <h3 id="jvm_system_threads">JVM System Threads</h3>
+        <p>If you use jconsole or any debugger it is possible to see there are numerous threads running in the background.  These background threads run in addition to the main thread, which is created as part of invoking <span class="code inline"><span class="keyword">public static void</span> main(String[])</span>, and any threads created by the main thread.  The main background system threads in the Hotspot JVM are:</p>
+        <div class="columns">
+            <div class="row"><div class="keyword_column">VM thread</div><div class="description_column">This thread waits for operations to appear that require the JVM to reach a safe-point.  The reason these operations have to happen on a separate thread is because they all require the JVM to be at a safe point where modifications to the heap can not occur.  The type of operations performed by this thread are "stop-the-world" garbage collections, thread stack dumps, thread suspension and biased locking revocation.</div></div>
+            <div class="row"><div class="keyword_column">Periodic task thread</div><div class="description_column">This thread is responsible for timer events (i.e. interrupts) that are used to schedule execution of periodic operations</div></div>
+            <div class="row"><div class="keyword_column">GC threads</div><div class="description_column">These threads support the different types of garbage collection activities that occur in the JVM</div></div>
+            <div class="row"><div class="keyword_column">Compiler threads</div><div class="description_column">These threads compile byte code to native code at runtime</div></div>
+            <div class="row"><div class="keyword_column">Signal dispatcher thread</div><div class="description_column">This thread receives signals sent to the JVM process and handle them inside the JVM by calling the appropriate JVM methods.</div></div>
+        </div>
+        <h2 id="per_thread">Per Thread</h2>
+        <p>Each thread of execution has the following components:</p>
+        <h3 id="program_counter">Program Counter (PC)</h3>
+        <p>Address of the current instruction (or opcode) unless it is native.  If the current method is native then the PC is undefined.  All CPUs have a PC, typically the PC is incremented after each instruction and therefore holds the address of the next instruction to be executed.  The JVM uses the PC to keep track of where it is executing instructions, the PC will in fact be pointing at a memory address in the Method Area.</p>
+        <h3 id="stack">Stack</h3>
+        <p>Each thread has its own stack that holds a frame for each method executing on that thread.  The stack is a Last In First Out (LIFO) data structure, so the currently executing method is at the top of the stack. A new frame is created and added (pushed) to the top of stack for every method invocation.  The frame is removed (popped) when the method returns normally or if an uncaught exception is thrown during the method invocation. The stack is not directly manipulated, except to push and pop frame objects, and therefore the frame objects may be allocated in the Heap and the memory does not need to be contiguous.</p>
+        <h3 id="native_stack">Native Stack</h3>
+        <p>Not all JVMs support native methods, however, those that do typically create a per thread native method stack.  If a JVM has been implemented using a C-linkage model for Java Native Invocation (JNI) then the native stack will be a C stack.  In this case the order of arguments and return value will be identical in the native stack to typical C program. A native method can typically (depending on the JVM implementation) call back into the JVM and invoke a Java method.  Such a native to Java invocation will occur on the stack (normal Java stack); the thread will leave the native stack and create a new frame on the stack (normal Java stack).</p>
+        <h3 id="stack_restrictions">Stack Restrictions</h3>
+        <p>A stack can be a dynamic or fixed size.  If a thread requires a larger stack than allowed a StackOverflowError is thrown.  If a thread requires a new frame and there isn’t enough memory to allocate it then an OutOfMemoryError is thrown.</p>
+        <h3 id="frame">Frame</h3>
+        <p>A new frame is created and added (pushed) to the top of stack for every method invocation.  The frame is removed (popped) when the method returns normally or if an uncaught exception is thrown during the method invocation.  For more detail on exception handling <a href="#exception_table">see the section on Exception Tables below</a>.</p>
+        <p>Each frame contains:</p>
+        <div><ul class="list">
+            <li>Local variable array</li>
+            <li>Return value</li>
+            <li>Operand stack</li>
+            <li>Reference to runtime constant pool for class of the current method</li>
+        </ul></div>
+        <h3 id="local_variables_array">Local Variables Array</h3>
+        <p>The array of local variables contains all the variables used during the execution of the method, including a reference to <span class="code inline keyword">this</span>, all method parameters and other locally defined variables.  For class methods (i.e. static methods) the method parameters start from zero, however, for instance method the zero slot is reserved for <span class="code inline keyword">this</span>.</p>
+        <p>A local variable can be:</p>
+        <div><ul class="list">
+            <li><span class="code inline keyword">boolean</span></li>
+            <li><span class="code inline keyword">byte</span></li>
+            <li><span class="code inline keyword">char</span></li>
+            <li><span class="code inline keyword">long</span></li>
+            <li><span class="code inline keyword">short</span></li>
+            <li><span class="code inline keyword">int</span></li>
+            <li><span class="code inline keyword">float</span></li>
+            <li><span class="code inline keyword">double</span></li>
+            <li>reference</li>
+            <li>returnAddress</li>
+        </ul></div>
+        <p>All types take a single slot in the local variable array except <span class="code inline keyword">long</span> and <span class="code inline keyword">double</span> which both take two consecutive slots because these types are double width (64-bit instead of 32-bit).</p>
+        <h3 id="operand_stack">Operand Stack</h3>
+        <p>The operand stack is used during the execution of byte code instructions in a similar way that general-purpose registers are used in a native CPU.  Most JVM byte code spends its time manipulating the operand stack by pushing, popping, duplicating, swapping, or executing operations that produce or consume values.  Therefore, instructions that move values between the array of local variables and the operand stack are very frequent in byte code. For example, a simple variable initialization results in two byte codes that interact with the operand stack.</p>
+
+<pre class="code"><span class="keyword">int</span> i;</pre>
+
+        <p>Gets compiled to the following byte code:</p>
+
+<pre class="code"><span class="annotation"> 0</span>:	<span class="keyword">iconst_0</span>	<span class="attribute_name">// Push 0 to top of the operand stack</span>
+ <span class="annotation">1</span>:	<span class="keyword">istore_1</span>	<span class="attribute_name">// Pop value from top of operand stack and store as local variable 1</span></pre>
+        <p>For more detail explaining interactions between the local variables array, operand stack and run time constant pool <a href="#class_file_structure">see the section on Class File Structure below</a>.</p>
+
+        <h3 id="dynamic_linking">Dynamic Linking</h3>
+        <p>Each frame contains a reference to the runtime constant pool.  The reference points to the constant pool for the class of the method being executed for that frame.  This reference helps to support dynamic linking.</p>
+        <p>C/C++ code is typically compiled to an object file then multiple object files are linked together to product a usable artifact such as an executable or dll.  During the linking phase symbolic references in each object file are replaced with an actual memory address relative to the final executable.  In Java this linking phase is done dynamically at runtime.</p>
+        <p>When a Java class is compiled, all references to variables and methods are stored in the class's constant pool as a symbolic reference. A symbolic reference is a logical reference not a reference that actually points to a physical memory location.  The JVM implementation can choose when to resolve symbolic references, this can happen when the class file is verified, after being loaded, called eager or static resolution, instead this can happen when the symbolic reference is used for the first time called lazy or late resolution. However the JVM has to behave as if the resolution occurred when each reference is first used and throw any resolution errors at this point.  Binding is the process of the field, method or class identified by the symbolic reference being replaced by a direct reference, this only happens once because the symbolic reference is completely replaced.  If the symbolic reference refers to a class that has not yet been resolved then this class will be loaded.  Each direct reference is stored as an offset against the storage structure associated with the runtime location of the variable or method.</p>
+        <h2 id="shared_between_threads">Shared Between Threads</h2>
+        <h3 id="heap">Heap</h3>
+        <p>The Heap is used to allocate class instances and arrays at runtime. Arrays and objects can never be stored on the stack because a frame is not designed to change in size after it has been created.  The frame only stores references that point to objects or arrays on the heap.  Unlike primitive variables and references in the local variable array (in each frame) objects are always stored on the heap so they are not removed when a method ends.  Instead objects are only removed by the garbage collector.</p>
+        <p>To support garbage collection the heap is divided into three sections:</p>
+        <div><ul class="list">
+            <li><strong>Young Generation</strong>
+            <div><ul><li>Often split between Eden and Survivor</li></ul></div></li>
+            <li><strong>Old Generation</strong> (also called Tenured Generation)</li>
+            <li><strong>Permanent Generation</strong></li>
+        </ul></div>
+        <h3 id="memory_management">Memory Management</h3>
+        <p>Objects and Arrays are never explicitly de-allocated instead the garbage collector automatically reclaims them.</p>
+        <p>Typically this works as follows:</p>
+        <div><ol class="list">
+            <li>New objects and arrays are created into the young generation</li>
+            <li>Minor garbage collection will operate in the young generation.  Objects, that are still alive, will be moved from the eden space to the survivor space.</li>
+            <li>Major garbage collection, which typically causes the application threads to pause, will move objects between generations.  Objects, that are still alive, will be moved from the young generation to the old (tenured) generation.</li>
+            <li>The permanent generation is collected every time the old generation is collected.  They are both collected when either becomes full.</li>
+        </ol></div>
+        <h3 id="non_heap_memory">Non-Heap Memory</h3>
+        <p>Objects that are logically considered as part of the JVM mechanics are not created on the Heap.</p>
+        <p>The non-heap memory includes:</p>
+        <div><ul class="list">
+            <li><strong>Permanent Generation</strong> that contains
+                <div><ul>
+                    <li>the method area</li>
+                    <li>interned strings</li>
+                </ul></div>
+            </li>
+            <li><strong>Code Cache</strong> used for compilation and storage of methods that have been compiled to native code by the JIT compiler</li>
+        </ul></div>
+        <h3 id="jit_compilation">Just In Time (JIT) Compilation</h3>
+        <p>Java byte code is interpreted however this is not as fast as directly executing native code on the JVM’s host CPU.  To improve performance the Oracle Hotspot VM looks for “hot” areas of byte code that are executed regularly and compiles these to native code.  The native code is then stored in the code cache in non-heap memory.  In this way the Hotspot VM tries to choose the most appropriate way to trade-off the extra time it takes to compile code verses the extra time it take to execute interpreted code.</p>
+        <h3 id="method_area">Method Area</h3>
+        <p>The method area stores per-class information such as:</p>
+        <div><ul class="list">
+            <li><strong>Classloader Reference</strong></li>
+            <li><strong>Run Time Constant Pool</strong>
+                <div><ul>
+                    <li>Numeric constants</li>
+                    <li>Field references</li>
+                    <li>Method References</li>
+                    <li>Attributes</li>
+                </ul></div>
+            </li>
+            <li><strong>Field data</strong>
+                <div><ul><li>Per field
+                        <div><ul>
+                            <li>Name</li>
+                            <li>Type</li>
+                            <li>Modifiers</li>
+                            <li>Attributes</li>
+                        </ul></div>
+                    </li>
+                </ul></div>
+            </li>
+            <li><strong>Method data</strong>
+                <div><ul><li>Per method
+                        <div><ul>
+                            <li>Name</li>
+                            <li>Return Type</li>
+                            <li>Parameter Types (in order)</li>
+                            <li>Modifiers</li>
+                            <li>Attributes</li>
+                        </ul></div>
+                    </li>
+                </ul></div>
+            </li>
+            <li><strong>Method code</strong>
+                <div><ul><li>Per method
+                        <div><ul>
+                            <li>Bytecodes</li>
+                            <li>Operand stack size</li>
+                            <li>Local variable size</li>
+                            <li>Local variable table</li>
+                            <li>Exception table
+                                <div><ul><li>Per exception handler
+                                        <div><ul>
+                                            <li>Start point</li>
+                                            <li>End point</li>
+                                            <li>PC offset for handler code</li>
+                                            <li>Constant pool index for exception class being caught</li>
+                                        </ul></div>
+                                    </li>
+                                </ul></div>
+                            </li>
+                        </ul></div>
+                    </li>
+                </ul></div>
+            </li>
+        </ul></div>
+
+        <p>All threads share the same method area, so access to the method area data and the process of dynamic linking must be thread safe.  If two threads attempt to access a field or method on a class that has not yet been loaded it must only be loaded once and both threads must not continue execution until it has been loaded.</p>
+
+        <h3 id="class_file_structure">Class File Structure</h3>
+
+        <p>A compiled class file consists of the following structure:</p>
+<pre class="code">ClassFile {
+    u4			magic;
+    u2			minor_version;
+    u2			major_version;
+    u2			constant_pool_count;
+    cp_info		contant_pool[constant_pool_count – 1];
+    u2			access_flags;
+    u2			this_class;
+    u2			super_class;
+    u2			interfaces_count;
+    u2			interfaces[interfaces_count];
+    u2			fields_count;
+    field_info		fields[fields_count];
+    u2			methods_count;
+    method_info		methods[methods_count];
+    u2			attributes_count;
+    attribute_info	attributes[attributes_count];
+}</pre>
+
+        <div class="columns">
+            <div class="row"><div class="keyword_column"><span class="code inline">magic,
+ minor_version,
+ major_version</span></div><div class="description_column">specifies information about the version of the class and the version of the JDK this class was compiled for.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">constant_pool</span></div><div class="description_column">similar to a symbol table although it contains more data <a href="#constant_pool">this is described in more detail below.</a></div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">access_flags</span></div><div class="description_column">provides the list of modifiers for this class.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">this_class</span></div><div class="description_column">index into the <span class="code inline">constant_pool</span> providing the fully qualified name of this class i.e. <span class="code inline">org/jamesdbloom/foo/Bar</span></div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">super_class</span></div><div class="description_column">index into the <span class="code inline">constant_pool</span> providing a symbolic reference to the super class i.e. <span class="code inline">java/lang/Object</span></div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">interfaces</span></div><div class="description_column">array of indexes into the <span class="code inline">constant_pool</span> providing a symbolic references to all interfaces that have been implemented.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">fields</span></div><div class="description_column">array of indexes into the <span class="code inline">constant_pool</span> giving a complete description of each field.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">methods</span></div><div class="description_column">array of indexes into the <span class="code inline">constant_pool</span> giving a complete description of each method signature, if the method is not abstract or native then the bytecode is also present.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">attributes</span></div><div class="description_column">array of different value that provide additional information about the class including any annotations with <span class="code inline">RetentionPolicy.<span class="final_value">CLASS</span></span> or <span class="code inline">RetentionPolicy.<span class="final_value">RUNTIME</span></span></div></div>
+        </div>
+
+        <p>It is possible to view the byte code in a compiled Java class by using the <span class="code inline">javap</span> command.</p>
+        <p>If you compile the following simple class:</p>
+
+<pre class="code"><span class="keyword">package</span> org.jvminternals;
+
+<span class="keyword">public</span> <span class="keyword">class</span> SimpleClass {
+
+    <span class="keyword">public</span> <span class="keyword">void</span> sayHello() {
+        System.out.println(<span class="constant_value">"Hello"</span>);
+    }
+
+}</pre>
+
+        <p style="padding-bottom: 0.25em;">Then you get the following output if you run:</p>
+        <p style="text-align: left; padding-bottom: 1em;"><span class="code inline">javap -v -p -s -sysinfo -constants classes/org/jvminternals/SimpleClass.class</span></p>
+
+<pre class="code"><span class="keyword">public</span> <span class="keyword">class</span> org.jvminternals.SimpleClass
+  SourceFile: <span class="constant_value">"SimpleClass.java"</span>
+  minor version: 0
+  major version: 51
+  flags: <span class="final_value">ACC_PUBLIC</span>, <span class="final_value">ACC_SUPER</span>
+Constant pool:
+   #1 = Methodref          #6.#17         <span class="attribute_name">//  java/lang/Object.<span class="constant_value">"&lt;init&gt;"</span>:()V</span>
+   #2 = Fieldref           #18.#19        <span class="attribute_name">//  java/lang/System.out:Ljava/io/PrintStream;</span>
+   #3 = String             #20            <span class="attribute_name">//  </span><span class="constant_value">"Hello"</span>
+   #4 = Methodref          #21.#22        <span class="attribute_name">//  java/io/PrintStream.println:(Ljava/lang/String;)V</span>
+   #5 = Class              #23            <span class="attribute_name">//  org/jvminternals/SimpleClass</span>
+   #6 = Class              #24            <span class="attribute_name">//  java/lang/Object</span>
+   #7 = Utf8               &lt;init&gt;
+   #8 = Utf8               ()V
+   #9 = Utf8               Code
+  #10 = Utf8               LineNumberTable
+  #11 = Utf8               LocalVariableTable
+  #12 = Utf8               this
+  #13 = Utf8               Lorg/jvminternals/SimpleClass;
+  #14 = Utf8               sayHello
+  #15 = Utf8               SourceFile
+  #16 = Utf8               SimpleClass.java
+  #17 = NameAndType        #7:#8          <span class="attribute_name">//  <span class="constant_value">"&lt;init&gt;"</span>:()V</span>
+  #18 = Class              #25            <span class="attribute_name">//  java/lang/System</span>
+  #19 = NameAndType        #26:#27        <span class="attribute_name">//  out:Ljava/io/PrintStream;</span>
+  #20 = Utf8               Hello
+  #21 = Class              #28            <span class="attribute_name">//  java/io/PrintStream</span>
+  #22 = NameAndType        #29:#30        <span class="attribute_name">//  println:(Ljava/lang/String;)V</span>
+  #23 = Utf8               org/jvminternals/SimpleClass
+  #24 = Utf8               java/lang/Object
+  #25 = Utf8               java/lang/System
+  #26 = Utf8               out
+  #27 = Utf8               Ljava/io/PrintStream;
+  #28 = Utf8               java/io/PrintStream
+  #29 = Utf8               println
+  #30 = Utf8               (Ljava/lang/String;)V
+{
+  <span class="keyword">public</span> org.jvminternals.SimpleClass();
+    Signature: ()V
+    flags: <span class="final_value">ACC_PUBLIC</span>
+    Code:
+      stack=1, locals=1, args_size=1
+        <span class="annotation">0</span>: <span class="keyword">aload_0</span>
+        <span class="annotation">1</span>: <span class="keyword">invokespecial</span> <span class="this_value">#1</span>    <span class="attribute_name">// Method java/lang/Object.<span class="constant_value">"&lt;init&gt;"</span>:()V</span>
+        <span class="annotation">4</span>: <span class="keyword">return</span>
+      LineNumberTable:
+        line 3: <span class="annotation">0</span>
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          0      5      0    <span class="keyword">this</span>   Lorg/jvminternals/SimpleClass;
+
+  <span class="keyword">public</span> <span class="keyword">void</span> sayHello();
+    Signature: ()V
+    flags: <span class="final_value">ACC_PUBLIC</span>
+    Code:
+      stack=2, locals=1, args_size=1
+        <span class="annotation">0</span>: <span class="keyword">getstatic     </span> <span class="this_value">#2</span>    <span class="attribute_name">// Field java/lang/System.out:Ljava/io/PrintStream;</span>
+        <span class="annotation">3</span>: <span class="keyword">ldc           </span> <span class="this_value">#3</span>    <span class="attribute_name">// String </span><span class="constant_value">"Hello"</span>
+        <span class="annotation">5</span>: <span class="keyword">invokevirtual </span> <span class="this_value">#4</span>    <span class="attribute_name">// Method java/io/PrintStream.println:(Ljava/lang/String;)V</span>
+        <span class="annotation">8</span>: <span class="keyword">return</span>
+      LineNumberTable:
+        line 6: <span class="annotation">0</span>
+        line 7: <span class="annotation">8</span>
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          0      9      0    <span class="keyword">this</span>   Lorg/jvminternals/SimpleClass;
+}</pre>
+
+        <p>This class file shows three main sections the constant pool, the constructor and the sayHello method.</p>
+        <div><ul class="list">
+            <li><strong>Constant Pool</strong> – this provides the same information that a symbol table typically provides and is <a href="#constant_pool">described in more detail below.</a></li>
+            <li><strong>Methods</strong> – each containing four areas:
+                <div><ul>
+                    <li>signature and access flags</li>
+                    <li>byte code</li>
+                    <li>LineNumberTable – this provides information to a debugger to indicate which line corresponds to which byte code instruction, for example line 6 in the Java code corresponds to byte code 0 in the sayHello method and line 7 corresponds to byte code 8.</li>
+                    <li>LocalVariableTable – this lists all local variables provided in the frame, in both examples the only local variable is <span clas="code inline keyword">this</span>.</li>
+                </ul></div>
+            </li>
+        </ul></div>
+
+        <p>The following byte code operands are used in this class file</p>
+
+        <div class="columns">
+            <div class="row"><div class="keyword_column"><span class="code inline">aload_0</span></div><div class="description_column">This opcode is one of a group of opcodes with the format <span class="code inline">aload_&lt;n&gt;</span>.  They all load an object reference into the operand stack.  The <span class="code inline">&lt;n&gt;</span> refers to the location in the local variable array that is being accessed but can only be 0, 1, 2 or 3.  There are other similar opcodes for loading values that are not an object reference <span class="code inline">iload_&lt;n&gt;</span>, <span class="code inline">lload_&lt;n&gt;</span>, <span class="code inline">float_&lt;n&gt;</span> and <span class="code inline">dload_&lt;n&gt;</span> where i is for <span class="code inline keyword">int</span>, l is for <span class="code inline keyword">long</span>, f is for <span class="code inline keyword">float</span> and d is for <span class="code inline keyword">double</span>.  Local variables with an index higher than 3 can be loaded using <span class="code inline">iload</span>, <span class="code inline">lload</span>, <span class="code inline">float</span>, <span class="code inline">dload</span> and <span class="code inline">aload</span>.  These opcodes all take a single operand that specifies the index of local variable to load.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">ldc</span></div><div class="description_column">This opcode is used to push a constant from the run time constant pool into the operand stack.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">getstatic</span></div><div class="description_column">This opcode is used to push a static value from a static field listed in the run time constant pool into the operand stack.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">invokespecial, invokevirtual</span></div><div class="description_column">These opcodes are in a group of opcodes that invoke methods these are <span class="code inline">invokedynamic</span>, <span class="code inline">invokeinterface</span>, <span class="code inline">invokespecial</span>, <span class="code inline">invokestatic</span>, <span class="code inline">invokevirtual</span>.  In this class file <span class="code inline">invokespecial</span> and <span class="code inline">invokevirutal</span> are both used the difference between these is that <span class="code inline">invokevirutal</span> invokes a method based on the class of the object. The <span class="code inline">invokespecial</span> instruction is used to invoke instance initialization methods as well as private methods and methods of a superclass of the current class.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">return</span></div><div class="description_column">This opcode is in a group of opcodes <span class="code inline">ireturn</span>, <span class="code inline">lreturn</span>, <span class="code inline">freturn</span>, <span class="code inline">dreturn</span>, <span class="code inline">areturn</span> and <span class="code inline">return</span>.  Each of these opcodes are a typed return statement that returns a different type where i is for <span class="code inline keyword">int</span>, l is for <span class="code inline keyword">long</span>, f is for <span class="code inline keyword">float</span>, d is for <span class="code inline keyword">double</span> and a is for an object reference.  The opcode with no leading type letter <span class="code inline">return</span> only returns <span class="code inline keyword">void</span>.</div></div>
+        </div>
+
+        <p>As in any typical byte code the majority of the operands interact with the local variables, operand stack and run time constant pool as follows.</p>
+
+        <p>The constructor has two instructions first <span class="code inline keyword">this</span> is pushed onto the operand stack, next the constructor for the super class is invoked which consumes the value off <span class="code inline keyword">this</span> and therefore pops it off the operand stack.</p>
+
+        <a class="image_link" href="bytecode_explanation_simpleclass.png"><img itemprop="image" id="bytecode_explanation_SimpleClass_image" src="bytecode_explanation_simpleclass.png" alt="local variables, operand stack and run time constant pool changes when invoking a static method in Java Virtual Machine (JVM)"></a>
+
+        <p>The <span class="code inline">sayHello()</span> method is more complex as it has to resolve symbolic references to actual references using the run time constant pool, <a href="#dynamic_linking">as explained in more detail above</a>.  The first operand <span class="code inline keyword">getstatic</span> is used to push a reference to the static field <span class="code inline">out</span> of the <span class="code inline">System</span> class on to the operand stack.  The next operand <span class="code inline keyword">ldc</span> pushes the string <span class="code inline constant_value">"Hello"</span> onto the operand stack.  The final operand <span class="code inline keyword">invokevirtual</span> invokes the <span class="code inline">println</span> method of <span class="code inline">System.out</span> which pops <span class="code inline constant_value">"Hello"</span> off the operand stack as an argument and creates a new frame for the current thread.</p>
+
+        <a class="image_link" href="bytecode_explanation_sayhello.png"><img itemprop="image" id="bytecode_explanation_sayHello_image" src="bytecode_explanation_sayhello_smaller.png" alt="local variables, operand stack and run time constant pool changes when calling System.out in Java Virtual Machine (JVM)"></a>
+
+        <!--<h3>Object Memory Structure</h3>-->
+        <!--<p></p>-->
+
+        <h3 id="classloader">Classloader</h3>
+        <p>The JVM starts up by loading an initial class using the bootstrap classloader.  The class is then linked and initialized before <span class="code inline"><span class="keyword">public static void</span> main(String[])</span> is invoked.  The execution of this method will in turn drive the loading, linking and initialization of additional classes and interfaces as required.</p>
+
+        <p><strong>Loading</strong> is the process of finding the class file that represents the class or interface type with a particular name and reading it into a byte array.  Next the bytes are parsed to confirm they represent a <span class="code inline">Class</span> object and have the correct major and minor versions.  Any class or interface named as a direct superclass is also loaded.  Once this is completed a class or interface object is created from the binary representation.</p>
+
+        <p><strong>Linking</strong> is the process of taking a class or interface verifying and preparing the type and its direct superclass and superinterfaces.  Linking consists of three steps verifying, preparing and optionally resolving.</p>
+        <div style="width: 95%; margin-left: auto; margin-right: auto;">
+        <p><strong><em>Verifying</em></strong> is the process of confirming the class or interface representation is structurally correct and obeys the semantic requirements of the Java programming language and JVM, for example the following checks are performed:</p>
+            <div><ol>
+                <li>consistent and correctly formatted symbol table</li>
+                <li>final methods / classes not overridden</li>
+                <li>methods respect access control keywords</li>
+                <li>methods have correct number and type of parameters</li>
+                <li>bytecode doesn't manipulate stack incorrectly</li>
+                <li>variables are initialized before being read</li>
+                <li>variables are a value of the correct type</li>
+            </ol></div>
+        <p>Performing these checks during the verifying stages means these checks do not need to be performed at runtime.  Verification during linking slows down class loading however it avoids the need to perform these checks multiple when executing the bytecode.</p>
+        <p><strong><em>Preparing</em></strong> involves allocation of memory for static storage and any data structures used by the JVM such as method tables.  Static fields are created and initialized to their default values, however, no initializers or code is executed at this stage as that happens as part of initialization.</p>
+        <p><strong><em>Resolving</em></strong> is an optional stage which involves checking symbolic references by loading the referenced classes or interfaces and checking the references are correct.  If this does not take place at this point the resolution of symbolic references can be deferred until just prior to their use by a byte code instruction.</p>
+        </div>
+
+        <p><strong>Initialization</strong> of a class or interface consists of executing the class or interface initialization method <span class="code inline">&lt;clinit&gt;</span></p>
+
+        <a id="Class_Loading_Linking_Initializing_image" href="class_loading_linking_initializing.png"><img itemprop="image" src="class_loading_linking_initializing.png" alt="class loading, linking and initialization in the Java Virtual Machine (JVM)"></a>
+
+        <p>In the JVM there are multiple classloaders with different roles.  Each classloader delegates to its parent classloader (that loaded it) except the <strong>bootstrap classloader</strong> which is the top classloader.</p>
+        <div style="width: 95%; margin-left: auto; margin-right: auto;">
+            <p><strong><em>Bootstrap Classloader</em></strong> is usually implemented as native code because it is instantiated very early as the JVM is loaded.  The bootstrap classloader is responsible for loading the basic Java APIs, including for example rt.jar.  It only loads classes found on the boot classpath which have a higher level of trust; as a result it skips much of the validation that gets done for normal classes.</p>
+            <p><strong><em>Extension Classloader</em></strong> loads classes from standard Java extension APIs such as security extension functions.</p>
+            <p><strong><em>System Classloader</em></strong> is the default application classloader, which loads application classes from the classpath.</p>
+            <p><strong><em>User Defined Classloaders</em></strong> can alternatively be used to load application classes.  A user defined classloader is used for a number of special reasons including run time reloading of classes or separation between different groups of loaded classes typically required by web servers such as Tomcat.</p>
+        </div>
+
+        <a id="class_loader_hierarchy_image" href="class_loader_hierarchy.png"><img itemprop="image" src="class_loader_hierarchy.png" alt="classloader hierarchy in the Java Virtual Machine (JVM)"></a>
+
+        <h3 id="faster_class_loading">Faster Class Loading</h3>
+        <p>A feature called Class Data Sharing (CDS) was introduce in HotSpot JMV from version 5.0.  During the installation process of the JVM the installer loads a set of key JVM classes, such as rt.jar, into a memory-mapped shared archive.  CDS reduces the time it takes to load these classes improving JVM start-up speed and allows these classes to be shared between different instances of the JVM reducing the memory footprint.</p>
+
+        <h3 id="where_is_the_method_area">Where Is The Method Area</h3>
+        <p><a href="http://www.amazon.co.uk/Virtual-Machine-Specification-Edition-Series/dp/0133260445">The Java Virtual Machine Specification Java SE 7 Edition</a> clearly states:  “Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it.”  In contradiction to this jconsole for the Oracle JVM shows the method area (and code cache) as being non-heap.  The <a href="http://openjdk.java.net/">OpenJDK</a> code shows that the CodeCache is a separate field of the VM to the ObjectHeap.</p>
+        <h3 id="classloader_reference">Classloader Reference</h3>
+        <p>All classes that are loaded contain a reference to the classloader that loaded them.  In turn the classloader also contains a reference to all classes that it has loaded.</p>
+        <h3 id="constant_pool">Run Time Constant Pool</h3>
+        <p>The JVM maintains a per-type constant pool, a run time data structure that is similar to a symbol table although it contains more data.  Byte codes in Java require data, often this data is too large to store directly in the byte codes, instead it is stored in the constant pool and the byte code contains a reference to the constant pool. The run time constant pool is used in dynamic linking <a href="#dynamic_linking">as described above</a></p>
+
+        <p>Several types of data is stored in the constant pool including</p>
+        <div><ul class="list">
+            <li>numeric literals</li>
+            <li>string literals</li>
+            <li>class references</li>
+            <li>field references</li>
+            <li>method references</li>
+        </ul></div>
+
+        <p>For example the following code:</p>
+
+<pre class="code">Object foo = <span class="keyword">new</span> Object();</pre>
+
+        <p>Would be written in byte code as follows:</p>
+
+<pre class="code"> <span class="annotation">0</span>: 	<span class="keyword">new</span> <span class="this_value">#2</span> 		    <span class="attribute_name">// Class java/lang/Object</span>
+ <span class="annotation">1</span>:	<span class="keyword">dup</span>
+ <span class="annotation">2</span>:	<span class="keyword">invokespecial</span> <span class="this_value">#3</span>    <span class="attribute_name">// Method java/ lang/Object <span class="constant_value">"&lt;init&gt;"</span>( ) V</span></pre>
+
+        <p>The <span class="code inline keyword">new</span> opcode (operand code) is followed by the <span class="code inline this_value">#2</span> operand.  This operand is an index into the constant pool and therefore is referencing the second entry in the constant pool.  The second entry is a class reference, this entry in turn references another entry in the constant pool containing the name of the class as a constant UTF8 string with the value <span class="code inline attribute_name">// Class java/lang/Object</span>.  This symbolic link can then be used to lookup the class for java.lang.Object.  The <span class="code inline keyword">new</span> opcode creates a class instance and initializes its variables.  A reference to the new class instance is then added to the operand stack.  The <span class="code inline keyword">dup</span> opcode then creates an extra copy of the top reference on the operand stack and adds this to the top of the operand stack.  Finally an instance initialization method is called on line 2 by <span class="code inline keyword">invokespecial</span>.  This operand also contains a reference to the constant pool.  The initialization method consumes (pops) the top reference off the operand pool as an argument to the method.  At the end there is one reference to the new object that has been both created and initialized.</p>
+        <p>If you compile the following simple class:</p>
+
+<pre class="code"><span class="keyword">package</span> org.jvminternals;
+
+<span class="keyword">public</span> <span class="keyword">class</span> SimpleClass {
+
+    <span class="keyword">public</span> <span class="keyword">void</span> sayHello() {
+        System.out.println(<span class="constant_value">"Hello"</span>);
+    }
+
+}</pre>
+        <p>The constant pool in the generated class file would look like:</p>
+<pre class="code">Constant pool:
+   #1 = Methodref          #6.#17         <span class="attribute_name">//  java/lang/Object.<span class="constant_value">"&lt;init&gt;"</span>:()V</span>
+   #2 = Fieldref           #18.#19        <span class="attribute_name">//  java/lang/System.out:Ljava/io/PrintStream;</span>
+   #3 = String             #20            <span class="attribute_name">//  </span><span class="constant_value">"Hello"</span>
+   #4 = Methodref          #21.#22        <span class="attribute_name">//  java/io/PrintStream.println:(Ljava/lang/String;)V</span>
+   #5 = Class              #23            <span class="attribute_name">//  org/jvminternals/SimpleClass</span>
+   #6 = Class              #24            <span class="attribute_name">//  java/lang/Object</span>
+   #7 = Utf8               &lt;init&gt;
+   #8 = Utf8               ()V
+   #9 = Utf8               Code
+  #10 = Utf8               LineNumberTable
+  #11 = Utf8               LocalVariableTable
+  #12 = Utf8               this
+  #13 = Utf8               Lorg/jvminternals/SimpleClass;
+  #14 = Utf8               sayHello
+  #15 = Utf8               SourceFile
+  #16 = Utf8               SimpleClass.java
+  #17 = NameAndType        #7:#8          <span class="attribute_name">//  <span class="constant_value">"&lt;init&gt;"</span>:()V</span>
+  #18 = Class              #25            <span class="attribute_name">//  java/lang/System</span>
+  #19 = NameAndType        #26:#27        <span class="attribute_name">//  out:Ljava/io/PrintStream;</span>
+  #20 = Utf8               Hello
+  #21 = Class              #28            <span class="attribute_name">//  java/io/PrintStream</span>
+  #22 = NameAndType        #29:#30        <span class="attribute_name">//  println:(Ljava/lang/String;)V</span>
+  #23 = Utf8               org/jvminternals/SimpleClass
+  #24 = Utf8               java/lang/Object
+  #25 = Utf8               java/lang/System
+  #26 = Utf8               out
+  #27 = Utf8               Ljava/io/PrintStream;
+  #28 = Utf8               java/io/PrintStream
+  #29 = Utf8               println
+  #30 = Utf8               (Ljava/lang/String;)V
+</pre>
+        <p>The constant pool contains the following types:</p>
+        <div class="columns">
+            <div class="row"><div class="keyword_column"><span class="code inline">Integer</span></div><div class="description_column">A 4 byte int constant</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Long</span></div><div class="description_column">An 8 byte long constant</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Float</span></div><div class="description_column">A 4 byte float constant</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Double</span></div><div class="description_column">A 8 byte double constant</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">String</span></div><div class="description_column">A String constant that points at another Utf8 entry in the constant pool which contains the actual bytes</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Utf8</span></div><div class="description_column">A stream of bytes representing a Utf8 encoded sequence of characters</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Class</span></div><div class="description_column">A Class constant that points at another Utf8 entry in the constant pool which contains the fully qualified class name in the internal JVM format (this is used by the <a href="#dynamic_linking">dynamic linking process</a>)</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">NameAndType</span></div><div class="description_column">A colon separated pair of values each pointing at other entries in the constant pool.  The first value (before the colon) points at a Utf8 string entry that is the method or field name.  The second value points at a Utf8 entry that represents the type, in the case of a field this is the fully qualified class name, in the case of a method this is a list of fully qualified class names one per parameter.</div></div>
+            <div class="row"><div class="keyword_column"><span class="code inline">Fieldref,
+Methodref,
+InterfaceMethodref</span></div><div class="description_column">A dot separated pair of values each pointing at other entries in the constant pool.  The first value (before the dot) points at a Class entry.  The second value points at a NameAndType entry.</div></div>
+        </div>
+        <h3 id="exception_table">Exception Table</h3>
+        <p>The exception table stores per-exception handler information such as:</p>
+        <div><ul class="list">
+            <li>Start point</li>
+            <li>End point</li>
+            <li>PC offset for handler code</li>
+            <li>Constant pool index for exception class being caught</li>
+        </ul></div>
+        <p>If a method has defined a try-catch or a try-finally exception handler then an Exception Table will be created.  This contains information for each exception handler or finally block including the range over which the handler applies, what type of exception is being handled and where the handler code is.</p>
+        <p>When an exception is thrown the JVM looks for a matching handler in the current method, if none is found the method ends abruptly popping the current stack frame and the exception is re-thrown in the calling method (the new current frame).  If no exception handler is found before all frames have been popped then the thread is terminated.   This can also cause the JVM itself to terminate if the exception is thrown in the last non-daemon thread, for example if the thread is the main thread.</p>
+        <p>Finally exception handlers match all types of exceptions and so always execute whenever an exception is thrown.  In the case when no exception is thrown a finally block is still executed at the end of a method, this is achieved by jumping to the finally handler code immediately before the return statement is executed.</p>
+        <h3 id="symbol_table">Symbol Table</h3>
+        <p>In addition to per-type run-time constant pools the Hotspot JVM has a symbol table held in the permanent generation.  The symbol table is a Hashtable mapping symbol pointers to symbols (i.e. <span class="code inline">Hashtable&lt;Symbol*, Symbol&gt;</span>) and includes a pointer to all symbols including those held in run time constant pools in each class.</p>
+        <p>Reference counting is used to control when a symbol is removed from the symbol table.  For example when a class is unloaded the reference count of all symbols held in its run time constant pool are decremented.  When the reference count of a symbol in the the symbol table goes to zero then the symbol table knows that symbol is not being referenced anymore and the symbol is unloaded from the symbol table. For both the symbol table and the string table (see below) all entries are held in a canonicalized form to improve efficiency and ensure each entry only appears once.</p>
+        <h3 id="string_table">Interned Strings (String Table)</h3>
+        <p>The Java Language Specification requires that identical string literals, that contain the same sequence of Unicode code points, must refer to the same instance of String.  In addition if <span class="code inline">String.intern()</span> is called on an instance of String a reference must be returned that would be identical to the reference return if the string was a literal. The following therefore holds true:</p>
+<pre class="code">("j" + "v" + "m").intern() == "jvm"</pre>
+        <p>In the Hotspot JVM interned string are held in the string table, which is a Hashtable mapping object pointers to symbols (i.e. <span class="code inline">Hashtable&lt;oop, Symbol&gt;</span>), and is held in the permanent generation.  For both the symbol table (see above) and the string table all entries are held in a canonicalized form to improve efficiency and ensure each entry only appears once.</p>
+        <p>String literals are automatically interned by the compiler and added into the symbol table when the class is loaded.  In addition instances of the String class can be explicitly interned by calling <span class="code inline">String.intern()</span>.  When <span class="code inline">String.intern()</span> is called, if the symbol table already contains the string then a reference to this is returned, if not the string is added to the string table and its reference is returned.</p>
+        </div>
+    </div>
+    <div class="box author">
+        <a href="http://about.me/jamesdbloom"><p>James D Bloom</p></a>
+    </div>
+    <div id="disqus_thread" style="width: 80%; margin-left: auto; margin-right: auto;"></div>
+</div>
+<div id="navigation" class="medium_rounded_corners">
+    <div class="share_large">
+        <div onclick="window.open('https://www.scoop.it/bookmarklet?url=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="scoop_share"></div>
+        <div onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="facebook_share"></div>
+        <div onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&amp;text=Check%20out%20' + encodeURIComponent(document.title), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=217');" class="twitter_share"></div>
+        <div onclick="window.open('http://www.linkedin.com/shareArticle?url=' + encodeURIComponent(url) + '&amp;title=' + encodeURIComponent(document.title) + '&amp;summary=' + encodeURIComponent(document.getElementById('description').content), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="linkedin_share"></div>
+        <div onclick="window.open('https://plus.google.com/share?url=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="googleplus_share"></div>
+    </div>
+    <div class="section list">
+        <div class="box header medium_rounded_corners">
+            <p>Related Articles</p>
+        </div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/JavaCodeToByteCode_PartOne.html"><p>Java Code To Byte Code - Part One</p></a></div>
+        <div class="box active"><a href="http://blog.jamesdbloom.com/JVMInternals.html"><p>JVM Internals</p></a></div>
+        <div class="box"><a href="http://www.mock-server.com/"><p>Easy API To Mock HTTP Endpoints</p></a></div>
+        <div class="box"><a href="http://www.vertx-test.com/"><p>Simplify Testing Vert.X Verticles &amp; Modules</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/TestingWebPagesInProcess.html"><p>Testing Web Pages In Process</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/JSAndCSSMinificationWithWRO4J.html"><p>JS and CSS Minification With WRO4J</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/UsingPropertySourceAndEnvironment.html"><p>Using PropertySource &amp; Environment</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/ReducingAndMinifyingRequests.html"><p>Reducing &amp; Minifying Requests</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/HighPerformanceMobileWebsites.html"><p>High Performance Mobile Websites</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/MobileStrategy.html"><p>Mobile Strategy</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/AvoidJavaScriptForMobileWeb.html"><p>Reduce JavaScript for Mobile Web</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/WhyDoesWebPerformanceMatter.html"><p>Why Does Web Performance Matter?</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/MobileWebBestPractices.html"><p>Mobile Web Best Practices</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/HowToFloatCorrectly.html"><p>How To Float Correctly</p></a></div>
+    </div>
+    <div class="section description">
+        <div class="box header medium_rounded_corners">
+            <h2>James D Bloom</h2>
+        </div>
+        <div class="box one">
+            <p>James Bloom is an architect and technical lead with 13 years experience developing web based distributed enterprise systems in a wide range of industries.  He builds high performance adaptive web sites that are designed to run reliably across a wide range of devices.  He also focuses on high quality sustainable delivery through fast feedback loops in agile, continuous delivery, and a very high level of automated testing across a wide range of devices.  He builds solutions that maximise return-on-investment by analysing patterns of user behaviour in response to changes in design, performance and errors.</p>
+        </div>
+    </div>
+    <div class="section list">
+        <div class="box header medium_rounded_corners">
+            <p>Other Articles</p>
+        </div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/WhyUseApplicationCache.html"><p>Why use Application Cache?</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/HowToUseApplicationCache.html"><p>How to use Application Cache</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/TipsForUsingApplicationCache.html"><p>Tips when using Application Cache</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/ProblemsWithApplicationCache.html"><p>Problems with Application Cache</p></a></div>
+        <div class="box"><a href="http://blog.jamesdbloom.com/JavaScriptAndApplicationCache.html"><p>JavaScript and Application Cache</p></a></div>
+    </div>
+</div>
+<div id="footer">
+    <div class="share_large">
+        <div onclick="window.open('https://plus.google.com/share?url=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="googleplus_share"></div>
+        <div onclick="window.open('http://www.linkedin.com/shareArticle?url=' + encodeURIComponent(url) + '&amp;title=' + encodeURIComponent(document.title) + '&amp;summary=' + encodeURIComponent(document.getElementById('description').content), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="linkedin_share"></div>
+        <div onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&amp;text=Check%20out%20' + encodeURIComponent(document.title), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=217');" class="twitter_share"></div>
+        <div onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="facebook_share"></div>
+    </div>
+    <div class="share_small">
+        <div onclick="window.open('https://plus.google.com/share?url=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="googleplus_share_small"></div>
+        <div onclick="window.open('http://www.linkedin.com/shareArticle?url=' + encodeURIComponent(url) + '&amp;title=' + encodeURIComponent(document.title) + '&amp;summary=' + encodeURIComponent(document.getElementById('description').content), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="linkedin_share_small"></div>
+        <div onclick="window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&amp;text=Check%20out%20' + encodeURIComponent(document.title), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=217');" class="twitter_share_small"></div>
+        <div onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank', 'location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=626,height=436');" class="facebook_share_small"></div>
+    </div>
+    <p id="author" class="medium_rounded_corners"><a href="http://blog.jamesdbloom.com/">© 2013 James D Bloom</a></p></div>
+    <span itemprop="author" itemscope="" itemtype="http://schema.org/Person"><meta itemprop="name" content="James D Bloom"><meta itemprop="image" content="http://blog.jamesdbloom.com/jamesdbloom.jpg"><meta itemprop="givenName" content="James"><meta itemprop="familyName" content="Bloom"><meta itemprop="gender" content="male"></span><meta itemprop="name" content="JVM Internals"><meta itemprop="description" content="Explains internal architecture of Java Virtual Machine (JVM) in simple terms describing key components and how memory is updated during execution.">
+</div>
+<a style="display: none;" href="https://plus.google.com/110954472544793839756?rel=author">Google</a>
+
+
+
+<img style="border-style: none;" alt="" src="untitled" width="1" height="1"></body>
+</html>

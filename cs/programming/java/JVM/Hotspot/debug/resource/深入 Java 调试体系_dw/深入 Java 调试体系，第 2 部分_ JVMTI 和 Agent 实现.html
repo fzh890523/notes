@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/ -->
+<html lang="zh-CN" class="applicationcache geolocation history postmessage svg websockets localstorage sessionstorage websqldatabase webworkers hashchange pointerevents canvas audio canvastext video webgl cssgradients multiplebgs opacity rgba inlinesvg hsla supports svgclippaths smil no-touchevents fontface generatedcontent textshadow cssanimations backgroundsize borderimage borderradius boxshadow csscolumns csscolumns-width csscolumns-span csscolumns-fill csscolumns-gap csscolumns-rule csscolumns-rulecolor csscolumns-rulestyle csscolumns-rulewidth csscolumns-breakbefore csscolumns-breakafter csscolumns-breakinside flexbox flexboxlegacy cssreflections csstransforms csstransforms3d csstransitions indexeddb indexeddb-deletedatabase hires js mac chrome chrome5 webkit webkit5 ibm-grid-xlarge greater-china-imt"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+<meta name="viewport" content="width=device-width, initial-scale=1">      
+<link rel="icon" href="https://www.ibm.com/favicon.ico">
+<link rel="canonical" href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda2/index.html">
+<meta name="geo.country" content="CN">
+<meta name="dcterms.rights" content="© Copyright IBM Corporation 2009">
+<meta name="dcterms.date" content="2009-03-19">
+<meta name="description" content="JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写。通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI）、Java 调试线协议（JDWP），以及 Java 调试接口（JDI）。本系列将会详细介绍这三个模块的内部细节，并通过实例为读者揭开 JPDA 的面纱。本文是该系列的第 2 篇，将会着重介绍强大的虚拟机接口 - JVMTI，以及如何使用 JVMTI 编写用户自定义的 Java 调试和诊断程序。">	
+<meta name="keywords" content="java,jpda,jdwp,jdi,jvmti,调试, tttjca, tttosca">
+<meta name="robots" content="index,follow">
+<title>深入 Java 调试体系，第 2 部分: JVMTI 和 Agent 实现</title>
+    
+<script type="text/javascript" async="" charset="utf-8" id="ebOneTagUrlId" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/ebOneTag.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_27" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/up_loader.1.1.0.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_53" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_cormetrics2" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/eluminate.js"></script><script type="text/javascript" async="" charset="utf-8" id="dle_api_cba9bd66db3d08e11e18b1871da1295118f8f80c01a0cd2704415a0403089054" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/p_cba9bd66db3d08e11e18b1871da1295118f8f80c01a0cd2704415a0403089054.js"></script><script type="text/javascript" async="" defer="" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/piwik.js"></script><script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.js" type="text/javascript" async=""></script><script> 
+    digitalData = {
+        "page":{
+            "category":{
+                "primaryCategory":"SOFDCJVACN"
+            },
+            "pageInfo":{
+                "effectiveDate":"2009-03-19",
+                "language":"zh-CN",
+                "publishDate":"2009-03-19",
+                "publisher":"IBM Corporation",
+                "version":"v18",
+                "ibm":{ 
+                    "contentDelivery":"IBM developerWorks template",
+                    "contentProducer":"IBM developerWorks",
+                    "country":"CN",
+                    "owner":"developerWorks/China/IBM",
+                    "subject":"TT300",
+                    "type":"CT316",
+                    "topic":"JVM (Java Virtual Machine),Java 技术",
+                    "topicId":"180,9",
+                    "contentArea":"java,opensource",
+                    "contentAreaId":"1,7",
+                    "contentType":"article",
+                    "contentId":"376911",
+                },
+                "keywords":"java,jpda,jdwp,jdi,jvmti,调试, tttjca, tttosca",
+                "description":"JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写。通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI）、Java 调试线协议（JDWP），以及 Java 调试接口（JDI）。本系列将会详细介绍这三个模块的内部细节，并通过实例为读者揭开 JPDA 的面纱。本文是该系列的第 2 篇，将会着重介绍强大的虚拟机接口 - JVMTI，以及如何使用 JVMTI 编写用户自定义的 Java 调试和诊断程序。"
+            }
+        }
+    };
+    window._analytics = {
+        "segment_key":'HU3dbkAG5wE0F1IkRf9S1RexlAqo3jby'
+    };
+</script>
+	
+    <meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@developerworks">
+<meta property="og:title" content="JVMTI 和 Agent 实现">
+<meta property="og:description" content="JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写。通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI）、Java 调试线协议（JDWP），以及 Java 调试接口（JDI）。本系列将会详细介绍这三个模块的内部细节，并通过实例为读者揭开 JPDA 的面纱。本文是该系列的第 2 篇，将会着重介绍强大的虚拟机接口 - JVMTI，以及如何使用 JVMTI 编写用户自定义的 Java 调试和诊断程序。">
+    <meta property="og:image" content="http://www.ibm.com/developerworks/i/dw-social-201508.png">
+<!-- Segment meta tag -->
+<meta name="segment" property="Java Chinese (developerWorks)" producttitle="developerWorks" value="深入 Java 调试体系，第 2 部分: JVMTI 和 Agent 实现">
+<!-- SITE MON : START (DO NOT DELETE) -->
+<!-- developerWorks monitoring token -->
+<!-- SITE MON : END (DO NOT DELETE) -->
+
+<!-- HEADER_SCRIPTS_AND_CSS_INCLUDE -->
+<!-- <script src="//cdn.optimizely.com/js/5399420604.js"></script> -->
+<!-- BEGIN: Use this section to set page specific variables for the Page Tag -->
+<script language="JavaScript">var NTPT_PGEXTRA="ibmSkillLevel=3&ibmCmaId=376911&ibmContentAreas=java,opensource";</script>
+<!--END -->
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/ida_stats.js"></script>
+<link href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/www.css" rel="stylesheet">
+<link href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/syntaxhighlighter.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/www.js"></script><style></style>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/syntaxhighlighter.js"></script>    
+<link href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/tables.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/tables.js"></script>   
+<!--  Masthead/footer  -->
+<link href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-mf-v18.css" rel="stylesheet">
+<!-- <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/alt-signedin-ux.css" rel="stylesheet" /> -->   
+<!--[if lt IE 9]>
+    <link href="//dw1.s81c.com/developerworks/css/dw-mf/v18/dw-mf-ie8fix.css?v=022216" rel="stylesheet" />
+<![endif]-->
+<link href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-article.css" rel="stylesheet">
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-auth-properties.js"></script>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-auth.js"></script>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-mf.js"></script>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-auto-links.js"></script> 
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-include.js"></script>     
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-article.js"></script>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/tactic.js"></script>
+<script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/tacticbindlinks.js"></script>
+
+<!-- 
+<PageMap>
+    <DataObject type="document">
+        <Attribute name="topic">JVM (Java Virtual Machine),Java 技术</Attribute>
+        <Attribute name="topicId">180,9</Attribute>
+        <Attribute name="contentArea">java,opensource</Attribute>
+        <Attribute name="contentAreaId">1,7</Attribute>
+        <Attribute name="abstract">JPDA（Java Platform Debugger Architecture）是 Java 平台调试体系结构的缩写。通过 JPDA 提供的 API，开发人员可以方便灵活的搭建 Java 调试应用程序。 JPDA 主要由三个部分组成：Java 虚拟机工具接口（JVMTI）、Java 调试线协议（JDWP），以及 Java 调试接口（JDI）。本系列将会详细介绍这三个模块的内部细节，并通过实例为读者揭开 JPDA 的面纱。本文是该系列的第 2 篇，将会着重介绍强大的虚拟机接口 - JVMTI，以及如何使用 JVMTI 编写用户自定义的 Java 调试和诊断程序。</Attribute>
+        <Attribute name="pub.date">2009-03-19</Attribute>
+        <Attribute name="contentType">article</Attribute>
+    </DataObject>
+</PageMap>
+-->        
+
+<style id="ibm-masthead-hidelinks">@media screen and (max-width: 557px) { .ibm-masthead-categories,#ibm-megamenu-sections{display:none} }@media screen and (max-width: 557px) { .ibm-mh-marketplace-link{display:none} }</style><style id="ibm-sitenav-menu-hidelinks">@media screen and (max-width: 602px) { .ibm-sitenav-menu-list{display:none} } @media screen and (min-width: 603px) { .ibm-mobilemenu-sitenavmenu {display:none} }</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_53" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.53.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_44" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.44.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_46" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.46.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_45" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.45.js"></script><script type="text/javascript" async="" charset="utf-8" id="tiqapp" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.v.js"></script><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation li.active:after {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments ul.navigation ul.dropdown li.active {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-background {background: #2793e6 !important;</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font {color: #2793e6 !important;}</style><style type="text/css" class="jquery-comments-css">.jquery-comments .highlight-font-bold {color: #2793e6 !important;font-weight: bold;}</style><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_27" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.27.js"></script><script type="text/javascript" async="" charset="utf-8" id="LOTCC_10026" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/cc.js"></script><script type="text/javascript" async="" charset="utf-8" id="utag_ibm.web_52" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/utag.52.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/rules_50200000.js"></script><script language="javascript" type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dispatcher-v3.js"></script><script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/yahoo-min.js" type="text/javascript"></script><script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/cp-v3.js" type="text/javascript"></script><script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/json-min.js" type="text/javascript"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_setTTDid" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/i.js"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(1)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(2)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(3)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(4)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(5)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(6)"></script><script type="text/javascript" async="" charset="utf-8" id="tealium_visitor_service_45main" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/015a6a839457000d606a0ffb81ed04078006807000bd0(7)"></script></head>
+<body id="ibm-com" class="ibm-type ibm-sitenav-menu ibm-sitenav-menu-sticky ibm-masthead-sticky">
+	
+<div id="ibm-top" class="ibm-landing-page dw-sitenav">
+
+<!-- MASTHEAD_BEGIN -->
+<div id="ibm-masthead" role="banner" aria-label="IBM" class="ibm-mhtype-minimal hastransition">
+    <div id="ibm-universal-nav" class="">    
+  
+        <nav role="navigation" aria-label="IBM">
+            <div id="ibm-home"><a href="https://www.ibm.com/cn/zh/?lnk=m">IBM®</a></div>
+            <ul id="ibm-menu-links" role="toolbar" aria-label="Site map" class="ibm-hide">
+                <li><a href="https://www.ibm.com/sitemap/cn/zh/">站点地图</a></li>
+            </ul><div class="ibm-masthead-rightside"><p class="ibm-mh-marketplace-link ibm-button-link ibm-fleft ibm-padding-bottom-0"><a class="ibm-btn-small ibm-btn-sec ibm-btn-blue-50" href="http://www.ibm.com/marketplace/?lnk=mp">市场</a></p><div id="ibm-search-module" role="search" aria-labelledby="ibm-masthead" class="ibm-has-scope">
+            <div class="ibm-masthead-search-close"><p class="ibm-ind-link ibm-icononly ibm-padding-bottom-0"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#" class="ibm-close-link ibm-nospacing">关闭</a></p></div><form id="ibm-search-form" action="https://www.ibm.com/Search/" method="get">
+                <p>
+                    <label for="q">IBM</label>
+                    <input type="text" maxlength="100" value="" placeholder="搜索" name="q" id="q" aria-label="搜索 developerWorks" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-owns="ibm-search-typeahead-container"><input name="lnk" type="hidden" value="mhsrch">
+                    <input type="hidden" value="18" name="v">
+                    <input type="hidden" value="utf" name="en">
+                    <input type="hidden" value="zh" name="lang">
+                    <input type="hidden" value="cn" name="cc">
+                    <input type="hidden" name="sn" value="dw">
+                    <input type="hidden" name="dws" value="cndw">
+                    <input type="hidden" name="hpp" value="20">
+                    <span class="ibm-search-scope ibm-fadeout"><input class="ibm-styled-checkbox" data-init="false" type="checkbox" name="sn" value="" id="ibm-mh-scopeoption"> <label for="ibm-mh-scopeoption">In Marketplace</label></span><button role="button" type="submit" id="ibm-search" class="ibm-search-link" value="提交"><span class="ibm-access">提交</span></button>
+                </p>
+            </form><form class="ibm-hide" id="ibm-default-scope-form" action="https://www.ibm.com/marketplace/search/cn/zh-cn/" method="get"><input name="terms" type="text"><input name="lnk" type="hidden" value="mhmpsrch"></form>
+        </div><div id="ibm-search-typeahead-container" class="ibm-search-typeahead-container ibm-fadeout"></div><ul aria-label="Tools" role="menubar" class="ibm-masthead-iconsonly"><li role="presentation" class="ibm-masthead-item-signin"><button role="menubutton" class="ibm-profile-link">我的 IBM</button><ul id="ibm-signin-minimenu-container" role="menu" aria-label="Profile" class="ibm-dropdown-menu">		<li class="ibm-dropdown-menu-primary" role="presentation" data-linktype="notifications"> 			<a class="" href="https://myibm.ibm.com/dashboard/?lnk=mmi" tabindex="0">我的 IBM</a> 		</li>		<li class="ibm-dropdown-menu-primary menu-heading" role="presentation">				<span tabindex="0">developerWorks</span>			</li>		<li class="ibm-dropdown-menu-primary ibm-signin-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssologin.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;lang=zh&amp;a=dwmav" role="menuitem">登录</a>		</li>		<li class="ibm-dropdown-menu-primary dw-register-alt" role="presentation">			<a href="https://www.ibm.com/developerworks/dwwi/jsp/ssoregister.jsp?d=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;lang=zh&amp;a=dwmav" role="menuitem">注册</a>		</li></ul></li><li role="presentation" class="ibm-masthead-item-menu"><button role="menubutton" class="ibm-menu-link">站点导航</button></li></ul></div> 
+        </nav>
+  
+        
+       
+    </div>
+</div><div class="ibm-mobilemenu ibm-hide" aria-labelledby="ibm-burgermenu-a11y" role="dialog" tabindex="0"><p class="ibm-hide" id="ibm-burgermenu-a11y">站点导航</p><div class="ibm-mobilemenu-close"><p class="ibm-icononly ibm-fright ibm-ind-link ibm-nospacing"><a class="ibm-close-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/?lnk=hm#">关闭</a></p></div><div class="ibm-mobilemenu-section ibm-mobilemenu-sitenavmenu"><ul role="menubar"><li class="ibm-mobile-section-heading ibm-mobile-sitename">
+        <a href="https://www.ibm.com/developerworks/cn/?lnk=hm">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-mf-wordmark.svg">
+        </a>
+    </li>
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/?lnk=hm" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/?lnk=hm" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/?lnk=hm" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul></div><div class="ibm-mobilemenu-section"><ul class="ibm-mobilemenu-mhlinks" aria-label="发现 IBM"><li><a href="http://www.ibm.com/marketplace/?lnk=hmmp">市场</a></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">产品</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/products/cn/zh/?lnk=hmhmpr_cnzh"><span>所有产品</span></a></li><li><a href="https://www.ibm.com/analytics/cn/zh/?lnk=hmmpr_bua_cnzh&amp;lnk2=learn"><span>大数据与分析</span></a></li><li><a href="https://www.ibm.com/cloud-computing/cn/zh?lnk=hmmpr_bucl_cnzh&amp;lnk2=learn"><span>云计算</span></a></li><li><a href="https://www.ibm.com/ibm/cn/cognitive/outthink/?lnk=hmmpr_buce_cnzh&amp;lnk2=learn"><span>认知</span></a></li><li><a href="https://www.ibm.com/commerce/cn-zh/?lnk=hmmpr_bucom_cnzh&amp;lnk2=learn"><span>商务</span></a></li><li><a href="https://www.ibm.com/internet-of-things/cn-zh/?lnk=hmmpr_iot_cnzh&amp;lnk2=learn"><span>物联网</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/it-infrastructure/cn-zh/?lnk=hmmpr_buit_cnzh&amp;lnk2=learn"><span>IT 基础架构</span></a></li><li><a href="https://www.ibm.com/mobilefirst/cn/zh/?lnk=hmmpr_bumf_cnzh&amp;lnk2=learn"><span>移动</span></a></li><li><a href="https://www.ibm.com/security/cn-zh/?lnk=hmmpr_buse_cnzh&amp;lnk2=learn"><span>安全</span></a></li><li><a href="https://www.ibm.com/social-business/cn-zh/?lnk=hm"><span>社交协作与人才管理</span></a></li><li><a href="https://www.ibm.com/services/cn/zh/watson/explorer.html?lnk=hm"><span>Watson</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">服务</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/services/cn/gbs/consulting/?lnk=hmmse_bc_cnzh&amp;lnk2=learn"><span>业务咨询</span></a></li><li><a href="https://www.ibm.com/technologyservices/cn/zh/?lnk=hmmse_ts_cnzh&amp;lnk2=learn"><span>技术服务</span></a></li><li><a href="https://www.ibm.com/financing/cn/zh/index.html?lnk=hmmse_fin_cnzh&amp;lnk2=learn"><span>融资</span></a></li><li><a href="https://www.ibm.com/solutions/cn/zh/index.html?lnk=hm"><span>行业解决方案</span></a></li><li><a href="https://www.ibm.com/training/?lnk=hm"><span>培训与技能 (US)</span></a></li></ul></div></div></li><li><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2><a href="javascript:void();">开发人员</a></h2><div class="ibm-container-body" style="display: none;"><ul><li><a href="https://www.ibm.com/developerworks/cn/?lnk=hmmdev_dw_cnzh&amp;lnk2=learn"><span>developerWorks</span></a></li><li><a href="https://www.ibm.com/partnerworld?lnk=hmmdev_pw_cnzh&amp;lnk2=learn"><span>PartnerWorld</span></a></li></ul></div></div></li><li><a href="https://www.ibm.com/support/cn/zh/?lnk=hmmsu_cnzh">支持</a></li><li><a href="https://www.ibm.com/employment/cn/?lnk=hmmca_cnzh">工作机会</a></li></ul></div></div><div class="ibm-mhplaceholder"></div><!-- MASTHEAD_END -->
+	    
+<!-- LAYOUT -->
+<div id="ibm-content-wrapper">
+    <!-- LEADSPACE_BEGIN -->
+    <header role="banner" aria-labelledby="ibm-pagetitle-h1">
+        
+        <!-- MASTHEAD_SITENAV_BEGIN -->
+        <div class="ibm-sitenav-menu-container" data-widgetprocessed="true">
+    <div class="ibm-sitenav-menu-name">
+        <a href="https://www.ibm.com/developerworks/cn/">
+            <img width="186" height="24" alt="developerWorks®" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-mf-wordmark.svg">
+        </a>
+    </div>
+    <div class="ibm-sitenav-menu-list">
+        <ul role="menubar">
+                            <li class="dw-navpage-learn" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/topics/" role="menuitem" tabindex="0">学习</a>
+                </li>
+                    
+                <li class="dw-navpage-develop" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/downloads/" role="menuitem" tabindex="-1">开发</a>
+                </li>                    
+
+                <li class="dw-navpage-connect" role="presentation">
+                    <a href="https://www.ibm.com/developerworks/cn/community/" role="menuitem" tabindex="-1">社区</a>
+                </li>  
+        </ul>
+    </div>
+</div>        <!-- MASTHEAD_SITENAV_END -->
+        
+        <!-- NAVIGATION_TRAIL_BEGIN -->
+        <div id="ibm-leadspace-head" class="ibm-alternate">
+            <div id="ibm-leadspace-body">
+                <nav aria-label="Breadcrumb" role="navigation">                     
+                            <ul id="dw-navigation-trail" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/topics/"><span itemprop="name">学习</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://www.ibm.com/developerworks/cn/java/"><span itemprop="name">Java technology</span></a><meta itemprop="position" content="2"></li></ul>
+                </nav>
+            </div>
+        </div>
+        <!-- NAVIGATION_TRAIL_END -->
+        
+    </header>
+    <!-- LEADSPACE_END -->
+    
+    <!-- MAIN_CONTENT_BEGIN -->
+    <main role="main" aria-label=""> 
+        <div id="ibm-pcon">
+            <!-- BEGIN_IBM-CONTENT -->
+            <div id="ibm-content">
+                <!-- BEGIN_IBM-CONTENT-BODY -->
+                <div id="ibm-content-body">
+                    <!-- BEGIN_IBM-CONTENT-MAIN -->
+                    <div id="ibm-content-main" class="dw-article">                        
+                        <!-- BEGIN_INTERIOR-COLUMNS -->
+                                <div class="ibm-columns dw-article-toc">
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_BEGIN -->  
+                                    <div id="dw-article-toc-container" class="ibm-col-6-2">
+                                        <div id="dw-article-toc-body" data-widget="scrollable" data-height="502" style="width: 380px; height: 502px;" class=""><div class="nano-content" tabindex="-1">
+                                            <h2>内容</h2><div class="ibm-alternate-rule"><hr></div><ul role="directory" aria-label="内容" class="ibm-plain-list"><li class=""><a onclick="tocLink(&#39;#ibm-pagetitle-h1&#39;)" role="link" tabindex="0">概览</a></li><li class=""><a onclick="tocLink(&#39;#N1006F&#39;)" role="link" tabindex="0">Java 程序的诊断和调试</a></li><li><a onclick="tocLink(&#39;#N10080&#39;)" role="link" tabindex="0">JVMTI的简介</a></li><li class=""><a onclick="tocLink(&#39;#N10091&#39;)" role="link" tabindex="0">Agent的工作过程</a></li><li class="dw-highlight"><a onclick="tocLink(&#39;#N100D5&#39;)" role="link" tabindex="0">JVMTI的环境和错误处理</a></li><li class=""><a onclick="tocLink(&#39;#N100FF&#39;)" role="link" tabindex="0">JVMTI基本功能</a></li><li class=""><a onclick="tocLink(&#39;#N10166&#39;)" role="link" tabindex="0">一个简单Agent实现</a></li><li class=""><a onclick="tocLink(&#39;#N101C3&#39;)" role="link" tabindex="0">结语</a></li><li><a onclick="tocLink(&#39;#artdownload&#39;)" role="link" tabindex="0">下载资源</a></li><li class=""><a onclick="tocLink(&#39;#artrelatedtopics&#39;)" role="link" tabindex="0">相关主题</a></li><li class=""><a onclick="tocLink(&#39;#icomments&#39;)" role="link" tabindex="0">评论</a></li></ul>
+                                        </div><div class="nano-pane" style="display: none; opacity: 1; visibility: visible;"><div class="nano-slider" style="height: 502px; transform: translate(0px, 0px);"></div></div></div>
+                                    </div>
+                                    <!-- LEFT_6_2_CONTENT_COLUMN_END -->
+                                    
+                                    <!-- CENTER_6_4_CONTENT_COLUMN_BEGIN -->
+                                    <div class="ibm-col-6-4">
+                                            <p class="dw-article-series-head">深入 Java 调试体系，第 2 部分</p>
+                                        <h1 id="ibm-pagetitle-h1" class="ibm-h1">JVMTI 和 Agent 实现</h1>
+                                        <!-- Article Top Bar -->
+                                                <div class="ibm-columns dw-article-topbar">
+                                                    <!-- Author and article info. -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 dw-article-metadata">
+                                                        <div class="dw-article-authordate">吕 晶 和 邱 小侠<br><span class="dw-article-pubdate">2009 年 3 月 19 日发布</span></div>
+                                                    </div>
+                                                    <!-- Social -->
+                                                    <div class="ibm-col-6-2 ibm-col-medium-6-4 ibm-col-small-6-2 dw-article-social">
+                                                        <!-- Sharing links -->
+                                                        <div id="dw-article-share-inline">
+                                                            <div class="dw-article-sharelink-inline">
+                                                                <div class="ibm-sharethispage"><h4 class="ibm-bold">分享此页面</h4><p class="ibm-icononly"><a class="ibm-weibo-encircled-link" href="http://service.weibo.com/share/share.php?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2Findex.html%&amp;title=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%202%20%E9%83%A8%E5%88%86%3A%20JVMTI%20%E5%92%8C%20Agent%20%E5%AE%9E%E7%8E%B0&amp;language=zh_cn" data-id="weibo" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Weibo</a><a class="ibm-googleplus-encircled-link" href="https://plus.google.com/share?url=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2Findex.html&amp;t=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%202%20%E9%83%A8%E5%88%86%3A%20JVMTI%20%E5%92%8C%20Agent%20%E5%AE%9E%E7%8E%B0" data-id="googleplus" onclick="return IBMCore.common.module.sharethispage.gotoUrl(window.open(), this);">Google+</a><a class="ibm-email-encircled-link" href="mailto:?subject=%E6%B7%B1%E5%85%A5%20Java%20%E8%B0%83%E8%AF%95%E4%BD%93%E7%B3%BB%EF%BC%8C%E7%AC%AC%202%20%E9%83%A8%E5%88%86%3A%20JVMTI%20%E5%92%8C%20Agent%20%E5%AE%9E%E7%8E%B0&amp;body=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2Findex.html" data-id="email" onclick="">用电子邮件发送本页面</a></p></div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Number of comments and link to comments -->
+                                                        <div id="dw-article-cmts">
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#icomments" role="link" tabindex="0" aria-label="Comments">
+                                                                    <img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/dw-article-cmt-icon.png" width="29" height="29" alt="Comments">
+                                                                </a>
+                                                            </div>
+                                                            <div class="dw-article-cmtslink">
+                                                                <a onclick="tocLink(&#39;#icomments&#39;)" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#icomments" role="link" tabindex="0">
+                                                                    <div id="nCmts">5</div>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+<div id="dw-series-container" style="display: block;"><h3 class="ibm-h3" id="dw-series-heading">系列内容：</h3><div data-widget="showhide" data-type="panel" class="ibm-show-hide ibm-widget-processed"><h2 id="dw-series-show-hide"><a href="javascript:void();">此内容是该系列 <span id="dw-series-total">4</span> 部分中的第 <span id="dw-series-part">2</span> 部分： <span id="dw-series-title">深入 Java 调试体系</span></a></h2><div class="ibm-container-body" id="dw-series-links" style="display: none;"><ul id="dw-series-list"><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda1/index.html?ca=drs-" class="dw-series-article-link"> 第 1 部分，JPDA 体系概览</a></li><li class="dw-series-item">第 2 部分: JVMTI 和 Agent 实现</li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda3/index.html?ca=drs-" class="dw-series-article-link">第 3 部分: JDWP 协议及实现</a></li><li class="dw-series-item"><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jpda4/index.html?ca=drs-" class="dw-series-article-link">第 4 部分: Java 调试接口（JDI）</a></li></ul></div></div></div>
+                                        <!-- Article Body -->
+                                        
+                                        <h2 id="N1006F" class="ibm-h2">Java 程序的诊断和调试</h2><p>开发人员对 Java 程序的诊断和调试有许多不同种类、不同层次的需求，这就使得开发人员需要使用不同的工具来解决问题。比如，在 Java 程序运行的过程中，程序员希望掌握它总体的运行状况，这个时候程序员可以直接使用 JDK 提供的 jconsole 程序。如果希望提高程序的执行效率，开发人员可以使用各种 Java Profiler。这种类型的工具非常多，各有优点，能够帮助开发人员找到程序的瓶颈，从而提高程序的运行速度。开发人员还会遇到一些与内存相关的问题，比如内存占用过多，大量内存不能得到释放，甚至导致内存溢出错误（OutOfMemoryError）等等，这时可以把当前的内存输出到 Dump 文件，再使用堆分析器或者 Dump 文件分析器等工具进行研究，查看当前运行态堆（Heap）中存在的实例整体状况来诊断问题。所有这些工具都有一个共同的特点，就是最终他们都需要通过和虚拟机进行交互，来发现 Java 程序运行的问题。</p><p>已有的这些工具虽然强大易用，但是在一些高级的应用环境中，开发者常常会有一些特殊的需求，这个时候就需要定制工具来达成目标。 JDK 本身定义了目标明确并功能完善的 API 来与虚拟机直接交互，而且这些 API 能很方便的进行扩展，从而满足开发者各式的需求。在本文中，将比较详细地介绍 JVMTI，以及如何使用 JVMTI 编写一个定制的 Agent 。</p><div class="dw-article-sidebar ibm-background-cool-white-20"><h5>Agent</h5><p>Agent 即 JVMTI 的客户端，它和执行 Java 程序的虚拟机运行在同一个进程上，因此通常他们的实现都很紧凑，他们通常由另一个独立的进程控制，充当这个独立进程和当前虚拟机之间的中介，通过调用 JVMTI 提供的接口和虚拟机交互，负责获取并返回当前虚拟机的状态或者转发控制命令。</p></div><h2 id="N10080" class="ibm-h2">JVMTI 的简介</h2><p>JVMTI（JVM Tool Interface）是 Java 虚拟机所提供的 native 编程接口，是 JVMPI（Java Virtual Machine Profiler Interface）和 JVMDI（Java Virtual Machine Debug Interface）的更新版本。从这个 API 的发展历史轨迹中我们就可以知道，JVMTI 提供了可用于 debug 和 profiler 的接口；同时，在 Java 5/6 中，虚拟机接口也增加了监听（Monitoring），线程分析（Thread analysis）以及覆盖率分析（Coverage Analysis）等功能。正是由于 JVMTI 的强大功能，它是实现 Java 调试器，以及其它 Java 运行态测试与分析工具的基础。</p><p>JVMTI 并不一定在所有的 Java 虚拟机上都有实现，不同的虚拟机的实现也不尽相同。不过在一些主流的虚拟机中，比如 Sun 和 IBM，以及一些开源的如 Apache Harmony DRLVM 中，都提供了标准 JVMTI 实现。</p><p>JVMTI 是一套本地代码接口，因此使用 JVMTI 需要我们与 C/C++ 以及 JNI 打交道。事实上，开发时一般采用建立一个 Agent 的方式来使用 JVMTI，它使用 JVMTI 函数，设置一些回调函数，并从 Java 虚拟机中得到当前的运行态信息，并作出自己的判断，最后还可能操作虚拟机的运行态。把 Agent 编译成一个动态链接库之后，我们就可以在 Java 程序启动的时候来加载它（启动加载模式），也可以在 Java 5 之后使用运行时加载（活动加载模式）。</p><ul class="ibm-bullet-list"><li>-agentlib:agent-lib-name=options</li><li>-agentpath:path-to-agent=options</li></ul><h2 id="N10091" class="ibm-h2">Agent 的工作过程</h2><h3 id="N10097" class="ibm-h3">启动</h3><p>Agent 是在 Java 虚拟机启动之时加载的，这个加载处于虚拟机初始化的早期，在这个时间点上：</p><ul class="ibm-bullet-list"><li>所有的 Java 类都未被初始化；</li><li>所有的对象实例都未被创建；</li><li>因而，没有任何 Java 代码被执行；</li></ul><p>但在这个时候，我们已经可以：</p><ul class="ibm-bullet-list"><li>操作 JVMTI 的 Capability 参数；</li><li>使用系统参数；</li></ul><p>动态库被加载之后，虚拟机会先寻找一个 Agent 入口函数：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_471387" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved)</code></div></div></td></tr></tbody></table></div></div></div></span><p>在这个函数中，虚拟机传入了一个 JavaVM 指针，以及命令行的参数。通过 JavaVM，我们可以获得 JVMTI 的指针，并获得 JVMTI 函数的使用能力，所有的 JVMTI 函数都通过这个 jvmtiEnv 获取，不同的虚拟机实现提供的函数细节可能不一样，但是使用的方式是统一的。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_859365" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiEnv *jvmti; </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">(*jvm)-&gt;GetEnv(jvm, &amp;jvmti, JVMTI_VERSION_1_0);</code></div></div></td></tr></tbody></table></div></div></div></span><p>这里传入的版本信息参数很重要，不同的 JVMTI 环境所提供的功能以及处理方式都可能有所不同，不过它在同一个虚拟机中会保持不变（有心的读者可以去比较一下 JNI 环境）。命令行参数事实上就是上面启动命令行中的 options 部分，在 Agent 实现中需要进行解析并完成后续处理工作。参数传入的字符串仅仅在 Agent_OnLoad 函数里有效，如果需要长期使用，开发者需要做内存的复制工作，同时在最后还要释放这块存储。另外，有些 JDK 的实现会使用 JAVA_TOOL_OPTIONS 所提供的参数，这个常见于一些嵌入式的 Java 虚拟机（不使用命令行）。需要强调的是，这个时候由于虚拟机并未完成初始化工作，并不是所有的 JVMTI 函数都可以被使用。</p><p>Agent 还可以在运行时加载，如果您了解 Java Instrument 模块（可以参考<a href="http://www.ibm.com/developerworks/cn/java/j-lo-jse61/">这篇文章</a>），您一定对它的运行态加载有印象，这个新功能事实上也是 Java Agent 的一个实现。具体说来，虚拟机会在运行时监听并接受 Agent 的加载，在这个时候，它会使用 Agent 的：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_885635" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char *options, void *reserved);</code></div></div></td></tr></tbody></table></div></div></div></span><p>同样的在这个初始化阶段，不是所有的 JVMTI 的 Capability 参数都处于可操作状态，而且 options 这个 char 数组在这个函数运行之后就会被丢弃，如果需要，需要做好保留工作。</p><p>Agent 的主要功能是通过一系列的在虚拟机上设置的回调（callback）函数完成的，一旦某些事件发生，Agent 所设置的回调函数就会被调用，来完成特定的需求。</p><h3 id="N100C9" class="ibm-h3">卸载</h3><p>最后，Agent 完成任务，或者虚拟机关闭的时候，虚拟机都会调用一个类似于类析构函数的方法来完成最后的清理任务，注意这个函数和虚拟机自己的 VM_DEATH 事件是不同的。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_47210" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm)</code></div></div></td></tr></tbody></table></div></div></div></span><h2 id="N100D5" class="ibm-h2">JVMTI 的环境和错误处理</h2><p>我们使用 JVMTI 的过程，主要是设置 JVMTI 环境，监听虚拟机所产生的事件，以及在某些事件上加上我们所希望的回调函数。</p><h3 id="N100DD" class="ibm-h3">JVMTI 环境</h3><p>我们可以通过操作 jvmtiCapabilities 来查询、增加、修改 JVMTI 的环境参数。当然，对于每一个不同的虚拟机来说，基于他们的实现不尽相同，导致了 JVMTI 的环境也不一定一致。标准的 jvmtiCapabilities 定义了一系列虚拟机的功能，比如 can_redefine_any_class 定义了虚拟机是否支持重定义类，can_retransform_classes 定义了是否支持在运行的时候改变类定义等等。如果熟悉 Java Instrumentation，一定不会对此感到陌生，因为 Instrumentation 就是对这些在 Java 层上的包装。对用户来说，这块最主要的是查看当前 JVMTI 环境，了解虚拟机具有的功能。要了解这个，其实很简单，只需通过对 jvmtiCapabilities 的一系列变量的考察就可以。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_696232" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">err = (*jvmti)-&gt;GetCapabilities(jvmti, &amp;capa); // 取得 jvmtiCapabilities 指针。</code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;</code><code class="htmlscript plain">if (err == JVMTI_ERROR_NONE) { </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">if (capa.can_redefine_any_class) { ... } </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">} // 查看是否支持重定义类</code></div></div></td></tr></tbody></table></div></div></div></span><p>另外，虚拟机有自己的一些功能，一开始并未被启动，那么增加或修改 jvmtiCapabilities 也是可能的，但不同的虚拟机对这个功能的处理也不太一样，多数的虚拟机允许增改，但是有一定的限制，比如仅支持在 Agent_OnLoad 时，即虚拟机启动时作出，它某种程度上反映了虚拟机本身的构架。开发人员无需要考虑 Agent 的性能和内存占用，就可以在 Agent 被加载的时候启用所有功能：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_245523" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">err = (*jvmti)-&gt;GetPotentialCapabilities(jvmti, &amp;capa); // 取得所有可用的功能</code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">if (err == JVMTI_ERROR_NONE) { </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">err = (*jvmti)-&gt;AddCapabilities(jvmti, &amp;capa); </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">... </code></div><div class="line number5 index4 alt2"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>最后我们要注意的是，JVMTI 的函数调用都有其时间性，即特定的函数只能在特定的虚拟机状态下才能调用，比如 SuspendThread（挂起线程）这个动作，仅在 Java 虚拟机处于运行状态（live phase）才能调用，否则导致一个内部异常。</p><h3 id="N100F1" class="ibm-h3">JVMTI 错误处理</h3><p>JVMTI 沿用了基本的错误处理方式，即使用返回的错误代码通知当前的错误，几乎所有的 JVMTI 函数调用都具有以下模式：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_449562" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError err = jvmti-&gt;someJVMTImethod (somePara … );</code></div></div></td></tr></tbody></table></div></div></div></span><p>其中 err 就是返回的错误代码，不同函数的错误信息可以在 Java 规范里查到。</p><h2 id="N100FF" class="ibm-h2">JVMTI 基本功能</h2><p>JVMTI 的功能非常丰富，包含了虚拟机中线程、内存 / 堆 / 栈，类 / 方法 / 变量，事件 / 定时器处理等等 20 多类功能，下面我们介绍一下，并举一些简单列子。</p><h3 id="N10107" class="ibm-h3">事件处理和回调函数</h3><p>从上文我们知道，使用 JVMTI 一个基本的方式就是设置回调函数，在某些事件发生的时候触发并作出相应的动作。因此这一部分的功能非常基本，当前版本的 JVMTI 提供了许多事件（Event）的回调，包括虚拟机初始化、开始运行、结束，类的加载，方法出入，线程始末等等。如果想对这些事件进行处理，我们需要首先为该事件写一个函数，然后在 jvmtiEventCallbacks 这个结构中指定相应的函数指针。比如，我们对线程启动感兴趣，并写了一个 HandleThreadStart 函数，那么我们需要在 Agent_OnLoad 函数里加入：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_59309" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiEventCallbacks eventCallBacks; </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">memset(&amp;ecbs, 0, sizeof(ecbs)); // 初始化</code></div><div class="line number3 index2 alt2"><code class="htmlscript plain">eventCallBacks.ThreadStart = &amp;HandleThreadStart; // 设置函数指针</code></div><div class="line number4 index3 alt1"><code class="htmlscript plain">...</code></div></div></td></tr></tbody></table></div></div></div></span><p>在设置了这些回调之后，就可以调用下述方法，来最终完成设置。在接下来的虚拟机运行过程中，一旦有线程开始运行发生，虚拟机就会回调 HandleThreadStart 方法。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_240117" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmti-&gt;SetEventCallbacks(eventCallBacks, sizeof(eventCallBacks));</code></div></div></td></tr></tbody></table></div></div></div></span><p>设置回调函数的时候，开发者需要注意以下几点：</p><ul class="ibm-bullet-list"><li>如同 Java 异常机制一样，如果在回调函数中自己抛出一个异常（Exception），或者在调用 JNI 函数的时候制造了一些麻烦，让 JNI 丢出了一个异常，那么任何在回调之前发生的异常就会丢失，这就要求开发人员要在处理错误的时候需要当心。</li><li>虚拟机不保证回调函数会被同步，换句话说，程序有可能同时运行同一个回调函数（比如，好几个线程同时开始运行了，这个 HandleThreadStart 就会被同时调用几次），那么开发人员在开发回调函数时需要处理同步的问题。</li></ul><h3 id="N10120" class="ibm-h3">内存控制和对象获取</h3><p>内存控制是一切运行态的基本功能。 JVMTI 除了提供最简单的内存申请和撤销之外（这块内存不受 Java 堆管理，开发人员需要自行进行清理工作，不然会造成内存泄漏），也提供了对 Java 堆的操作。众所周知，Java 堆中存储了 Java 的类、对象和基本类型（Primitive），通过对堆的操作，开发人员可以很容易的查找任意的类、对象，甚至可以强行执行垃圾收集工作。 JVMTI 中对 Java 堆的操作与众不同，它没有提供一个直接获取的方式（由此可见，虚拟机对对象的管理并非是哈希表，而是某种树 / 图方式），而是使用一个迭代器（iterater）的方式遍历：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_840546" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError FollowReferences(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jint heap_filter, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jclass klass, </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jobject initial_object,// 该方式可以指定根节点</code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">const jvmtiHeapCallbacks* callbacks,// 设置回调函数</code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">const void* user_data)</code></div></div></td></tr></tbody></table></div></div></div></span><p>或者</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_239353" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError IterateThroughHeap(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jint heap_filter, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jclass klass, </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">const jvmtiHeapCallbacks* callbacks, </code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">const void* user_data)// 遍历整个 heap</code></div></div></td></tr></tbody></table></div></div></div></span><p>在遍历的过程中，开发者可以设定一定的条件，比如，指定是某一个类的对象，并设置一个回调函数，如果条件被满足，回调函数就会被执行。开发者可以在回调函数中对当前传回的指针进行打标记（tag）操作——这又是一个特殊之处，在第一遍遍历中，只能对满足条件的对象进行 tag ；然后再使用 GetObjectsWithTags 函数，获取需要的对象。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_519836" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError GetObjectsWithTags(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jint tag_count, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">const jlong* tags, // 设定特定的 tag，即我们上面所设置的</code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jint* count_ptr, </code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jobject** object_result_ptr, </code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jlong** tag_result_ptr)</code></div></div></td></tr></tbody></table></div></div></div></span><p>如果你仅仅想对特定 Java 对象操作，应该避免设置其他类型的回调函数，否则会影响效率，举例来说，多增加一个 primitive 的回调函数，可能会使整个操作效率下降一个数量级。</p><h3 id="N1013A" class="ibm-h3">线程和锁</h3><p>线程是 Java 运行态中非常重要的一个部分，在 JVMTI 中也提供了很多 API 进行相应的操作，包括查询当前线程状态，暂停，恢复或者终端线程，还可以对线程锁进行操作。开发者可以获得特定线程所拥有的锁：</p><h5 id="listing1" class="ibm-h5"><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_615495" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError GetOwnedMonitorInfo(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jthread thread, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jint* owned_monitor_count_ptr, </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jobject** owned_monitors_ptr)</code></div></div></td></tr></tbody></table></div></div></div></span><p>也可以获得当前线程正在等待的锁：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_776411" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError GetCurrentContendedMonitor(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jthread thread, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jobject* monitor_ptr)</code></div></div></td></tr></tbody></table></div></div></div></span><p>知道这些信息，事实上我们也可以设计自己的算法来判断是否死锁。更重要的是，JVMTI 提供了一系列的监视器（Monitor）操作，来帮助我们在 native 环境中实现同步。主要的操作是构建监视器（CreateRawMonitor），获取监视器（RawMonitorEnter），释放监视器（RawMonitorExit），等待和唤醒监视器 (RawMonitorWait,RawMonitorNotify) 等操作，通过这些简单锁，程序的同步操作可以得到保证。</p></h5><h3 id="N10150" class="ibm-h3">调试功能</h3><p>调试功能是 JVMTI 的基本功能之一，这主要包括了设置断点、调试（step）等，在 JVMTI 里面，设置断点的 API 本身很简单：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_468511" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">jvmtiError SetBreakpoint(jvmtiEnv* env, </code></div><div class="line number2 index1 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jmethodID method, </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">jlocation location)</code></div></div></td></tr></tbody></table></div></div></div></span><p>jlocation 这个数据结构在这里代表的是对应方法方法中一个可执行代码的行数。在断点发生的时候，虚拟机会触发一个事件，开发者可以使用在上文中介绍过的方式对事件进行处理。</p><h3 id="N1015E" class="ibm-h3">JVMTI 数据结构</h3><p>JVMTI 中使用的数据结构，首先也是一些标准的 JNI 数据结构，比如 jint，jlong ；其次，JVMTI 也定义了一些基本类型，比如 jthread，表示一个 thread，jvmtiEvent，表示 jvmti 所定义的事件；更复杂的有 JVMTI 的一些需要用结构体表示的数据结构，比如堆的信息（jvmtiStackInfo）。这些数据结构在文档中都有清楚的定义，本文就不再详细解释。</p><h2 id="N10166" class="ibm-h2">一个简单的 Agent 实现</h2><p>下面将通过一个具体的例子，来阐述如何开发一个简单的 Agent 。这个 Agent 是通过 C++ 编写的（读者可以在最后下载到完整的代码），他通过监听 JVMTI_EVENT_METHOD_ENTRY 事件，注册对应的回调函数来响应这个事件，来输出所有被调用函数名。有兴趣的读者还可以参照这个基本流程，通过 JVMTI 提供的丰富的函数来进行扩展和定制。</p><h3 id="N1016E" class="ibm-h3">Agent 的设计</h3><p>具体实现都在 MethodTraceAgent 这个类里提供。按照顺序，他会处理环境初始化、参数解析、注册功能、注册事件响应，每个功能都被抽象在一个具体的函数里。</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_574835" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">class MethodTraceAgent </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">{ </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">public: </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">void Init(JavaVM *vm) const throw(AgentException); </code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">void ParseOptions(const char* str) const throw(AgentException); </code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">void AddCapability() const throw(AgentException); </code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">void RegisterEvent() const throw(AgentException); </code></div><div class="line number8 index7 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">... </code></div><div class="line number9 index8 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code>&nbsp;</div><div class="line number10 index9 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">private: </code></div><div class="line number11 index10 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">... </code></div><div class="line number12 index11 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static jvmtiEnv * m_jvmti; </code></div><div class="line number13 index12 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">static char* m_filter; </code></div><div class="line number14 index13 alt1"><code class="htmlscript spaces">&nbsp;</code><code class="htmlscript plain">};</code></div></div></td></tr></tbody></table></div></div></div></span><p>Agent_OnLoad 函数会在 Agent 被加载的时候创建这个类，并依次调用上述各个方法，从而实现这个 Agent 的功能。</p><h5 id="N1017E" class="ibm-h5"><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_938710" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved) </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">{ </code></div><div class="line number3 index2 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">... </code></div><div class="line number4 index3 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">MethodTraceAgent* agent = new MethodTraceAgent(); </code></div><div class="line number5 index4 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">agent-&gt;Init(vm); </code></div><div class="line number6 index5 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">agent-&gt;ParseOptions(options); </code></div><div class="line number7 index6 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">agent-&gt;AddCapability(); </code></div><div class="line number8 index7 alt1"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">agent-&gt;RegisterEvent(); </code></div><div class="line number9 index8 alt2"><code class="htmlscript spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="htmlscript plain">... </code></div><div class="line number10 index9 alt1"><code class="htmlscript plain">}</code></div></div></td></tr></tbody></table></div></div></div></span><p>运行过程如图 1 所示：</p></h5><h5 id="fig1" class="ibm-h5">图 1. Agent 时序图</h5><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/process.jpg" class="ibm-downsize" alt="Agent时序图" height="592" width="528"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N10189&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#N10189">点击查看大图</a></p><div class="overlayrp"></div><h3 id="N1018E" class="ibm-h3">Agent 编译和运行</h3><p>Agent 的编译非常简单，他和编译普通的动态链接库没有本质区别，只是需要将 JDK 提供的一些头文件包含进来。</p><ul class="ibm-bullet-list"><li>Windows:
+				
+<span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_31767" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">cl /EHsc -I${JAVA_HOME}\include\ -I${JAVA_HOME}\include\win32 </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">-LD MethodTraceAgent.cpp Main.cpp -FeAgent.dll</code></div></div></td></tr></tbody></table></div></div></div></span></li><li>Linux:
+<span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_118089" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">g++ -I${JAVA_HOME}/include/ -I${JAVA_HOME}/include/linux </code></div><div class="line number2 index1 alt1"><code class="htmlscript plain">MethodTraceAgent.cpp Main.cpp -fPIC -shared -o libagent.so</code></div></div></td></tr></tbody></table></div></div></div></span></li></ul><p>在附带的代码文件里提供了一个可运行的 Java 类，默认情况下运行的结果如下图所示：</p><h5 id="N101A6" class="ibm-h5">图 2. 默认运行输出</h5><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/output.jpg" class="ibm-downsize" alt="默认运行输出" height="60" width="234"><p>现在，我们运行程序前告诉 Java 先加载编译出来的 Agent：</p><span class="dw-code-nohighlight"><div class="ibm-syntax-container"><div><div id="highlighter_964685" class="syntaxhighlighter  htmlscript"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="htmlscript plain">java -agentlib:Agent=first MethodTraceTest</code></div></div></td></tr></tbody></table></div></div></div></span><p>这次的输出如图 3. 所示：</p><h5 id="N101B8" class="ibm-h5">图 3. 添加 Agent 后输出</h5><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/output-agent.jpg" class="ibm-downsize" alt="添加Agent后输出" height="110" width="416"><p class="ibm-ind-link ibm-hide"><a class="ibm-popup-link" onclick="IBMCore.common.widget.overlay.show(&#39;N101BC&#39;);return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#N101BC">点击查看大图</a></p><div class="overlayrp"></div><p>可以当程序运行到到 MethodTraceTest 的 first 方法是，Agent 会输出这个事件。“ first ”是 Agent 运行的参数，如果不指定话，所有的进入方法的触发的事件都会被输出，如果读者把这个参数去掉再运行的话，会发现在运行 main 函数前，已经有非常基本的类库函数被调用了。</p><h2 id="N101C3" class="ibm-h2">结语</h2><p>Java 虚拟机通过 JVMTI 提供了一整套函数来帮助用户检测管理虚拟机运行态，它主要通过 Agent 的方式实现与用户的互操作。本文简单介绍了 Agent 的实现方式和 JVMTI 的使用。通过 Agent 这种方式不仅仅用户可以使用，事实上，JDK 里面的很多工具，比如 Instrumentation 和 JDI, 都采用了这种方式。这种方式无需把这些工具绑定在虚拟机上，减少了虚拟机的负荷和内存占用。在下一篇中，我们将介绍 JDWP 如何采用 Agent 的方式，定义自己的一套通信原语，并通过多种通信方式，对外提供基本调试功能。</p><!--CMA ID: 376911--><!--Site ID: 10--><!--XSLT stylesheet used to transform this file: dw-document-html-8.0.xsl--> 
+                                        <!-- Article Resources -->
+                                        <div class="ibm-alternate-rule"><hr></div><h4 id="artdownload" class="ibm-h4">下载资源</h4><ul class="ibm-link-list"><li><a class="ibm-download-link" href="深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/source">本文用到的 C++ 和 Java 源码</a> (source.zip | 10 KB)</li></ul><div class="ibm-alternate-rule"><hr></div><h4 id="artrelatedtopics" class="ibm-h4">相关主题</h4><ul><li>
+				在 <a href="http://java.sun.com/javase/technologies/core/toolsapis/jpda/">JPDA 官方的主页</a> 上，您可以查看关于 JPDA 标准实现的细节。
+			</li><li>“<a href="http://www.ibm.com/developerworks/cn/webservices/ws-xml-rpc/">使用 XML-RPC 为 C++ 应用程序启用 Web 服务</a>”（developerWorks 中国，2006 年 9 月）介绍了将 C++ 方法暴露为 Web 服务的详细指南。</li><li><a href="http://www.ibm.com/developerworks/cn/java/j-lo-jse61/">Instrumentation 新功能</a> 这篇文章介绍了 Instrumentation 中如何实现一个 Agent 。
+			</li><li><a href="http://www.eclipse.org/">Eclipse IDE</a> 是一个非常受欢迎的开源开发工具，它集成了对 JPDA 的支持。
+			</li><li><a href="http://harmony.apache.org/subcomponents/drlvm/index.html">Apache Harmony DRLVM</a> 提供了 JVMTI 的开源实现。
+			</li><li>
+				通过 <a href="http://harmony.apache.org/subcomponents/drlvm/index.html">JDWP</a> 提供了 JVMTI 的开源实现。
+			</li><li><a href="http://www.ibm.com/developerworks/cn/java/">developerWorks Java 技术专区</a>：查找数百篇有关 Java 编程各方面的文章。
+			</li><li>下载 <a href="http://www.ibm.com/developerworks/cn/downloads/">IBM 软件试用版</a>，体验强大的 DB2®，Lotus®，Rational®，Tivoli®和
+      WebSphere®软件。</li></ul>
+                                        <!-- Commenting -->
+<!-- INLINE_COMMENTS_BEGIN: -->
+<div class="ibm-alternate-rule"><hr></div>
+<div id="dw-article-cmts-top" class="ibm-columns">
+    <div class="ibm-col-6-2">
+        <h4 id="icomments" class="ibm-h4">评论</h4>
+        <div id="dw-article-cmts-login">
+            <p>添加或订阅评论，请先<a onclick="window.location=userLinks[0].url;" tabindex="0" role="link">登录</a>或<a onclick="window.location=userLinks[1].url;" tabindex="0" role="link">注册</a>。</p>
+        </div>
+    </div>    
+    <div class="ibm-col-6-2" id="dw-notify"> 
+        <input type="checkbox" value="1" name="comment_notification" id="comment_notification" disabled="">
+        <label for="comment_notification" style="color: rgb(204, 204, 204);">有新评论时提醒我</label>	   
+    </div>
+</div>
+
+<div class="dw-article-cmts-container">       
+    <div class="ibm-no-print jquery-comments read-only" id="dw-icomments-container"><div class="commenting-field main"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round by-current-user"><div class="textarea-wrapper"><span class="close" style="display: none;"><span class="left"></span><span class="right"></span></span><div class="textarea" data-placeholder="添加评论" contenteditable="true" style="height: 3.65em;"></div><div class="control-row" style="display: none;"><span class="send save highlight-background">提交</span></div></div></div><ul class="navigation"><div class="navigation-wrapper"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></div><div class="navigation-wrapper responsive"><li class="title active"><header>最新的</header></li><ul class="dropdown"><li data-sort-key="newest" data-container-name="comments" class="active">最新的</li><li data-sort-key="oldest" data-container-name="comments">历史</li><li data-sort-key="popularity" data-container-name="comments">热门</li></ul></div></ul><div class="data-container" data-container="comments"><ul id="comment-list" class="main"><li data-id="27220" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1498841848859">2017 年 07 月 01 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/wummin">wummin</a></div><div class="wrapper"><div class="content">感谢分享，不知能否发送一份源码至邮箱：wummin@126.com，万分感谢！</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E6%84%9F%E8%B0%A2%E5%88%86%E4%BA%AB%EF%BC%8C%E4%B8%8D%E7%9F%A5%E8%83%BD%E5%90%A6%E5%8F%91%E9%80%81%E4%B8%80%E4%BB%BD%E6%BA%90%E7%A0%81%E8%87%B3%E9%82%AE%E7%AE%B1%EF%BC%9Awummin%40126.com%EF%BC%8C%E4%B8%87%E5%88%86%E6%84%9F%E8%B0%A2%EF%BC%81%0D%E7%94%B1%20wummin%20%20%E4%BA%8E%202017%20%E5%B9%B4%2007%20%E6%9C%88%2001%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="26863" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1494222481963">2017 年 05 月 08 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/JQQ0">JQQ0</a></div><div class="wrapper"><div class="content">有很大帮助，就是不能下载source.zip啊，可否发给我一下，我的邮箱是 13366163620@163.com ,谢谢</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E6%9C%89%E5%BE%88%E5%A4%A7%E5%B8%AE%E5%8A%A9%EF%BC%8C%E5%B0%B1%E6%98%AF%E4%B8%8D%E8%83%BD%E4%B8%8B%E8%BD%BDsource.zip%E5%95%8A%EF%BC%8C%E5%8F%AF%E5%90%A6%E5%8F%91%E7%BB%99%E6%88%91%E4%B8%80%E4%B8%8B%EF%BC%8C%E6%88%91%E7%9A%84%E9%82%AE%E7%AE%B1%E6%98%AF%2013366163620%40163.com%20%2C%E8%B0%A2%E8%B0%A2%0D%E7%94%B1%20JQQ0%20%20%E4%BA%8E%202017%20%E5%B9%B4%2005%20%E6%9C%88%2008%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="21719" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1413857817997">2014 年 10 月 21 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/ldb0523">ldb0523</a></div><div class="wrapper"><div class="content">如何至宝，我正想开发一个简单调试工具，对这几篇文章很感兴趣，但是source.zip无法下载啊？能否发一个给我？我的邮箱是：<a href="mailto:ldebing@sina.com">ldebing@sina.com</a></div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E5%A6%82%E4%BD%95%E8%87%B3%E5%AE%9D%EF%BC%8C%E6%88%91%E6%AD%A3%E6%83%B3%E5%BC%80%E5%8F%91%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%EF%BC%8C%E5%AF%B9%E8%BF%99%E5%87%A0%E7%AF%87%E6%96%87%E7%AB%A0%E5%BE%88%E6%84%9F%E5%85%B4%E8%B6%A3%EF%BC%8C%E4%BD%86%E6%98%AFsource.zip%E6%97%A0%E6%B3%95%E4%B8%8B%E8%BD%BD%E5%95%8A%EF%BC%9F%E8%83%BD%E5%90%A6%E5%8F%91%E4%B8%80%E4%B8%AA%E7%BB%99%E6%88%91%EF%BC%9F%E6%88%91%E7%9A%84%E9%82%AE%E7%AE%B1%E6%98%AF%EF%BC%9Aldebing%40sina.com%0D%E7%94%B1%20ldb0523%20%20%E4%BA%8E%202014%20%E5%B9%B4%2010%20%E6%9C%88%2021%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="20348" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1395718294725">2014 年 03 月 25 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/%E8%80%81%E6%AE%B51988">老段1988</a></div><div class="wrapper"><div class="content">不能下载source.zip啊，求解决</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E4%B8%8D%E8%83%BD%E4%B8%8B%E8%BD%BDsource.zip%E5%95%8A%EF%BC%8C%E6%B1%82%E8%A7%A3%E5%86%B3%0D%E7%94%B1%20%E8%80%81%E6%AE%B51988%20%20%E4%BA%8E%202014%20%E5%B9%B4%2003%20%E6%9C%88%2025%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li><li data-id="14534" class="comment"><div class="comment-wrapper"><img src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/user-icon.png" alt="" class="profile-picture round"><time data-original="1332403200000">2012 年 03 月 22 日</time><div class="name"><a href="https://www.ibm.com/developerworks/community/profiles/user/changcheng">changcheng</a></div><div class="wrapper"><div class="content">对我有很大帮助，谢谢！</div><span class="actions"><button class="action reply" type="button">回复</button><span class="separator">·</span><button class="action upvote"><span class="upvote-count">0</span><i class="fa fa-thumbs-up"></i></button><span class="separator">·</span><a class="action reply" href="https://www.ibm.com/developerworks/community/report?lang=cn&amp;referingURL=https%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fcn%2Fjava%2Fj-lo-jpda2%2F&amp;mymessage=%E8%AF%84%E8%AE%BA%3A%20%E5%AF%B9%E6%88%91%E6%9C%89%E5%BE%88%E5%A4%A7%E5%B8%AE%E5%8A%A9%EF%BC%8C%E8%B0%A2%E8%B0%A2%EF%BC%81%0D%E7%94%B1%20changcheng%20%20%E4%BA%8E%202012%20%E5%B9%B4%2003%20%E6%9C%88%2022%20%E6%97%A5%20%0D%0D---%20%E5%9C%A8%E4%B8%8B%E6%96%B9%E6%B7%BB%E5%8A%A0%E8%AF%84%E8%AE%BA%20---" target="_blank">报告滥用<i class="fa image" style="background-image: url(&quot;/developerworks/maverick/image/report-abuse.png&quot;);"></i></a></span></div></div><ul class="child-comments"></ul></li></ul><div class="no-comments no-data"><i class="fa fa-comments fa-2x"></i><br>第一个评论</div></div></div>
+</div>
+<!-- INLINE_COMMENTS_END -->                                        <!-- CENTER_6_4_CONTENT_COLUMN_END -->
+                                    </div>   
+                                </div>
+                        <!--Rating_Meta_BEGIN--><div class="metavalue">static.content.url=http://www.ibm.com/developerworks/js/artrating/</div><div class="metavalue">SITE_ID=10</div><div class="metavalue">Zone=Java technology, Open source</div><div class="metavalue">ArticleID=376911</div><div class="metavalue">ArticleTitle=深入 Java 调试体系，第 2 部分: JVMTI 和 Agent 实现</div><div class="metavalue">publish-date=03192009</div><script language="javascript" type="text/javascript">document.write('<div class="metavalue">url='+location.href.replace(/</g,  '%3C')+'</div>');</script><div class="metavalue">url=https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/</div><!--Rating_Meta_END-->
+                    <p class="ibm-ind-link ibm-nospacing ibm-icononly ibm-btt-auto ibm-hidden-small ibm-active"><a class="ibm-nospacing ibm-chevron-up-link" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#top" tabindex="0">回页首</a></p></div>
+                    <!-- END_IBM-CONTENT-MAIN -->
+                </div>
+                <!-- END_IBM-CONTENT-BODY -->
+            </div>
+            <!-- END_IBM-CONTENT -->
+        </div>
+        <!-- END_IBM-PCON -->
+    </main>
+    <!-- MAIN_CONTENT_END -->
+    
+    <!-- END_CONTENT-WRAPPER -->	
+</div>
+<!-- FOOTER_BEGIN -->
+<footer role="contentinfo" aria-label="IBM developerWorks">
+    <div id="dw-footer-module" class="dw-footer-home">
+        <section aria-label="参考资料" role="contentinfo">
+            <div class="ibm-columns">
+                <div class="ibm-col-6-1 dw-footer-col-1">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="developerWorks">developerWorks</li>
+                        <li><a href="https://www.ibm.com/developerworks/secure/feedback.jsp?domain=dwchina">站点反馈</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/secure/myideas2.jsp?domain=dwchina">我要投稿</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/author/">投稿指南</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/community/report?lang=zh">报告滥用</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/cn/community/terms/thirdparty/">第三方提示</a></li>
+                    </ul>
+                    <ul>
+                        <li class="dw-footer-newline"><a href="https://weibo.com/ibmdw/">关注微博</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-2">
+                    <ul>
+                        <li class="dw-footer-heading" aria-label="加入">加入</li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/partnerworld/isv/">ISV 资源 (英语)</a></li>
+                    </ul>
+                    <ul class="dw-footer-lang" aria-label="选择语言">
+                        <li class="dw-footer-heading">选择语言</li>
+                        <li><a href="https://www.ibm.com/developerworks/">English</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/cn/" lang="zh">中文</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/jp/" lang="ja">日本語</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ru/" lang="ru">Русский</a></li>
+                        <li class="dw-footer-newline"><a href="https://www.ibm.com/developerworks/br/" lang="pt">Português (Brasil)</a></li>
+                        <li><a href="https://www.ibm.com/developerworks/ssa/" lang="es">Español</a></li>
+                        <li><a href="https://developer.ibm.com/kr/" lang="kr">한글</a></li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-3"> </div>
+                <div class="ibm-col-6-1 dw-footer-col-4">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/views/global/libraryview.jsp">技术文档库</a>
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/rss/">订阅源</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-5">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/community/">社区</a>  
+                        </li>
+                        <li class="dw-footer-category">
+                            <a href="http://ibmdeveloperworks.mkt6741.com/developerWorksChina-NewsletterSubscriptionPage/">dW 中国时事通讯</a>  
+                        </li>
+                    </ul>
+                </div>
+                <div class="ibm-col-6-1 dw-footer-col-6">
+                    <ul class="dw-footer-categories">
+                        <li class="dw-footer-category">
+                            <a href="https://www.ibm.com/developerworks/cn/downloads/">软件下载</a>  
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="dw-footer" class="ibm-padding-normal ibm-alternate">
+        <div class="ibm-columns">
+            <div class="ibm-col-1-1">
+                <div class="dw-footer-corporate-links">
+                <ul>
+                    <li><a href="https://www.ibm.com/contact/cn/zh/">联系 IBM</a></li>
+                    <li><a href="https://www.ibm.com/privacy/cn/zh/">隐私条约</a></li>
+                    <li><a href="https://www.ibm.com/developerworks/community/terms?lang=zh">使用条款</a></li>
+                    <li><a href="https://www.ibm.com/accessibility/cn/zh/">信息无障碍选项</a></li>
+                    <li class="ibm-feedbacklink"><a href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#">反馈</a></li>
+                    <li id="ibm-truste-cp"><a onclick="truste.eu.clickListener();return false;" href="https://www.ibm.com/developerworks/cn/java/j-lo-jpda2/#">Cookie 首选项</a></li>
+                </ul>                 
+                </div>    
+            </div>
+        </div>
+    </div>        
+</footer> <!-- FOOTER_END -->
+
+<!-- END_IBM-TOP -->
+</div>
+
+<!-- SCRIPTS_INCLUDE_BEGIN -->
+<!-- Styles -->
+<link rel="stylesheet" type="text/css" href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/jquery-comments.css">
+<link rel="stylesheet" href="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/font-awesome.min.css">
+
+<!-- Libraries -->
+<script type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/jquery-comments.min.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/moment-with-locales.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/ContentComments.js"></script>
+<script type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/ContentCommentsFormatter.js"></script>
+<script type="text/javascript" language="JavaScript">
+
+	IBMCore.common.module.masthead.subscribe("ready", "customjs", setupCommentsPlugin).runAsap(setupCommentsPlugin);
+
+	function setupCommentsPlugin(){
+		//debugger;
+			//alert(userLinks);
+			var commentsInitInfo = {
+				contentId : $("div[class=metavalue]:contains('ArticleID=')").text().split("=")[1],
+				siteId :  $("div[class=metavalue]:contains('SITE_ID=')").text().split("=")[1],
+				pluginDivId : '#dw-icomments-container',
+				notifyElementId : "#comment_notification",
+				loginMessageDivId : "#dw-article-cmts-login",
+				totalCommentsDivId : "#nCmts"
+			};				
+								
+			ContentComments.Setup(commentsInitInfo);
+	}
+</script>
+<!-- Piwik -->
+<script type="text/javascript">
+    var _paq = _paq || [];
+    _paq.push(["setDomains", ["*.www.ibm.com/developerworks","*.www.ibm.com/developerworks"]]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+    var u="//developer.ibm.com/piwik/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<noscript>&lt;p&gt;&lt;img src="//developer.ibm.com/piwik/piwik.php?idsite=7" style="border:0;" alt="" /&gt;&lt;/p&gt;</noscript>
+<!-- End Piwik Code -->
+<!-- SCRIPTS_INCLUDE_END -->
+
+
+
+<div id="ibm-overlay-backdrop"></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N10189" role="dialog" aria-describedby="ibm-overlaywidget-N10189-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N10189-content" class="content"><div class="" data-widget="overlay" id="N10189"><img alt="Agent时序图" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/process.jpg" width="528"></div></div></div><div class="ibm-common-overlay ibm-overlay-alt-three" id="ibm-overlaywidget-N101BC" role="dialog" aria-describedby="ibm-overlaywidget-N101BC-content" aria-label="Overlay content" data-widget="overlay container" data-name=""><div class="ibm-overlay-heading-con"><p class="ibm-icononly"><a href="javascript:void(0);" class="ibm-close-link" role="button">关闭</a></p></div><div id="ibm-overlaywidget-N101BC-content" class="content"><div class="" data-widget="overlay" id="N101BC"><img alt="添加Agent后输出" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/output-agent.jpg" width="416"></div></div></div><div id="ibm-mobilemenu-screen"></div><iframe id="LOTCCFrameWed Jul 19 2017 19:12:55 GMT+0800 (CST)" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/rt=ifr.html" title="empty" tabindex="-1" role="presentation" style="border: 0px; width: 0px; height: 0px; display: block;"></iframe><div id="ttdUniversalPixelTag14a49df88763436db0795df4fc90e6a7" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/up.html"></iframe></div><div id="ttdUniversalPixelTagaf477d928c164ae0b8f3e1717b910617" style="display:none"><iframe id="universal_pixel" allowtransparency="true" height="0" width="0" style="visibility:hidden;" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/up(1).html"></iframe></div><script src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/js(1)" id="mm_pp_background"></script><script type="text/javascript" src="./深入 Java 调试体系，第 2 部分_ JVMTI 和 Agent 实现_files/Serving" async=""></script></body></html>

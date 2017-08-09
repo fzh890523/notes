@@ -1,0 +1,1101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>JVM内存管理：深入Java内存区域与OOM - FenixSoft 3.0 - ITeye博客</title>
+    <meta name="description" content="    Java与C++之间有一堵由内存动态分配和垃圾收集技术所围成的高墙，墙外面的人想进去，墙里面的人却想出来。     概述：  对于从事C、C++程序开发的� ..." />
+    <meta name="keywords" content="JVM, Java, 配置管理, 虚拟机, 多线程 JVM内存管理：深入Java内存区域与OOM" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="/rss" rel="alternate" title="FenixSoft 3.0" type="application/rss+xml" />
+    <link href="http://www.iteye.com/stylesheets/blog.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/blog/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/weiboshare.js?1448702469" type="text/javascript"></script>
+
+    
+  </head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="/">FenixSoft 3.0</a></h1>
+        </div>
+        <div id='fd'></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class='blog_navbar_for'><a href="http://icyfenix.iteye.com"><strong>博客</strong></a></li>
+            <li ><a href="/weibo">微博</a></li>
+            <li ><a href="/album">相册</a></li>
+            <li ><a href="/link">收藏</a></li>
+            <li ><a href="/blog/guest_book">留言</a></li>
+            <li ><a href="/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text" value="" />
+              <input class="submit_search" type="submit" value="" />
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style='display:none'>
+  <a href="http://icyfenix.iteye.com" class="p-author" target="_blank">IcyFenix</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="/blog/802573">JVM内存管理：深入Java内存区域与OOM</a>
+      <em class="actions">      </em>
+    </h3>
+    
+        <div class='news_tag'><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/Java">Java</a><a href="http://www.iteye.com/blogs/tag/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86">配置管理</a><a href="http://www.iteye.com/blogs/tag/%E8%99%9A%E6%8B%9F%E6%9C%BA">虚拟机</a><a href="http://www.iteye.com/blogs/tag/%E5%A4%9A%E7%BA%BF%E7%A8%8B">多线程</a></div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    <p>
+</p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span>Java</span><span style="">与</span><span>C++</span><span style="">之间有一堵由内存动态分配和垃圾收集技术所围成的高墙，墙外面的人想进去，墙里面的人却想出来。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"> </p>
+<h2><span style="">概述：</span></h2>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">对于从事</span><span>C</span><span style="">、</span><span>C++</span><span style="">程序开发的开发人员来说，在内存管理领域，他们即是拥有最高权力的皇帝又是执行最基础工作的劳动人民——拥有每一个对象的“所有权”，又担负着每一个对象生命开始到终结的维护责任。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">对于</span><span>Java</span><span style="">程序员来说，不需要在为每一个</span><span>new</span><span style="">操作去写配对的</span><span>delete/free</span><span style="">，不容易出现内容泄漏和内存溢出错误，看起来由</span><span>JVM</span><span style="">管理内存一切都很美好。不过，也正是因为</span><span>Java</span><span style="">程序员把内存控制的权力交给了</span><span>JVM</span><span style="">，一旦出现泄漏和溢出，如果不了解</span><span>JVM</span><span style="">是怎样使用内存的，那排查错误将会是一件非常困难的事情。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"> </p>
+<h2>
+<span>VM</span><span style="">运行时数据区域</span>
+</h2>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span>JVM</span><span style="">执行</span><span>Java</span><span style="">程序的过程中，会使用到各种数据区域，这些区域有各自的用途、创建和销毁时间。根据《</span><span>Java</span><span style="">虚拟机规范（第二版）》（下文称</span><span>VM Spec</span><span style="">）的规定，</span><span>JVM</span><span style="">包括下列几个运行时数据区域：</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">1.</span></span><span style="">程序计数器（</span><span>Program Counter Register</span><span style="">）：</span></p>
+<p class="MsoNormal" style="margin-left: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="margin-left: 21.0pt;"><span style="">每一个</span><span>Java</span><span style="">线程都有一个程序计数器来用于保存程序执行到当前方法的哪一个指令，对于非</span><span>Native</span><span style="">方法，这个区域记录的是正在执行的</span><span>VM</span><span style="">原语的地址，如果正在执行的是</span><span>Natvie</span><span style="">方法，这个区域则为空（</span><span>undefined</span><span style="">）。此内存区域是唯一一个在</span><span>VM Spec</span><span style="">中没有规定任何</span><span>OutOfMemoryError</span><span style="">情况的区域。</span></p>
+<p class="MsoNormal" style="margin-left: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">2.</span></span><span>Java</span><span style="">虚拟机栈（</span><span>Java
+Virtual Machine Stacks</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">与程序计数器一样，</span><span>VM</span><span style="">栈的生命周期也是与线程相同。</span><span>VM</span><span style="">栈描述的是</span><span>Java</span><span style="">方法调用的内存模型：每个方法被执行的时候，都会同时创建一个帧（</span><span>Frame</span><span style="">）用于存储本地变量表、操作栈、动态链接、方法出入口等信息。每一个方法的调用至完成，就意味着一个帧在</span><span>VM</span><span style="">栈中的入栈至出栈的过程。在后文中，我们将着重讨论</span><span>VM</span><span style="">栈中本地变量表部分。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">经常有人把</span><span>Java</span><span style="">内存简单的区分为堆内存（</span><span>Heap</span><span style="">）和栈内存（</span><span>Stack</span><span style="">），实际中的区域远比这种观点复杂，这样划分只是说明与变量定义密切相关的内存区域是这两块。其中所指的“堆”后面会专门描述，而所指的“栈”就是</span><span>VM</span><span style="">栈中各个帧的本地变量表部分。本地变量表存放了编译期可知的各种标量类型（</span><span>boolean</span><span style="">、</span><span>byte</span><span style="">、</span><span>char</span><span style="">、</span><span>short</span><span style="">、</span><span>int</span><span style="">、</span><span>float</span><span style="">、</span><span>long</span><span style="">、</span><span>double</span><span style="">）、对象引用（不是对象本身，仅仅是一个引用指针）、方法返回地址等。其中</span><span>long</span><span style="">和</span><span>double</span><span style="">会占用</span><span>2</span><span style="">个本地变量空间（</span><span>32bit</span><span style="">），其余占用</span><span>1</span><span style="">个。本地变量表在进入方法时进行分配，当进入一个方法时，这个方法需要在帧中分配多大的本地变量是一件完全确定的事情，在方法运行期间不改变本地变量表的大小。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">在</span><span>VM Spec</span><span style="">中对这个区域规定了</span><span>2</span><span style="">中异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出</span><span>StackOverflowError</span><span style="">异常；如果</span><span>VM</span><span style="">栈可以动态扩展（</span><span>VM Spec</span><span style="">中允许固定长度的</span><span>VM</span><span style="">栈），当扩展时无法申请到足够内存则抛出</span><span>OutOfMemoryError</span><span style="">异常。</span><span><br style=""><br style=""></span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">3.</span></span><span style="">本地方法栈（</span><span>Native Method Stacks</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">本地方法栈与</span><span>VM</span><span style="">栈所发挥作用是类似的，只不过</span><span>VM</span><span style="">栈为虚拟机运行</span><span>VM</span><span style="">原语服务，而本地方法栈是为虚拟机使用到的</span><span>Native</span><span style="">方法服务。它的实现的语言、方式与结构并没有强制规定，甚至有的虚拟机（譬如</span><span>Sun
+Hotspot</span><span style="">虚拟机）直接就把本地方法栈和</span><span>VM</span><span style="">栈合二为一。和</span><span>VM</span><span style="">栈一样，这个区域也会抛出</span><span>StackOverflowError</span><span style="">和</span><span>OutOfMemoryError</span><span style="">异常。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm;"><span><br>
+4.Java</span><span style="">堆（</span><span>Java Heap</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">对于绝大多数应用来说，</span><span>Java</span><span style="">堆是虚拟机管理最大的一块内存。</span><span>Java</span><span style="">堆是被所有线程共享的，在虚拟机启动时创建。</span><span>Java</span><span style="">堆的唯一目的就是存放对象实例，绝大部分的对象实例都在这里分配。这一点在</span><span>VM
+Spec</span><span style="">中的描述是：所有的实例以及数组都在堆上分配（原文：</span><span>The heap is the runtime data area from which memory for all class
+instances and arrays is allocated</span><span style="">），但是在逃逸分析和标量替换优化技术出现后，</span><span>VM Spec</span><span style="">的描述就显得并不那么准确了。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span>Java</span><span style="">堆内还有更细致的划分：新生代、老年代，再细致一点的：</span><span>eden</span><span style="">、</span><span>from survivor</span><span style="">、</span><span>to survivor</span><span style="">，甚至更细粒度的本地线程分配缓冲（</span><span>TLAB</span><span style="">）等，无论对</span><span>Java</span><span style="">堆如何划分，目的都是为了更好的回收内存，或者更快的分配内存，在本章中我们仅仅针对内存区域的作用进行讨论，</span><span>Java</span><span style="">堆中的上述各个区域的细节，可参见本文第二章《</span><span>JVM</span><span style="">内存管理：深入垃圾收集器与内存分配策略》。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">根据</span><span>VM Spec</span><span style="">的要求，</span><span>Java</span><span style="">堆可以处于物理上不连续的内存空间，它逻辑上是连续的即可，就像我们的磁盘空间一样。实现时可以选择实现成固定大小的，也可以是可扩展的，不过当前所有商业的虚拟机都是按照可扩展来实现的（通过</span><span>-Xmx</span><span style="">和</span><span>-Xms</span><span style="">控制）。如果在堆中无法分配内存，并且堆也无法再扩展时，将会抛出</span><span>OutOfMemoryError</span><span style="">异常。</span><span><br style=""><br style=""></span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">5.</span></span><span style="">方法区（</span><span>Method Area</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">叫“方法区”可能认识它的人还不太多，如果叫永久代（</span><span>Permanent
+Generation</span><span style="">）它的粉丝也许就多了。它还有个别名叫做</span><span>Non-Heap</span><span style="">（非堆），但是</span><span>VM Spec</span><span style="">上则描述方法区为堆的一个逻辑部分（原文：</span><span>the method area is logically part of the heap</span><span style="">），这个名字的问题还真容易令人产生误解，我们在这里就不纠结了。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">方法区中存放了每个</span><span>Class</span><span style="">的结构信息，包括常量池、字段描述、方法描述等等。</span><span>VM Space</span><span style="">描述中对这个区域的限制非常宽松，除了和</span><span>Java</span><span style="">堆一样不需要连续的内存，也可以选择固定大小或者可扩展外，甚至可以选择不实现垃圾收集。相对来说，垃圾收集行为在这个区域是相对比较少发生的，但并不是某些描述那样永久代不会发生</span><span>GC</span><span style="">（至少对当前主流的商业</span><span>JVM</span><span style="">实现来说是如此），这里的</span><span>GC</span><span style="">主要是对常量池的回收和对类的卸载，虽然回收的“成绩”一般也比较差强人意，尤其是类卸载，条件相当苛刻。</span><span><br style=""><br style=""></span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">6.</span></span><span style="">运行时常量池（</span><span>Runtime Constant Pool</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span>Class</span><span style="">文件中除了有类的版本、字段、方法、接口等描述等信息外，还有一项信息是常量表</span><span>(constant_pool table)</span><span style="">，用于存放编译期已可知的常量，这部分内容将在类加载后进入方法区（永久代）存放。但是</span><span>Java</span><span style="">语言并不要求常量一定只有编译期预置入</span><span>Class</span><span style="">的常量表的内容才能进入方法区常量池，运行期间也可将新内容放入常量池（最典型的</span><span>String.intern()</span><span style="">方法）。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">运行时常量池是方法区的一部分，自然受到方法区内存的限制，当常量池无法在申请到内存时会抛出</span><span>OutOfMemoryError</span><span style="">异常。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 0cm; text-indent: 0cm;"><span style=""><span style="">7.</span></span><span style="">本机直接内存（</span><span>Direct Memory</span><span style="">）</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">直接内存并不是虚拟机运行时数据区的一部分，它根本就是本机内存而不是</span><span>VM</span><span style="">直接管理的区域。但是这部分内存也会导致</span><span>OutOfMemoryError</span><span style="">异常出现，因此我们放到这里一起描述。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">在</span><span>JDK1.4</span><span style="">中新加入了</span><span>NIO</span><span style="">类，引入一种基于渠道与缓冲区的</span><span>I/O</span><span style="">方式，它可以通过本机</span><span>Native</span><span style="">函数库直接分配本机内存，然后通过一个存储在</span><span>Java</span><span style="">堆里面的</span><span>DirectByteBuffer</span><span style="">对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在</span><span>Java</span><span style="">对和本机堆中来回复制数据。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"><span style="">显然本机直接内存的分配不会受到</span><span>Java</span><span style="">堆大小的限制，但是即然是内存那肯定还是要受到本机物理内存（包括</span><span>SWAP</span><span style="">区或者</span><span>Windows</span><span style="">虚拟内存）的限制的，一般服务器管理员配置</span><span>JVM</span><span style="">参数时，会根据实际内存设置</span><span>-Xmx</span><span style="">等参数信息，但经常忽略掉直接内存，使得各个内存区域总和大于物理内存限制（包括物理的和操作系统级的限制），而导致动态扩展时出现</span><span>OutOfMemoryError</span><span style="">异常。</span></p>
+<p class="MsoNormal" style="margin-top: 10.5pt; margin-right: 0cm; margin-bottom: 10.5pt; margin-left: 21.0pt;"> </p>
+<h2>
+<span style="">实战</span><span>OutOfMemoryError</span>
+</h2>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">上述区域中，除了程序计数器，其他在</span><span>VM Spec</span><span style="">中都描述了产生</span><span>OutOfMemoryError</span><span style="">（下称</span><span>OOM</span><span style="">）的情形，那我们就实战模拟一下，通过几段简单的代码，令对应的区域产生</span><span>OOM</span><span style="">异常以便加深认识，同时初步介绍一些与内存相关的虚拟机参数。下文的代码都是基于</span><span>Sun Hotspot</span><span style="">虚拟机</span><span>1.6</span><span style="">版的实现，对于不同公司的不同版本的虚拟机，参数与程序运行结果可能结果会有所差别。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><strong style=""><span>Java</span></strong><strong style=""><span style="">堆</span></strong></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span>Java</span><span style="">堆存放的是对象实例，因此只要不断建立对象，并且保证</span><span>GC Roots</span><span style="">到对象之间有可达路径即可产生</span><span>OOM</span><span style="">异常。测试中限制</span><span>Java</span><span style="">堆大小为</span><span>20M</span><span style="">，不可扩展，通过参数</span><span>-XX:+HeapDumpOnOutOfMemoryError</span><span style="">让虚拟机在出现</span><span>OOM</span><span style="">异常的时候</span><span>Dump</span><span style="">出内存映像以便分析。（关于</span><span>Dump</span><span style="">映像文件分析方面的内容，可参见本文第三章《</span><span>JVM</span><span style="">内存管理：深入</span><span>JVM</span><span style="">内存异常分析与调优》。）</span><span><br style=""><br style=""></span></p>
+<p class="MsoNormal"><span style="">清单</span><span>1</span><span style="">：</span><span>Java</span><span style="">堆</span><span>OOM</span><span style="">测试</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>-Xms20m
+  -Xmx20m -XX:+HeapDumpOnOutOfMemoryError</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class HeapOOM {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>static
+  class OOMObject {</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>List&lt;OOMObject&gt; list = new
+  ArrayList&lt;OOMObject&gt;();</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>list.add(new
+  OOMObject());</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>java.lang.OutOfMemoryError: Java heap
+  space</span></p>
+<p class="MsoNormal"><span>Dumping heap to java_pid3404.hprof ...</span></p>
+<p class="MsoNormal"><span>Heap dump file created [22045981 bytes in
+  0.663 secs]</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><strong style=""><span>VM</span></strong><strong style=""><span style="">栈和本地方法栈</span><span></span></strong></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span>Hotspot</span><span style="">虚拟机并不区分</span><span>VM</span><span style="">栈和本地方法栈，因此</span><span>-Xoss</span><span style="">参数实际上是无效的，栈容量只由</span><span>-Xss</span><span style="">参数设定。关于</span><span>VM</span><span style="">栈和本地方法栈在</span><span>VM Spec</span><span style="">描述了两种异常：</span><span>StackOverflowError</span><span style="">与</span><span>OutOfMemoryError</span><span style="">，当栈空间无法继续分配分配时，到底是内存太小还是栈太大其实某种意义上是对同一件事情的两种描述而已，在笔者的实验中，对于单线程应用尝试下面</span><span>3</span><span style="">种方法均无法让虚拟机产生</span><span>OOM</span><span style="">，全部尝试结果都是获得</span><span>SOF</span><span style="">异常。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="margin-left: 0cm; text-indent: 21.0pt;"><span style=""><span style="">1.</span></span><span style="">使用</span><span>-Xss</span><span style="">参数削减栈内存容量。结果：抛出</span><span>SOF</span><span style="">异常时的堆栈深度相应缩小。</span></p>
+<p class="MsoNormal" style="margin-left: 0cm; text-indent: 21.0pt;"><span style=""><span style="">2.</span></span><span style="">定义大量的本地变量，增大此方法对应帧的长度。结果：抛出</span><span>SOF</span><span style="">异常时的堆栈深度相应缩小。</span></p>
+<p class="MsoNormal" style="margin-left: 0cm; text-indent: 21.0pt;"><span style=""><span style="">3.</span></span><span style="">创建几个定义很多本地变量的复杂对象，打开逃逸分析和标量替换选项，使得</span><span>JIT</span><span style="">编译器允许对象拆分后在栈中分配。结果：实际效果同第二点。</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">清单</span><span>2</span><span style="">：</span><span>VM</span><span style="">栈和本地方法栈</span><span>OOM</span><span style="">测试（仅作为第</span><span>1</span><span style="">点测试程序）</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>-Xss128k</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class JavaVMStackSOF {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>private
+  int stackLength = 1;</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  void stackLeak() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>stackLength++;</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>stackLeak();</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) throws Throwable {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>JavaVMStackSOF oom = new JavaVMStackSOF();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>try {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>oom.stackLeak();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>} catch (Throwable e) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>System.out.println("stack
+  length:" + oom.stackLength);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>throw
+  e;</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>stack length:2402</span></p>
+<p class="MsoNormal"><span>Exception in thread "main"
+  java.lang.StackOverflowError</span></p>
+<p class="MsoNormal"><span><span style="">       
+  </span>at org.fenixsoft.oom.JavaVMStackSOF.stackLeak(JavaVMStackSOF.java:20)</span></p>
+<p class="MsoNormal"><span><span style="">       
+  </span>at org.fenixsoft.oom.JavaVMStackSOF.stackLeak(JavaVMStackSOF.java:21)</span></p>
+<p class="MsoNormal"><span><span style="">       
+  </span>at org.fenixsoft.oom.JavaVMStackSOF.stackLeak(JavaVMStackSOF.java:21)</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">如果在多线程环境下，不断建立线程倒是可以产生</span><span>OOM</span><span style="">异常，但是基本上这个异常和</span><span>VM</span><span style="">栈空间够不够关系没有直接关系，甚至是给每个线程的</span><span>VM</span><span style="">栈分配的内存越多反而越容易产生这个</span><span>OOM</span><span style="">异常。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">原因其实很好理解，操作系统分配给每个进程的内存是有限制的，譬如</span><span>32</span><span style="">位</span><span>Windows</span><span style="">限制为</span><span>2G</span><span style="">，</span><span>Java</span><span style="">堆和方法区的大小</span><span>JVM</span><span style="">有参数可以限制最大值，那剩余的内存为</span><span>2G</span><span style="">（操作系统限制）</span><span>-Xmx</span><span style="">（最大堆）</span><span>-MaxPermSize</span><span style="">（最大方法区），程序计数器消耗内存很小，可以忽略掉，那虚拟机进程本身耗费的内存不计算的话，剩下的内存就供每一个线程的</span><span>VM</span><span style="">栈和本地方法栈瓜分了，那自然每个线程中</span><span>VM</span><span style="">栈分配内存越多，就越容易把剩下的内存耗尽。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><span style="">清单</span><span>3</span><span style="">：创建线程导致</span><span>OOM</span><span style="">异常</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>-Xss2M </span><span style="">（这时候不妨设大些）</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class JavaVMStackOOM {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>private
+  void dontStop() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  void stackLeakByThread() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>Thread
+  thread = new Thread(new Runnable() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>@Override</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>public void run() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>dontStop();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>});</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>thread.start();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) throws Throwable {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>JavaVMStackOOM oom = new
+  JavaVMStackOOM();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>oom.stackLeakByThread();</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">特别提示一下，如果读者要运行上面这段代码，记得要存盘当前工作，上述代码执行时有很大令操作系统卡死的风险。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>Exception in thread "main"
+  java.lang.OutOfMemoryError: unable to create new native thread </span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span><br style=""><br style=""></span></p>
+<p class="MsoNormal"><strong style=""><span style="">运行时常量池</span><span></span></strong></p>
+<p class="MsoNormal"><strong style=""><span> </span></strong></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">要在常量池里添加内容，最简单的就是使用</span><span>String.intern()</span><span style="">这个</span><span>Native</span><span style="">方法。由于常量池分配在方法区内，我们只需要通过</span><span>-XX:PermSize</span><span style="">和</span><span>-XX:MaxPermSize</span><span style="">限制方法区大小即可限制常量池容量。实现代码如下：</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><span style="">清单</span><span>4</span><span style="">：运行时常量池导致的</span><span>OOM</span><span style="">异常</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>-XX:PermSize=10M
+  -XX:MaxPermSize=10M</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class RuntimeConstantPoolOOM {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>// </span><span style="">使用</span><span>List</span><span style="">保持着常量池引用，压制</span><span>Full
+  GC</span><span style="">回收常量池行为</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>List&lt;String&gt; list = new
+  ArrayList&lt;String&gt;();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>// 10M</span><span style="">的</span><span>PermSize</span><span style="">在</span><span>integer</span><span style="">范围内足够产生</span><span>OOM</span><span style="">了</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>int i = 0; </span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>list.add(String.valueOf(i++).intern());</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>Exception in thread "main"
+  java.lang.OutOfMemoryError: PermGen space</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  java.lang.String.intern(Native Method)</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  org.fenixsoft.oom.RuntimeConstantPoolOOM.main(RuntimeConstantPoolOOM.java:18)</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><strong style=""><span style="">方法区</span></strong></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">上文讲过，方法区用于存放</span><span>Class</span><span style="">相关信息，所以这个区域的测试我们借助</span><span>CGLib</span><span style="">直接操作字节码动态生成大量的</span><span>Class</span><span style="">，值得注意的是，这里我们这个例子中模拟的场景其实经常会在实际应用中出现：当前很多主流框架，如</span><span>Spring</span><span style="">、</span><span>Hibernate</span><span style="">对类进行增强时，都会使用到</span><span>CGLib</span><span style="">这类字节码技术，当增强的类越多，就需要越大的方法区用于保证动态生成的</span><span>Class</span><span style="">可以加载入内存。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<p class="MsoNormal"><span style="">清单</span><span>5</span><span style="">：借助</span><span>CGLib</span><span style="">使得方法区出现</span><span>OOM</span><span style="">异常</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>
+  -XX:PermSize=10M -XX:MaxPermSize=10M</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class JavaMethodAreaOOM {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>Enhancer
+  enhancer = new Enhancer();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>enhancer.setSuperclass(OOMObject.class);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>enhancer.setUseCache(false);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>enhancer.setCallback(new
+  MethodInterceptor() {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>public Object intercept(Object obj,
+  Method method, Object[] args, MethodProxy proxy) throws Throwable {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>return
+  proxy.invokeSuper(obj, args);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>});</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>enhancer.create();</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>static
+  class OOMObject {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>Caused by: java.lang.OutOfMemoryError:
+  PermGen space</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  java.lang.ClassLoader.defineClass1(Native Method)</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  java.lang.ClassLoader.defineClassCond(ClassLoader.java:632)</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  java.lang.ClassLoader.defineClass(ClassLoader.java:616)</span></p>
+<p class="MsoNormal"><span><span style="">       </span>...
+  8 more</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><strong style=""><span style="">本机直接内存</span></strong></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span>DirectMemory</span><span style="">容量可通过</span><span>-XX:MaxDirectMemorySize</span><span style="">指定，不指定的话默认与</span><span>Java</span><span style="">堆（</span><span>-Xmx</span><span style="">指定）一样，下文代码越过了</span><span>DirectByteBuffer</span><span style="">，直接通过反射获取</span><span>Unsafe</span><span style="">实例进行内存分配（</span><span>Unsafe</span><span style="">类的</span><span>getUnsafe()</span><span style="">方法限制了只有引导类加载器才会返回实例，也就是基本上只有</span><span>rt.jar</span><span style="">里面的类的才能使用），因为</span><span>DirectByteBuffer</span><span style="">也会抛</span><span>OOM</span><span style="">异常，但抛出异常时实际上并没有真正向操作系统申请分配内存，而是通过计算得知无法分配既会抛出，真正申请分配的方法是</span><span>unsafe.allocateMemory()</span><span style="">。</span></p>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span> </span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>/**</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  VM Args</span><span style="">：</span><span>-Xmx20M
+  -XX:MaxDirectMemorySize=10M</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*
+  @author zzm</span></p>
+<p class="MsoNormal"><span><span style=""> </span>*/</span></p>
+<p class="MsoNormal"><span>public class DirectMemoryOOM {</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>private
+  static final int _1MB = 1024 * 1024;</span></p>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span><span style="">       </span>public
+  static void main(String[] args) throws Exception {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>Field unsafeField =
+  Unsafe.class.getDeclaredFields()[0];</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>unsafeField.setAccessible(true);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>Unsafe unsafe = (Unsafe)
+  unsafeField.get(null);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>while (true) {</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span><span style="">       </span>unsafe.allocateMemory(_1MB);</span></p>
+<p class="MsoNormal"><span><span style="">       </span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span><span style="">       </span>}</span></p>
+<p class="MsoNormal"><span>}</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"><span style="">运行结果：</span></p>
+<table border="1" cellspacing="0" class="MsoNormalTable" style="border-collapse: collapse; border: none;" cellpadding="0"><tr style="">
+<td width="568" style="width: 426.1pt; padding: 0cm 5.4pt 0cm 5.4pt;">
+<p class="MsoNormal"><span>Exception in thread "main"
+  java.lang.OutOfMemoryError</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  sun.misc.Unsafe.allocateMemory(Native Method)</span></p>
+<p class="MsoNormal"><span><span style="">       </span>at
+  org.fenixsoft.oom.DirectMemoryOOM.main(DirectMemoryOOM.java:20)</span></p>
+</td>
+</tr></table>
+<p class="MsoNormal"><span> </span></p>
+<p class="MsoNormal"> </p>
+<h1>
+<span style="">总结</span><span style="font-weight: normal;"></span>
+</h1>
+<p class="MsoNormal" style="text-indent: 21.0pt;"><span style="">到此为止，我们弄清楚虚拟机里面的内存是如何划分的，哪部分区域，什么样的代码、操作可能导致</span><span>OOM</span><span style="">异常。虽然</span><span>Java</span><span style="">有垃圾收集机制，但</span><span>OOM</span><span style="">仍然离我们并不遥远，本章内容我们只是知道各个区域</span><span>OOM</span><span style="">异常出现的原因，下一章我们将看看</span><span>Java</span><span style="">垃圾收集机制为了避免</span><span>OOM</span><span style="">异常出现，做出了什么样的努力。</span></p>
+
+  </div>
+
+  
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript"
+              src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type='sina' href="javascript:;" title="分享到新浪微博"><img src="/images/sina.jpg"></a>
+      <a data-type='qq' href="javascript:;" title="分享到腾讯微博"><img src="/images/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="/blog/802638" class="next" title="JVM内存管理：深入垃圾收集器与内存分配策略">JVM内存管理：深入垃圾收集器与内存分配策 ...</a>
+      |
+      <a href="/blog/715301" class="pre" title="一个面试官对面试问题的分析">一个面试官对面试问题的分析</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2010-11-04 11:30</li>
+      <li>浏览 10814</li>
+      <li><a href="#comments">评论(41)</a></li>
+       <li>论坛回复 / <a href="http://icyfenix.iteye.com/topic/802573">浏览</a> (37 / 44416)</li> 
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class='last'><a href="http://www.iteye.com/wiki/blog/802573" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/android"><img src="http://img.knowledge.csdn.net/upload/base/1455589744328_328.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/android" classs="title">Android知识库</a>
+              <span>
+                 <em>36074</em>&nbsp;&nbsp;关注 <i>|</i> <em>3137</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/react"><img src="http://img.knowledge.csdn.net/upload/base/1465887837340_340.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/react" classs="title">React知识库</a>
+              <span>
+                 <em>3055</em>&nbsp;&nbsp;关注 <i>|</i> <em>393</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/ai"><img src="http://img.knowledge.csdn.net/upload/base/1479972981201_201.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/ai" classs="title">人工智能基础知识库</a>
+              <span>
+                 <em>14935</em>&nbsp;&nbsp;关注 <i>|</i> <em>208</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/java"><img src="http://img.knowledge.csdn.net/upload/base/1453701371636_636.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/java" classs="title">Java 知识库</a>
+              <span>
+                 <em>30845</em>&nbsp;&nbsp;关注 <i>|</i> <em>3747</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2339694">
+  <div class="comment_title">
+    41 楼
+    <a href='http://sessionsong.iteye.com' target='_blank' title='sessionsong'>sessionsong</a>
+    2014-02-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">neo_q 写道</div><div class="quote_div"><pre class="java" name="code">/**
+
+ * VM Args：-XX:PermSize=10M -XX:MaxPermSize=10M
+
+ * @author zzm
+
+ */
+
+public class RuntimeConstantPoolOOM {
+
+ 
+
+       public static void main(String[] args) {
+
+              // 使用List保持着常量池引用，压制Full GC回收常量池行为
+
+              List&lt;String&gt; list = new ArrayList&lt;String&gt;();
+
+              // 10M的PermSize在integer范围内足够产生OOM了
+
+              int i = 0; 
+
+              while (true) {
+
+                     list.add(String.valueOf(i++).intern());//个人认为在此种特殊情况下，你只要创建了新的String对象常量池都会产生新的对象，是否调用intern方法是不会有影响的，因为intern方法会查找常量池中已经存在的字符串，如果有存在就直接返回，如果不存在才会进一步锁住常量池进行添加的行为
+              }
+
+       }
+
+}
+</pre></div><br /><br />intern 方法 如果存在那么就返回 不存在的话就会新建一个字符串放在常量池中 <br />没有使用这个方法的话 String.valueOf(i++) 会返回一个string对象实例(可以看源码) 而实例是存放在java heap中的 因为这是一个无限循环 所以最后会出现堆异常。<br />使用的话 出现的是常量池异常 <br />下面是报错信息：<br />没有使用 intern 方法：<br />Exception in thread "main" java.lang.OutOfMemoryError: <span style="color: red;">Java heap space</span><br />	at java.lang.Integer.toString(Unknown Source)<br />	at java.lang.Integer.toString(Unknown Source)<br />	at java.lang.String.valueOf(Unknown Source)<br />	at com.sxl.RuntimeConstantPoolOOM.main(RuntimeConstantPoolOOM.java:22)<br /><br />调用了intern方法：<br />Exception in thread "main" java.lang.OutOfMemoryError: <span style="color: red;">PermGen space</span><br />	at java.lang.String.intern(Native Method)<br />	at com.sxl.RuntimeConstantPoolOOM.main(RuntimeConstantPoolOOM.java:33)<br /><br /></div>
+</div>
+
+<div id="bc2146918">
+  <div class="comment_title">
+    40 楼
+    <a href='http://11122233.iteye.com' target='_blank' title='11122233'>11122233</a>
+    2011-06-08&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">赞一个，需要这样的讲jvm的文章。</div>
+</div>
+
+<div id="bc2041882">
+  <div class="comment_title">
+    39 楼
+    <a href='http://pinefantasy.iteye.com' target='_blank' title='独爱Java'>独爱Java</a>
+    2011-04-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">首先，赞楼主功力深厚，最近看了一篇文章，上面提到了不同的观点，后来咨询了许多人，得到的答案也是不一致，心里一直在纠结着，希望得到楼主以及其他前辈的解答。<br /><br />问题引出：类变量是在java虚拟机启动后就被初始化好了？？？<br /><br />//注：个人最近在接触和学习java底层的一些知识，通过看了网上的许多文章，有了下面的一段想法，但无奈，网上文章议论不一，自己心里又不确定。所以请教楼主指出问题，我好接着努力。<br /><br />&nbsp; 类变量（静态变量），它是不和某个具体的对象绑定在一起的，是属于类的；当需要使用到该类时，就会被加载到内存中，静态变量就会被初始化。也就是说，一个应用程序执行了（底层实例化好了一个java虚拟机实例，支持着这个应用程序的执行），但是并不一定就初始化好了各个类的静态成员变量。//支持错误的观点。<br /><br /></div>
+</div>
+
+<div id="bc1946192">
+  <div class="comment_title">
+    38 楼
+    <a href='http://real-ww-163-com.iteye.com' target='_blank' title='风中的树叶'>风中的树叶</a>
+    2011-03-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">学习了。写的很好。</div>
+</div>
+
+<div id="bc1880880">
+  <div class="comment_title">
+    37 楼
+    <a href='http://neo-q.iteye.com' target='_blank' title='neo_q'>neo_q</a>
+    2011-01-25&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><pre class="java" name="code">/**
+
+ * VM Args：-XX:PermSize=10M -XX:MaxPermSize=10M
+
+ * @author zzm
+
+ */
+
+public class RuntimeConstantPoolOOM {
+
+ 
+
+       public static void main(String[] args) {
+
+              // 使用List保持着常量池引用，压制Full GC回收常量池行为
+
+              List&lt;String&gt; list = new ArrayList&lt;String&gt;();
+
+              // 10M的PermSize在integer范围内足够产生OOM了
+
+              int i = 0; 
+
+              while (true) {
+
+                     list.add(String.valueOf(i++).intern());//个人认为在此种特殊情况下，你只要创建了新的String对象常量池都会产生新的对象，是否调用intern方法是不会有影响的，因为intern方法会查找常量池中已经存在的字符串，如果有存在就直接返回，如果不存在才会进一步锁住常量池进行添加的行为
+              }
+
+       }
+
+}
+</pre></div>
+</div>
+
+<div id="bc1854317">
+  <div class="comment_title">
+    36 楼
+    <a href='http://sleepinglord.iteye.com' target='_blank' title='sleepinglord'>sleepinglord</a>
+    2011-01-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">如果能支持自己真的delete对象以及强制调用gc就好了。</div>
+</div>
+
+<div id="bc1831824">
+  <div class="comment_title">
+    35 楼
+    <a href='http://xiaomogui.iteye.com' target='_blank' title='xiaomogui'>xiaomogui</a>
+    2011-01-04&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">楼主，多写点类似的文章,好文.呵呵<img src="/images/smiles/icon_biggrin.gif" /> </div>
+</div>
+
+<div id="bc1815059">
+  <div class="comment_title">
+    34 楼
+    <a href='http://icyfenix.iteye.com' target='_blank' title='IcyFenix'>IcyFenix</a>
+    2010-12-22&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">asle 写道</div><div class="quote_div"><div class="quote_title">IcyFenix 写道</div><div class="quote_div"><div class="quote_title">vtudiv 写道</div><div class="quote_div">其中long和double会占用2个本地变量空间（32bit），其余占用1个。<br />这句话什么意思?</div><br /><br />根据VM Spec的规定，超过32位大小的数据，VM是把他们当做2个32位数据代替，每次get/set其实都执行了2次操作，而小于等于32位的数据类型，只需要执行1次。因此小于等于32位的类型访问是原子操作，而long和double的访问是非原子操作，这个在并发程序中需要注意，可以通过volatile关键字来保证原子性。<br /><br />上述描述对32位虚拟机有效，64位未做过研究，不评论。</div><br /><br />java中对一个变量的读写肯定是原子操作的,不会出现只到到一半就被中断的情况</div><br /><br />如果你说的是特定某种虚拟机实现，那这个问题可以继续讨论，因为具体实现中可以选择把这个操作实现为原子的，这点是允许的（“An implementation is free to implement load, store, read, and write operations for double and long values as atomic 64-bit operations”）。<br /><br />但如果你说的是仅仅是“java中”，那我想这个问题还是遵循虚拟机规范来的妥当一些。<br /><br />在虚拟机规范第二版8.4节“Nonatomic Treatment of double and long Variables”中关于double和long变量描述如下：<br /><br /><div class="quote_title">引用</div><div class="quote_div"><br />If a double or long variable is not declared volatile, then for the purposes of load, store, read, and write operations it is treated as if it were two variables of 32 bits each; wherever the rules require one of these operations, two such operations are performed, one for each 32-bit half. The manner in which the 64 bits of a double or long variable are encoded into two 32-bit quantities and the order of the operations on the halves of the variables are not defined by The Java&nbsp; Language Specification.<br /><br />This matters only because a read or write of a double or long variable may be handled by an actual main memory as two 32-bit read or write operations that may be separated in time, with other operations coming between them. Consequently, if two threads concurrently assign distinct values to the same shared non-volatile double or long variable, a subsequent use of that variable may obtain a value that is not equal to either of the assigned values, but rather some implementation-dependent mixture of the two values.</div><br /><br /></div>
+</div>
+
+<div id="bc1814943">
+  <div class="comment_title">
+    33 楼
+    <a href='http://asle.iteye.com' target='_blank' title='asle'>asle</a>
+    2010-12-22&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">IcyFenix 写道</div><div class="quote_div"><div class="quote_title">vtudiv 写道</div><div class="quote_div">其中long和double会占用2个本地变量空间（32bit），其余占用1个。<br />这句话什么意思?</div><br /><br />根据VM Spec的规定，超过32位大小的数据，VM是把他们当做2个32位数据代替，每次get/set其实都执行了2次操作，而小于等于32位的数据类型，只需要执行1次。因此小于等于32位的类型访问是原子操作，而long和double的访问是非原子操作，这个在并发程序中需要注意，可以通过volatile关键字来保证原子性。<br /><br />上述描述对32位虚拟机有效，64位未做过研究，不评论。</div><br />java中对一个变量的读写肯定是原子操作的,不会出现只到到一半就被中断的情况</div>
+</div>
+
+<div id="bc1811646">
+  <div class="comment_title">
+    32 楼
+    <a href='http://alanlhy.iteye.com' target='_blank' title='alanlhy'>alanlhy</a>
+    2010-12-21&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">关于大家所说的这些vm内存分配，我有些不懂，还请大家指教。我们老师再给我们做内存分析的时候，所java在内存中分为heap、stack、data segment、code segment四部分，而heap是放对象等new出来的东西，而stack则是放引用和局部变量的内存块，data怎是放类变量和字符串常量的，code是放代码的内存。而大家所说的常量池、方法区等等是怎么分的，求给为详解。</div>
+</div>
+
+<div id="bc1801794">
+  <div class="comment_title">
+    31 楼
+    <a href='http://umeit.iteye.com' target='_blank' title='umeit'>umeit</a>
+    2010-12-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">在VM Spec中对这个区域规定了2中异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常；如果VM栈可以动态扩展（VM Spec中允许固定长度的VM栈），当扩展时无法申请到足够内存则抛出OutOfMemoryError异常。<br />-------------------------------------------------------------------------<br />是否详细的讲一下这段？</div>
+</div>
+
+<div id="bc1800949">
+  <div class="comment_title">
+    30 楼
+    <a href='http://nighthawk.iteye.com' target='_blank' title='nighthawk'>nighthawk</a>
+    2010-12-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">非常棒，实例能让人更好的理解</div>
+</div>
+
+<div id="bc1756545">
+  <div class="comment_title">
+    29 楼
+    <a href='http://wfly0001.iteye.com' target='_blank' title='wfly0001'>wfly0001</a>
+    2010-11-15&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">好文章啊，尤其是对oom的解释和分类</div>
+</div>
+
+<div id="bc1754502">
+  <div class="comment_title">
+    28 楼
+    <a href='http://vyloy.iteye.com' target='_blank' title='vyloy'>vyloy</a>
+    2010-11-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">赞，楼主的功力深厚~</div>
+</div>
+
+<div id="bc1749261">
+  <div class="comment_title">
+    27 楼
+    <a href='http://codermouse.iteye.com' target='_blank' title='codermouse'>codermouse</a>
+    2010-11-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">太深入了。待了解。</div>
+</div>
+
+<div id="bc1748747">
+  <div class="comment_title">
+    26 楼
+    <a href='http://wwwesdt34.iteye.com' target='_blank' title='wwwesdt34'>wwwesdt34</a>
+    2010-11-10&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">拜读 慢慢研究</div>
+</div>
+
+<div id="bc1746016">
+  <div class="comment_title">
+    25 楼
+    <a href='http://vtudiv.iteye.com' target='_blank' title='vtudiv'>vtudiv</a>
+    2010-11-08&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">IcyFenix 写道</div><div class="quote_div"><div class="quote_title">vtudiv 写道</div><div class="quote_div">其中long和double会占用2个本地变量空间（32bit），其余占用1个。<br />这句话什么意思?</div><br /><br />根据VM Spec的规定，超过32位大小的数据，VM是把他们当做2个32位数据代替，每次get/set其实都执行了2次操作，而小于等于32位的数据类型，只需要执行1次。因此小于等于32位的类型访问是原子操作，而long和double的访问是非原子操作，这个在并发程序中需要注意，可以通过volatile关键字来保证原子性。<br /><br />上述描述对32位虚拟机有效，64位未做过研究，不评论。</div><br />非常感谢~</div>
+</div>
+
+<div id="bc1744733">
+  <div class="comment_title">
+    24 楼
+    <a href='http://icyfenix.iteye.com' target='_blank' title='IcyFenix'>IcyFenix</a>
+    2010-11-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">&lt;div class="quote_title"&gt;fantasy 写道&lt;/div&gt;<br />&lt;div class="quote_div"&gt;<br />&lt;p&gt;&lt;br&gt;标量类型？ 英文是什么？我们一般叫基本类型吧？&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;/div&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;&lt;span style="font-family: Arial, sans-serif, Helvetica, Tahoma; line-height: 18px;"&gt;Scalar Type&lt;/span&gt;&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;这个翻译应该没有问题，譬如说"&lt;span style="font-family: Arial, sans-serif, Helvetica, Tahoma; line-height: 18px;"&gt;Scalar Replacement"，也许“基本类型替换”会来的跟好懂一些，但翻译为"标量替换"应该更符合习惯。&lt;/span&gt;&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;这篇文章纠结于英文词汇在中文中怎么说这很无趣。&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;刚刚有同学发现了个问题，PM给我，这里修正一下，感谢renwolang521同学&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;<br />&lt;/p&gt;<br />&lt;div class="quote_div" style="margin-top: 0px; margin-right: 5px; margin-bottom: 5px; margin-left: 15px; background-color: #fafafa; padding: 3px; border: 1px solid #cccccc;"&gt;<br />&lt;p style="margin: 0px;"&gt;&lt;br&gt;&lt;span style=""&gt;规则一：-XX:SurvivorRatio=8决定了新生代中eden与survivor的空间比例是&lt;span style="color: #ff0000;"&gt;&lt;strong&gt;1：8 &lt;/strong&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;<br />&lt;p style="margin: 0px;"&gt; &lt;/p&gt;<br />&lt;/div&gt;<br /><br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;这里有个错误，应该是8:1&lt;/p&gt;</div>
+</div>
+
+<div id="bc1744655">
+  <div class="comment_title">
+    23 楼
+    <a href='http://kiral.iteye.com' target='_blank' title='fantasy'>fantasy</a>
+    2010-11-07&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">&lt;div class="quote_title"&gt;IcyFenix 写道&lt;/div&gt;<br />&lt;div class="quote_div"&gt;<br />&lt;div class="quote_title"&gt;sswh 写道&lt;/div&gt;<br />&lt;div class="quote_div"&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;     &lt;span style="color: #ff0000;"&gt;本地变量表&lt;/span&gt;   一般的叫法是  &lt;span style="color: #ff0000;"&gt;局部变量表&lt;/span&gt; 吧？&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;     是翻译还是原著，表达方式怎么这么奇怪。&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;/div&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;Local Variables&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;<br />&lt;p&gt;这个中文有什么很权威的翻译吗？日后我注意一下，谢谢。&lt;/p&gt;<br />&lt;/div&gt;<br />&lt;p&gt;Local Variables   翻译为 局部变量&lt;/p&gt;<br />&lt;p&gt;native 翻译为  本地&lt;/p&gt;<br />&lt;p&gt;标量类型？ 英文是什么？我们一般叫基本类型吧？&lt;/p&gt;<br />&lt;p&gt; &lt;/p&gt;</div>
+</div>
+
+<div id="bc1744041">
+  <div class="comment_title">
+    22 楼
+    <a href='http://niyunjiu.iteye.com' target='_blank' title='niyunjiu'>niyunjiu</a>
+    2010-11-06&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">very good!</div>
+</div>
+
+
+    
+    <div class="pagination"><span class="disabled prev_page">&laquo; 上一页</span> <span class="current">1</span> <a href="/blog/802573?page=2#comments" rel="next">2</a> <a href="/blog/802573?page=3#comments">3</a> <a href="/blog/802573?page=2#comments" class="next_page" rel="next">下一页 &raquo;</a></div>
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="/login" style="background-color:white;"> <img src="/images/login_icon.png" style="vertical-align:middle; margin-right: 10px;" /></a><a href="/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 802573;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', 'JVM内存管理：深入Java内存区域与OOM');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', 'JVM内存管理：深入Java内存区域与OOM');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href='http://icyfenix.iteye.com'><img alt="IcyFenix的博客" class="logo" src="http://www.iteye.com/upload/logo/user/195743/6edbe3e9-9b1b-39ac-923f-e9a4155ad836.jpg?1263900690" title="IcyFenix的博客: FenixSoft 3.0" width="" /></a></div>
+  <div id="blog_owner_name">IcyFenix</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 243869 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="http://www.iteye.com/images/icon_minigender_1.gif?1448702469" title="男" /></li>
+              <li>来自: 珠海</li>
+              <li><img src='/images/status/offline.gif'/></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style='font-weight:normal;font-size:12px;padding-left:30px;'><a href="/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://lei1985.iteye.com' target='_blank'><img alt="LEI1985的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="LEI1985的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://lei1985.iteye.com' target='_blank' title='LEI1985'>LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://nicks.iteye.com' target='_blank'><img alt="nicks的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nicks的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://nicks.iteye.com' target='_blank' title='nicks'>nicks</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://luochuang.iteye.com' target='_blank'><img alt="luochuang的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1240324/aa5f543a-0920-3647-88fa-dc8bd2231a13-thumb.png?1490835628" title="luochuang的博客: 罗闯的微博" width="48px" /></a></div>
+                <div class="left"><a href='http://luochuang.iteye.com' target='_blank' title='luochuang'>luochuang</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://itnull.iteye.com' target='_blank'><img alt="itnull的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="itnull的博客: itnull" width="48px" /></a></div>
+                <div class="left"><a href='http://itnull.iteye.com' target='_blank' title='itnull'>itnull</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="/">全部博客 (32)</a></li>
+                
+              </ul>
+            </div>
+            <div id='month_blogs'>
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="/blog/post">我的论坛</a> (332)
+                </li>
+                <li><a href="/blog/answered_problems">我的问答</a> (11)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="/blog/monthblog/2013-07">2013-07</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2012-05">2012-05</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2012-02">2012-02</a> (1)</li>
+                
+                <li><a href="/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href='http://chensixy.iteye.com' target='_blank' title='chensixy'>chensixy</a>： 
+                  周老师和Java认识也是鸡猿啊！<br />
+                  <a href="/blog/1513365#bc2398694">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href='http://sophistica.iteye.com' target='_blank' title='sophistica'>sophistica</a>： 
+                  那个链接怎么无效了？<br />
+                  <a href="/blog/1181634#bc2398676">征集《Java虚拟机规范（Java7版）》的译者</a>
+                </li>
+                
+                <li>
+                  <a href='http://zhangfeiyu2005.iteye.com' target='_blank' title='zhangfeiyu2005'>zhangfeiyu2005</a>： 
+                   膜拜大神<br />
+                  <a href="/blog/1513365#bc2397152">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+                <li>
+                  <a href='http://qinpengtaiyuan.iteye.com' target='_blank' title='qinpengtaiyuan'>qinpengtaiyuan</a>： 
+                  致敬！！！您做什么都能做到一流，值得我学习！<br />
+                  <a href="/blog/1256329#bc2395857">发布《Java虚拟机规范 （Java SE 7 中文版）》</a>
+                </li>
+                
+                <li>
+                  <a href='http://qinpengtaiyuan.iteye.com' target='_blank' title='qinpengtaiyuan'>qinpengtaiyuan</a>： 
+                  膜拜大神~~~<br />
+                  <a href="/blog/1513365#bc2395856">[Private] 大学回忆，纪念2002-2006</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr/>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br />
+          &copy; 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript"
+                  src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>
+<script src="http://c.csdnimg.cn/public/common/libs/jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="http://ads.csdn.net/js/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="http://www.iteye.com/javascripts/web-storage-cache.min.js?1461122561" type="text/javascript"></script>
+	    <script src="http://www.iteye.com/javascripts/replace.min.js?1464163001" type="text/javascript"></script>
+    
+    
+  </body>
+</html>

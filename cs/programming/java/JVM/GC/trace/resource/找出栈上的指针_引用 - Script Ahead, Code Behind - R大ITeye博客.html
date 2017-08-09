@@ -1,0 +1,703 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>找出栈上的指针/引用 - Script Ahead, Code Behind - ITeye博客</title>
+    <meta name="description" content="继续打捞一些零散的文字。这次是ItEye站内信里的一段对话。 下面是问题和回复内容，带补充。 =================================================================== 问题 ..." />
+    <meta name="keywords" content="Oracle, JVM, OOP 找出栈上的指针/引用" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="/rss" rel="alternate" title="Script Ahead, Code Behind" type="application/rss+xml" />
+    <link href="http://www.iteye.com/stylesheets/blog.css?1499670542" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/blog/black.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>    
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/weiboshare.js?1448702469" type="text/javascript"></script>
+
+    
+  </head>
+  <body>
+    <div id="header">
+	      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">知识库</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+	      <div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+  </div>
+
+	    
+    </div>
+
+    <div id="page">
+        <div id="branding" class="clearfix" style="overflow: hidden;background: none;padding:0 0 2px;">
+          <script type="text/javascript">
+            /*Iteye博客内页顶部通栏-960*90，创建于 2016-08-01*/
+            var cpro_id = "u2720131";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+        </div>
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="/">Script Ahead, Code Behind</a></h1>
+        </div>
+        <div id='fd'></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class='blog_navbar_for'><a href="http://rednaxelafx.iteye.com"><strong>博客</strong></a></li>
+            <li ><a href="/weibo">微博</a></li>
+            <li ><a href="/album">相册</a></li>
+            <li ><a href="/link">收藏</a></li>
+            <li ><a href="/blog/guest_book">留言</a></li>
+            <li ><a href="/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text" value="" />
+              <input class="submit_search" type="submit" value="" />
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style='display:none'>
+  <a href="http://rednaxelafx.iteye.com" class="p-author" target="_blank">RednaxelaFX</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="/blog/1044951">找出栈上的指针/引用</a>
+      <em class="actions">      </em>
+    </h3>
+    <ul class='blog_categories'><strong>博客分类：</strong> <li><a href="/category/61298">Virtual Machine</a></li> </ul>
+        <div class='news_tag'><a href="http://www.iteye.com/blogs/tag/Oracle">Oracle</a><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/OOP">OOP</a>&nbsp;</div>
+    	  
+    	
+    	
+  		
+      </div>
+
+  <div id="blog_content" class="blog_content">
+    继续打捞一些零散的文字。这次是ItEye站内信里的一段对话。<br />下面是问题和回复内容，带补充。<br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>问题</strong></span><br /><br />月初的时候收到这样一个问题：<br /><div class="quote_title">同学F 写道</div><div class="quote_div">请教下，识jvm堆栈中一个数据类型是否为为引用类型，目前虚拟机实现中是如何做的？</div><br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>简要回答</strong></span><br /><br /><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div">嘿嘿，这个问题估计很多人都有疑问，如果不介意的话能搬到<a href="http://hllvm.group.iteye.com/" target="_blank">高级语言虚拟机圈子</a>去开帖问么？<br />调用栈里的引用类型数据是GC的根集合（root set）的重要组成部分；找出栈上的引用是GC的根枚举（root enumeration）中不可或缺的一环。<br /><br />==========================================<br /><br />要看JVM选择用什么方式。通常这个选择会影响到GC的实现。<br /><br />如果JVM选择不记录任何这种类型的数据，那么它就无法区分内存里某个位置上的数据到底应该解读为引用类型还是整型还是别的什么。这种条件下，实现出来的GC就会是“<strong>保守式GC（conservative GC）</strong>”。在进行GC的时候，JVM开始从一些已知位置（例如说JVM栈）开始扫描内存，扫描的时候每看到一个数字就看看它“像不像是一个指向GC堆中的指针”。这里会涉及上下边界检查（GC堆的上下界是已知的）、对齐检查（通常分配空间的时候会有对齐要求，假如说是4字节对齐，那么不能被4整除的数字就肯定不是指针），之类的。然后递归的这么扫描出去。<br /><br />保守式GC的好处是相对来说实现简单些，而且可以方便的用在对GC没有特别支持的编程语言里提供自动内存管理功能。<a href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/" target="_blank">Boehm-Demers-Weiser GC</a>是保守式GC中的典型代表，可以嵌入到C或C++等语言写的程序中。<br /><br />小历史故事：<br />微软的JScript和早期版VBScript也是用保守式GC的；微软的JVM也是。VBScript后来改回用引用计数了。而微软JVM的后代，也就是.NET里的CLR，则改用了完全准确式GC。<br />为了赶上在一个会议上发布消息，微软最初的JVM原型只有一个月左右的时间从开工到达到符合Java标准。所以只好先用简单的办法来实现，也就自然选用了保守式GC。<br />信息来源：<a href="channel9.msdn.com/Shows/Behind+The+Code/Patrick-Dussud-Managing-Garbage-Collection" target="_blank">Patrick Dussud在Channel 9的访谈，23分钟左右</a><br /><br />保守式GC的缺点有：<br />1、会有部分对象本来应该已经死了，但有疑似指针指向它们，使它们逃过GC的收集。这对程序语义来说是安全的，因为所有应该活着的对象都会是活的；但对内存占用量来说就不是件好事，总会有一些已经不需要的数据还占用着GC堆空间。具体实现可以通过一些调节来让这种无用对象的比例少一些，可以缓解（但不能根治）内存占用量大的问题。<br /><br />2、由于不知道疑似指针是否真的是指针，所以它们的值都不能改写；移动对象就意味着要修正指针。换言之，对象就不可移动了。有一种办法可以在使用保守式GC的同时支持对象的移动，那就是增加一个间接层，不直接通过指针来实现引用，而是添加一层“句柄”（handle）在中间，所有引用先指到一个句柄表里，再从句柄表找到实际对象。这样，要移动对象的话，只要修改句柄表里的内容即可。但是这样的话引用的访问速度就降低了。Sun JDK的Classic VM用过这种全handle的设计，但效果实在算不上好。<br /><br />由于JVM要支持丰富的反射功能，本来就需要让对象能了解自身的结构，而这种信息GC也可以利用上，所以很少有JVM会用完全保守式的GC。除非真的是特别懒…<br /><br />------------------------------------------<br /><br />JVM可以选择在栈上不记录类型信息，而在对象上记录类型信息。这样的话，扫描栈的时候仍然会跟上面说的过程一样，但扫描到GC堆内的对象时因为对象带有足够类型信息了，JVM就能够判断出在该对象内什么位置的数据是引用类型了。这种是“<strong>半保守式GC</strong>”，也称为“根上保守（conservative with respect to the roots）”。<br /><br />为了支持半保守式GC，运行时需要在对象上带有足够的元数据。如果是JVM的话，这些数据可能在类加载器或者对象模型的模块里计算得到，但不需要JIT编译器的特别支持。<br /><br />前面提到了Boehm GC，实际上它不但支持完全保守的方式，也可以支持半保守的方式。<a href="gcc.gnu.org/java/" target="_blank">GCJ</a>和<a href="http://www.mono-project.com/" target="_blank">Mono</a>都是以半保守方式使用Boehm GC的例子。<br /><br />Google Android的Dalvik VM的早期版本也是使用半保守式GC的一个例子。不过到2009年中的时候Dalvik VM的内部版本就已经开始支持准确式GC了——<a href="http://osdir.com/ml/android-platform/2009-06/msg00024.html" target="_blank">代价是优化过的DEX文件的体积膨胀了约9%</a>。<br />其实许多较老的JVM都选择这种实现方式。<br /><br />由于半保守式GC在堆内部的数据是准确的，所以它可以在直接使用指针来实现引用的条件下支持部分对象的移动，方法是只将保守扫描能直接扫到的对象设置为不可移动（pinned），而从它们出发再扫描到的对象就可以移动了。<br />完全保守的GC通常使用不移动对象的算法，例如mark-sweep。半保守方式的GC既可以使用mark-sweep，也可以使用移动部分对象的算法，例如<a href="http://www.cs.cornell.edu/home/fms/mcc/bartlett.html" target="_blank">Bartlett风格的mostly-copying GC</a>。<br /><br />半保守式GC对JNI方法调用的支持会比较容易：管它是不是JNI方法调用，是栈都扫过去…完事了。不需要对引用做任何额外的处理。当然代价跟完全保守式一样，会有“疑似指针”的问题。<br /><br />------------------------------------------<br /><br />与保守式GC相对的是“<strong>准确式GC</strong>”，原文可以是precise GC、exact GC、accurate GC或者type accurate GC。外国人也挺麻烦的，“准确”都统一不到一个词上⋯<br />是什么东西“准确”呢？关键就是“类型”，也就是说给定某个位置上的某块数据，要能知道它的准确类型是什么，这样才可以合理地解读数据的含义；GC所关心的含义就是“这块数据是不是指针”。<br />要实现这样的GC，JVM就要能够判断出所有位置上的数据是不是指向GC堆里的引用，包括活动记录（栈+寄存器）里的数据。<br /><br />有几种办法：<br /><br />1、让数据自身带上标记（tag）。这种做法在JVM里不常见，但在别的一些语言实现里有体现。就不详细介绍了。打标记的方式在半保守式GC中倒是更常见一些，例如CRuby就是用打标记的半保守式GC。CLDC-HI比较有趣，栈上对每个slot都配对一个字长的tag来说明它的类型，通过这种方式来减少stack map的开销；类似的实现在别的地方没怎么见过，大家一般都不这么取舍。<br />2、让编译器为每个方法生成特别的扫描代码。我还没见过JVM实现里这么做的，虽说在别的语言实现里有见过。<br />3、从外部记录下类型信息，存成映射表。现在三种主流的高性能JVM实现，HotSpot、JRockit和J9都是这样做的。其中，HotSpot把这样的数据结构叫做OopMap，JRockit里叫做livemap，J9里叫做GC map。Apache Harmony的DRLVM也把它叫<a href="http://svn.apache.org/viewvc/harmony/enhanced/java/trunk/drlvm/vm/jitrino/src/codegenerator/ia32/Ia32GCMap.cpp?view=markup" target="_blank">GCMap</a>。<br />要实现这种功能，需要虚拟机里的解释器和JIT编译器都有相应的支持，由它们来生成足够的元数据提供给GC。<br />使用这样的映射表一般有两种方式：<br />1、每次都遍历原始的映射表，循环的一个个偏移量扫描过去；这种用法也叫“解释式”；<br />2、为每个映射表生成一块定制的扫描代码（想像扫描映射表的循环被展开的样子），以后每次要用映射表就直接执行生成的扫描代码；这种用法也叫“编译式”。<br /><br />在HotSpot中，对象的类型信息里有记录自己的OopMap，记录了在该类型的对象内什么偏移量上是什么类型的数据。所以从对象开始向外的扫描可以是准确的；这些数据是在类加载过程中计算得到的。<br /><br />每个被JIT编译过后的方法也会在<strong>一些特定的位置</strong>记录下OopMap，记录了执行到该方法的某条指令的时候，栈上和寄存器里哪些位置是引用。这样GC在扫描栈的时候就会查询这些OopMap就知道哪里是引用了。这些特定的位置主要在：<br />1、循环的末尾<br />2、方法临返回前 / 调用方法的call指令后<br />3、可能抛异常的位置<br />这种位置被称为<strong>“安全点”（safepoint）</strong>。之所以要选择一些特定的位置来记录OopMap，是因为如果对每条指令（的位置）都记录OopMap的话，这些记录就会比较大，那么空间开销会显得不值得。选用一些比较关键的点来记录就能有效的缩小需要记录的数据量，但仍然能达到区分引用的目的。因为这样，HotSpot中GC不是在任意位置都可以进入，而只能在safepoint处进入。<br />而仍然在解释器中执行的方法则可以通过解释器里的功能自动生成出OopMap出来给GC用。<br /><br />平时这些OopMap都是压缩了存在内存里的；在GC的时候才按需解压出来使用。<br />HotSpot是用“解释式”的方式来使用OopMap的，每次都循环变量里面的项来扫描对应的偏移量。<br /><br />对Java线程中的JNI方法，它们既不是由JVM里的解释器执行的，也不是由JVM的JIT编译器生成的，所以会缺少OopMap信息。那么GC碰到这样的栈帧该如何维持准确性呢？<br />HotSpot的解决方法是：所有经过JNI调用边界（调用JNI方法传入的参数、从JNI方法传回的返回值）的引用都必须用“句柄”（handle）包装起来。JNI需要调用Java API的时候也必须自己用句柄包装指针。在这种实现中，JNI方法里写的“jobject”实际上不是直接指向对象的指针，而是先指向一个句柄，通过句柄才能间接访问到对象。这样在扫描到JNI方法的时候就不需要扫描它的栈帧了——只要扫描句柄表就可以得到所有从JNI方法能访问到的GC堆里的对象。<br />但这也就意味着调用JNI方法会有句柄的包装/拆包装的开销，是导致JNI方法的调用比较慢的原因之一。</div><br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>实现例子：Oracle/Sun HotSpot VM</strong></span><br /><br />Sun HotSpot VM从<a href="http://java.sun.com/developer/technicalArticles/Networking/HotSpot/" target="_blank">设计之初</a>就使用准确式GC。<br />在HotSpot VM之前，Sun在1.0.x到1.2.x中提供的JVM（后来称为Classic VM）用的是半保守式的设计。在SPARC版JDK 1.2.1和1.2.2中提供的<a href="http://labs.oracle.com/techrep/1998/abstract-67.html" target="_blank">EVM</a>（也称为ExactVM）则实现了准确式GC。<br /><br />后面举的一些例子也都显示，高性能VM实现更倾向使用准确式GC；即便一开始为了快速开发使用了半保守式GC，后续发展为了追求性能也会渐渐朝着准确式的方向发展。<br /><br />简要回答里已经提到了HotSpot的实现方式。下面引用几篇论文分别看看HotSpot的client编译器（JDK6）与server编译器对OopMap / safepoint的支持。<br /><br /><a href="http://www.ssw.uni-linz.ac.at/Research/Papers/Ko08/Ko08.pdf" target="_blank">Design of the Java HotSpot Client Compiler for Java 6</a><br /><div class="quote_title">引用</div><div class="quote_div">The Java HotSpotTM VM also provides various other garbage collectors [Sun Microsystems, Inc. 2006c]. Parallel garbage collectors for server machines with large physical memories and multiple CPUs distribute the work among multiple threads, thus decreasing the garbage collection overhead and increasing the application throughput. A concurrent mark-and-sweep algorithm [Boehm et al. 1991; Printezis and Detlefs 2000] allows the user program to continue its execution while dead objects are reclaimed.<br /><br />Exact garbage collection requires information about pointers to heap objects. For machine code, this information is contained in object maps (also called oop maps) created by the JIT compiler. Besides, the compiler creates debugging information that maps the state of a compiled method back to the state of the interpreter. This enables aggressive compiler optimizations, because the VM can deoptimize [Holzle et al. 1992] back to a safe state when the assumptions under which an optimization was performed are invalidated (see Section 2.6). The machine code, the object maps, and the debugging information are stored together in a so-called native method object. Garbage collection and deoptimization are allowed to occur only at some discrete points in the program, called <em><strong>safepoints</strong></em>, such as backward branches, method calls, return instructions, and operations that may throw an exception.<br /><br />...<br />After register allocation, machine code can be generated in a rather simple and straightforward way. The compiler traverses the LIR, operation by operation, and emits appropriate machine instructions into a code buffer. This process also yields object maps and debugging information.</div><br /><br />A Compiler for the Java HotSpot Virtual Machine （描述的是2000年JDK 1.3.0里的HotSpot Client Compiler）<br /><div class="quote_title">引用</div><div class="quote_div">4.5 Debug Information<br />The back end generates <em>debug information</em> as a side effect of code generation. Debug information includes a mapping of program counter offsets to bytecode indices, so-called pc-maps. It also includes oop maps (i.e., pointer maps), specifying the exact stack location of all oops for all pc's where GC can occur. Finally, it includes safepoint information, which is used for GC as well.<br />&nbsp; Pc-maps are required for exception handling: if a runtime exception occurs, the pc where the exception occurred is mapped to the corresponding bytecode index (bci). This bci is used to loop upi the exception handler.<br />&nbsp; Oop maps are bit maps specifying which stack and register locations hold oops for a given pc. During GC, these locations need to be visited since they represent roots for GC. Also, if GC moves objects, pointers must be updated.<br />&nbsp; GC cannot happen at arbitrary places, but only at safepoints. Safepoints are designated places in the code, usually function calls, backward branches, and return instructions. All threads running code (interpreted or compiled) must be suspended at a safepoint before GC is executed. At a safepoint, the location of all oops on the stack is known. The safepoint suspension mechanism is independent of the compiler. Its discussion is beyond the scope of this paper.<br />&nbsp; Debug information is stored in a compressed form together with the generated code in <em>native method objects</em>. They reside in the <em>code cache</em> managed by the VM.</div><br /><br /><a href="http://www.usenix.org/events/jvm01/full_papers/paleczny/paleczny.pdf" target="_blank">The Java HotSpot Server Compiler</a><br /><div class="quote_title">引用</div><div class="quote_div">15.Cleanup<br />...<br />Then we gather and output the information necessary for garbage collection. This includes the location of all object pointers which are alive across a safepoint, as well as the location of all values which are callee saves in the method, and all necessary computation information for derived pointers which have an object pointer as their base.<br />...<br /><br />17.Code Generation<br />In addition to executable machine code, the code generator also provides oopmaps, debug info, exception tables, relocation information, and an implicit−null check table for use by the runtime system. All of this information is associated with one or more native-code offsets from method entry. Oopmaps and debug info are associated with the offset to their safepoint. Oopmaps are generated during register allocation and the code generator simply packages this information for the runtime. Safepoints at which a deoptimization may occur also record debug info describing either the constant value or native storage location for monitors, locals, and expression stack entries. The storage location may be a register or a stack frame offset.<br />...</div><br />在实际代码中，生成OopMap的逻辑在Compile::BuildOopMaps()实现（hotspot/src/share/vm/opto/buildOopMap.cpp）<br /><br />-------------------------------------------------------------------<br /><br />我的草稿箱里有一些关于HotSpot的client和server编译器分别如何生成OopMap的笔记，不过还没整理完所以暂时就不放出来了。不过各位同学如果对此感兴趣的话，可以从<a href="http://hllvm.group.iteye.com/group/topic/21769" target="_blank">-XX:+PrintAssembly</a>输出的日志入手来了解OopMap会关联在哪些位置上，里面的内容有些什么。知道了如何解读OopMap的信息，就能很方便的知道一个被JIT编译过的方法会如何跟GC交互了，某些局部变量是否需要显式置null也会一目了然。<br /><br />例如说，<br /><pre name="code" class="PrintAssembly">[Verified Entry Point]
+  0x00007f3749ea3400: mov    %eax,-0x6000(%rsp)
+# ...
+  0x00007f3749ea3453: callq  0x00007f3749e7c820  ; OopMap{[0]=Oop off=88}
+                                                ;*invokevirtual intern
+                                                ; - TestC2OopMapGeneration::doTest@19 (line 4)
+                                                ;   {optimized virtual_call}
+  0x00007f3749ea3458: inc    %ebp               ;*iinc</pre><br />这段输出含有一条x86-64的callq指令，用来实现对intern()方法的调用。在后面的注释当中可以看到：<br /><pre name="code" class="PrintAssembly">OopMap{[0]=Oop off=88}</pre><br />它的意思是：<br />有一个OopMap与这条callq指令之后的一条指令（inc %ebp）关联在一起；<br />在该指令位置上只有一个活跃的引用，在栈顶上。<br /><br />这是怎么解读的呢？<br />OopMap记录输出的日志的构成是：<br /><pre name="code" class="PrintAssembly">OopMap{零到多个“数据位置=内容类型”的记录 off=该OopMap关联的指令的位置}</pre><br /><br />在这个例子中，<br />[0]表示栈顶指针+偏移量0，这里就是[rsp + 0]，也就是栈顶；右边的"=Oop"说明这个位置存着一个普通对象指针（ordinary object pointer，HotSpot将指向GC堆中对象开头位置的指针称为Oop）。<br />除了Oop之外，可能出现的类型有：<br />hotspot/src/share/vm/compiler/oopMap.hpp<br /><pre name="code" class="c++">  enum oop_types {              // must fit in type_bits
+         unused_value =0,       // powers of 2, for masking OopMapStream
+         oop_value = 1,
+         value_value = 2,
+         narrowoop_value = 4,
+         callee_saved_value = 8,
+         derived_oop_value= 16 };</pre><br />对应的显示为：<br />hotspot/src/share/vm/compiler/oopMap.cpp<br /><pre name="code" class="c++">static
+void print_register_type(OopMapValue::oop_types x, VMReg optional,
+                         outputStream* st) {
+  switch( x ) {
+  case OopMapValue::oop_value:
+    st-&gt;print("Oop");
+    break;
+  case OopMapValue::value_value:
+    st-&gt;print("Value" );
+    break;
+  case OopMapValue::narrowoop_value:
+    tty-&gt;print("NarrowOop" );
+    break;
+  case OopMapValue::callee_saved_value:
+    st-&gt;print("Callers_" );
+    optional-&gt;print_on(st);
+    break;
+  case OopMapValue::derived_oop_value:
+    st-&gt;print("Derived_oop_" );
+    optional-&gt;print_on(st);
+    break;
+  default:
+    ShouldNotReachHere();
+  }
+}</pre><br /><br />off=88就是这个OopMap记录关联的指令在方法的指令流中的偏移量，这个数字是十进制的。<br />可以看到，该方法的指令流是从地址0x00007f3749ea3400开始的；十进制的88就是十六进制的0x58；<br />0x00007f3749ea3400 + 0x58 = 0x00007f3749ea3458，正好就是例子中callq指令后的inc %ebp所在的位置。<br /><br />-------------------------------------------------------------------<br /><br />再举几个例子。<br /><br /><pre name="code" class="PrintAssembly">OopMap{off=228}</pre><br />这个记录比较简单。它说明在该方法的指令流中，有一个OopMap与偏移量228的位置上的指令关联在一起。<br />该OopMap显示这个位置上没有任何活着的引用。<br /><br /><pre name="code" class="PrintAssembly">OopMap{rbp=Oop off=144}</pre><br />在偏移量为144的指令上关联了一个OopMap的记录，有一个活跃的引用在寄存器RBP里。<br /><br /><pre name="code" class="PrintAssembly">OopMap{rbp=NarrowOop off=248}</pre><br />在偏移量为248的指令上关联了一个OopMap的记录，有一个活跃的引用在寄存器RBP里，并且这个引用是压缩过的（NarrowOop）。<br /><br /><pre name="code" class="PrintAssembly">OopMap{[296]=Callers_eax [292]=Callers_ecx [288]=Callers_edx [284]=Callers_ebx [272]=Callers_esi [268]=Callers_edi [28]=Callers_xmm0 [32]=Callers_xmm0 [36]=Callers_xmm1 [40]=Callers_xmm1 [44]=Callers_xmm2 [48]=Callers_xmm2 [52]=Callers_xmm3 [56]=Callers_xmm3 [60]=Callers_xmm4 [64]=Callers_xmm4 [68]=Callers_xmm5 [72]=Callers_xmm5 [76]=Callers_xmm6 [80]=Callers_xmm6 [84]=Callers_xmm7 [88]=Callers_xmm7 off=674}</pre><br />这个OopMap记录看起来比较壮观。其实是它关联的指令位置上正好所有的callee-save的寄存器都保存到栈上了而已。例如说，在[栈顶+296]位置上保存的是调用方的eax；至于它到底是不是一个Oop就得看调用方对应的OopMap是怎么说的了。<br /><br /><pre name="code" class="PrintAssembly">OopMap{[24]=Oop [28]=Derived_oop_[24] [32]=Derived_oop_[24] off=192}</pre><br />这里可以看到derived oop类型的数据，在栈上[28]位置的是由栈上[24]开始的一个对象的派生引用。<br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>实现例子：IBM Sovereign JVM</strong></span><br /><br />IBM在JDK 5之前主要提供的JVM是Sovereign VM，里面的GC是半保守式的（栈上保守，堆上准确）；而从JDK 5开始主要提供J9 VM，里面的GC转为准确式。<br /><br />关于IBM DK for Java 1.4.1中的Sovereign JVM所使用的半保守式GC设计，可以参考下面这段文字：<br /><a href="http://download.boulder.ibm.com/ibmdl/pub/software/dw/jdk/diagnosis/GCandMemory-042005.pdf" target="_blank">IBM JVM Garbage Collection and Storage Allocation techniques</a><br /><div class="quote_title">引用</div><div class="quote_div">4.1 Mark Phase<br /><br />In this phase, all the live objects are marked. Because unreachable objects cannot be identified singly, all the reachable objects must be identified. Therefore, everything else must be garbage. The process of marking all reachable objects is also known as tracing.<br /><br />The active state of the JVM is made up of the saved registers for each thread, the set of stacks that represent the threads, the static’s that are in Java classes, and the set of local and global JNI references. All functions that are invoked in the JVM itself cause a frame on the C stack. This frame might contain instances of objects as a result of either an assignment to a local variable, or a parameter that is sent from the caller. All these references are treated equally by the tracing routines. The Garbage Collector views the stack of a thread as a set of 4-byte fields (8 bytes in 64-bit architecture) and scans them from the top to the bottom of each of the stacks. The Garbage Collector assumes that the stacks are 4-byte aligned (8-byte aligned in 64-bit architecture). Each slot is examined to see whether it points at an object that is in the heap. Note that this does not make it necessarily a pointer to an object, because it might be only an accidental combination of bits in a float or integer. So, when the Garbage Collector performs the scan of a thread stack, it handles conservatively anything that it finds. Anything that points at an object is assumed to be an object, but the object in question must not be moved during garbage collection. A slot is thought to be a pointer to an object if it meets these three requirements:<br /><br />1. It is grained (aligned) on an 8-byte boundary.<br />2. It is inside the bounds of the heap.<br />3. The allocbit is on.<br /><br />Objects that are referenced in this way are known as roots, and have their dosed bit set on to indicate that they cannot be moved. The setting of dosed bits is done only if the Garbage Collector is to perform a compaction. Tracing can now proceed accurately. That is, the Garbage Collector can find references in the roots to other objects and, because it knows that they are real references, it can move them during compaction because it can change the reference. The tracing process uses a stack that can hold 4 KB entries. All references that are pushed to the stack are marked at the same time by setting the relevant markbit to on. The roots are marked and pushed to the stack and then the Garbage Collector starts to pop entries off the stack and trace them. Normal objects (not arrays) are traced by using the mtpr to access the classblock, which tells where references to other objects are to be found in this object. As each reference is found, if it is not already marked, it is marked and pushed.<br /><br />Array objects are traced by looking at each array entry and, if it is not already marked, it is marked and pushed. Some additional code traces a small portion of the array at a time, to try to avoid mark stack overflow.<br /><br />The above process continues repeatedly until the mark stack eventually becomes empty.</div><br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>实现例子：Mono</strong></span><br /><br />（不熟悉Mono的同学们：<a href="http://www.mono-project.com/" target="_blank">Mono</a>不是一种<a href="http://java.sun.com/docs/books/jvms/" target="_blank">JVM</a>实现，而是一种<a href="http://www.ecma-international.org/publications/standards/Ecma-335.htm" target="_blank">CLI</a>实现。不过CLI与JVM有许多相似之处，所以顺便拿Mono来举例）<br /><br />早期版本的Mono采用Boehm GC，使用的是半保守模式。可以参考以下文档的描述：<br /><a href="http://www.mono-project.com/Mono:Runtime#Mono.27s_use_of_Boehm_GC" target="_blank">Mono's use of Boehm GC</a><br /><div class="quote_title">引用</div><div class="quote_div"><span style="font-size: small;">Mono's use of Boehm GC</span><br /><br />We are using the Boehm conservative GC in precise mode.<br /><br />There are a few areas that the GC scans for pointers to managed objects:<br /><br />1. The heap (where other managed objects are allocated)<br />2. thread stacks and registers<br />3. static data area<br />4. data structures allocated by the runtime<br /><br />(1) is currently handled in mostly precise mode: almost always the GC will only consider memory words that contain only references to the heap, so there is very little chance of pointer misidentification and hence memory retention as a result. The new GC requires a fully precise mode here, so it will improve things marginally. The details about mostly precise have to do with large objects with sparse bitmaps of references and the handling of multiple appdomains safely.<br /><br />(2) is always scanned conservatively. This will be true for the new GC, too, at least for the first versions, where I'll have my own share of fun at tracking the bugs that a moving generational GC will expose. Later we'll conservatively scan only the unmanaged part of the stacks.<br /><br />(3) We already optimized this both with Boehm and the current GC to work in precise mode.<br /><br />(4) I already optimized this to work in mostly precise mode (ie some data structures are dealt with precisely, others not yet). I'll need to do more work in this area, especially for the new GC, where having pinned objects can be a significant source of pain.</div><br /><br />从Mono 2.8开始，一种名为<a href="http://www.mono-project.com/Compacting_GC" target="_blank">SGen</a>的新GC实现被包含在发布包中。但这个版本的SGen仍然是半保守式GC。<br /><br />未来Mono将逐渐转为使用完全准确式的GC。这篇文档描述了设计思路：<a href="http://www.mono-project.com/Compacting_GC#Precise_Stack_Marking" target="_blank">Precise Stack Marking</a><br /><br />===================================================================<br /><br /><span style="font-size: medium;"><strong>进一步阅读</strong></span><br /><br /><a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.47.6924" target="_blank">Finding References in Java Stacks</a><br />1997年Sun Labs的一篇论文。主要讲解了在Java的栈里找出引用的特点、问题与解决思路，特别是与jsr带来的问题。其中前三章概括介绍了保守式GC与准确式GC的概念、准确式GC涉及的元数据（stack map）、生成stack map的方法等内容。<br /><br /><a href="http://labs.oracle.com/techrep/1998/abstract-70.html" target="_blank">GC Points in a Threaded Environment</a><br />1998年Sun Labs的一篇论文。讲解了多线程条件下允许GC发生的位置，所谓的“GC point”，也称为“safepoint”。<br /><br /><a href="http://book.douban.com/subject/4873919/" target="_blank">Oracle JRockit: The Definitive Guide</a> 第三章，84-87页，Livemaps<br />介绍了JRockit的GC是如何找到活动记录中的引用的。JRockit的livemap也是由JIT编译器生成出来的。<br /><br /><a href="http://www.usenix.org/events/jvm01/full_papers/barabash/barabash.pdf" target="_blank">Mostly Accurate Stack Scanning</a><br />2001年IBM出的一篇论文。讲解了几种半保守式扫描栈的方法。<br /><br /><a href="http://www.cs.tufts.edu/~nr/cs257/archive/james-stichnoth/p118-stichnoth.pdf" target="_blank">Support for Garbage Collection at Every Instruction in a Java Compiler</a><br />1999年Intel出的一篇论文。它的论点是通过采用压缩技术，即便为每条指令都生成GC map，消耗的空间也可以接受。<br />虽然如此，但现在主流的VM里没有一个是会为每条指令都生成GC map的；相反，多数是不但只在safepoint才生成GC map，而且平时还将GC map压缩起来放在内存里。<br /><br /><a href="http://d3s.mff.cuni.cz/publications/cpe0X.pdf" target="_blank">Accurate Garbage Collection in Uncooperative Environments Revisited</a><br />2002年的一篇论文，描述了<a href="http://www.ovmj.net/index.html" target="_blank">Ovm</a>是如何在缺乏编译器支持的情况下实现准确式GC。Ovm是一种比较特别的JVM实现，它先把Java字节码翻译为C/C++，然后再用GCC之类的C/C++编译器生成最终的代码。本来Java比较容易实现完全准确的GC，但经过中间C/C++这层事情就变得复杂了。<br /><br /><a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.595" target="_blank">Runtime Tags Aren't Necessary</a><br />1988年Andrew W. Appel（虎书作者）写的一篇论文。它提出了在<a href="http://en.wikipedia.org/wiki/ML_(programming_language)" target="_blank">ML语言</a>的静态多态类型系统的支持下，GC可以怎样在不使用tag的前提下将引用与非引用区分开。<br /><br /><a href="http://llvm.org/docs/GarbageCollection.html" target="_blank">Accurate Garbage Collection with LLVM</a><br />编译器框架LLVM的官方文档，介绍了如何将LLVM与准确式GC结合起来。后面这个演示稿介绍了VMKit是如何将MMTk与LLVM整合在一起实现准确式GC的：<a href="http://llvm.org/devmtg/2009-10/Geoffray_GarbageCollectionVMKit.pdf" target="_blank">Precise and Efficient Garbage Collection in VMKit with MMTk</a>。<br /><br />Ruby Hacking Guide，第五章 垃圾收集，is_pointer_to_heap()<br /><a href="http://www.loveruby.net/ja/rhg/book/gc.html" target="_blank">原版（日文）</a><br /><a href="http://www.iteye.com/wiki/Ruby_Hacking_Guide/1276-garbage-collection" target="_blank">ItEye专栏里的中文翻译</a><br />介绍了CRuby是如何区分一个数据是不是指向GC堆中的指针。CRuby的GC也是属于半保守式的。<br /><br /><a href="http://book.douban.com/subject/4881935/" target="_blank">ガベージコレクションのアルゴリズムと実装</a><br />介绍GC的算法与实现的一本书。其中11.5与12.4小节分别介绍了Rubinius与V8的准确式GC的一些设计。<br /><br /><a href="http://book.douban.com/subject/1484763/" target="_blank">Shared Source CLI Essentials</a>, 249-250页, Scheduling Collection<br /><a href="http://callvirt.net/blog/files/Shared%20Source%20CLI%202.0%20Internals.pdf" target="_blank">Shared Source CLI 2.0 Internals</a>, 253-254页, Scheduling Collection<br />介绍SSCLI的书的第一版与第二版（第二版是免费的电子版，点上面的链接可以下载到）。<br />这本书在<a href="http://rednaxelafx.iteye.com/blog/631981" target="_blank">之前一帖</a>里介绍过，强力推荐对VM的实现感兴趣的同学阅读。前提是能接受<a href="http://www.microsoft.com/resources/msdn/en-us/MSDN-FILES/027/002/097/ShSourceCLILicense.htm" target="_blank">SSCLI License</a>。<br />上面提到的章节里介绍了SSCLI的safepoint与GC map。相关代码可以参考：<br /><a href="http://www.koders.com/cpp/fid9E067772586484024BB99A1288EDAEF4F1DBD8DE.aspx" target="_blank">sscli20\sscli20\clr\src\vm\fjit_eetwain.cpp</a><br /><a href="http://www.koders.com/cpp/fidC51589DDEBF651DAF0DEC0677987631E431F51C5.aspx" target="_blank">sscli20\sscli20\clr\src\fjit\fjitencode.cpp</a><br /><br />既然都提到了Mono和SSCLI，那顺带也提一下微软的CLI实现，CLR的玩法吧。<br /><a href="http://msdn.microsoft.com/en-us/library/bb190764.aspx" target="_blank">MSDN: SOS.dll (SOS Debugging Extension)</a><br />这篇MSDN文档介绍了随CLR一起发布的SOS扩展的命令。其中，<br /><pre name="code" class="windbg command">!CLRStack -l</pre><br />可以查看托管方法的栈帧上局部变量的状态。这个命令显示的信息就是由CLR中JIT编译器生成的GC map所提供的。下面是例子<br /><div class="quote_title">引用</div><div class="quote_div"><pre name="code" class="windbg">!CLRStack -l
+OS Thread Id: 0x133c (4924)
+ESP EIP
+0012f3cc 00de0136 
+ConsoleApplication16.Program.ImportString(System.String[,])
+LOCALS:
+0x0012f3f8 = 0x012b1d30
+0x0012f3f4 = 0x00000000
+0x0012f3f0 = 0x00000000
+0x0012f3ec = 0x00000000
+0x0012f3e8 = 0x00000000
+0x0012f3e4 = 0x00000000
+&lt;CLR reg&gt; = 0x00000000
+0x0012f3dc = 0x00000000
+0x0012f3d8 = 0x00000000
+0x0012f3d4 = 0x00000000
+
+0012f440 00de00b8 ConsoleApplication16.Program.Main(System.String[])
+LOCALS:
+
+0012f69c 79e88f63 [GCFrame: 0012f69c]</pre></div>
+  </div>
+
+  
+
+  
+      <script type="text/javascript"><!--
+      google_ad_client = "ca-pub-8990951720398508";
+      /* iteye博客内页Banner-728*90 */
+      google_ad_slot = "8267689356/1918544322";
+      google_ad_width = 728;
+      google_ad_height = 90;
+      //-->
+      </script>
+      <script type="text/javascript"
+              src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+      </script>
+  
+
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type='sina' href="javascript:;" title="分享到新浪微博"><img src="/images/sina.jpg"></a>
+      <a data-type='qq' href="javascript:;" title="分享到腾讯微博"><img src="/images/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="/blog/1048958" class="next" title="通过JMX控制在full GC前后做heap dump">通过JMX控制在full GC前后做heap dump</a>
+      |
+      <a href="/blog/1042471" class="pre" title="答复: HotSpot VM 内存堆的两个Survivor区">答复: HotSpot VM 内存堆的两个Survivor区</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2011-05-15 23:56</li>
+      <li>浏览 11217</li>
+      <li><a href="#comments">评论(6)</a></li>
+      
+      
+      <li>分类:<a href="http://www.iteye.com/blogs/category/language">编程语言</a></li>      
+      <li class='last'><a href="http://www.iteye.com/wiki/blog/1044951" target="_blank" class="more">相关推荐</a></li>
+    </ul>    
+  </div>
+  
+		    
+		
+<div class="boutique-curr-box blog_comment">
+	  <div class="boutique-curr clearfix">
+	    <h5 class="h3titles">参考知识库</h5>
+	    
+	    <dl class="dlnewlist">
+	    
+          <dd><a target="_blank" href="http://lib.csdn.net/base/oracle"><img src="http://img.knowledge.csdn.net/upload/base/1469610323861_861.jpg" width="58" height="58" alt=""></a></dd>
+          <dt>
+              <a target="_blank" href="http://lib.csdn.net/base/oracle" classs="title">Oracle知识库</a>
+              <span>
+                 <em>5620</em>&nbsp;&nbsp;关注 <i>|</i> <em>252</em>&nbsp;&nbsp;收录                  
+              </span>
+          </dt>
+      
+	    </dl>
+	    
+	  </div>
+</div>
+ 		
+      
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2337360">
+  <div class="comment_title">
+    6 楼
+    <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+    2014-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">LeafInWind 写道</div><div class="quote_div">最近研究hotspot的GC实现，一直有一个疑问，就是FastScanClosure::do_oop(oop* p)这个方法仅仅移动了 p 直接引用的对象，那被 p 间接引用的对象呢，它们显然也是活着的，它们是如何被发现以及移动的。</div><br />很简单。FastScanClosure只被DefNew的收集器使用。这是个典型的copying collector，用的是<a rel="nofollow" href="http://en.wikipedia.org/wiki/Cheney's_algorithm" target="_blank">Cheney算法</a>的变种。<br />楼上去<a rel="nofollow" href="http://hllvm.group.iteye.com" target="_blank">HLLVM群组</a>开个帖我们在那边讨论吧？</div><br />开了个帖子http://hllvm.group.iteye.com/group/topic/39376</div>
+</div>
+
+<div id="bc2337314">
+  <div class="comment_title">
+    5 楼
+    <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+    2014-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">LeafInWind 写道</div><div class="quote_div">最近研究hotspot的GC实现，一直有一个疑问，就是FastScanClosure::do_oop(oop* p)这个方法仅仅移动了 p 直接引用的对象，那被 p 间接引用的对象呢，它们显然也是活着的，它们是如何被发现以及移动的。</div><br />很简单。FastScanClosure只被DefNew的收集器使用。这是个典型的copying collector，用的是<a rel="nofollow" href="http://en.wikipedia.org/wiki/Cheney's_algorithm" target="_blank">Cheney算法</a>的变种。<br />楼上去<a rel="nofollow" href="http://hllvm.group.iteye.com" target="_blank">HLLVM群组</a>开个帖我们在那边讨论吧？</div>
+</div>
+
+<div id="bc2337300">
+  <div class="comment_title">
+    4 楼
+    <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+    2014-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">最近研究hotspot的GC实现，一直有一个疑问，就是FastScanClosure::do_oop(oop* p)这个方法仅仅移动了 p 直接引用的对象，那被 p 间接引用的对象呢，它们显然也是活着的，它们是如何被发现以及移动的。</div>
+</div>
+
+<div id="bc2337298">
+  <div class="comment_title">
+    3 楼
+    <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+    2014-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">正在研究hotspot的GC相关代码，发现FastScanClosure::do_oop仅仅移动了被栈上的root直接引用的对象，而那些被栈上root间接引用的对象呢，这些对象是被如果移动的，怎么都没找到。</div>
+</div>
+
+<div id="bc2104741">
+  <div class="comment_title">
+    2 楼
+    <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+    2011-05-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">bbf_sx 写道</div><div class="quote_div">弱弱的问一下，这鞋是什么代码，汇编吗？</div><br />不是，什么代码都不是。它只是!CLRStack这个命令显示的结果，内容是线程的调用栈的状况。可以把这个输出分解来看：<br /><br /><pre name="code" class="windbg">OS Thread Id: 0x133c (4924)</pre><br />这是线程ID<br /><br /><pre name="code" class="windbg">ESP EIP</pre><br />这是格式说明，告诉用户下面的两个数字是什么意思。<br /><br /><pre name="code" class="windbg">0012f3cc 00de0136   
+ConsoleApplication16.Program.ImportString(System.String[,])</pre><br />这是这个调用栈最顶上的一个栈帧，它的栈顶指针（ESP）值是0x0012f3cc，当前执行到的指令地址（EIP）是0x00de0136。这个栈帧对应的方法是ConsoleApplication16.Program.ImportString(System.String[,])。<br /><br /><pre name="code" class="windbg">LOCALS:
+0x0012f3f8 = 0x012b1d30
+0x0012f3f4 = 0x00000000
+0x0012f3f0 = 0x00000000
+0x0012f3ec = 0x00000000
+0x0012f3e8 = 0x00000000
+0x0012f3e4 = 0x00000000
+&lt;CLR reg&gt; = 0x00000000
+0x0012f3dc = 0x00000000
+0x0012f3d8 = 0x00000000
+0x0012f3d4 = 0x00000000</pre><br />该栈帧里的局部变量的状态。等号左手边的是地址，右手边的是在这个地址里存的值。<br />可以看到这个例子里有9个被记录下来的局部变量是在栈上的，有1个是在寄存器里的。（具体是哪个寄存器这里没写。我印象中这个是ESI…不太肯定。</div>
+</div>
+
+<div id="bc2104689">
+  <div class="comment_title">
+    1 楼
+    <a href='http://liferay.iteye.com' target='_blank' title='bbf_sx'>bbf_sx</a>
+    2011-05-16&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div"><pre name="code" class="java">!CLRStack -l
+OS Thread Id: 0x133c (4924)
+ESP EIP
+0012f3cc 00de0136 
+ConsoleApplication16.Program.ImportString(System.String[,])
+LOCALS:
+0x0012f3f8 = 0x012b1d30
+0x0012f3f4 = 0x00000000
+0x0012f3f0 = 0x00000000
+0x0012f3ec = 0x00000000
+0x0012f3e8 = 0x00000000
+0x0012f3e4 = 0x00000000
+&lt;CLR reg&gt; = 0x00000000
+0x0012f3dc = 0x00000000
+0x0012f3d8 = 0x00000000
+0x0012f3d4 = 0x00000000
+
+0012f440 00de00b8 ConsoleApplication16.Program.Main(System.String[])
+LOCALS:
+
+0012f69c 79e88f63 [GCFrame: 0012f69c]</pre></div><br />弱弱的问一下，这鞋是什么代码，汇编吗？</div>
+</div>
+
+
+    
+    
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="/login" style="background-color:white;"> <img src="/images/login_icon.png" style="vertical-align:middle; margin-right: 10px;" /></a><a href="/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 1044951;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', '找出栈上的指针/引用');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '找出栈上的指针/引用');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href='http://rednaxelafx.iteye.com'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="" /></a></div>
+  <div id="blog_owner_name">RednaxelaFX</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 2086948 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="http://www.iteye.com/images/icon_minigender_1.gif?1448702469" title="男" /></li>
+              <li>来自: 海外</li>
+              <li><img src='/images/status/offline.gif'/></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style='font-weight:normal;font-size:12px;padding-left:30px;'><a href="/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://lei1985.iteye.com' target='_blank'><img alt="LEI1985的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="LEI1985的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://lei1985.iteye.com' target='_blank' title='LEI1985'>LEI1985</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://kdyzm.iteye.com' target='_blank'><img alt="狂盗一枝梅的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1152217/145a9c40-cc94-3ff7-b3f6-226467979f8f-thumb.png?1456046842" title="狂盗一枝梅的博客: 狂盗一枝梅的博客" width="48px" /></a></div>
+                <div class="left"><a href='http://kdyzm.iteye.com' target='_blank' title='狂盗一枝梅'>狂盗一枝梅</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://itachimao.iteye.com' target='_blank'><img alt="itachimao的博客" class="logo" src="http://www.iteye.com/upload/logo/user/419924/f8a55273-5521-39c5-9d37-46869f6d9683-thumb.jpg?1297924508" title="itachimao的博客: xcution" width="48px" /></a></div>
+                <div class="left"><a href='http://itachimao.iteye.com' target='_blank' title='itachimao'>itachimao</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href='http://wodeguozili.iteye.com' target='_blank'><img alt="wodeguozili的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="wodeguozili的博客: " width="48px" /></a></div>
+                <div class="left"><a href='http://wodeguozili.iteye.com' target='_blank' title='wodeguozili'>wodeguozili</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="/">全部博客 (430)</a></li>
+                
+                  <li><a href="/category/21342">Programming Languages (23)</a></li>
+                
+                  <li><a href="/category/29010">Compiler (20)</a></li>
+                
+                  <li><a href="/category/61298">Virtual Machine (57)</a></li>
+                
+                  <li><a href="/category/162321">Garbage Collection (4)</a></li>
+                
+                  <li><a href="/category/162318">HotSpot VM (26)</a></li>
+                
+                  <li><a href="/category/78968">Mono (2)</a></li>
+                
+                  <li><a href="/category/33627">SSCLI Rotor (1)</a></li>
+                
+                  <li><a href="/category/60345">Harmony (0)</a></li>
+                
+                  <li><a href="/category/31968">DLR (19)</a></li>
+                
+                  <li><a href="/category/29044">Ruby (28)</a></li>
+                
+                  <li><a href="/category/21339">C# (38)</a></li>
+                
+                  <li><a href="/category/51666">F# (3)</a></li>
+                
+                  <li><a href="/category/58920">Haskell (0)</a></li>
+                
+                  <li><a href="/category/27795">Scheme (1)</a></li>
+                
+                  <li><a href="/category/28215">Regular Expression (5)</a></li>
+                
+                  <li><a href="/category/43041">Python (4)</a></li>
+                
+                  <li><a href="/category/26952">ECMAScript (2)</a></li>
+                
+                  <li><a href="/category/22618">JavaScript (18)</a></li>
+                
+                  <li><a href="/category/22068">ActionScript (7)</a></li>
+                
+                  <li><a href="/category/27153">Squirrel (2)</a></li>
+                
+                  <li><a href="/category/36305">C (6)</a></li>
+                
+                  <li><a href="/category/22307">C++ (10)</a></li>
+                
+                  <li><a href="/category/21340">D (2)</a></li>
+                
+                  <li><a href="/category/66462">.NET (13)</a></li>
+                
+                  <li><a href="/category/22617">Java (86)</a></li>
+                
+                  <li><a href="/category/146196">Scala (1)</a></li>
+                
+                  <li><a href="/category/99374">Groovy (3)</a></li>
+                
+                  <li><a href="/category/21352">Optimization (6)</a></li>
+                
+                  <li><a href="/category/27144">Data Structure and Algorithm (3)</a></li>
+                
+                  <li><a href="/category/34556">Books (4)</a></li>
+                
+                  <li><a href="/category/52245">WPF (1)</a></li>
+                
+                  <li><a href="/category/24366">Game Engines (7)</a></li>
+                
+                  <li><a href="/category/22003">吉里吉里 (12)</a></li>
+                
+                  <li><a href="/category/23065">UML (1)</a></li>
+                
+                  <li><a href="/category/24338">Reverse Engineering (11)</a></li>
+                
+                  <li><a href="/category/22696">NSIS (4)</a></li>
+                
+                  <li><a href="/category/24088">Utilities (3)</a></li>
+                
+                  <li><a href="/category/29744">Design Patterns (1)</a></li>
+                
+                  <li><a href="/category/25057">Visual Studio (9)</a></li>
+                
+                  <li><a href="/category/54389">Windows 7 (3)</a></li>
+                
+                  <li><a href="/category/73928">x86 Assembler (1)</a></li>
+                
+                  <li><a href="/category/22830">Android (2)</a></li>
+                
+                  <li><a href="/category/25305">School Assignment / Test (6)</a></li>
+                
+                  <li><a href="/category/24349">Anti-virus (1)</a></li>
+                
+                  <li><a href="/category/27193">REST (1)</a></li>
+                
+                  <li><a href="/category/28651">Profiling (1)</a></li>
+                
+                  <li><a href="/category/23669">misc (39)</a></li>
+                
+                  <li><a href="/category/23661">NetOA (12)</a></li>
+                
+                  <li><a href="/category/27815">rant (6)</a></li>
+                
+                  <li><a href="/category/65667">anime (5)</a></li>
+                
+                  <li><a href="/category/28622">Links (12)</a></li>
+                
+                  <li><a href="/category/165300">CLR (7)</a></li>
+                
+                  <li><a href="/category/165301">GC (1)</a></li>
+                
+                  <li><a href="/category/226933">OpenJDK (2)</a></li>
+                
+                  <li><a href="/category/251929">JVM (4)</a></li>
+                
+                  <li><a href="/category/275192">KVM (0)</a></li>
+                
+                  <li><a href="/category/279009">Rhino (1)</a></li>
+                
+                  <li><a href="/category/279045">LINQ (2)</a></li>
+                
+                  <li><a href="/category/279221">JScript (0)</a></li>
+                
+                  <li><a href="/category/280142">Nashorn (0)</a></li>
+                
+                  <li><a href="/category/287977">Dalvik (1)</a></li>
+                
+                  <li><a href="/category/293492">DTrace (0)</a></li>
+                
+                  <li><a href="/category/302419">LLVM (0)</a></li>
+                
+                  <li><a href="/category/329856">MSIL (0)</a></li>
+                
+              </ul>
+            </div>
+            <div id='month_blogs'>
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="/blog/news">我的资讯</a> (1)</li>
+                <li>
+                  <a href="/blog/post">我的论坛</a> (576)
+                </li>
+                <li><a href="/blog/answered_problems">我的问答</a> (364)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="/blog/monthblog/2014-12">2014-12</a> (1)</li>
+                
+                  <li><a href="/blog/monthblog/2014-03">2014-03</a> (2)</li>
+                
+                  <li><a href="/blog/monthblog/2013-11">2013-11</a> (2)</li>
+                
+                <li><a href="/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href='http://ph7-3.iteye.com' target='_blank' title='ph7.3'>ph7.3</a>： 
+                  jdk8下 scanoops 时出现这个问题：Windbg E ...<br />
+                  <a href="/blog/1847971#bc2398388">借HSDB来探索HotSpot VM的运行时数据</a>
+                </li>
+                
+                <li>
+                  <a href='http://xiyueshenyan.iteye.com' target='_blank' title='xiyueshenyan'>xiyueshenyan</a>： 
+                  Virtual Machines: Versatile Pla ...<br />
+                  <a href="/blog/1886170#bc2398056">豆列：从表到里学习JVM实现</a>
+                </li>
+                
+                <li>
+                  <a href='http://yao88611852.iteye.com' target='_blank' title='yao88611852'>yao88611852</a>： 
+                  beneo 写道发现google的java项目灰常灰长很喜欢b ...<br />
+                  <a href="/blog/788306#bc2397763">Gson使用中遇到的Date格式问题</a>
+                </li>
+                
+                <li>
+                  <a href='http://twsxtd.iteye.com' target='_blank' title='twsxtd'>twsxtd</a>： 
+                  Jefen 写道RednaxelaFX 写道.....公司网络 ...<br />
+                  <a href="/blog/858009#bc2397452">Java虚拟机分享演示稿2010-12-28版</a>
+                </li>
+                
+                <li>
+                  <a href='http://tuzwu.iteye.com' target='_blank' title='化蝶自在飞'>化蝶自在飞</a>： 
+                  rss?n=xxxx 这个n参数已经无效了.这是不让导出的意思 ...<br />
+                  <a href="/blog/588507#bc2397212">JavaEye博客备份脚本订制版</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+        <div style="margin-top: 10px;float: left;clear: left;">
+          <script type="text/javascript">
+            /*iteye博客内页左侧Button-200*200，创建于2016-08-01*/
+            var cpro_id = "u2720202";
+          </script>
+          <script type="text/javascript" src="http://cpro.baidustatic.com/cpro/ui/c.js"></script>
+				</div>
+      </div>    
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr/>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br />
+          &copy; 2003-2017 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+        <div style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000;">
+          <script type="text/javascript"><!--
+          google_ad_client = "ca-pub-8990951720398508";
+          /* iteye博客内页弹窗-300*250 */
+          google_ad_slot = "8267689356/5752063962";
+          google_ad_width = 300;
+          google_ad_height = 250;
+          //-->
+          </script>
+          <script type="text/javascript"
+                  src="//pagead2.googlesyndication.com/pagead/show_ads.js">
+          </script>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+    
+    <script language="javascript" type="text/javascript" src="http://ads.csdn.net/js/async_new.js"></script>
+<script src="http://c.csdnimg.cn/public/common/libs/jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+<script type="text/javascript">var $csdn_iteye_jq = jQuery.noConflict();// 解决jq与prototype.js命名空间冲突的问题</script>
+<script src="http://ads.csdn.net/js/tracking.js" type="text/javascript"></script>
+    
+	    
+	    <script src="http://www.iteye.com/javascripts/web-storage-cache.min.js?1461122561" type="text/javascript"></script>
+	    <script src="http://www.iteye.com/javascripts/replace.min.js?1464163001" type="text/javascript"></script>
+    
+    
+  </body>
+</html>

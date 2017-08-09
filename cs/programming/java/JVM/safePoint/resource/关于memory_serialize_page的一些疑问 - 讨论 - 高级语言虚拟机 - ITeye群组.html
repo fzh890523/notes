@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>关于memory_serialize_page的一些疑问 - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="memory_serialize_page是在HotSpot VM启动时，在polling page后面分配的一个page，是用来在不使用memory barrier系指令的场景下模拟其操作，这样VM Thread可以在Java线程状态发生变化时，及时获取到它们的状态，以正确地进行safe point时的管理。HotSpot VM有一个参数UseMembar来控制是否使用memory barrier ..." />
+    <meta name="keywords" content="关于memory_serialize_page的一些疑问 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1499670872" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  <link href="http://www.iteye.com/javascripts/editor/css/ui.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/editor/compress.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+  <span style="color:red;">因系统升级，暂停注册。稍后将全面支持使用CSDN帐号进行注册及登录</span>
+  
+  
+        <a href="http://yonka.iteye.com" title="查看我的博客首页" class="welcome">欢迎yonka</a>
+    <a id="notifications_count" href="http://my.iteye.com/notifications">0</a>
+    
+      <a href="http://my.iteye.com/messages" title="你有新的站内短信"><img alt="Newpm" src="http://www.iteye.com/images/newpm.gif?1448702469" />收件箱(13)</a>
+    
+    <a href="http://my.iteye.com" title="我的应用首页">我的应用</a>
+    <div class="quick_menu" style="display:none;">
+      <a href="http://my.iteye.com/feed" title="我关注的好友动态消息">我的关注</a>
+      <a href="http://my.iteye.com/mygroup" title="我加入的群组最新话题">我的群组</a>
+      <a href="http://my.iteye.com/myresume" title="我的个人简历">我的简历</a>
+      <a href="http://my.iteye.com/admin/album" title="我的个人简历">我的相册</a>
+      <a href="http://my.iteye.com/admin/link" title="我收藏的网络资源链接">我的收藏</a>
+      <a href="http://my.iteye.com/admin/code" title="我收藏的代码">我的代码</a>
+      <a href="http://my.iteye.com/admin/weibo" title="用微博发表简短的话题">我的微博</a>
+    </div>
+    <a href="http://yonka.iteye.com/admin" title="管理我的博客">我的博客</a>
+    <a href="http://my.iteye.com/profile" title="修改我的个人设置">设置</a>
+    <a href="/logout" class="nobg" onclick="var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'put'); f.appendChild(m);var s = document.createElement('input'); s.setAttribute('type', 'hidden'); s.setAttribute('name', 'authenticity_token'); s.setAttribute('value', '6n/YOkmm/s4yNaoRc/GPPmcBuK+0MgQvn5AiQerWE3M='); f.appendChild(s);f.submit();return false;">退出</a>
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://stefmoon.iteye.com" class="p-author" target="_blank">stefmoon</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/38904/post/new">发表回复</a></div>
+  
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/38904">关于memory_serialize_page的一些疑问</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-254211">
+  <td class="post_author"><div class="logo"><a href='http://stefmoon.iteye.com' target='_blank'><img alt="stefmoon的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="stefmoon的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://stefmoon.iteye.com' target='_blank' title='stefmoon'>stefmoon</a>
+      2013-10-25
+    </div>
+    <div class="post_body"> 
+      memory_serialize_page是在HotSpot VM启动时，在polling page后面分配的一个page，是用来在不使用memory barrier系指令的场景下模拟其操作，这样VM Thread可以在Java线程状态发生变化时，及时获取到它们的状态，以正确地进行safe point时的管理。HotSpot VM有一个参数UseMembar来控制是否使用memory barrier系的指令，在x86下默认情况是关的，这样应该是出于性能方面的考虑。之前加入memory barrier系指令是因为出现了线程在safe point时无法正常block的bug，<a target="_blank" href="https://bugs.openjdk.java.net/browse/JDK-5075546">这里</a>有些许介绍。后来曾经尝试过<a target="_blank" href="https://bugs.openjdk.java.net/browse/JDK-6279018">去掉参数UseMembar</a>，相当于把默认情况下的-XX:-UseMembar给固化了，但后来发现还是有bug，于是又<a target="_blank" href="https://bugs.openjdk.java.net/browse/JDK-6401008">重新加上</a>了。<br /><br />以上都是我个人的理解，如有不对的地方，还请指正。<br /><br />基本原理是这样，但具体的实现却有很多令人困惑的地方，就是HotSpot是如何通过memory_serialize_page来模拟memory barrier系的指令的。<br /><br />当线程状态发生改变时，会调用ThreadStateTransition::transition(JavaThread *thread, JavaThreadState from, JavaThreadState to)，里面的相应代码如下：<br /><pre name="code" class="c++">
+    // Make sure new state is seen by VM thread
+    if (os::is_MP()) {
+      if (UseMembar) {
+        // Force a fence between the write above and read below
+        OrderAccess::fence();
+      } else {
+        // store to serialize page so VM thread can do pseudo remote membar
+        os::write_memory_serialize_page(thread);
+      }
+    } 
+</pre><br />这个地方的逻辑是一目了然，问题就出在这个os::write_memory_serialize_page上：<br /><pre name="code" class="c++">
+  static inline void write_memory_serialize_page(JavaThread *thread) {
+    uintptr_t page_offset = ((uintptr_t)thread &gt;&gt;
+                            get_serialize_page_shift_count()) &amp;
+                            get_serialize_page_mask();
+    *(volatile int32_t *)((uintptr_t)_mem_serialize_page+page_offset) = 1;
+  } 
+
+</pre><br />这个offset看起来应该是某个线程在memory_serialize_page里的offset，对应某个线程应该会占int32_t，也就是4个字节，1个page一般是4096字节，也就是说只支持1024个线程？<br />还有如何保证每个线程对应一个int field，这个地方的计算我也感到很困惑，get_serialize_page_shift_count()是4，计算方法是log2_intptr(sizeof(class JavaThread)) - log2_intptr(64)，64是指cache line size，这么算的意义不太明白；get_serialize_page_mask()是4092，即11 11111100，这个值倒很好理解，计算方法是vm_page_size() - sizeof(int32_t)。<br /><br />我的最新理解：其实每个线程都可以只写memory_serialize_page的一个地方，但出于避免cache竞争的考虑，尽量写到不同的地方，写到哪个cache line和地址后log2_intptr(64)位完全没关系，而JavaThread对象地址除了后log2_intptr(sizeof(class JavaThread))位，前面的部分是完全不同的，因此右移log2_intptr(sizeof(class JavaThread)) - log2_intptr(64)位后，JavaThread对象地址中决定出现在哪个cache line的部分是完全不同的。<br /><br />好好，问题写着写着感觉自己弄明白了。。。
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/38904/post/254211/quote" id="254211">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%85%B3%E4%BA%8Ememory_serialize_page%E7%9A%84%E4%B8%80%E4%BA%9B%E7%96%91%E9%97%AE&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F38904">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-254212">
+  <td class="post_author"><div class="logo"><a href='http://stefmoon.iteye.com' target='_blank'><img alt="stefmoon的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="stefmoon的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://stefmoon.iteye.com' target='_blank' title='stefmoon'>stefmoon</a>
+      2013-10-25
+    </div>
+    <div class="post_body"> 
+      <br />在serialize所有线程状态时，VM Thread做的操作如下<br /><pre name="code" class="c++">
+// Serialize all thread state variables
+void os::serialize_thread_states() {
+  // On some platforms such as Solaris &amp; Linux, the time duration of the page
+  // permission restoration is observed to be much longer than expected  due to
+  // scheduler starvation problem etc. To avoid the long synchronization
+  // time and expensive page trap spinning, 'SerializePageLock' is used to block
+  // the mutator thread if such case is encountered. See bug 6546278 for details.
+  Thread::muxAcquire(&amp;SerializePageLock, "serialize_thread_states");
+  os::protect_memory((char *)os::get_memory_serialize_page(),
+                     os::vm_page_size(), MEM_PROT_READ);
+  os::protect_memory((char *)os::get_memory_serialize_page(),
+                     os::vm_page_size(), MEM_PROT_RW);
+  Thread::muxRelease(&amp;SerializePageLock);
+}
+</pre><br />把memory_serialize_page设为只读，我的理解是这样会使之前写过这个page的线程对应的cache write back到内存里，也就能够使相应的线程状态更新到内存里。
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/38904/post/254212/quote" id="254212">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%9B%9E%E5%A4%8D%3A+%E5%85%B3%E4%BA%8Ememory_serialize_page%E7%9A%84%E4%B8%80%E4%BA%9B%E7%96%91%E9%97%AE&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F38904%23254212">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-261473">
+  <td class="post_author"><div class="logo"><a href='http://leafinwind.iteye.com' target='_blank'><img alt="LeafInWind的博客" class="logo" src="http://www.iteye.com/upload/logo/user/1218287/0b4c45af-2f12-30a3-ac6b-8f0b192d2e83-thumb.jpg?1481119942" title="LeafInWind的博客: " width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://leafinwind.iteye.com' target='_blank' title='LeafInWind'>LeafInWind</a>
+      2014-04-25
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">stefmoon 写道</div><div class="quote_div"><br />把memory_serialize_page设为只读，我的理解是这样会使之前写过这个page的线程对应的cache write back到内存里，也就能够使相应的线程状态更新到内存里。</div><br /><br />这个理解应该是对的。一直很疑惑代码中为什么要连续的置为只读和可读写。<br />考虑到serialize_page在init_2中首先通过mmap设置为可读写，这里先置为只读清一下cache，保证之前的对java线程状态的修改操作为其他所有线程都可见，然后再重新置为可读写，等待之后的write_serialization_page操作。
+    </div>
+    <div class="post_links">
+      <a href="/group/topic/38904/post/261473/quote" id="261473">引用</a>
+      
+        
+        
+        <a href="#" class="favorite" data-link="/admin/link/new_xhr?user_favorite%5Btitle%5D=%E5%9B%9E%E5%A4%8D%3A+%E5%85%B3%E4%BA%8Ememory_serialize_page%E7%9A%84%E4%B8%80%E4%BA%9B%E7%96%91%E9%97%AE&amp;user_favorite%5Burl%5D=http%3A%2F%2Fhllvm.group.iteye.com%2Fgroup%2Ftopic%2F38904%23261473">收藏</a>
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/38904/post/new">发表回复</a></div>
+  
+</div>
+
+
+  <div class="quick_reply">
+    <form action="/group/topic/38904/post" id="quick_reply_form" method="post" onsubmit="return false;"><div style="margin:0;padding:0;display:inline"><input name="authenticity_token" type="hidden" value="6n/YOkmm/s4yNaoRc/GPPmcBuK+0MgQvn5AiQerWE3M=" /></div>      <input type="hidden" name="post[bbcode]" value="true"/>
+      <span style="background-color: #F2F8EF;padding: 6px;">快速回复</span>
+      
+
+
+  <input type="hidden" id="editor_bbcode_flag"/>
+
+
+
+<div id="editor_main"><textarea class="validate-richeditor bad-words min-length-5" cols="40" id="editor_body" name="post[body]" rows="20" style="width: 480px; height: 200px;"></textarea></div>
+
+
+<script type="text/javascript">
+  var editor = new Control.TextArea.Editor("editor_body", "bbcode", false);
+</script>
+
+      <div style="text-align:right; padding-right: 15px;">(快捷键 Alt+S / Ctrl+Enter) <input class="submit" id="quick_reply_button" name="commit" type="submit" value="提交" /></div>
+    </form>
+    <script type="text/javascript">
+      new HotKey("s",function() {$('quick_reply_button').click();},{altKey: true, ctrlKey: false});
+      new HotKey(new Number(13),function() {$('quick_reply_button').click();},{altKey: false, ctrlKey: true});
+
+      new Validation("quick_reply_form", {immediate: false, onFormValidate: function(result, form){
+      
+        if(confirm('您需要加入此群组才可以使用此功能，你现在申请吗?')) window.location = ('/group/members/new');
+      
+      }});
+    </script>
+  </div>
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '关于memory_serialize_page的一些疑问');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/1001771" target="_blank">Java内存模型笔记</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/51253" target="_blank">求助:tomcate 崩溃,jvm崩溃</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/711529" target="_blank">php serialize-序列化</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/155606" target="_blank">请教关于TOMCAT自动关闭的问题</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/1128881" target="_blank">序列化的几种方式</a></li>
+        
+      </ul>
+    
+  </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2017 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=1284778' width='0' height='0' />");
+</script>
+
+<script src="http://csdnimg.cn/pubfooter/js/tracking.js?version=20130923164150" type="text/javascript"></script>
+
+    
+  </body>
+</html>

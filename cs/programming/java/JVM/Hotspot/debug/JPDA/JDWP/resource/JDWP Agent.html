@@ -1,0 +1,1058 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0108)https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_EVT -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+      
+      <title>
+         JDWP Agent
+      </title>
+      <link rel="Stylesheet" type="text/css" href="./JDWP Agent_files/drl.css">
+   </head>
+   <body>
+      <p class="title">
+         <a id="top" name="top"></a> JDWP Agent
+      </p>
+      <p style="text-align: center">
+         Implementation Description
+      </p>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Revision_History">Revision History</a>
+      </p>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Disclaimer">Disclaimer</a>
+      </p>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#About_this_document">1. About this Document</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Purpose">1.1 Purpose</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Intended_Audience">1.2 Intended Audience</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Using_this_document">1.3 Using This Document</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Conventions_and_Symbols">1.4 Conventions and Symbols</a>
+      </p>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Overview">2. Overview</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#About_JPDA">2.1 About JPDA</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#JDWP_Agent">2.2 The JDWP Agent</a>
+      </p>
+      <blockquote>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#JDWP_features">2.2.1 Key Features</a>
+         </p>
+      </blockquote>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#About_JDWP_Tests">2.3 JDWP Tests</a>
+      </p>
+      <blockquote>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Tests_Features">2.3.1 Key Features</a>
+         </p>
+      </blockquote>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Architecture">3. Architecture</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#JDWP_Agent">3.1 JDWP Agent</a>
+      </p>
+      <blockquote>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_CMD">3.1.1 Command Execution</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_EVENT">3.1.2 Event Handling</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_TM">3.1.3 Thread Management</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_OPS">3.1.4 Agent Operation</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_SUPP">3.1.5 Support Functions</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Arch_EXT">3.1.6 Agent Extensibility</a>
+         </p>
+      </blockquote>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#JDWP_Tests">3.2 JDWP Tests</a>
+      </p>
+      <blockquote>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Tests_frame">3.2.1 Testing Framework</a>
+         </p>
+      </blockquote>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Usage_Scenarios">4. Usage Scenarios</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_Agent">4.1 Running the JDWP Agent</a>
+      </p>
+      <blockquote>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_CMD">4.1.1 Command Flow</a>
+         </p>
+         <p class="TOC">
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_EVT">4.1.2 Event Flow</a>
+         </p>
+      </blockquote>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_TRACE">4.2 Tracing Agent Execution</a>
+      </p>
+      <p class="TOC">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_TestRun">4.3 Running JDWP Tests</a>
+      </p>
+      <p class="TOCHeading">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#References">5. References</a>
+      </p>
+      <h1>
+         <a id="Revision_History" name="Revision_History"></a>Revision History
+      </h1>
+      <table width="100%">
+         <tbody><tr>
+            <td class="TableHeading" width="25%">
+               Version
+            </td>
+            <td class="TableHeading" width="50%">
+               Version Information
+            </td>
+            <td class="TableHeading">
+               Date
+            </td>
+         </tr>
+         <tr>
+            <td class="TableCell" width="25%">
+               Initial version
+            </td>
+            <td class="TableCell">
+               Ivan Popov, Vitaly Provodin, Nadya Morozova: document created.
+            </td>
+            <td class="TableCell">
+               Aug 10, 2006
+            </td>
+         </tr>
+      </tbody></table>
+      <h1>
+         <a id="Disclaimer" name="Disclaimer"></a>Disclaimer and Legal
+         Information
+      </h1>
+      <p>
+         Copyright 2005-2006 The Apache Software Foundation or its licensors,
+         as applicable.<br>
+          Licensed under the Apache License, Version 2.0 (the "License"); you
+         may not use this file except in compliance with the License. You may
+         obtain a copy of the License at <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a><br>
+          Unless required by applicable law or agreed to in writing, software
+         distributed under the License is distributed on an "AS IS" BASIS,
+         WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+         implied. See the License for the specific language governing
+         permissions and limitations under the License.
+      </p>
+      <h1>
+         <a id="About_this_document" name="About_this_document"></a>1. About
+         this document
+      </h1>
+      <h2>
+         <a id="Purpose" name="Purpose"></a>1.1 Purpose
+      </h2>
+      <p>
+         This document describes the architecture and design of the Java Debug
+         Wire Protocol (JDWP) agent developed following JDWP specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>] to support debugging Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> applications according to the Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a>
+         Platform Debug Architecture (JPDA) specifications [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JPDAspec">1</a>]. This description covers the internal structure
+         of the JDWP agent implementation and describes its key components. The
+         document also gives instructions on extending the JDWP agent to enable
+         more JDWP commands. It shows how the agent supports operation in a
+         multi-threaded environment and logging for tracing agent execution.
+      </p>
+      <p>
+         Additionally, this document features a description of JDWP unit tests,
+         their structure and design. The document describes the testing
+         framework and explains how to use it to create new tests. It also
+         provides useful information about running JDWP tests and using
+         command-line options to control their execution.
+      </p>
+      <h2>
+         <a id="Intended_Audience" name="Intended_Audience"></a>1.2 Intended
+         Audience
+      </h2>
+      <p>
+         The target audience for the document primarily includes those
+         developers who wish to extend the JDWP agent with new features or to
+         find and fix bugs in the agent implementation. This document can be
+         also helpful for those who run JDWP tests against this JDWP agent or
+         another JPDA implementation, or create new JDWP tests.
+      </p>
+      <h2>
+         <a id="Using_this_document" name="Using_this_document"></a>1.3 Using
+         This Document
+      </h2>
+      <p>
+         The JDWP agent description has the following major
+         sections:
+      </p>
+      <ul>
+         <li>
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Overview">Overview</a>: an introduction to the JPDA
+            structure and JDWP agent functionality, their main purpose and key
+            features of the agent implementation
+         </li>
+         <li>
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Architecture">Architecture</a>: a description of the
+            agent architecture, its major components and their interaction, as
+            well as the JDWP tests and the testing framework supplied
+         </li>
+         <li>
+            <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Usage_Scenarios">Usage Scenarios</a>: a detailed
+            step-by-step description of major processes running inside the JDWP
+            agent and practical guidelines on running JDWP tests in different
+            modes
+         </li>
+      </ul>
+      <h2>
+         <a id="Conventions_and_Symbols" name="Conventions_and_Symbols"></a>1.4
+         Conventions and Symbols
+      </h2>
+      <p>
+         This document uses the <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/conventions.htm">unified
+         conventions</a> for the DRL documentation kit.
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h1>
+         <a id="Overview" name="Overview"></a>2. Overview
+      </h1>
+      <p>
+         This part of the document includes the key terms and definitions
+         related to the Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> Platform Debug Architecture and
+         lists the key features of the current implementation.
+      </p>
+      <h2>
+         <a id="About_JPDA" name="About_JPDA"></a>2.1 About JPDA
+      </h2>
+      <p>
+         The Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> Platform Debug Architecture (JPDA)
+         describes a set of API functions used for debugging Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> applications running in a Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> Virtual
+         Machine (JVM). JPDA describes the following main APIs represented on
+         different levels:
+      </p>
+      <ul>
+         <li>
+            <strong>Java Debug Interface</strong> (<strong>JDI</strong>) - a
+            high-level API used by a debugger to debug Java applications in a
+            target JVM 
+            <ul>
+               <li>
+                  <strong>JDI Connectors and Transports</strong> - an auxiliary
+                  API for attaching to a target JVM in different ways using
+                  different transport channels from the debugger side
+               </li>
+            </ul>
+         </li>
+         <li>
+            <strong>Java Debug Wire Protocol</strong> (<strong>JDWP</strong>) -
+            a specification of a protocol used for communication between the
+            debugger and the JDWP agent loaded into the JVM process 
+            <ul>
+               <li>
+                  <strong>JDWP Transport Interface </strong> - an auxiliary API that
+                  specifies way to use different transport channels from the
+                  JDWP agent side
+               </li>
+            </ul>
+         </li>
+         <li>
+            <strong>Java Virtual Machine Tool Interface</strong>
+            (<strong>JVMTI</strong>) - a low-level API exposed by a JVM to a
+            JDWP agent (or any other agent) to control execution of a running
+            Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> application and provide access to its data
+         </li>
+      </ul>
+      <p>
+         Figure 1 illustrates the JPDA structure.
+      </p>
+      <p style="text-align: center">
+         <img alt="Internal Debugging Architecture in the debugger and debuggee VMs" src="./JDWP Agent_files/jpda.gif">
+      </p>
+      <p class="special">
+         Figure 1: JPDA Architecture
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h2>
+         <a id="About_JDWP" name="About_JDWP"></a>2.2 The JDWP Agent
+      </h2>
+      <p>
+         The JDWP agent is a JPDA component responsible for executing debugger
+         commands sent to a target JVM. The debugger establishes a connection
+         with the JDWP agent using any available transport and then interacts
+         with the JDWP agent according to the JDWP specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>]. This way, the debugger uses the connection to
+         send commands and get replies with requested data and to set requests
+         for specific events and receive asynchronous event packets with
+         requested data when these events are triggered.
+      </p>
+      <p>
+         In the current implementation, the JDWP agent is a <code>.dll</code>
+         library loaded into the JVM process on JVM start according to
+         command-line options. The agent accesses JVM and application data via
+         the JVMTI and JNI interfaces exposed by JVM. The agent receives JDWP
+         commands from the debugger and triggers their execution using
+         corresponding calls to JVMTI and JNI functions. The JDWP agent works
+         as a usual JVMTI agent and follows the JVMTI specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JVMTIspec">3</a>].<br>
+      For more information about JDWP agent and JDWP protocol, see [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>]. </p>
+      <h3>
+         <a id="JDWP_features" name="JDWP_features"></a>2.2.1 Key Features
+      </h3>
+      <p>
+         The key features of this JDWP agent implementation are the following:
+      </p>
+      <ul>
+         <li>
+            Full support for JDWP specifications for JPDA version 1.5; ability
+            to work with other JPDA-capable Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> debuggers
+         </li>
+         <li>
+            Support for various launching modes and
+            command-line options described in 
+ JPDA
+         documents [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_ConnectDetails">5</a>] </li>
+         <li>
+            Full support for pluggable transports that implement the
+            <code>jdwpTransport</code> API with the default TCP/IP socket transport
+            (<code>dt_socket</code>)
+included         </li>
+         <li>
+            Modular architecture that simplifies debugging
+and adds to the transparency of the JDWP architecture </li>
+         <li>
+            Extensibility to add support for new JDWP commands to enable
+            additional debug features
+         </li>
+         <li>
+            Thread-safety ensured for highly multi-threaded environments
+         </li>
+         <li>
+            Control over trace messages for the agent execution process
+         </li>
+      </ul>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h2>
+         <a id="About_JDWP_Tests" name="About_JDWP_Tests"></a>2.3 JDWP Tests
+      </h2>
+      <p>
+         This JDWP agent implementation is supplied with JDWP unit tests. The
+         tests are based on the JDWP specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>] and can be used for testing this agent or any
+         other JDWP implementation.
+      </p>
+      <p>
+         JDWP tests are written in pure Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> and are based on
+         the JUnit framework [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JUnit">6</a>], 
+         so they can be executed in any environment that
+         supports the JUnit format.
+      </p>
+      <p class="note">
+         Note
+      </p>
+      <p class="notetext">
+         These tests require two instances of JVM: debugger and debuggee. For
+         that, the JUnit framework has been extended with JPDA testing framework 
+		 to provide launching, connecting, and synchronization of two JVM instances in each test.
+      </p>
+      <p>
+         The JPDA testing framework encapsulates all efforts required to launch
+         a target JVM, establish a JDWP connection, and synchronize execution
+         of a debugged application, so that individual tests are relatively
+         simple.<br>
+          Additionally, the framework can be configured to run tests in
+         different modes and configurations by specific properties.
+      </p>
+      <h3>
+         <a id="Tests_Features" name="Tests_Features"></a>2.3.1 Key Features
+      </h3>
+      <p>
+         JDWP tests provided with the JDWP agent have the following key
+         features:
+      </p>
+      <ul>
+         <li>
+            Compliance with JDWP specifications [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>]
+            not tied to this JDWP implementation
+         </li>
+         <li>
+            Pure Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> as the source language
+         </li>
+         <li>
+           Using the JUnit framework and running in any environment that supports the JUnit format
+         </li><li>Launching tests from the command line 
+        </li>
+         <li>
+            JPDA testing framework that includes launching and synchronizing
+            execution of two JVM processes: the debugger and debuggee
+         </li>
+         <li>
+            Support for multiple different configurations, transports, agent
+            modes and options
+         </li>
+         <li>Extensibility to add new tests quickly: functionality shared by multiple tests is implemented in the testing framework, not in individual tests <o:p></o:p></li>
+      </ul>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h1>
+         <a id="Architecture" name="Architecture"></a> 3. Architecture
+      </h1>
+      <p>
+         This part of the document is devoted to the internal structure of this
+         implementation of the JDWP agent and the tests supplied with it.
+      </p>
+      <h2>
+         <a id="JDWP_Agent" name="JDWP_Agent"></a>3.1 JDWP Agent
+      </h2>
+      <p>
+         This section describes the basic architecture of the JDWP agent. For a
+         detailed description of data flows in the agent, see section <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Usage_Scenarios">4. Usage Scenarios</a>.
+      </p>
+      <h3>
+         <a id="Arch_CMD" name="Arch_CMD"></a>3.1.1 Command Execution
+      </h3>
+      <p>
+         To serve as a bridge between the debugger and the target JVM, the JDWP
+         agent implements the command execution flow. In this flow, the
+         <em>transport manager</em> acts as a gateway for all incoming and
+         outgoing packets, the <em>packet dispatcher</em> reads incoming
+         commands, wraps them and transfers to the <em>command dispatcher</em>
+         to find the appropriate <em>command handler</em>. These handlers
+         actually execute commands and then send reply packets to the debugger
+         via the transport manager.
+      </p>
+      <p class="note">
+         Note
+      </p>
+      <p class="notetext">
+         Command handlers normally return control after executing the command
+         with the exception of <em>asynchronous handlers</em>. The latter start
+         a separate thread to execute a command and return control immediately.
+         Asynchronous handlers are used for JDWP commands that may last long
+         and can be interrupted, for example, <code>InvokeMethod</code>.
+         Asynchronous handlers send reply packets to the debugger via the
+         transport manager after completing the command. If an error occurs during 
+		 command handling, the corresponding module forms an error reply packet 
+		 and sends it to the debugger.
+      </p>
+      <p>
+         Figure 2 shows dependencies between major JDWP agent components.
+      </p>
+      <p style="text-align: center">
+         <img alt="major components of JDWP agent related to command execution
+		 and event handling" src="./JDWP Agent_files/data_flow.gif">
+      </p>
+      <p class="special">
+         Figure 2: Structure of the JDWP Agent
+      </p>
+      <p class="notetext">
+         Lines show dependencies between the components of the agent: Red lines
+         are for generating events, and black lines – for command
+         execution.
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h3>
+         <a id="Arch_EVENT" name="Arch_EVENT"></a>3.1.2 Event Handling
+      </h3>
+      <p>
+         The other flow inside the JDWP agent is formed by events. In this
+         flow, the <em>request manager</em> stores all event requests issued by
+         the debugger and enables and disables triggering of JVMTI events by
+         calling the event callbacks component. An <em>event callback</em>
+         composes event packets of a specific type 
+
+
+according to the stored event requests
+
+and passes them to the
+         <em>event dispatcher</em>, which transfers the packets to the debugger
+         via the transport manager.
+      </p>
+      <h3>
+         <a id="Arch_TM" name="Arch_TM"></a>3.1.3 Thread Management
+      </h3>
+      <p>
+         The JDWP agent runs internal threads for its operation and can also
+         access JVM threads. Basically, the agent has two internal threads that
+         support the command and event flows plus temporary threads that
+         asynchronous command handlers start for executing their commands.
+         Event callbacks are invoked in the context of JVM threads. All other
+         modules share their data between  threads and ensure
+      their thread-safe management.</p>
+      <p>
+         All threads accessible for the JDWP agent are registered in its
+         <em>thread manager</em>. This component suspends and resumes threads
+         based on suspend counters, and hides specific internal threads from the debugger.
+      </p>
+      <p>
+         For details on how threads are synchronized in the agent, see <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#Thread_sync">Thread Synchronization</a>.
+      </p>
+      <h3>
+         <a id="Arch_OPS" name="Arch_OPS"></a>3.1.4 Agent Operation
+      </h3>
+      <p>
+         To enable appropriate operation of the JDWP agent, the following core
+         modules are used:
+      </p>
+      <ul>
+         <li>
+            <strong>Packet Wrapping</strong><br>
+             To make packet headers and data accessible for JDWP internal
+            components, <em>packet wrappers</em> are used for command, reply,
+            and event packets. For example, the packet dispatcher uses the
+            wrappers for incoming packets before sending them to the command
+            dispatcher, and event callbacks wrap generated events before
+            transferring them to the event dispatcher.
+         </li>
+         <li>
+            <strong>Object Management</strong><br>
+             To handle objects correctly, the JDWP agent features an <em>object
+            manager</em> for converting JNI object 
+
+
+and class
+
+references  to
+            JDWP object IDs. This component also manages JNI global and weak
+            references to ensure that objects are not garbage collected during
+            command execution.
+         </li>
+         <li>
+            <strong>Memory De-allocation</strong><br>
+             The agent supports automatic de-allocation of memory. When leaving
+            a local block during normal execution or via an exception throw,
+            the agent uses <code>AgentAutoFree</code> and
+            <code>JvmtiAutoFree</code> classes to automatically free memory
+            allocated in the memory manager or returned by JVMTI functions, for example: 
+			<pre>{ 
+    // does operation 1
+    char* buf = GetMemoryManager().Allocate(size);
+    AgentAutoFree af(buf);
+    // does operation 2
+}</pre>
+		</li>
+        <li>
+            <strong><a id="Thread_sync" name="Thread_sync"></a> Thread
+            Synchronization</strong><br>
+             This implementation enables thread-safe operations and thread
+            synchronization similar to Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> language thread
+            safety means. Specifically, the agent uses
+            <code>AgentAutoLock</code> wrappers around
+            <code>AgentMonitor</code> elements in a local block to specify
+            synchronized code blocks.
+
+
+This approach to using thread monitors simplifies thread synchronization and ensures its safety,
+
+ for example: 
+           <pre>AgentMonitor* monitor = new AgentMonitor("some_monitor_name"); 
+{ 
+    MonitorAutoLock lock(monitor); 
+    // does operation 1 
+    monitor-&gt;wait(); 
+    // does operation 2
+} </pre></li></ul>
+            <p>
+         For an illustration of how all these components operate inside the
+         agent, see the Usage Scenarios section.
+      </p>
+         
+      <h3>
+         <a id="Arch_SUPP" name="Arch_SUPP"></a>3.1.5 Support Funcitons
+      </h3>
+      <p>
+         The agent additionally features the following components:
+      </p>
+      <ul>
+         <li>
+            <em>The option parser</em> parses command line input passed to the
+            agent, extracts and handles agent options.
+         </li>
+         <li>
+            <em>The memory manager</em> enables allocation and de-allocation of
+            memory chunks using the JVMTI allocation mechanism by default.
+         </li>
+         <li>
+            <em>The log manager</em> provides output of error, warning, and
+            trace messages according to trace options specified in the agent
+            command line.
+         </li>
+         <li>
+            The <i>agent environment</i> stores references to all
+            agent modules, so a module can be accessible from any other module.
+         </li>
+         <li>
+            <em>The agent monitor</em> enwraps JVMTI raw monitors 
+            to facilitate threads synchronization.
+         </li>
+         <li>
+            <em>C++ wrappers for monitor and memory operation</em> 
+            <code>MonitorAutoLock</code>, <code>AgentAutoFree</code>,
+            <code>JvmtiAutoFree</code> ensure correct thread synchronization
+            and memory de-allocation.
+         </li>
+         <li>
+            The <code>AgentException</code> class defines a tree of possible
+            error exceptions, which allow transferring information about
+            particular error between modules.
+         </li>
+      </ul>
+      <h3>
+         <a id="Arch_EXT" name="Arch_EXT"></a>3.1.6 Agent Extensibility
+      </h3>
+      <p>
+         Each command in JDWP agent is handled by a corresponding class
+         <code>SyncCommandHandler</code> or <code>AsyncCommandHandler</code>,
+         which implements method <code>execute()</code>. This method reads data
+         from the command wrapper, performs required operations, and stores the
+         result data in the reply wrapper or, in case of error, throws the
+         appropriate exception. All command handlers are grouped according to
+         the JDWP command sets and placed to the <code>commands/</code>
+         directory.
+      </p>
+      <p>
+         To add a new JDWP command, define a new class based on
+         <code>SyncCommandHandler</code> or <code>AsyncCommandHandler</code>
+         and implement method <code>execute()</code>. Put this class to the
+         corresponding file according to the command set name in the
+         <code>commands/</code> directory and edit
+         <code>CommandDispatcher</code> to use this class for handling new
+         commands.
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h2>
+         <a id="JDWP_Tests" name="JDWP_Tests"></a>3.2 JDWP Tests
+      </h2>
+      <p>
+         Figure 3 shows the structure of a JDWP test.
+      </p>
+      <p style="text-align: center">
+        <img alt="Debugger and debuggee components related to JDWP testss" src="./JDWP Agent_files/tests.gif"> </p>
+      <p class="special">
+         Figure 3: Testing Framework
+      </p>
+      <p>
+         As shown in the figure, the supplied JDWP tests go through the
+         following life cycle:
+      </p>
+      <ol>
+         <li>
+            The JUnit framework launches a test that initializes the JPDA
+            testing framework.
+</li>
+         <li>
+            The JPDA framework starts the target JVM according to the specified
+            configuration and establishes a JDWP connection using the default
+            or specified transport.
+</li>
+         <li>A synchronization channel is established between the debugger and debuggee virtual machines if required. </li>
+         <li>
+            A testing method is invoked that performs testing of specific JDWP
+            commands and events sending JDWP packets over the established JDWP
+            connection or using the <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#VMMirror">VmMirror wrapper</a>. The test can
+            use the synchronization channel to synchronize its execution with
+            debuggee class.
+         </li>
+         <li>
+            After completing the testing or getting an error, the testing
+            framework terminates the debuggee JVM and closes all resources used
+            for this testing session before the next session starts. This
+            eliminates problems with busy socket ports, orphan JVM processes,
+            or excess running threads when several tests run in a bundle.
+         </li>
+      </ol>
+      <p>
+         JUnit tests must follow the naming policy closely linked with the name
+         and structure of the class being tested. JDWP tests have no Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> classes to be tested. Instead, JDWP tests operate with
+         JDWP commands and events, so it makes sense to name them according to
+         JDWP command names and group them according to JDWP command sets. The
+         following scheme is used for naming JDWP tests:
+      </p>
+<pre>org.apache.harmony.jpda.tests.jdwp.&lt;CommandSet&gt;.&lt;Command&gt;Test 
+org.apache.harmony.jpda.tests.jdwp.Events.&lt;Event&gt;Test
+</pre>
+      <p>
+         If several tests are used for one command that require different
+         debuggee applications, the tests are implemented in separate classes
+         and the numerical suffix is added to the class name. For example:
+      </p>
+<pre>org.apache.harmony.jpda.tests.jdwp.ObjectReference.GetValues001Test.java 
+org.apache.harmony.jpda.tests.jdwp.ObjectReference.GetValues002Test.java
+</pre>
+      <p>
+         Each JDWP test specifies the debuggee class to be run in the target
+         JVM. Depending on the particular test case, tests can share the
+         debuggee class or require individual debuggee classes.
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h3>
+         <a id="Tests_frame" name="Tests_frame"></a>3.2.1 Testing Framework
+      </h3>
+      <p>
+         The main part of the JPDA testing framework is implemented in the
+         following packages:
+      </p>
+      <ul>
+         <li>
+            Package <code>org.apache.harmony.jpda.tests.framework</code>
+            defines the means for debugger and debuggee classes, the
+            communication and synchronization channels, and so on. These can be
+            used for JDWP tests or any other JPDA tests, for example, JDI
+            tests.
+         </li>
+         <li>
+            Internal package
+            <code>org.apache.harmony.jpda.tests.framework.jdwp</code> provides
+            support for JDWP connections, parsing and composing JDWP packets,
+            handling JDWP events, using specific JDWP data types, and so on.<a name="VMMirror"></a>           The package also provides <code>VmMirror</code> wrapper class for
+            JDWP connections that simplifies many operations to bring debuggee
+            JVM to a required state and obtain required data.
+         </li>
+      </ul>
+      <p>
+         The JPDA testing framework does not use the JUnit framework directly
+         and can be used in any other testing environment. However, because
+         these tests are based on the JUint framework, the current
+         implementation features a thin layer between JPDA testing framework
+         and JUnit framework implemented in the
+         <code>org.apache.harmony.jpda.tests.share</code> package. This package
+         provides base classes for all JDWP tests. The JUnit framework launches
+         the classes and passes control to the JPDA testing framework that
+         provides the infrastructure for running JDWP tests.
+      </p>
+      <p>For more detailed information, generate documentation from JDWP tests 
+	  and the framework classes using a parser, such as Javadoc or Doxygen. </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h1>
+         <a id="Usage_Scenarios" name="Usage_Scenarios"></a>4. Usage Scenarios
+      </h1>
+      <p>
+         This part of the document describes the processes going on inside the
+         JDWP agent during its operation and gives tips on using the agent and
+         the tests supplied.
+      </p>
+      <h2>
+         <a id="US_Agent" name="US_Agent"></a>4.1 Running the JDWP Agent
+      </h2>
+      <h3>
+         <a id="US_CMD" name="US_CMD"></a>4.1.1 Command Flow
+      </h3>
+      <p>
+         This section describes a typical data flow in the JDWP agent when handling commands received from the debugger. </p>
+      <p style="text-align: center">
+         <img alt="components and methods involved in handling a command" src="./JDWP Agent_files/command_sequence.gif">
+      </p>
+      <p class="special">
+         Figure 4: JDWP Agent Command Flow
+      </p>
+      <p>
+         As shown in the figure, a command packet passes the following stages:
+      </p>
+      <ol>
+         <li>
+        The transport manager reads the packet and forwards it to the packet dispatcher. </li>
+         <li> The packet dispatcher wraps the packet  with a command wrapper and forwards it to the command dispatcher. </li>
+         <li> The command dispatcher reads the header of the command packet to identify the JDWP command type, creates an instance of the corresponding command handler and passes the packet to this handler for execution. </li>
+         <li>Depending on the command handler type, one of the following happens:
+           <ul>
+             <li> The synchronous command handler reads data form the command packet, executes the command, stores the reply data in the reply packet and returns it to the packet dispatcher. The dispatcher then  sends the reply packet to the debugger via the transport manager. </li>
+             <li>The asynchronous command handler saves the command wrapper for further processing, starts internal threads to execute the command, and returns control immediately. The started thread executes the command as in the case of the synchronous handler and sends the reply packet to the debugger via the transport manager. </li>
+           </ul>
+         </li> 
+         <li>Certain command handlers interact with the request manager to create or destroy an event request. In this case, the request manager enables or disables event callbacks for corresponding JVMTI events. </li>
+   </ol>
+   <p>
+       If an error occurs, the corresponding exception is thrown on any phase and the calling module stores error info in the reply packet and sends it to debugger via transport manager (this is not shown on the picture in order to simplify the overall scheme).
+   </p>
+		   <p class="note">
+               Note
+           </p>
+           <p class="notetext">
+              Figure 4 is simplified not to show that the request manager and
+              the command handler call into the object manager and the thread
+              manager to get the object IDs and the thread info. These calls into the thread and
+              object managers are equally relevant for the command and event
+              packet flows in the JDWP agent. See section <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#US_EVT">4.1.2 Event Flow</a> below for a description of these
+               steps.
+           </p>
+
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h3>
+         <a id="US_EVT" name="US_EVT"></a>4.1.2 Event Flow
+      </h3>
+      <p>
+         This section describes a typical sequence that an event passes inside
+         the JDWP agent.
+      </p>
+      <p style="text-align: center">
+        <img alt="components and methods involved in processing an event" src="./JDWP Agent_files/event_sequence.gif"> </p>
+      <p class="special">
+         Figure 5: Event Flow in JDWP Agent
+</p>
+      
+      <p>As shown in the figure, an event passes the following stages: 
+      </p>
+     
+      <ol>
+        <li>The JVMTI callback forwards the raised event to the request manager, which actually contains the appropriate event handler. </li>
+        <li>The event handler creates an event composer object around the event packet and fills it with the corresponding data using the object manager. Several events for different event requests can be grouped into the event packet if required. </li>
+        <li> The request manager passes the created event composer to the event dispatcher. </li>
+        <li> The event dispatcher extracts the event packet and sends it to the debugger via the transport manager. If required by the event suspend policy, the event dispatcher uses the thread manager to suspend the thread sending the event. </li>
+        <li> If an error occurs during generation of the event packet, this event is  ignored and a warning message is printed to the log output. This is done because the JDWP specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDWPspec">2</a>] does not provide means for reporting event errors. </li>
+   </ol>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h2>
+         <a id="US_TRACE" name="US_TRACE"></a>4.2 Tracing Agent Execution
+      </h2>
+      <p>
+         This agent implementation provides sophisticated means for tracing its
+         execution flow based on the trace macros defined in file
+         <code>Log.h</code>. See comments in this file source for definitions
+         of specific macros. The current implementation uses the following
+         trace message types:
+      </p>
+      <p>
+         <code>CMD</code> - JDWP commands execution
+      </p>
+      <p>
+         <code>PACK</code> - JDWP packets read/write operations
+      </p>
+      <p>
+         <code>DATA</code> - JDWP packets parsing and composing
+      </p>
+      <p>
+         <code>EVENT</code> - JDWP events tracing
+      </p>
+      <p>
+         <code>MEM</code> - memory allocation and de-allocation
+      </p>
+      <p>
+         <code>MAP</code> - object and class ID mapping
+      </p>
+      <p>
+         <code>THRD</code> - thread operations
+      </p>
+      <p>
+         <code>MON</code> - thread synchronization and monitor operations
+      </p>
+      <p>
+         <code>PROG</code> - program flow tracing
+      </p>
+      <p>
+         <code>FUNC</code>- agent functions entry/exit
+      </p>
+      <p>
+         <code>JVMTI</code> - JVMTI calls tracing
+      </p>
+      <p>
+         <code>UTIL</code> - auxiliary utility messages
+      </p>
+      <p>
+         <code>LOG</code> - arbitrary log messages
+      </p>
+      <p>
+         <code>INFO</code> - information and warning messages
+      </p>
+      <p>
+         <code>ERROR</code> - error messages
+      </p>
+      <p>
+         When adding new functionality to the JDWP agent, use the appropriate
+         tracing macros to enable filtering messages with agent command-line
+         options.
+      </p>
+      <p>
+         The agent supports the following additional options used for filter
+         trace messages:
+      </p>
+<pre>trace=log_kinds - applies filtering to log message kind (default: none) 
+src=sources - applies filtering to __FILE__ (default: all) 
+log=filepath - redirects output to the specified file
+</pre>
+      <p>
+         Use these options when you need to find a particular problem in agent
+         execution.
+      </p>
+      <h2>
+         <a id="US_TestRun" name="US_TestRun"></a>4.3 Running JDWP Tests
+      </h2>
+      <p>
+         To run JDWP tests in a default configuration, add the path to the test
+         and framework classes into the CLASSPATH variable value and run the
+         test class on the command line or from a JUnit testing environment.
+      </p>
+   <p> You can control execution of JDWP tests by specifying JVM properties when starting the tests, as follows: </p>
+      <ul>
+         <li>
+            Set different JREs for the running debugger and debuggee JVM
+         </li>
+         <li>
+            Specify the transport for JDWP connections (other than the default TCP/IP socket transport)
+         </li>
+         <li>
+            Specify the connection addresses when running in a specific
+            environment
+         </li>
+         <li>
+            Specify a different time-out value for running tests in a fast or a
+            slow environment
+         </li>
+         <li>
+            Turn the verbose output of test execution on and off
+         </li>
+         <li>
+            Pass additional options to the JDWP agent and the debuggee JVM launched by the test</li>
+         <li>
+            Start the debuggee JVM manually, for example, under a native
+            debugger or profiler
+         </li>
+      </ul>
+      <p>
+         For these purposes, you can use the following properties:
+      </p>
+      <p>
+         <code>jpda.settings.verbose=true|false</code> - switching on the
+         verbose output of the test execution
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeClassName=&lt;name&gt;</code> - the full
+         name of the class to run the debuggee with
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeJavaHome=&lt;path&gt;</code> - the path to
+         the Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> bundle to run the debuggee JVM on
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeJavaExec=&lt;name&gt;</code> - the name of
+         the Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> executable to run the debuggee on
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeJavaPath=&lt;path&gt;</code> - the full
+         path to the Java<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#*">*</a> executable to run the debuggee on
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeAgentName=&lt;name&gt;</code> - the name
+         of agent native library
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeAgentExtraOptions=&lt;string&gt;</code> -
+         extra options for the JDWP agent
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeVMExtraOptions=&lt;string&gt;</code> -
+         extra JVM options to run the debuggee with
+      </p>
+      <p>
+         <code>jpda.settings.debuggeeLaunchKind=auto|manual</code> - enabling
+         manual launching of the debuggee JVM
+      </p>
+      <p>
+         <code>jpda.settings.transportWrapperClass=&lt;name&gt;</code> - the
+         class name of the transport wrapper implementation
+      </p>
+      <p>
+         <code>jpda.settings.transportAddress=&lt;string&gt;</code> - the
+         address for the JDWP connection
+      </p>
+      <p>
+         <code>jpda.settings.syncPort=&lt;number&gt;</code> - the port number
+         for the sync connection
+      </p>
+      <p>
+         <code>jpda.settings.timeout=&lt;number&gt;</code> - the timeout value
+         used in JPDA tests, in milliseconds
+      </p>
+      <p>
+         <code>jpda.settings.waitingTime=&lt;number&gt;</code> - the timeout
+         value for waiting events, in milliseconds
+      </p>
+      <p class="note">
+         Note
+      </p>
+      <p class="notetext">
+         To use another transport implementation different from the default
+         TCP/IP socket transport, you must implement the special
+         <code>TransportWrapper</code> class from the
+         <code>org.apache.harmony.jpda.tests.framework.jdwp</code> package.
+         This implementation must be able to pass JDWP packet bytes right to
+         the specific transport. Alternatively, the implementation can use the JDI pluggable transport API to plug
+         available transport service providers included in the particular JDK
+         bundle. See JDI specification [<a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#REF_JDIspec">4</a>] for
+         <code>com.sun.jdi.spi</code> package for more details.
+      </p>
+      <p>
+         This implementation of the testing framework provides an additional
+         capability of running tests in the manual mode. In this mode, you can
+         launch the debuggee JVM manually on the command line or use a native
+         debugger or profiler. This is often necessary for debugging the JDWP
+         agent or JVM. To turn on the manual mode, specify the property
+         <code>jpda.settings.debuggeeLaunchKind=manual</code> and follow
+         instruction printed by the test.
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <h1>
+         <a id="References" name="References"></a>5. References
+      </h1>
+      <p>
+         <a id="REF_JPDAspec" name="REF_JPDAspec"></a>[1] JPDA documentation,
+         <a target="_blank" href="http://java.sun.com/products/jpda/index.jsp">http://java.sun.com/products/jpda/index.jsp</a>
+      </p>
+      <p>
+         <a id="REF_JDWPspec" name="REF_JDWPspec"></a>[2] JDWP specification,
+         <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdwp-spec.html" target="_blank">http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdwp-spec.html</a>
+      </p>
+      <p>
+         <a id="REF_JVMTIspec" name="REF_JVMTIspec"></a>[3] JVMTI
+         specification, <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html" target="_blank">http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html</a>
+      </p>
+      <p>
+         <a id="REF_JDIspec" name="REF_JDIspec"></a>[4] JDI specification, <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdi/index.html" target="_blank">http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdi/index.html</a>
+</p>
+      <p><a name="REF_ConnectDetails"></a>[5] Connection and Invocation Details, <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html" target="_blank">http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html</a></p>
+      <p><a name="REF_JUnit"></a>[6] JUnit framework, <a href="http://www.junit.org/">http://www.junit.org/</a>      </p>
+      <p>&nbsp;      </p>
+      <p>
+      &nbsp;
+      </p>
+      <p class="backtotop">
+         <a href="https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/jdktools/modules/jpda/doc/JDWP_agent.htm#top">Back to Top</a>
+      </p>
+      <p>
+         (C) Copyright 2006 Intel Corporation<br>
+          <a id="*" name="*">*</a> Other brands and names are the property of
+         their respective owners.
+      </p>
+   
+
+
+</body></html>
