@@ -256,3 +256,59 @@ option+鼠标左键（或触摸板）
 
   这个可以。
 
+
+
+
+
+
+# os
+
+
+
+## kernel
+
+### 类似strace
+
+
+
+#### dtrace
+
+```shell
+sudo dtrace -ln 'syscall:::entry'
+
+sudo dtrace -qn 'syscall::write:entry, syscall::sendto:entry /pid == $target/ { printf("(%d) %s %s", pid, probefunc, copyinstr(arg1)); }' -p $SERVER_PID
+
+sudo dtrace -n 'syscall::open*:entry { printf("%s %s", execname, copyinstr(arg0)); }'
+```
+
+
+
+#### dtruss
+
+```shell
+sudo dtruss -t open_nocancel -p $SERVER_PID
+# sudo strace -e open -p $SERVER_PID
+```
+
+
+
+
+
+## process
+
+
+
+### 查看进程cwd - lsof
+
+* `lsof -d cwd`
+
+  查看所有进程的cwd
+
+* `lsof -a -d cwd -p ${pid}`
+
+  查看指定进程的cwd
+
+> 需要具有要查看进程的权限，同user或者root
+
+
+

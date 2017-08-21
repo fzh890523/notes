@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JVM的基本结构 - wade&amp;luffy - 博客园</title>
+<link type="text/css" rel="stylesheet" href="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-Banlieue13.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-Banlieue13-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/wade-luffy/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/wade-luffy/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/wade-luffy/wlwmanifest.xml">
+<script async="" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'wade-luffy', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="http://www.cnblogs.com/wade-luffy/"><img id="blogLogo" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/wade-luffy/">wade&amp;luffy</a></h1>
+<h2>生活最主要的还是感受，坚持是一种刻意的练习，不断寻找缺点突破缺点的过程，而不是重复做某件事情。</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="navigator">
+			
+<ul id="navList">
+	<li><a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a></li>
+	<li><a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/wade-luffy/">首页</a></li>
+	<li><a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a></li>
+	<li><a id="blog_nav_contact" accesskey="9" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/wade%26amp%3Bluffy">联系</a></li>
+	<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+	<li>
+	</li>
+</ul>
+
+
+			<div class="blogStats">
+				
+				<div id="blog_stats">
+<!--done-->
+随笔- 375&nbsp;
+文章- 0&nbsp;
+评论- 4&nbsp;
+</div>
+				
+			</div><!--end: blogStats -->
+		</div><!--end: navigator 博客导航栏 -->
+		
+<div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/wade-luffy/p/5752893.html">JVM的基本结构</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body"><p><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/990532-20160809131839012-1306380342.png" alt=""></p>
+<p>首先，当一个程序启动之前，它的class会被<strong>类装载器</strong>装入<strong>方法区</strong>，<strong>执行引擎</strong>读取方法区的字节码自适应解析，边解析就边运行（其中一种方式），然后<strong>pc寄存器</strong>指向了main函数所在位置，虚拟机开始为main函数在<strong>java栈</strong>中预留一个栈帧（每个方法都对应一个栈帧），然后开始跑main函数，main函数里的代码被执行引擎映射成本地操作系统里相应的实现，然后调用<strong>本地方法接口</strong>，本地方法运行的时候，操纵系统会为本地方法分配<strong>本地方法栈</strong>，用来储存一些临时变量，然后运行本地方法，调用操作系统APIi等等。&nbsp;&nbsp;</p>
+<p>为了消化上面的那个图，我们先来分析一下下面这张图。&nbsp;</p>
+<p>&nbsp;</p>
+<p><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/990532-20160809132951637-1290135605.png" alt="" style="width: 718px;"></p>
+<p>&nbsp;</p>
+<h2>为什么jvm的内存是分布在操作系统的堆中呢？？</h2>
+<p>因为操作系统的栈是操作系统管理的，它随时会被回收，所以如果jvm放在栈中，那java的一个null对象就很难确定会被谁回收了，那gc的存在就一点意义都莫有了，而要对栈做到自动释放也是jvm需要考虑的，所以放在堆中就最合适不过了。</p>
+<h2>jvm的内存结构居然和操作系统的结构惊人的一致，区别在哪？？</h2>
+<p>原来jvm的设计的模型其实就是操作系统的模型，<strong>基于操作系统</strong>的角度，<strong>jvm</strong>就是个java.exe/javaw.exe，<strong>也就是一个应用</strong>，而<strong>基于class</strong>文
+件来说，jvm就是个操作系统，而jvm的方法区，也就相当于操作系统的硬盘区，我为什么喜欢叫他permanent区吗，因为这个单词是永久的意思，也
+就是永久区，我们的磁盘就是不断电的永久区嘛，是一样的意思啊。而java栈和操作系统栈是一致的，无论是生长方向还是管理的方式，至于堆嘛，虽然概念上
+一致目标也一致，分配内存的方式也一直(new,或者malloc等等)，但是由于他们的<span style="background-color: #ffff00;">管理方式不同</span>，jvm是gc回收，而操作系统是程序员手动释放，所以在<a class="replace_word" title="算法与数据结构知识库" href="http://lib.csdn.net/base/31" target="_blank">算法</a>上有很多的差异，gc的回收算法，估计是jvm里面的经典啊。</p>
+<h2>pc寄存器是干嘛用的？？</h2>
+<p>所谓pc寄存器，无论是在虚拟机中还是在我们虚拟机所寄宿的操作系统中功能目的是一致的，<strong>计算机上的pc寄存器是计算机上的硬件</strong>，本来就是属于计算机，（这一点对于学过汇编的同学应该很容易理解，有很多的寄存器eax，esp之类的32位寄存器，jvm里的寄存器就相当于汇编里的esp寄存器），<strong>计算机用pc寄存器来存放“伪指令”或地址</strong>，而<strong>相对于虚拟机</strong>，<strong>pc寄存器它表现为一块内存(一个字长，虚拟机要求字长最小为32位)</strong>，<strong>虚拟机的pc寄存器</strong>的功能也是存放伪指令，更确切的说存放的是将要执行指令的地址，它甚至可以是操作系统指令的本地地址，当虚拟机正在执行的方法是一个本地方法的时候，jvm的pc寄存器存储的值是undefined，所以你现在应该很明确的知道，<span style="background-color: #ffff00;"><strong>虚拟机的pc寄存器是用于存放下一条将要执行的指令的地址(字节码流)</strong>。</span></p>
+<p>对于一个运行中的Java程序而言，其中的每一个线程都有它自己的PC（程序计数器）寄存器，它是在该线程启动时创建的，PC寄存器的大小是一个字
+长，因此它既能够持有一个本地指针，也能够持有一个returnAddress（finally块）。当线程执行某个Java方法时，PC寄存器的内容总
+是下一条将被执行指令的“地址”，这里的“地址”可以是一个本地指针，也可以是在方法字节码中相对于该方法起始指令的偏移量。如果该线程正在执行一个本地
+方法，那么此时PC寄存器的值是“undefined”。</p>
+<p>&nbsp;</p>
+<h2>classLoader是如何加载class文件和存储文件信息？？</h2>
+<p>当一个classLoder启动的时候，classLoader的生存地点在jvm中的堆，然后它会去主机硬盘上将A.class装载到jvm的方法区，方法区中的这个字节文件会被虚拟机拿来new A字节码()，然后在堆内存生成了一个A字节码的对象，然后<strong>A字节码这个内存文件有两个引用一个指向A的class对象，一个指向加载自己的classLoader。那么方法区中的字节码内存块，除了记录一个class自己的class对象引用和一个加载自己的ClassLoader引用之外，还记录了什么信息呢？？见下图。</strong></p>
+<p><strong><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/990532-20160809133703996-482764801.png" alt="">&nbsp; &nbsp; &nbsp;<img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/990532-20160809133713246-976746469.png" alt=""></strong></p>
+<p>&nbsp;　　<strong>1.类信息：</strong>修饰符(public final)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 是类还是接口(class,interface)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 类的全限定名(Test/ClassStruct.class)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 直接父类的全限定名(java/lang/Object.class)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 直接父接口的权限定名数组(java/io/Serializable)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 也就是&nbsp;public final class ClassStruct extends Object implements Serializable这段描述的信息提取</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>2.字段信息：</strong>修饰符(pirvate)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+字段类型(java/lang/String.class)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 字段名(name)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;也就是类似private String name;这段描述信息的提取</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>&nbsp;3.方法信息:</strong>修饰符(public static final)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 方法返回值(java/lang/String.class)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ &nbsp;方法名(getStatic_str)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 参数需要用到的局部变量的大小还有操作数栈大小(操作数栈我们后面会讲)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 方法体的字节码(就是花括号里的内容)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+异常表(throws Exception)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;也就是对方法public static final String getStatic_str ()throws Exception的字节码的提取<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>4.常量池:</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.1.直接常量：</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 1.1CONSTANT_INGETER_INFO整型直接常量池public final int CONST_INT=0;</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 1.2CONSTANT_String_info字符串直接常量池&nbsp;&nbsp; public final String 
+CONST_STR="CONST_STR";</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.3CONSTANT_DOUBLE_INFO
+浮点型直接常量池</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 等等各种基本数据类型基础常量池(待会我们会反编译一个类，来查看它的常量池等。)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 4.2.方法名、方法描述符、类名、字段名，字段描述符的符号引用</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;也就是<span style="background-color: #ffff00;">所有编译器能够被确定，能够被快速查找的内容都存放在这里</span>，它像数组一样通过索引访问，就是专门用来做查找的。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&nbsp;编译时就能确定数值的常量类型都会复制它的所有常量到自己的常量池中，或者嵌入到它的字节码流中。作为常量池或者字节码流的一部分，编译时常
+量保存在方法区中，就和一般的类变量一样。但是当一般的类变量作为他们的类型的一部分数据而保存的时候，编译时常量作为使用它们的类型的一部分而保存</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>5.类变量：</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ 就是静态字段(&nbsp;public static String static_str="static_str";)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ &nbsp;虚拟机在使用某个类之前，必须在方法区为这些类变量分配空间。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>6.一个到classLoader的引用</strong>，通过this.getClass().getClassLoader()来取得为什么要先经过class呢？思考一下，看一下上面的图，再回来思考。(class A 对象拥有A字节码和加载它的加载器地址引用)</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>7.一个到class对象的引用</strong>，这个对象存储了所有这个字节码内存块的相关信息。所有你能够看到的区域，比如：类信息，你可以通过this.getClass().getName()取得</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;所有的方法信息，可
+以通过this.getClass().getDeclaredMethods()，字段信息可以通过
+this.getClass().getDeclaredFields()，等等，所有在字节码中你想得到的，调用的，通过class这个引用基本都能够
+帮你完成。因为他就是字节码在内存块在堆中的一个对象</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>8.方法表，</strong>如果学习c++的人应
+该都知道c++的对象内存模型有一个叫虚表的东西，java本来的名字就叫c++- 
+-，它的方法表其实说白了就是c++的虚表，它的内容就是这个类的所有实例可能被调用的所有实例方法的直接引用。也是为了动态绑定的快速定位而做的一个类
+似缓存的查找表，它以数组的形式存在于内存中。不过这个表不是必须存在的，取决于虚拟机的设计者，以及运行虚拟机的机器是否有足够的内存。</p>
+<p>&nbsp;</p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/wade-luffy/category/865120.html" target="_blank">JVM</a></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(5752893,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('ed144d26-3347-e611-9fc1-ac853d9f53cc');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/wade-luffy/" target="_blank"><img src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/20160712163123.dms" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/wade-luffy/">wade&amp;luffy</a><br>
+            <a href="http://home.cnblogs.com/u/wade-luffy/followees">关注 - 0</a><br>
+            <a href="http://home.cnblogs.com/u/wade-luffy/followers">粉丝 - 16</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('ed144d26-3347-e611-9fc1-ac853d9f53cc');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(5752893,'Digg')">
+        <span class="diggnum" id="digg_count">0</span>
+    </div>
+    <div class="buryit" onclick="votePost(5752893,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/wade-luffy/p/5752853.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/wade-luffy/p/5752853.html" title="发布于2016-08-09 13:19">JVM的生命周期</a><br><a href="http://www.cnblogs.com/wade-luffy/p/5753057.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/wade-luffy/p/5753057.html" title="发布于2016-08-09 14:16">JVM的栈内存</a><br></div>
+</div>
+
+
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2016-08-09 13:57</span> <a href="http://www.cnblogs.com/wade-luffy/">wade&amp;luffy</a> 阅读(<span id="post_view_count">52</span>) 评论(<span id="post_comment_count">0</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=5752893" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(5752893);return false;">收藏</a></div>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=293616,cb_entryId=5752893,cb_blogApp=currentBlogApp,cb_blogUserGuid='ed144d26-3347-e611-9fc1-ac853d9f53cc',cb_entryCreatedDate='2016/8/9 13:57:00';loadViewCount(cb_entryId);</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container">
+<div id="commentform_title">发表评论</div>
+<span id="tip_comment" style="color:Red"></span>
+<p>
+昵称：<input id="tbCommentAuthor" class="author" disabled="disabled" size="50" value="yonka" type="text">
+</p>
+<div class="commentbox_main">
+<div class="commentbox_title">
+<div class="commentbox_title_left">评论内容：</div>
+<div class="commentbox_title_right">
+<img id="ubb_quote" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/quote.gif" alt="引用" title="添加引用" onclick="insertUBB('tbCommentBody','quote')">
+<img id="ubb_bold" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/b.png" alt="粗体" title="添加粗体" onclick="insertUBB('tbCommentBody','b')">
+<img id="ubb_url" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/lk.png" alt="链接" title="添加链接" onclick="insertUbbUrl('tbCommentBody')">
+<img id="ubb_indent" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/indent.png" alt="缩进" title="添加首行缩进" onclick="insertIndent('tbCommentBody')">
+<img id="ubb_code" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/InsertCode.gif" alt="代码" title="添加代码" onclick="insertUbbCode()">
+<img id="ubb_img" class="comment_icon" src="JVM%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84%20-%20wade&amp;luffy%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/img.gif" alt="图片" title="上传图片" onclick="OpenImageUploadWindow();">
+</div>
+</div>
+<div class="clear"></div>
+<textarea id="tbCommentBody" class="comment_textarea"></textarea>
+</div>
+<p id="commentbox_opt">
+<input id="btn_comment_submit" class="comment_btn" value="提交评论" type="button">
+<span id="span_comment_canceledit" style="display:none"><a href="javascript:void(0);" onclick="return CancelCommentEdit()">不改了</a></span>
+<a href="javascript:void(0);" onclick="return logout();">退出</a>
+        <a id="commentbox_opt_sub" href="javascript:void(0);" title="订阅后有新评论时会邮件通知您" onclick="commentManager.Subscribe()">订阅评论</a>
+</p>
+<div id="tip_comment2" style="color:Red"></div>
+<p>
+[Ctrl+Enter快捷键提交]
+</p>
+<div style="display:none">
+<span id="comment_edit_id"></span><span id="span_parentcomment_id"></span>
+<span id="span_parent_id"></span>
+<span id="span_comment_replyto"></span>
+<span id="span_comment_posted"></span>
+</div>
+</div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"></div>
+<div id="opt_under_post"></div>
+<div id="cnblogs_c1" class="c_ad_block"></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/575635/" target="_blank">消息称天猫全面接管银泰网 官方回应：本来就是一体</a><br> ·  <a href="http://news.cnblogs.com/n/575634/" target="_blank">微软宣布第二个Windows Server预览版，Linux子系统可用</a><br> ·  <a href="http://news.cnblogs.com/n/575633/" target="_blank">中国云计算服务走向国外</a><br> ·  <a href="http://news.cnblogs.com/n/575632/" target="_blank">阿里妈妈换logo品牌升级 下个十年要「品效协同」</a><br> ·  <a href="http://news.cnblogs.com/n/575631/" target="_blank">微软设计的海底数据中心 可能会伪装在珊瑚丛中</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="cnblogs_c2" class="c_ad_block"></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/572854/" target="_blank">学会思考，而不只是编程</a><br> ·  <a href="http://kb.cnblogs.com/page/574767/" target="_blank">编写Shell脚本的最佳实践</a><br> ·  <a href="http://kb.cnblogs.com/page/571915/" target="_blank">为什么你该开始学习编程了？</a><br> ·  <a href="http://kb.cnblogs.com/page/570194/" target="_blank">小printf的故事：什么是真正的程序员？</a><br> ·  <a href="http://kb.cnblogs.com/page/569992/" target="_blank">程序员的工作、学习与绩效</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+<!--done-->
+<div class="newsItem">
+<h3 class="catListTitle">公告</h3>
+	<div id="blog-news"><div id="profile_block">昵称：<a href="http://home.cnblogs.com/u/wade-luffy/">wade&amp;luffy</a><br>园龄：<a href="http://home.cnblogs.com/u/wade-luffy/" title="入园时间：2016-07-11">1年</a><br>粉丝：<a href="http://home.cnblogs.com/u/wade-luffy/followers/">16</a><br>关注：<a href="http://home.cnblogs.com/u/wade-luffy/followees/">0</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('ed144d26-3347-e611-9fc1-ac853d9f53cc')">+加关注</a></div></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="calendar"><div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2017/07/01');return false;">&lt;</a></td><td align="center">2017年8月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2017/09/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">30</td><td class="CalOtherMonthDay" align="center">31</td><td align="center">1</td><td align="center">2</td><td align="center">3</td><td align="center">4</td><td class="CalWeekendDay" align="center">5</td></tr><tr><td class="CalWeekendDay" align="center">6</td><td align="center">7</td><td align="center">8</td><td class="CalTodayDay" align="center">9</td><td align="center">10</td><td align="center">11</td><td class="CalWeekendDay" align="center">12</td></tr><tr><td class="CalWeekendDay" align="center">13</td><td align="center">14</td><td align="center">15</td><td align="center">16</td><td align="center">17</td><td align="center">18</td><td class="CalWeekendDay" align="center">19</td></tr><tr><td class="CalWeekendDay" align="center">20</td><td align="center">21</td><td align="center">22</td><td align="center">23</td><td align="center">24</td><td align="center">25</td><td class="CalWeekendDay" align="center">26</td></tr><tr><td class="CalWeekendDay" align="center">27</td><td align="center">28</td><td align="center">29</td><td align="center">30</td><td align="center">31</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td></tr><tr><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td><td class="CalOtherMonthDay" align="center">7</td><td class="CalOtherMonthDay" align="center">8</td><td class="CalOtherMonthDay" align="center">9</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script></div>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk" type="text">&nbsp;<input onclick="zzk_go()" value="找找看" id="btnZzk" class="btn_my_zzk" type="button"></div>
+<div id="widget_my_google" class="div_my_zzk"><input name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk" type="text">&nbsp;<input onclick="google_go()" value="谷歌搜索" class="btn_my_zzk" type="button"></div>
+</div>
+</div>
+
+</div><div id="sidebar_shortcut" class="sidebar-block">
+<div class="catListLink">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/wade-luffy/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="http://www.cnblogs.com/wade-luffy/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="http://www.cnblogs.com/wade-luffy/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="http://www.cnblogs.com/wade-luffy/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="http://www.cnblogs.com/wade-luffy/tag/" title="我的博客的标签列表">我的标签</a></li>
+<li><a id="itemListLink" onclick="this.blur();WarpClass('itemListLink', 'itemListLin_con');return false;" href="#">更多链接</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+<ul>
+
+</ul>
+</div>
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/wade-luffy/tag/kafka/">kafka</a>(1)</li><li><a href="http://www.cnblogs.com/wade-luffy/tag/Protocol%20Buffers/">Protocol Buffers</a>(1)</li><li><a href="http://www.cnblogs.com/wade-luffy/tag/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a>(1)</li><li><a href="http://www.cnblogs.com/wade-luffy/tag/%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6/">消息中间件</a>(1)</li>
+</ul>
+</div></div><div id="sidebar_categories">
+<div class="catListPostCategory">
+<h3 class="catListTitle">随笔分类</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_0_Link_0" href="http://www.cnblogs.com/wade-luffy/category/899179.html">Debug调优(9)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_1" href="http://www.cnblogs.com/wade-luffy/category/856134.html">FrameWorks(9)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_2" href="http://www.cnblogs.com/wade-luffy/category/865120.html">JVM(14)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_3" href="http://www.cnblogs.com/wade-luffy/category/904814.html">MySql入门经典(15)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_4" href="http://www.cnblogs.com/wade-luffy/category/866095.html">工具使用指南(3)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_5" href="http://www.cnblogs.com/wade-luffy/category/852100.html">结构化数据(1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_6" href="http://www.cnblogs.com/wade-luffy/category/865548.html">排序算法(7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_7" href="http://www.cnblogs.com/wade-luffy/category/852897.html">设计模式(23)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_8" href="http://www.cnblogs.com/wade-luffy/category/853462.html">数据库(7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_9" href="http://www.cnblogs.com/wade-luffy/category/928842.html">影评(1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_10" href="http://www.cnblogs.com/wade-luffy/category/878691.html">杂货店(5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_11" href="http://www.cnblogs.com/wade-luffy/category/851880.html">中间件(8)</a> </li>
+
+</ul>
+
+</div>
+
+<div class="catListPostArchive">
+<h3 class="catListTitle">随笔档案</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_1_Link_0" href="http://www.cnblogs.com/wade-luffy/archive/2017/07.html">2017年7月 (3)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_1" href="http://www.cnblogs.com/wade-luffy/archive/2017/06.html">2017年6月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_2" href="http://www.cnblogs.com/wade-luffy/archive/2017/05.html">2017年5月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_3" href="http://www.cnblogs.com/wade-luffy/archive/2017/04.html">2017年4月 (17)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_4" href="http://www.cnblogs.com/wade-luffy/archive/2017/03.html">2017年3月 (21)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_5" href="http://www.cnblogs.com/wade-luffy/archive/2017/02.html">2017年2月 (8)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_6" href="http://www.cnblogs.com/wade-luffy/archive/2017/01.html">2017年1月 (41)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_7" href="http://www.cnblogs.com/wade-luffy/archive/2016/12.html">2016年12月 (32)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_8" href="http://www.cnblogs.com/wade-luffy/archive/2016/11.html">2016年11月 (114)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_9" href="http://www.cnblogs.com/wade-luffy/archive/2016/10.html">2016年10月 (36)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_10" href="http://www.cnblogs.com/wade-luffy/archive/2016/09.html">2016年9月 (12)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_11" href="http://www.cnblogs.com/wade-luffy/archive/2016/08.html">2016年8月 (69)</a> </li>
+
+<li><a id="CatList_LinkList_1_Link_12" href="http://www.cnblogs.com/wade-luffy/archive/2016/07.html">2016年7月 (17)</a> </li>
+
+</ul>
+
+</div>
+
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/wade-luffy/p/6078301.html#3750798">1. Re:java.lang.instrument使用</a></li>
+        <li class="recent_comment_body">没看明白的大家可以参照<a href="" target="_blank"></a></li>
+        <li class="recent_comment_author">--花不落</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/wade-luffy/p/6078301.html#3750527">2. Re:java.lang.instrument使用</a></li>
+        <li class="recent_comment_body">关于agent-main的例子不够清楚,比如如何运行什么的</li>
+        <li class="recent_comment_author">--花不落</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/wade-luffy/p/5813747.html#3747087">3. Re:JVM的本地方法栈</a></li>
+        <li class="recent_comment_body">java调用本地方法，这个本地方法是不是在jvm的本地方法栈里面执行？</li>
+        <li class="recent_comment_author">--宏客王子</li>
+        <li class="recent_comment_title"><a href="http://www.cnblogs.com/wade-luffy/p/6558022.html#3654045">4. Re:分布式处理与大数据平台(RabbitMQ&amp;Celery&amp;Hadoop&amp;Spark&amp;Storm&amp;Elasticsearch)</a></li>
+        <li class="recent_comment_body">good</li>
+        <li class="recent_comment_author">--linux,dev</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/wade-luffy/p/6072460.html">1. ClassPathXmlApplicationContext的启动(5239)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5996848.html">2. Velocity工作原理解析和优化(5235)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/6004219.html">3. Spring AMQP(3496)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5925728.html">4. Javac编译原理(1894)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5813747.html">5. JVM的本地方法栈(1700)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="http://www.cnblogs.com/wade-luffy/p/6078301.html">1. java.lang.instrument使用(2)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/6558022.html">2. 分布式处理与大数据平台(RabbitMQ&amp;Celery&amp;Hadoop&amp;Spark&amp;Storm&amp;Elasticsearch)(1)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5813747.html">3. JVM的本地方法栈(1)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div id="TopDiggPostsBlock"><ul><li><a href="http://www.cnblogs.com/wade-luffy/p/5936234.html">1. Servlet工作原理解析(1)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5925728.html">2. Javac编译原理(1)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/5812335.html">3. 分布式锁-常用技术方案(1)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/6078301.html">4. java.lang.instrument使用(1)</a></li><li><a href="http://www.cnblogs.com/wade-luffy/p/6074088.html">5. Spring的Lifecycle(1)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		
+<!--done-->
+Copyright ©2017 wade&amp;luffy
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+</body></html>
