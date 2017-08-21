@@ -1,0 +1,148 @@
+TCP performance tuning - how to tune linux
+
+The short summary:
+
+The default Linux tcp window sizing parameters before 2.6.17 sucks.
+
+The short fix [wirespeed for gigE within 5 ms RTT and fastE within 50 ms RTT]:
+
+
+in /etc/sysctl.conf
+
+net/core/rmem_max = 8738000
+net/core/wmem_max = 6553600
+
+net/ipv4/tcp_rmem = 8192 873800 8738000
+net/ipv4/tcp_wmem = 4096 655360 6553600
+
+
+It might also be a good idea to increase vm/min_free_kbytes, especially
+if you have e1000 with NAPI or similar. A sensible value is 16M or 64M:
+vm/min_free_kbytes = 65536
+
+If you run an ancient kernel, increase the txqueuelen to at least 1000:
+ifconfig ethN txqueuelen 1000
+
+If you are seeing "TCP: drop open request" for real load (not a DDoS),
+you need to increase tcp_max_syn_backlog (8192 worked much better than
+1024 on heavy webserver load).
+
+The background:
+
+TCP performance is limited by latency and window size (and overhead, which
+reduces the effective window size) by window_size/RTT (this is how much data
+that can be "in transit" over the link at any given moment).
+
+To get the actual transfer speeds possible you have to divide the resulting
+window by the latency (in seconds):
+
+The overhead is: window/2^tcp_adv_win_scale (tcp_adv_win_scale default is 2)
+
+So for linux default parameters for the recieve window (tcp_rmem):
+87380 - (87380 / 2^2) = 65536.
+
+Given a transatlantic link (150 ms RTT), the maximum performance ends up at:
+65536/0.150 = 436906 bytes/s or about 400 kbyte/s, which is really slow today.
+
+With the increased default size:
+(873800 - 873800/2^2)/0.150 = 4369000 bytes/s, or about 4Mbytes/s, which
+is resonable for a modern network. And note that this is the default, if
+the sender is configured with a larger window size it will happily scale
+up to 10 times this (8738000*0.75/0.150 = ~40Mbytes/s), pretty good for
+a modern network.
+
+2.6.17 and later have resonably good defaults values, and actually tune
+the window size up to the max allowed, if the other side supports it. So
+since then most of this guide is not needed. For good long-haul throughput
+the maxiumum value might need to be increased though.
+
+For the txqueuelen, this is mostly relevant for gigE, but should not hurt
+anything else. Old kernels have shipped with a default txqueuelen of 100,
+which is definately too low and hurts performance.
+
+net/core/[rw]mem_max is in bytes, and the largest possible window size.
+net/ipv4/tcp_[rw]mem is in bytes and is "min default max" for the tcp
+windows, this is negotiated between both sender and reciever. "r" is for
+when this machine is on the recieving end, "w" when the connection is
+initiated from this machine.
+
+There are more tuning parameters, for the Linux kernel they are documented
+in Documentation/networking/ip-sysctl.txt, but in our experience only the
+parameters above need tuning to get good tcp performance..
+
+
+So, what's the downside?
+
+None pretty much. It uses a bit more kernel memory, but this is well regulated
+by a tuning parameter (net/ipv4/tcp_mem) that has good defaults (percentage
+of physical ram). Note that you shouldn't touch that unless you really know
+what you are doing. If you change it and set it too high, you might end up
+with no memory left for processes and stuff.
+
+If you go up above the middle value of net/ipv4/tcp_mem, you enter 
+tcp_memory_pressure, which means that new tcp windows won't grow until 
+you have gotten back under the pressure value. Allowing bigger windows means
+that it takes fewer connections for someone evil to make the rest of the
+tcp streams to go slow.
+
+What you remove is an artificial limit to tcp performance, without that limit
+you are bounded by the available end-to-end bandwidth and loss. So you might
+end up saturating your uplink more effectively, but tcp is good at handling
+this.
+
+The txqueuelen increase will eat about 1.5 megabytes of memory at most given
+an MSS of 1500 bytes (normal ethernet).
+
+Regarding min_free_kbytes, faster networking means kernel buffers get full
+faster and you need more headroom to be able to allocate them. You need to
+have enough to last until the vm manages to free up more memory, and at high
+transfer speeds you have high buffer filling speeds too. This will eat memory
+though, memory that will not be available for normal processes or file cache.
+
+If you see stuff like "swapper: page allocation failure. order:0, mode:0x20"
+you definately need to increase min_free_kbytes for the vm.
+
+
+Notes for Linux 2.4 users:
+
+The RFC1323 window scale value is initially calculated as
+roof(ln(x/65536)/ln(2)), where in 2.4 based kernels x = initial receive
+buffer (or tcp_rmem[default]) and in 2.6 kernels
+x = max(tcp_rmem[max], core_rmem_max)
+
+This effectively limits 2.4 kernel tcp windows to ~tcp_rmem[default],
+but from 2.4.27 (or possibly earlier) the wscale is set to
+max(calculated_wscale, tcp_default_win_scale) which means that one can
+set tcp_default_win_scale to the same value as a 2.6 kernel would.
+
+So if there is a tcp_default_win_scale in /proc/sys/net/ipv4 you should add
+net/ipv4/tcp_default_win_scale = roof(ln(tcp_rmem[max]/65536)/ln(2))
+to /etc/sysctl.conf
+
+
+Notes for other operating systems:
+
+Find out how to set the tcp window sizing options, then increase them
+to sensible values. Most operating systems have the same horribly small
+default values.
+
+AIX example:
+no -p -o sb_max=8738000 -o rfc1323=1 -o tcp_recvspace=873800 -o tcp_sendspace=873800 -o use_isno=0
+AIX 5.2 and up sets tuning parameters permanently like this, otherwise you have
+to set them at boot in /etc/rc.net. See man no for more information on AIX.
+
+Solaris example:
+ndd -set /dev/tcp tcp_xmit_hiwat 873800
+ndd -set /dev/tcp tcp_recv_hiwat 873800
+ndd -set /dev/tcp tcp_max_buf 8738000
+ndd -set /dev/tcp tcp_cwnd_max 8738000
+
+See also:
+http://www.psc.edu/networking/projects/tcptune/ - long page with lots of info
+on obscure operating systems.
+
+About this document:
+Written by Mattias Wadenstein <maswan@acc.umu.se>, please send suggestions
+for improvements. Feel free to use or publish in original or modified form 
+with attribution or link directly here.
+

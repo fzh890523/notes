@@ -1,0 +1,811 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" class=" regenabled  gecko radius jsenabled regloaded" lang="en"><head>
+<meta content="text/html; charset=windows-1252" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="text/javascript" http-equiv="Content-Script-Type">
+<title>java</title>
+<meta content="Oracle DARB XHTML Converter (Mode = document) - Version 1.0.22 Build 1" name="generator">
+<meta content="2013-12-17T13:1:46Z" name="date">
+<meta content="noarchive" name="robots">
+<meta content="java" name="doctitle">
+<meta content="Release 7" name="relnum">
+<meta content="E38210-01" name="partnum">
+
+
+
+
+
+
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/popUp.js"></script>
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/sniff.js"></script>
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/menucontent.js"></script>
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/menucode.js"></script>
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/developer.js"></script>
+<script language="javascript1.2" type="text/javascript" src="java7_windows_files/search.js"></script>
+<link rel="stylesheet" href="java7_windows_files/default_developer.css">
+<meta name="collection" content="reference"> 
+</head>
+<body>
+<noscript>JavaScript is not supported by your browser. JavaScript
+support is required for full functionality of this page.</noscript>
+<div class="a0 a0v1" id="a0v1"><!-- BEGIN A1 COMPONENT V.0 -->
+<div class="a1 a1r2">
+<div class="a1v0"><a href="#skip2content" class="skiplink">Skip to
+Content</a></div>
+</div>
+<!-- END A1 COMPONENT V.0 -->
+<!-- BEGIN A2 COMPONENT V.1 -->
+<div class="a2w0">
+<div class="a2" id="a2v1">
+<div class="a2w1">
+<div class="a2w2">
+<div class="a2w3">
+<div class="a2w4">
+<div class="a2topiclinks"><a href="http://www.oracle.com/" title="Oracle Home Page" id="sunlogo" name="sunlogo"><img src="java7_windows_files/a.gif" alt="Home Page" border="0" height="58" width="98"></a>
+<ul id="mtopics">
+<li id="mtopic1" class=" a2nomenu"><a id="glink1" class="tpclink a2menu" title="See Oracle Technology Network" href="http://oracle.com/technology" name="glink1">Oracle Technology Network</a></li>
+<li id="mtopic2" class=" a2nomenu"><a id="glink2" class="tpclink a2menu" title="Software Downloads" href="http://www.oracle.com/technology/software/index.html" name="glink2">Software Downloads</a></li>
+<li id="mtopic3" class=" a2nomenu"><a id="glink3" class="tpclink a2menu" title="See Java SE Documentation" href="http://download.oracle.com/javase/index.html" name="glink3">Documentation</a></li>
+</ul>
+<div class="a2search"><a href="http://docs.oracle.com/javase/search.html" target="_blank">Search</a></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- END A2 COMPONENT V.1 -->
+<!-- BEGIN SEPARATOR -->
+<div class="hr">
+<hr></div>
+<!-- END SEPARATOR -->
+<!-- ============ -->
+<!-- MAIN CONTENT -->
+<!-- ============ -->
+<a name="skip2content" id="skip2content"></a>
+
+
+
+
+<a id="CBBFHAJA" name="CBBFHAJA">
+
+</a><div><a id="CBBFHAJA" name="CBBFHAJA"></a><a id="BGBCIEFC" name="BGBCIEFC">
+<div class="smallpagetitle"><h1>java</h1></div>
+<p>Launches a Java application.</p>
+</a><a id="sthref34" name="sthref34">
+<h2>Synopsis</h2>
+<p><b>java</b> [ <i>options</i> ] <i>class</i> [ <i>arguments</i> ]</p>
+<p><b>java</b> [ <i>options</i> ] <b>-jar</b> <i>file.jar</i> [ <i>arguments</i> ]</p>
+<p><b>javaw</b> [ <i>options</i> ] <i>class</i> [ <i>arguments</i> ]</p>
+<p><b>javaw</b> [ <i>options</i> ] <b>-jar</b> <i>file.jar</i> [ <i>arguments</i> ]</p>
+</a><dl><a id="sthref34" name="sthref34">
+<dt><i>options</i></dt>
+</a><dd><a id="sthref34" name="sthref34">
+</a><p><a id="sthref34" name="sthref34">Command-line options. See </a><a href="#CBBIJCHG">Options</a>.</p>
+</dd>
+<dt><i>class</i></dt>
+<dd>
+<p>The name of the class to be called.</p>
+</dd>
+<dt><i>file.jar</i></dt>
+<dd>
+<p>The name of the JAR file to be called. Used only with the <code>-jar</code> command.</p>
+</dd>
+<dt><i>argument</i>s</dt>
+<dd>
+<p>The arguments passed to the <code>main</code> function.</p>
+</dd>
+</dl>
+<a id="sthref35" name="sthref35">
+<h2>Description</h2>
+<p>The <code>java</code> command starts a Java application. It does this
+ by starting a Java runtime environment, loading a specified class, and 
+calling that class's <code>main</code> method.</p>
+<p>The method must be declared public and static, it must not return any
+ value, and it must accept a String array as a parameter. The method 
+declaration has the following form:</p>
+<pre xml:space="preserve">public static void main(String[] args)
+</pre>
+<p>By default, the first argument without an option is the name of the 
+class to be called. A fully qualified class name should be used. If the <code>-jar</code>
+ option is specified, then the first non-option argument is the name of a
+ JAR file containing class and resource files for the application, with 
+the startup class indicated by the Main-Class manifest header.</p>
+<p>The Java runtime searches for the startup class, and other classes 
+used, in three sets of locations: the bootstrap class path, the 
+installed extensions, and the user class path.</p>
+<p>Non-option arguments after the class name or JAR file name are passed to the <code>main</code> function.</p>
+<p>The <code>javaw</code> command is identical to <code>java</code>, except that with <code>javaw</code> there is no associated console window. Use javaw when you do not want a command prompt window to appear. The <code>javaw</code> launcher will, however, display a dialog box with error information if a launch fails for some reason.</p>
+</a><a id="CBBIJCHG" name="CBBIJCHG">
+<h2>Options</h2>
+<p>The launcher has a set of standard options that are supported in the current runtime environment.</p>
+</a><p><a id="CBBIJCHG" name="CBBIJCHG">In addition, the default Java 
+HotSpot VMs provide a set of non-standard options that are subject to 
+change in future releases. See </a><a href="#BGBJAAEH">Nonstandard Options</a>.</p>
+<a id="CBBIAJDA" name="CBBIAJDA">
+<h3>Standard Options</h3>
+</a><dl><a id="CBBIAJDA" name="CBBIAJDA">
+<dt>-client</dt>
+</a><dd><a id="CBBIAJDA" name="CBBIAJDA">
+<p>Selects the Java HotSpot Client VM. A 64-bit capable JDK currently 
+ignores this option and instead uses the Java Hotspot Server VM.</p>
+</a><p><a id="CBBIAJDA" name="CBBIAJDA">For default Java VM selection, see the Server-Class Machine Detection page at<br>
+<code></code></a><code><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/vm/server-class.html">http://docs.oracle.com/javase/7/docs/technotes/guides/vm/server-class.html</a></code></p>
+</dd>
+<dt>-server</dt>
+<dd>
+<p>Selects the Java HotSpot Server VM. On a 64-bit capable JDK, only the Java Hotspot Server VM is supported so the <code>-</code><code>server</code> option is implicit.</p>
+<p>For default a Java VM selection, see the Server-Class Machine Detection page at<br>
+<code><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/vm/server-class.html">http://docs.oracle.com/javase/7/docs/technotes/guides/vm/server-class.html</a></code></p>
+</dd>
+<dt>-agentlib:<i>libname</i>[<i>=options</i>]</dt>
+<dd>
+<p>Loads native agent library <i>libname</i>, for example:</p>
+<pre xml:space="preserve">-agentlib:hprof
+ 
+-agentlib:jdwp=help
+ 
+-agentlib:hprof=help
+</pre>
+<p>See JVMTI Agent Command-Line Options at<br>
+<code><a href="http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#starting">http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#starting</a></code></p>
+</dd>
+<dt>-agentpath:<i>pathname</i>[<i>=options</i>]</dt>
+<dd>
+<p>Loads a native agent library by full pathname.</p>
+</dd>
+<dt>-classpath <i>classpath</i></dt>
+<dt>-cp <i>classpath</i></dt>
+<dd>
+<p>Specifies a list of directories, JAR files, and ZIP archives to 
+search for class files. Separate class path entries with semicolons (;).
+ Specifying <code>-classpath</code> or <code>-cp</code> overrides any setting of the <span>CLASSPATH</span> environment variable.</p>
+<p>If <code>-classpath</code> and <code>-cp</code> are not used and <i>CLASSPATH</i> is not set, then the user class path consists of the current directory (.).</p>
+<p>As a special convenience, a class path element that contains a base name of <code>*</code>
+ is considered equivalent to specifying a list of all the files in the 
+directory with the extension .jar or .JAR. A Java program cannot tell 
+the difference between the two invocations.</p>
+<p>For example, if directory mydir contains a.jar and b.JAR, then the class path element <code>mydir/*</code>
+ is expanded to a A.jar:b.JAR, except that the order of jar files is 
+unspecified. All jar files in the specified directory, even hidden ones,
+ are included in the list. A class path entry consisting simply of <code>*</code> expands to a list of all the jar files in the current directory. The <i>CLASSPATH</i>
+ environment variable, where defined, will be similarly expanded. Any 
+class path wildcard expansion occurs before the Java VM is started. No 
+Java program will ever see wild cards that are not expanded except by 
+querying the environment. For example, by calling <code>System.getenv("CLASSPATH")</code>.</p>
+</dd>
+<dt>-D<i>property</i>=<i>value</i></dt>
+<dd>
+<p>Sets a system property value.</p>
+<p>If <i>value</i> is a string that contains spaces, then you must enclose the string in double quotation marks:</p>
+<pre xml:space="preserve">java -Dmydir="some string" SomeClass
+</pre></dd>
+<dt>-disableassertions[:<i>package name</i>"..." | :<i>class name</i> ]</dt>
+<dt>-da[:<i>package name</i>"..." | :<i>class name</i> ]</dt>
+<dd>
+<p>Disable assertions. This is the default.</p>
+<p>With no arguments, <code>-disableassertions</code> or <code>-da</code> disables assertions. With one argument ending in <code>"..."</code>, the switch disables assertions in the specified package and any subpackages. If the argument is <code>"..."</code>, then the switch disables assertions in the unnamed package in the current working directory. With one argument not ending in <code>"..."</code>, the switch disables assertions in the specified class.</p>
+<p>To run a program with assertions enabled in <code>package com.wombat.fruitbat</code> but disabled in class <code>com.wombat.fruitbat.Brickbat</code>, the following command could be used:</p>
+<pre xml:space="preserve">java -ea:com.wombat.fruitbat... -da:com.wombat.fruitbat.Brickbat &lt;Main Class&gt;
+</pre>
+<p>The <code>-disableassertions</code> and <code>-da</code> switches 
+apply to all class loaders and to system classes (which do not have a 
+class loader). There is one exception to this rule: in their no-argument
+ form, the switches do not apply to system. This makes it easy to turn 
+on asserts in all classes except for system classes. The <code>-disablesystemassertions</code> option provides a separate swith to enable assertions in all system classes.</p>
+</dd>
+<dt>-enableassertions[:<i>package name</i>"..." | :<i>class name</i> ]</dt>
+<dt>-ea[:<i>package name</i>"..." | :<i>class name</i> ]</dt>
+<dd>
+<p>Enable assertions. Assertions are disabled by default.</p>
+<p>With no arguments, <code>-enableassertions</code> or <code>-ea</code> enables assertions. With one argument ending in <code>"..."</code>, the switch enables assertions in the specified package and any subpackages. If the argument is <code>"..."</code>, then the switch enables assertions in the unnamed package in the current working directory. With one argument not ending in <code>"..."</code>, the switch enables assertions in the specified class.</p>
+<p>If a single command contains multiple instances of these switches, 
+then they are processed in order before loading any classes. So, for 
+example, to run a program with assertions enabled only in package 
+com.wombat.fruitbat (and any subpackages), the following command could 
+be used:</p>
+<pre xml:space="preserve">java -ea:com.wombat.fruitbat... &lt;Main Class&gt;
+</pre>
+<p>The <code>-enableassertions</code> and <code>-ea</code> switches 
+apply to all class loaders and to system classes (which do not have a 
+class loader). There is one exception to this rule: in their no-argument
+ form, the switches do not apply to system. This makes it easy to turn 
+on asserts in all classes except for system classes. The <code>-enablesystemassertions</code> option provides a separate switch to enable assertions in all system classes.</p>
+</dd>
+<dt>-enablesystemassertions</dt>
+<dt>-esa</dt>
+<dd>
+<p>Enable assertions in all system classes (sets the default assertion status for system classes to true).</p>
+</dd>
+<dt>-disablesystemassertions</dt>
+<dt>-dsa</dt>
+<dd>
+<p>Disables assertions in all system classes.</p>
+</dd>
+<dt>-help or -?</dt>
+<dd>
+<p>Displays usage information and exit.</p>
+</dd>
+<dt>-jar</dt>
+<dd>
+<p>Executes a program encapsulated in a JAR file. The first argument is 
+the name of a JAR file instead of a startup class name. For this option 
+to work, the manifest of the JAR file must contain a line in the form <code>Main-Class</code>: <i>classname</i>. Here, <i>classname</i> identifies the class with the <code>public static void main(String[] args)</code> method that serves as your application's starting point.</p>
+<p>When you use this option, the JAR file is the source of all user classes, and other user class path settings are ignored.</p>
+</dd>
+<dt>-javaagent:<i>jarpath</i>[<i>=options</i>]</dt>
+<dd>
+<p>Loads a Java programming language agent. For more information about instrumenting Java applications, see the <code>java.lang.instrument</code> package description in the Java API documentation at <code><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html">http://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html</a></code></p>
+</dd>
+<dt>-jre-restrict-search</dt>
+<dd>
+<p>Includes user-private JREs in the version search.</p>
+</dd>
+<dt>-no-jre-restrict-search</dt>
+<dd>
+<p>Excludes user-private JREs in the version search.</p>
+</dd>
+<dt>-showversion</dt>
+<dd>
+<p>Displays version information and continue. (See also <code><a href="#BGBBDHEI">-version</a></code>.)</p>
+</dd>
+<dt>-splash:<i>imagepath</i></dt>
+<dd>
+<p>Shows splash screen with image specified by <i>imagepath</i>.</p>
+</dd>
+<dt>-verbose</dt>
+<dt>-verbose:class</dt>
+<dd>
+<p>Displays information about each class loaded.</p>
+</dd>
+<dt>-verbose:gc</dt>
+<dd>
+<p>Reports on each garbage collection event.</p>
+</dd>
+<dt>-verbose:jni</dt>
+<dd>
+<p>Reports information about use of native methods and other Java Native Interface activity.</p>
+</dd>
+<dd><a id="BGBBDHEI" name="BGBBDHEI"></a></dd><a id="BGBBDHEI" name="BGBBDHEI">
+<dt>-version</dt>
+<dd>
+<p>Displays version information and exit. See also the <code>-showversion</code> option.</p>
+</dd>
+<dt>-version:<i>release</i></dt>
+</a><dd><a id="BGBBDHEI" name="BGBBDHEI">
+<p>Specifies that the version specified by the release is required by 
+the class or JAR file specified on the command line. If the version of 
+the <code>java</code> command called does not meet this specification 
+and an appropriate implementation is found on the system, then the 
+appropriate implementation will be used.</p>
+<p>The <code>release</code> option specifies an exact version and a list
+ of versions called a version string. A version string is an ordered 
+list of version ranges separated by spaces. A version range is either a <i>version-id</i>, a <i>version-id</i> followed by an asterisk (<code>*</code>), a <i>version-id</i> followed by a plus sign (<code>+</code>), or a version range that consists of two <i>version-ids</i> combined using an ampersand (<code>&amp;</code>). The asterisk means prefix match, the plus sign means this version or greater, and the ampersand means the logical <code>and</code> of the two version-ranges, for example:</p>
+<pre xml:space="preserve">-version:"1.6.0_13 1.6*&amp;1.6.0_10+"
+</pre>
+<p>The meaning of the previous example is that the class or JAR file requires either version 1.6.0_13, or a version with 1.6 as a <i>version-id</i>
+ prefix and that is not less than 1.6.0_10. The exact syntax and 
+definition of version strings can be found in Appendix A of the <i>Java Network Launching Protocol &amp; API Specification (JSR-56)</i>.</p>
+<p>For JAR files, the preference is to specify version requirements in the JAR file manifest rather than on the command line.</p>
+</a><p><a id="BGBBDHEI" name="BGBBDHEI">See </a><a href="#BGBEJHAE">Notes</a> for important policy information on the use of this option.</p>
+</dd>
+</dl>
+<a id="BGBJAAEH" name="BGBJAAEH"></a><a id="BGBGEDBG" name="BGBGEDBG">
+<h3>Nonstandard Options</h3>
+</a><dl><a id="BGBGEDBG" name="BGBGEDBG">
+<dt>-X</dt>
+<dd>
+<p>Displays information about nonstandard options and exits.</p>
+</dd>
+<dt>-Xint</dt>
+<dd>
+<p>Operates in interpreted-only mode. Compilation to native code is 
+disabled, and all bytecode is executed by the interpreter. The 
+performance benefits offered by the Java HotSpot VM client adaptive 
+compiler is not present in this mode.</p>
+</dd>
+<dt>-Xbatch</dt>
+<dd>
+<p>Disables background compilation. Typically, the Java VM compiles the 
+method as a background task, running the method in interpreter mode 
+until the background compilation is finished. The -Xbatch flag disables 
+background compilation so that compilation of all methods proceeds as a 
+foreground task until completed.</p>
+</dd>
+<dt>-X<i>bootclasspath</i>:<i>bootclasspath</i></dt>
+<dd>
+<p>Specifies a semicolon-separated list of directories, JAR files, and 
+ZIP archives to search for boot class files. These are used in place of 
+the boot class files included in the Java platform JDK.</p>
+<p>Applications that use this option for the purpose of overriding a 
+class in rt.jar should not be deployed because doing so would contravene
+ the Java Runtime Environment binary code license.</p>
+</dd>
+<dt>-X<i>bootclasspath</i>/a:<i>path</i></dt>
+<dd>
+<p>Specifies a semicolon-separated path of directories, JAR files, and ZIP archives to append to the default bootstrap class path.</p>
+</dd>
+<dt>-X<i>bootclasspath</i>/p:<i>path</i></dt>
+<dd>
+<p>Specifies a semicolon-separated path of directories, JAR files, and 
+ZIP archives to add in front of the default bootstrap class path.</p>
+<p>Do not deploy applications that use this option to override a class 
+in rt.jar because this violates the Java Runtime Environment binary code
+ license.</p>
+</dd>
+<dt>-Xcheck:jni</dt>
+<dd>
+<p>Performs additional checks for Java Native Interface (JNI) functions.
+ Specifically, the Java Virtual Machine validates the parameters passed 
+to the JNI function and the runtime environment data before processing 
+the JNI request. Any invalid data encountered indicates a problem in the
+ native code, and the Java Virtual Machine will terminate with a fatal 
+error in such cases. Expect a performance degradation when this option 
+is used.</p>
+</dd>
+<dt>-Xfuture</dt>
+<dd>
+<p>Performs strict class-file format checks. For backward compatibility,
+ the default format checks performed by the Java virtual machine are no 
+stricter than the checks performed by 1.1.x versions of the JDK 
+software. The <code>-Xfuture</code> option turns on stricter class-file 
+format checks that enforce closer conformance to the class-file format 
+specification. Developers are encouraged to use this flag when 
+developing new code because the stricter checks will become the default 
+in future releases of the Java application launcher.</p>
+</dd>
+<dt>-Xnoclassgc</dt>
+<dd>
+<p>Disables class garbage collection. Use of this option preven memory 
+recovery from loaded classes thus increasing overall memory usage. This 
+could cause <code>OutOfMemoryError</code> to be thrown in some applications.</p>
+</dd>
+<dt>-Xincgc</dt>
+<dd>
+<p>Enables the incremental garbage collector. The incremental garbage 
+collector, which is turned off by default, will reduce the occasional 
+long garbage-collection pauses during program execution. The incremental
+ garbage collector will at times execute concurrently with the program 
+and during such times will reduce the processor capacity available to 
+the program.</p>
+</dd>
+<dt>-Xloggc:<i>file</i></dt>
+<dd>
+<p>Reports on each garbage collection event, as with <code>-verbose:gc</code>, but logs this data to a file. In addition to the information <code>-verbose:gc</code> gives, each reported event will be preceded by the time (in seconds) since the first garbage-collection event.</p>
+<p>Always use a local file system for storage of this file to avoid 
+stalling the Java VM due to network latency. The file may be truncated 
+in the case of a full file system and logging will continue on the 
+truncated file. This option overrides <code>-verbose:gc</code> when both are specified on the command line.</p>
+</dd>
+<dt>-Xmnsize or -XX:<i>NewSize</i></dt>
+<dd>
+<p>Sets the size of the young generation (nursery).</p>
+</dd>
+<dt>-Xms<i>n</i></dt>
+</a><dd><a id="BGBGEDBG" name="BGBGEDBG">
+</a><p><a id="BGBGEDBG" name="BGBGEDBG">Specifies the initial size, in 
+bytes, of the memory allocation pool. This value must be a multiple of 
+1024 greater than 1 MB. Append the letter <code>k</code> or <code>K</code> to indicate kilobytes, or <code>m</code> or <code>M</code>
+ to indicate megabytes. The default value is chosen at runtime based on 
+system configuration. See Garbage Collector Ergonomics at<br>
+<code></code></a><code><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/vm/gc-ergonomics.html">http://docs.oracle.com/javase/7/docs/technotes/guides/vm/gc-ergonomics.html</a></code></p>
+<p>Examples:</p>
+<pre xml:space="preserve">-Xms6291456
+-Xms6144k
+-Xms6m
+</pre></dd>
+<dt>-Xmx<i>n</i></dt>
+<dd>
+<p>Specifies the maximum size, in bytes, of the memory allocation pool. 
+This value must a multiple of 1024 greater than 2 MB. Append the letter <code>k</code> or <code>K</code> to indicate kilobytes, or <code>m</code> or <code>M</code> to indicate megabytes. The default value is chosen at runtime based on system configuration.</p>
+<p>For server deployments, <code>-Xms</code> and <code>-Xmx</code> are often set to the same value. See Garbage Collector Ergonomics at<br>
+<code><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/vm/gc-ergonomics.html">http://docs.oracle.com/javase/7/docs/technotes/guides/vm/gc-ergonomics.html</a></code></p>
+<p>Examples:</p>
+<pre xml:space="preserve">-Xmx83886080
+-Xmx81920k
+-Xmx80m
+</pre></dd>
+<dt>-Xprof</dt>
+<dd>
+<p>Profiles the running program, and sends profiling data to standard 
+output. This option is provided as a utility that is useful in program 
+development and is not intended to be used in production systems.</p>
+</dd>
+<dt>-Xrs</dt>
+<dd>
+<p>Reduces use of operating-system signals by the Java VM.</p>
+<p>In an earlier release, the Shutdown Hooks facility was added to 
+enable orderly shutdown of a Java application. The intent was to enable 
+user cleanup code (such as closing database connections) to run at 
+shutdown, even if the Java VM terminates abruptly.</p>
+<p>The Java VM watches for console control events to implement shutdown 
+hooks for unexpected Java VM termination. Specifically, the Java VM 
+registers a console control handler which begins shutdown-hook 
+processing and returns TRUE for <code>CTRL_C_EVENT</code>, <code>CTRL_CLOSE_EVENT</code>, <code>CTRL_LOGOFF_EVENT</code>, and <code>CTRL_SHUTDOWN_EVENT</code>.</p>
+<p>The JVM uses a similar mechanism to implement the feature of dumping thread stacks for debugging purposes. The JVM uses <code>CTRL_BREAK_EVENT</code> to perform thread dumps.</p>
+<p>If the Java VM is run as a service (for example, the servlet engine for a web server), then it can receive <code>CTRL_LOGOFF_EVENT</code>
+ but should not initiate shutdown because the operating system will not 
+actually terminate the process. To avoid possible interference such as 
+this, the <code>-Xrs</code> command-line option was added beginning with J2SE 1.3.1. When the <code>-Xrs option</code> is used on the Java VM, the Java VM does not install a console control handler, implying that it does not watch for or process <code>CTRL_C_EVENT</code>, <code>CTRL_CLOSE_EVENT</code>, <code>CTRL_LOGOFF_EVENT</code>, or <code>CTRL_SHUTDOWN_EVENT</code>.</p>
+<p>There are two consequences of specifying <code>-Xrs</code>:</p>
+<ul>
+<li>
+<p>Ctrl-Break thread dumps are not available.</p>
+</li>
+<li>
+<p>User code is responsible for causing shutdown hooks to run, for example by calling <code>System.exit()</code> when the Java VM is to be terminated.</p>
+</li>
+</ul>
+</dd>
+<dt>-Xss<i>n</i></dt>
+<dd>
+<p>Sets the thread stack size.</p>
+</dd>
+
+<dt>-Xverify:<i>mode</i></dt>
+<dd>
+
+<p>Sets the mode of the bytecode verifier. Bytecode verification ensures
+ that class files are properly formed and satisfy the constraints listed
+ in section 4.10, <a href="https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.10">Verification of <code>class</code> Files</a> in the <em>The Java Virtual Machine Specification</em>.</p>
+
+<p>Do not turn off verification as this reduces the protection provided 
+by Java and could cause problems due to ill-formed class files.</p>
+
+<p>Possible <i>mode</i> arguments for this option include the following:</p>
+
+<dl>
+<dt>remote</dt>
+<dd>
+<p>Verifies all bytecodes not loaded by the bootstrap class loader. This
+ is the default behavior if you do not specify the -Xverify option.</p>
+</dd>
+<dt>all</dt>
+<dd>
+<p>Enables verification of all bytecodes.</p>
+</dd>
+<dt>none</dt>
+<dd>
+<p>Disables verification of all bytecodes. Use of -Xverify:none is unsupported.</p>
+</dd>
+</dl>
+</dd>
+
+<dt>-XX:AllocationPrefetchStyle=<i>n</i></dt>
+<dd>
+<p>Sets the style of prefetch used during allocation. default=2.</p>
+</dd>
+<dt>-XX:+AggressiveOpts</dt>
+<dd>
+<p>Enables aggressive optimization.</p>
+</dd>
+<dt>-XX:+|-DisableAttachMechanism</dt>
+<dd>
+<p>Specifies whether commands (such as <code>jmap</code> and <code>jconsole</code>) can attach to the Java VM. By default, this feature is disabled. That is, attaching is enabled, for example:</p>
+<pre xml:space="preserve">java -XX:+DisableAttachMechanism
+</pre></dd>
+<dt>-XX:+|-FlightRecorder</dt>
+<dd>
+<p>Toggles the use of the Java Flight Recorder (JFR) during the runtime 
+of the application. This is a commercial feature that requires you to 
+also specify the <code>-XX:+UnlockCommercialFeatures</code> option as follows:</p>
+<pre xml:space="preserve">java -XX:UnlockCommercialFeatures -XX:+FlightRecorder
+</pre></dd>
+<dt>-XX:FlightRecorderOptions=<i>parameter</i>=<i>value</i></dt>
+<dd>
+<p>Sets the parameters that control the behavior of JFR. This option can be used only when JFR is enabled (that is, the <code>-XX:+FlightRecorder</code> option is specified).</p>
+<p>The following list contains all available JFR parameters:</p>
+<dl>
+<dt>defaultrecording=true|false</dt>
+<dd>
+<p>Specifies whether the recording is a continuous background recording 
+or it runs for a limited time. By default, this parameter is set to <code>false</code> (recording runs for a limited time). To make the recording run continuously, set the parameter to <code>true</code>.</p>
+</dd>
+<dt>disk=true|false</dt>
+<dd>
+<p>Specifies whether JFR should write a continuous recording to disk. By default, this parameter is set to <code>false</code> (continuous recording to disk is disabled). To enable it, set the parameter to <code>true</code>., and also set <code>defaultrecording=true</code>.</p>
+</dd>
+<dt>dumponexit=true|false</dt>
+<dd>
+<p>Specifies whether a dump file of JFR data should be generated when 
+the JVM terminates in a controlled manner. By default, this parameter is
+ set to <code>false</code> (dump file on exit is not generated). To enable it, set the parameter to <code>true</code>, and also set <code>defaultrecording=true</code>.</p>
+<p>The dump file is written to the location defined by the <code>dumponexitpath</code> parameter.</p>
+</dd>
+<dt>dumponexitpath=<i>path</i></dt>
+<dd>
+<p>Specifies the path and name of the dump file with JFR data that is 
+created when the JVM exits in a controlled manner if you set the <code>dumponexit=true</code> parameter. Setting the path makes sense only if you also set <code>defaultrecording=true</code>.</p>
+<p>If the specified path is a directory, the JVM assigns a file name 
+that shows the creation date and time. If the specified path includes a 
+file name and if that file already exists, the JVM creates a new file by
+ appending the date and time stamp to the specified file name.</p>
+</dd>
+<dt>globalbuffersize=<i>size</i></dt>
+<dd>
+<p>Specifies the total amount of primary memory (in bytes) used for data retention. Append <code>k</code> or <code>K</code>, to specify the size in KB, <code>m</code> or <code>M</code> to specify the size in MB, <code>g</code> or <code>G</code> to specify the size in GB. By default, the size is set to 462848 bytes.</p>
+</dd>
+<dt>loglevel=quiet|terror|warning|info|debug|trace</dt>
+<dd>
+<p>Specify the amount of data written to the log file by JFR. By default, it is set to <code>info</code>.</p>
+</dd>
+<dt>maxage=<i>time</i></dt>
+<dd>
+<p>Specifies the maximum age (in minutes) of disk data for default 
+recording. By default, the maximum age is set to 15 minutes.This 
+parameter is valid only if you set the <code>disk=true</code> parameter.</p>
+</dd>
+<dt>maxchunksize=<i>size</i></dt>
+<dd>
+<p>Specifies the maximum size (in bytes) of the data chunks in a recording. Append <code>k</code> or <code>K</code>, to specify the size in KB, <code>m</code> or <code>M</code> to specify the size in MB, <code>g</code> or <code>G</code> to specify the size in GB. By default, the maximum size of data chunks is set to 12 MB.</p>
+</dd>
+<dt>maxsize=<i>size</i></dt>
+<dd>
+<p>Specifies the maximum size (in bytes) of disk data for default recording. Append <code>k</code> or <code>K</code>, to specify the size in KB, <code>m</code> or <code>M</code> to specify the size in MB, <code>g</code> or <code>G</code> to specify the size in GB. By default, the maximum size of disk data is not limited.</p>
+<p>This parameter is valid only if you set the <code>disk=true</code> parameter.</p>
+</dd>
+<dt>repository=<i>path</i></dt>
+<dd>
+<p>Specifies the repository (a directory) for temporary disk storage. By default, the system's temporary directory is used.</p>
+</dd>
+<dt>samplethreads=true|false</dt>
+<dd>
+<p>Specifies whether thread sampling is enabled. thread sampling occurs 
+only if the sampling event is enabled along with this parameter. by 
+default, this parameter is enabled.</p>
+</dd>
+<dt>settings=<i>path</i></dt>
+<dd>
+<p>Specifies the path and name of the event settings file (of type JFC). By default, the <code>default.jfc</code> file is used, which is located in <code>JAVA_HOME/jre/lib/jfr</code>.</p>
+</dd>
+<dt>stackdepth=<i>depth</i></dt>
+<dd>
+<p>Stack depth for stack traces by JFR. By default, the depth is set to 64 method calls. The maximum is 2048, minimum is 1.</p>
+</dd>
+<dt>threadbuffersize=<i>size</i></dt>
+<dd>
+<p>Specifies the per-thread local buffer size (in bytes). Append <code>k</code> or <code>K</code>, to specify the size in KB, <code>m</code> or <code>M</code> to specify the size in MB, <code>g</code> or <code>G</code>
+ to specify the size in GB. Higher values for this parameter allow more 
+data gathering without contention to flush it to the global storage. It 
+can increase application footprint in a thread-rich environment. By 
+default, the local buffer size is set to 5 KB.</p>
+</dd>
+</dl>
+<p>You can specify values for multiple parameters by separating them 
+with a comma. For example, to instruct JFR to write a continuous 
+recording to disk, and set the maximum size of data chunks to 10 MB, 
+specify the following:</p>
+<pre xml:space="preserve">-XX:FlightRecorderOptions=defaultrecording=true,disk=true,maxchunksize=10M
+</pre></dd>
+<dt>-XXLargePageSizeInBytes=<i>n</i></dt>
+<dd>
+<p>Specifies the maximum size for large pages.</p>
+</dd>
+<dt>-XX:MaxGCPauseMillis=<i>n</i></dt>
+<dd>
+<p>Sets a target for the maximum GC pause time.</p>
+<p>This is a soft goal, and the Java VM will make its best effort to achieve it. There is no maximum value set by default.</p>
+</dd>
+<dt>-XX:NewSize</dt>
+<dd>
+<p>Sets the size of the young generation (nursery). Sames as <code>-Xmnsize</code>.</p>
+</dd>
+<dt>-XX:ParallelGCThreads=<i>n</i></dt>
+<dd>
+<p>Sets the number of GC threads in the parallel collectors.</p>
+</dd>
+<dt>-XX:PredictedClassLoadCount=<i>n</i></dt>
+<dd>
+<p>This option requires that the <code>UnlockExperimentalVMOptions</code> flag be set first. Use the <code>PredictedClassLoadCount</code> flag if your application loads a lot of classes and especially if <code>class.forName()</code> is used heavily. The recommended value is the number of classes loaded as shown in the output from <code>-verbose:class</code>.</p>
+<p>Example:</p>
+<pre xml:space="preserve">java -XX:+UnlockExperimentalVMOptions -XX:PredictedClassLoadCount=60013
+</pre></dd>
+<dt>-XX:+PrintCompilation</dt>
+<dd>
+<p>Prints verbose output from the Java HotSpot VM dynamic runtime compiler.</p>
+</dd>
+<dt>-XX:+PrintGCDetails -XX:+PrintGCTimeStamps</dt>
+<dd>
+<p>Prints garbage collection output along with time stamps.</p>
+</dd>
+<dt>-XX:SoftRefLRUPolicyMSPerMB=0</dt>
+<dd>
+<p>This flag enables aggressive processing of software references. Use 
+this flag if the software reference count has an impact on the Java 
+HotSpot VM garbage collector.</p>
+</dd>
+<dt>-XX:StartFlightRecording=<i>parameter</i>=<i>value</i></dt>
+<dd>
+<p>Starts a JFR recording for the Java application. This option is equivalent to the <code>JFR.start</code> diagnostic command that starts a recording during runtime. You can set the following parameters when starting a JFR recording:</p>
+<dl>
+<dt>compress=true|false</dt>
+<dd>
+<p>Specifies whether to compress the JFR recording log file (of type JFR) on the disk using the <code>gzip</code> file compression utility. This parameter is valid only if the <code>filename</code> parameter is specified. By defaut it is set to <code>false</code> (recording is not compressed). To enable compression, set the parameter to <code>true</code>.</p>
+</dd>
+<dt>defaultrecording=true|false</dt>
+<dd>
+<p>Specifies whether the recording is a continuous background recording 
+or it runs for a limited time. By default, this parameter is set to <code>false</code> (recording runs for a limited time). To make the recording run continuously, set the parameter to <code>true</code>.</p>
+</dd>
+<dt>delay=<i>time</i></dt>
+<dd>
+<p>Specifies the delay (in milliseconds) between the Java application 
+launch time and the start of the recording. By default, there is no 
+delay and this parameter is set to 0.</p>
+</dd>
+<dt>duration=<i>time</i></dt>
+<dd>
+<p>Specifies the duration (in milliseconds) of the recording. By default, the duration is not limited.</p>
+</dd>
+<dt>filename=<i>path</i></dt>
+<dd>
+<p>Specifies the path and name of the JFR recording log file.</p>
+</dd>
+<dt>name=<i>identifier</i></dt>
+<dd>
+<p>Specifies the identifier for the JFR recording. By default, it is set to <code>Recording x</code>.</p>
+</dd>
+<dt>maxage=<i>time</i></dt>
+<dd>
+<p>Specifies the maximum age (in minutes) of disk data for default recording. By default, the maximum age is set to 15 minutes.</p>
+</dd>
+<dt>maxsize=<i>size</i></dt>
+<dd>
+<p>Specifies the maximum size (in bytes) of the recording before it is flushed from the thread buffer to the global buffer. Append <code>k</code> or <code>K</code>, to specify the size in KB, <code>m</code> or <code>M</code> to specify the size in MB, <code>g</code> or <code>G</code> to specify the size in GB. By default, the maximum size is not limited.</p>
+<p>This parameter is valid only for size-bound recordings.</p>
+</dd>
+<dt>settings=<i>path</i></dt>
+<dd>
+<p>Specifies the path and name of the event settings file (of type JFC). By default, the <code>default.jfc</code> file is used, which is located in <code>JAVA_HOME/jre/lib/jfr</code>.</p>
+</dd>
+</dl>
+<p>You can specify values for multiple parameters by separating them 
+with a comma. For example, to save the recording to test.jfr in the 
+current working directory, and instruct JFR to compress the log file, 
+specify the following:</p>
+<pre xml:space="preserve">-XX:StartFlightRecording=filename=test.jfr,compress=true
+</pre></dd>
+<dt>-XX:TLABSize=<i>n</i></dt>
+<dd>
+<p>Thread local allocation buffers (TLAB) are enabled by default in the 
+Java HotSpot VM. The Java HotSpot VM sizes TLABs based on allocation 
+patterns. The <code>-XX:TLABSize</code> option enables fine-tuning the size of TLABs.</p>
+</dd>
+<dt>-XX:+UnlockCommercialFeatures</dt>
+<dd>
+<p>Use this flag to actively unlock the use of commercial features. 
+Commercial features are the products Oracle Java SE Advanced or Oracle 
+Java SE Suite, as defined at the Java SE Products web page.</p>
+<p>If this flag is not specified, then the default is to run the Java 
+Virtual Machine without the commercial features being available. After 
+they are enabled, it is not possible to disable their use at runtime.</p>
+</dd>
+<dt>-XX:+|-UseCompressedOops</dt>
+<dd>
+<p>Enables compressed references in 64-bit Java VMs.</p>
+<p>This option is true by default.</p>
+</dd>
+<dt>-XX:+UseConcMarkSweepGC or -XX:+UseG1GC</dt>
+<dd>
+<p>Enables either the Concurrent Mark Sweep (CMS) or the G1 garbage collectors.</p>
+</dd>
+<dt>-XX:+|-UseLargePages</dt>
+<dd>
+<p>Enables large page support.</p>
+</dd>
+<dt>-XX:+UseParallelOldGC</dt>
+<dd>
+<p>Enables the parallel garbage collectors, which are optimized for throughput and average response time.</p>
+</dd>
+</dl>
+<a id="BGBEJHAE" name="BGBEJHAE"></a><a id="BGBBEJBE" name="BGBBEJBE">
+<h2>Notes</h2>
+<p>The <i>-version:release</i> option places no restrictions on the 
+complexity of the release specification. However, only a restricted 
+subset of the possible release specifications represent sound policy and
+ only these are fully supported. These policies are:</p>
+<ol>
+<li>
+<p>Any version, represented by not using this option.</p>
+</li>
+<li>
+<p>Any version greater than an arbitrarily precise <i>version-i</i>d value, for example:</p>
+<pre xml:space="preserve">"1.6.0_10+"
+</pre>
+<p>This would utilize any version greater than 1.6.0_10. This is useful 
+for a case where an interface was introduced (or a bug fixed) in the 
+release specified.</p>
+</li>
+<li>
+<p>A version greater than an arbitrarily precise version-id, bounded by the upper bound of that release family, for example:</p>
+<pre xml:space="preserve">"1.6.0_10+&amp;1.6*"
+</pre></li>
+<li>
+<p>An <code>or</code> expressions of items 2 or 3, for example:</p>
+<pre xml:space="preserve"> "1.6.0_10+&amp;1.6* 1.7+"
+</pre>
+<p>Similar to item 2. This is useful when a change was introduced in a 
+release (1.7) but also made available in updates to earlier releases.</p>
+</li>
+</ol>
+</a><a id="sthref36" name="sthref36">
+<h2>Performance Tuning Examples</h2>
+<p>The following examples show how to use experimental tuning flags to optimize either throughput or faster response time.</p>
+</a><dl><a id="sthref36" name="sthref36">
+</a><dd><a id="sthref36" name="sthref36"></a><a id="sthref37" name="sthref37"></a></dd><a id="sthref37" name="sthref37">
+<dt>Example 1Tuning for Higher Throughput</dt>
+<dd>
+<pre xml:space="preserve">java -d64 -server -XX:+AggressiveOpts -XX:+UseLargePages -Xmn10g  -Xms26g -Xmx26g 
+</pre></dd>
+</a><dd><a id="sthref37" name="sthref37"></a><a id="sthref38" name="sthref38"></a></dd><a id="sthref38" name="sthref38">
+<dt>Example 2Tuning for Lower Response Time</dt>
+<dd>
+<pre xml:space="preserve"> java -d64 -XX:+UseG1GC -Xms26g Xmx26g -XX:MaxGCPauseMillis=500 -XX:+PrintGCTimeStamps 
+</pre></dd>
+</a></dl><a id="sthref38" name="sthref38">
+</a><a id="sthref39" name="sthref39">
+<h2>Exit Status</h2>
+<p>The following exit values are typically returned by the launcher, 
+typically when the launcher is called with the wrong arguments, serious 
+errors, or exceptions thrown from the Java Virtual Machine. However, a 
+Java application may choose to return any value using the API call <code>System.exit(exitValue)</code>.</p>
+<ul>
+<li>
+<p><code>0</code>: Successful completion</p>
+</li>
+<li>
+<p><code>&gt;0</code>: An error occurred</p>
+</li>
+</ul>
+</a><a id="sthref40" name="sthref40">
+<h2>See Also</h2>
+</a><ul><a id="sthref40" name="sthref40">
+</a><li><a id="sthref40" name="sthref40">
+</a><p><a id="sthref40" name="sthref40"></a><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/javac.html">javac</a></p>
+</li>
+<li>
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html">jdb</a></p>
+</li>
+<li>
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/javah.html">javah</a></p>
+</li>
+<li>
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jar.html">jar</a></p>
+</li>
+</ul>
+</div>
+
+
+
+
+
+
+<div id="javasefooter">
+<div class="hr">
+<hr></div>
+<div id="javasecopyright">
+<a href="http://docs.oracle.com/javase/7/docs/legal/cpyr.html">Copyright ©</a> 1993, 2017, Oracle
+and/or its affiliates. All rights reserved.
+</div>
+
+<div id="javasecontactus">
+<a href="http://docs.oracle.com/javase/feedback.html">Contact Us</a>
+</div>
+</div>
+</div>
+
+<!-- Start SiteCatalyst code   -->
+<script language="JavaScript" type="text/javascript" src="java7_windows_files/s_code_download.js"></script>
+<script language="JavaScript" type="text/javascript" src="java7_windows_files/s_code.js"></script>
+ 
+<!-- ********** DO NOT ALTER ANYTHING BELOW THIS LINE ! *********** -->
+<!--  Below code will send the info to Omniture server -->
+<script language="javascript" type="text/javascript">var s_code=s.t();if(s_code)document.write(s_code)</script>
+ 
+<!-- End SiteCatalyst code -->
+
+
+
+</body></html>
