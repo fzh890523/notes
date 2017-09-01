@@ -1367,6 +1367,26 @@ java [ options ] -jar file.jar [ arguments ]
 
   默认为`-1`。
 
+  > ```cpp
+  > void ConcurrentMarkSweepGeneration::init_initiating_occupancy(intx io, uintx tr) {
+  >   assert(io <= 100 && tr <= 100, "Check the arguments");
+  >   if (io >= 0) {
+  >     _initiating_occupancy = (double)io / 100.0;
+  >   } else {
+  >     _initiating_occupancy = ((100 - MinHeapFreeRatio) +
+  >                              (double)(tr * MinHeapFreeRatio) / 100.0)
+  >                             / 100.0;
+  >   }
+  > }
+  > ```
+  >
+  > ​
+
+  > ```cpp
+  > ConcurrentMarkSweepGeneration::used
+  > // 看起来是CMS代也即老年代的使用比例
+  > ```
+
 * `-XX:+CMSScavengeBeforeRemark`
 
   启用CMS重标记（remark）步骤前的搜寻（scavenging）尝试。
@@ -1402,7 +1422,11 @@ java [ options ] -jar file.jar [ arguments ]
 
   启用通过显式调用（`System.gc()`）来触发并发GC。
 
+  > 改变`System.gc()`的行为
+
   默认禁用，启用时需要和 `-XX:+UseConcMarkSweepGC` 一起使用。
+
+  参见详解。
 
 * `-XX:+ExplicitGCInvokesConcurrentAndUnloadsClasses`
 
@@ -1436,6 +1460,11 @@ java [ options ] -jar file.jar [ arguments ]
 * `-XX:InitialSurvivorRatio=${ratio}`
 
   设置`throughput GC`使用的 初始survivor空间比例。
+
+  ```cpp
+    product(uintx, InitialSurvivorRatio, 8,                                   \
+            "Initial ratio of young generation/survivor space size")    
+  ```
 
   参见详解。
 
@@ -2184,6 +2213,10 @@ ref：
 
 
 
+代码里只看到PS用到了该选项，其他collector应该是不能设置类似的参数，原因可能是其他collector不支持动态的survivor大小吧，所以”初始值“就没意义
+
+
+
 #### `-XX:SoftRefLRUPolicyMSPerMB=${time}`
 
 设置软可达对象在最后一次被引用之后在堆里保持活跃的时间，单位ms。
@@ -2641,6 +2674,54 @@ RTM
 
 
 
+#### `-XX:+ExplicitGCInvokesConcurrent`
+
+启用通过显式调用（`System.gc()`）来触发并发GC。
+
+> 改变`System.gc()`的行为
+
+默认禁用，启用时需要和 `-XX:+UseConcMarkSweepGC` 一起使用。
+
+
+
+使用场景： 
+
+> ref： [关于 JVM 参数中 ExplicitGCInvokesConcurrent的用途](http://www.liuinsect.com/2014/05/12/whats-explicitgcinvokesconcurrent-used-for/)
+
+* NIO框架大量使用堆外内存，为了及时回收（不等自然触发的fullGC）在框架代码里手动调`System.gc()`来触发fullGC
+
+* 而频繁fullGC又带来副作用： 影响应用性能
+
+* 于是，`-XX:+DisableExplicitGC`派上用场，禁止显式GC
+
+* but，禁掉后框架使用的对外内存不能及时回收
+
+* 那么，能不能”兼得“呢？
+
+  思路： 修改`System.gc()`的行为，换成其他可接受的又能达到特定目的的GC。
+
+  比如使用CMS时，可以通过本选项来改为`VM_GenCollectFullConcurrent`，实际会”酌情“进行GC，一般开销小于fullGC。
+
+  见：
+
+  ```cpp
+    product(bool, ExplicitGCInvokesConcurrent, false,                         \
+            "A System.gc() request invokes a concurrent collection; "         \
+            "(effective only when UseConcMarkSweepGC)")                       \
+                                                                              \
+    product(bool, ExplicitGCInvokesConcurrentAndUnloadsClasses, false,        \
+            "A System.gc() request invokes a concurrent collection and "      \
+            "also unloads classes during such a concurrent gc cycle "         \
+            "(effective only when UseConcMarkSweepGC)")                       
+  // ExplicitGCInvokesConcurrentAndUnloadsClasses 为true会设置ExplicitGCInvokesConcurrent 为true
+  ```
+
+  ​
+
+
+
+
+
 
 
 # 引申
@@ -2691,6 +2772,10 @@ ref：
 1. 当老生代空间的使用到达一定比率时触发；
 
    Hotspot V 1.6中默认为65%，可通过`PrintCMSInitiationStatistics`（此参数在V 1.5中不能用）来查看这个值到底是多少；可通过`CMSInitiatingOccupancyFraction`来强制指定，默认值并不是赋值在了这个值上，是根据如下公式计算出来的： `((100 - MinHeapFreeRatio) +(double)(CMSTriggerRatio * MinHeapFreeRatio) / 100.0)/ 100.0`; 其中,`MinHeapFreeRatio`默认值： 40   `CMSTriggerRatio`默认值： 80。
+
+   此时使用的比例值为： (100-40) + 80 * 40 / 100 = 92(%)。
+
+   > 从公式理解，CMSTriggerRatio表示MinHeapFreeRatio中能超过（使用）的比例。
 
 
 2. 当perm gen采用CMS收集且空间使用到一定比率时触发；

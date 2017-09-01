@@ -892,28 +892,28 @@ public Object get() {
 
 伪码示例如下：
 
-    ```java
+```java
 monitor class Account {
   private int balance := 0
-  invariant balance >= 0
-  private NonblockingCondition balanceMayBeBigEnough
-    
-  public method withdraw(int amount)
-     precondition amount >= 0
+    invariant balance >= 0
+    private NonblockingCondition balanceMayBeBigEnough
+
+    public method withdraw(int amount)
+    precondition amount >= 0
   {
     while balance < amount do wait balanceMayBeBigEnough
-    assert balance >= amount
-    balance := balance - amount
+      assert balance >= amount
+      balance := balance - amount
   }
-  
+
   public method deposit(int amount)
-     precondition amount >= 0
+    precondition amount >= 0
   {
     balance := balance + amount
-    notify all balanceMayBeBigEnough
+      notify all balanceMayBeBigEnough
   }
 }
-    ```
+```
 
 
 
@@ -1105,19 +1105,18 @@ signal后，signaling thread和signaled thread都希望获得monitor，不同的
 
     **signal-and-continue**
 
+      ```python
+      notify c :
+         if there is a thread waiting on c.q
+             select and remove one thread t from c.q
+             (t is called "the notified thread")
+             move t to e
+      ```
 
-    ```python
-     notify c :
-        if there is a thread waiting on c.q
-            select and remove one thread t from c.q
-            (t is called "the notified thread")
-            move t to e
-    ```
-
-    ```python
-     notify all c :
-        move all threads waiting on c.q to e
-    ```
+      ```python
+      notify all c :
+         move all threads waiting on c.q to e
+      ```
 
     不等待，并且：
 
@@ -1468,6 +1467,7 @@ public method broadcast(ConditionVariable c){
 >     waiter = _allocate_lock()
 >     waiter.acquire()
 >     self._waiters.append(waiter)
+>     self._lock.release()
 >     try:
 >         waiter.acquire()
 >     finally:
@@ -1524,6 +1524,81 @@ manual，参考：
 * [pthread_cond_broadcast](https://linux.die.net/man/3/pthread_cond_broadcast)
 * [pthread_cond_signal](https://linux.die.net/man/3/pthread_cond_signal)
 * [pthread_cond_init](https://linux.die.net/man/3/pthread_cond_init)
+
+
+
+
+## 思考
+
+
+
+### notify为什么要持有🔐
+
+
+
+```
+BB
+为什么notify需要在锁里
+20:17
+XG
+nofity需要持有的锁时wait-queue的锁
+已读
+XG
+notify需要dequeue waiter/waiters，这个queue是竞争访问的。
+已读
+BB
+BB
+但是glibc的相关函数不需要锁，看来实现还是不一样
+XG
+在哪里？ 我去看看。
+已读
+BB
+BB
+pthread_cond_signal
+XG
+__condvar_acquire_lock
+已读
+BB
+BB
+什么
+XG
+需要锁啊。 只是做了点优化先用cas操作判断是否有waiters。
+已读
+XG
+/* See __pthread_cond_wait for a high-level description of the algorithm.  */
+int
+__pthread_cond_signal (pthread_cond_t *cond)
+{
+  LIBC_PROBE (cond_signal, 1, cond);
+
+  /* First check whether there are waiters.  Relaxed MO is fine for that for
+     the same reasons that relaxed MO is fine when observing __wseq (see
+     below).  */
+  unsigned int wrefs = atomic_load_relaxed (&cond->__data.__wrefs);
+  if (wrefs >> 3 == 0)
+    return 0;
+  int private = __condvar_get_private (wrefs);
+
+  __condvar_acquire_lock (cond, private);
+已读
+BB
+BB
+但是执行这个操作的时候不需要在应用里持有锁
+BB
+BB
+屏蔽了
+XG
+一回事吧。 java的synchronized不也屏蔽了么。 哈哈
+已读
+BB
+20:25:14
+BB
+嗯
+```
+
+
+
+
 
 
 
