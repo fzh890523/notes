@@ -124,6 +124,16 @@ ref： [detection-of-half-open-dropped](https://blog.stephencleary.com/2009/05/d
 
 
 
+### reset
+
+
+
+RFC 793 states in 'Reset generation':
+
+> 3. If the connection is in a synchronized state (ESTABLISHED, FIN-WAIT-1, FIN-WAIT-2, CLOSE-WAIT, CLOSING, LAST-ACK, TIME-WAIT), any unacceptable segment (out of window sequence number or unacceptible acknowledgment number) must elicit only an empty acknowledgment segment containing the current send-sequence number and an acknowledgment indicating the next sequence number expected to be received, and the connection remains in the same state.
+
+
+
 
 
 # 状态
@@ -170,7 +180,7 @@ ref： [detection-of-half-open-dropped](https://blog.stephencleary.com/2009/05/d
 
 
 
-![](../resource/[原创]结合案例深入解析orphan socket产生与消亡（一）-博客-云栖社区-阿里云_files/10e3ea2de912329ffa09fb478e0d7a63.png)
+![](../../../linux/io/socket/concept/resource/[原创]结合案例深入解析orphan socket产生与消亡（一）-博客-云栖社区-阿里云_files/10e3ea2de912329ffa09fb478e0d7a63.png)
 
 
 
