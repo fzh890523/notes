@@ -290,6 +290,15 @@ ref：
   >
   > 可见默认使用currentCL（见下文）
   >
+  > > **注意**
+  > >
+  > > ```java
+  > >         SecurityManager sm = System.getSecurityManager();
+  > >         if (sm != null) {
+  > > ```
+  > >
+  > > 带loader参数版本的forName，在有securityManager时才会尝试用caller的CL来替换null CL，而多数情况是没有的，所以就是null CL（= =）； 不带loader参数的则是直接使用caller的CL
+  >
   > Class.getResource同此
   >
   > 注意这个参数true： boolean initialize，做类初始化
@@ -524,7 +533,7 @@ or
   * 当parent为null时调用（双亲委派逻辑里）
   * 显然应该是native的
 
-##### defining classloader 和 initiating classload
+#### defining classloader 和 initiating classload
 
 * `defining classloader` load class时触发执行defineClass方法所属的CL
 * `initiating classloader` 发起load class的classloader（loadClass方法，而且应该是第一个吧，不然要是一路delegate下去就有多个…了）
@@ -689,4 +698,65 @@ protected ClassLoader() {
   * CachedClassLoader（当localFirst为false时）
 * 不遵守
   * CachedClassLoader（当localFirst为true时）
+
+
+
+
+
+
+# tutorial
+
+
+
+## 判断类是否加载
+
+
+
+来自： [stackoverflow.com-In Java, is it possible to know whether a class has already been loaded?](https://stackoverflow.com/questions/482633/in-java-is-it-possible-to-know-whether-a-class-has-already-been-loaded)
+
+```java
+public class TestLoaded {
+     public static void main(String[] args) throws Exception {
+          java.lang.reflect.Method m = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
+          m.setAccessible(true);
+          ClassLoader cl = ClassLoader.getSystemClassLoader();
+          Object test1 = m.invoke(cl, "TestLoaded$ClassToTest");
+          System.out.println(test1 != null);
+          ClassToTest.reportLoaded();
+          Object test2 = m.invoke(cl, "TestLoaded$ClassToTest");
+          System.out.println(test2 != null);
+     }
+     static class ClassToTest {
+          static {
+               System.out.println("Loading " + ClassToTest.class.getName());
+          }
+          static void reportLoaded() {
+               System.out.println("Loaded");
+          }
+     }
+}
+```
+
+
+
+Produces:
+
+> ```
+> false
+> Loading TestLoaded$ClassToTest
+> Loaded
+> true
+> ```
+
+Note that the example classes are not in a package. The full [binary name](http://java.sun.com/javase/6/docs/api/java/lang/ClassLoader.html#name) is required.
+
+An example of a binary name is `"java.security.KeyStore$Builder$FileBuilder$1"`
+
+
+
+
+
+
+
+
 

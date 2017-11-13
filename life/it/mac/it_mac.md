@@ -61,6 +61,36 @@ end run
 
 
 
+# script
+
+
+
+## 执行
+
+
+
+### 双击执行sh
+
+- First in terminal make the script executable by typing:
+
+  ```
+  chmod a+x (yourscriptname)
+  ```
+
+- Then, in Finder, right-click your file and select "Open with" and then "Other...".
+
+- Here you select the application you want the file to execute into, in this case it would be Terminal. To be able to select terminal you need to switch from "Recommended Applications" to "All Applications". (The Terminal.app application can be found in the Utilities folder)
+
+- NOTE that unless you don't want to associate all files with this extension to be run in terminal you should not have "Always Open With" checked.
+
+- After clicking OK you should be able to execute you script by simply double-clicking it.
+
+
+
+
+
+
+
 # 命令行
 
 ## netstat

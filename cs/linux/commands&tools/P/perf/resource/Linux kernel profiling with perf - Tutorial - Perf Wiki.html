@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="client-nojs">
+<head>
+<title>Tutorial - Perf Wiki</title>
+<meta charset="UTF-8" />
+<meta name="generator" content="MediaWiki 1.19.24" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="search" type="application/opensearchdescription+xml" href="/opensearch_desc.php" title="Perf Wiki (en)" />
+<link rel="EditURI" type="application/rsd+xml" href="https://perf.wiki.kernel.org/api.php?action=rsd" />
+<link rel="alternate" type="application/atom+xml" title="Perf Wiki Atom feed" href="/index.php?title=Special:RecentChanges&amp;feed=atom" />
+<link rel="stylesheet" href="https://perf.wiki.kernel.org/load.php?debug=false&amp;lang=en&amp;modules=mediawiki.legacy.commonPrint%2Cshared%7Cskins.monobook&amp;only=styles&amp;skin=monobook&amp;*" />
+<!--[if IE 6]><link rel="stylesheet" href="/skins/monobook/IE60Fixes.css?303" media="screen" /><![endif]-->
+<!--[if IE 7]><link rel="stylesheet" href="/skins/monobook/IE70Fixes.css?303" media="screen" /><![endif]--><meta name="ResourceLoaderDynamicStyles" content="" />
+<style>a:lang(ar),a:lang(ckb),a:lang(fa),a:lang(kk-arab),a:lang(mzn),a:lang(ps),a:lang(ur){text-decoration:none}a.new,#quickbar a.new{color:#ba0000}
+
+/* cache key: korg_mediawiki_perf:resourceloader:filter:minify-css:7:c88e2bcd56513749bec09a7e29cb3ffa */
+</style>
+
+<script src="https://perf.wiki.kernel.org/load.php?debug=false&amp;lang=en&amp;modules=startup&amp;only=scripts&amp;skin=monobook&amp;*"></script>
+<script>if(window.mw){
+mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Tutorial","wgTitle":"Tutorial","wgCurRevisionId":3520,"wgArticleId":22,"wgIsArticle":true,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgRelevantPageName":"Tutorial","wgRestrictionEdit":[],"wgRestrictionMove":[]});
+}</script><script>if(window.mw){
+mw.loader.implement("user.options",function($){mw.user.options.set({"ccmeonemails":0,"cols":80,"date":"default","diffonly":0,"disablemail":0,"disablesuggest":0,"editfont":"default","editondblclick":0,"editsection":1,"editsectiononrightclick":0,"enotifminoredits":0,"enotifrevealaddr":0,"enotifusertalkpages":1,"enotifwatchlistpages":0,"extendwatchlist":0,"externaldiff":0,"externaleditor":0,"fancysig":0,"forceeditsummary":0,"gender":"unknown","hideminor":0,"hidepatrolled":0,"highlightbroken":1,"imagesize":2,"justify":0,"math":1,"minordefault":0,"newpageshidepatrolled":0,"nocache":0,"noconvertlink":0,"norollbackdiff":0,"numberheadings":0,"previewonfirst":0,"previewontop":1,"quickbar":5,"rcdays":7,"rclimit":50,"rememberpassword":0,"rows":25,"searchlimit":20,"showhiddencats":0,"showjumplinks":1,"shownumberswatching":1,"showtoc":1,"showtoolbar":1,"skin":"monobook","stubthreshold":0,"thumbsize":2,"underline":2,"uselivepreview":0,"usenewrc":0,"watchcreations":0,"watchdefault":0,"watchdeletion":
+0,"watchlistdays":3,"watchlisthideanons":0,"watchlisthidebots":0,"watchlisthideliu":0,"watchlisthideminor":0,"watchlisthideown":0,"watchlisthidepatrolled":0,"watchmoves":0,"wllimit":250,"variant":"en","language":"en","searchNs0":true,"searchNs1":false,"searchNs2":false,"searchNs3":false,"searchNs4":false,"searchNs5":false,"searchNs6":false,"searchNs7":false,"searchNs8":false,"searchNs9":false,"searchNs10":false,"searchNs11":false,"searchNs12":false,"searchNs13":false,"searchNs14":false,"searchNs15":false});;},{},{});mw.loader.implement("user.tokens",function($){mw.user.tokens.set({"editToken":"+\\","watchToken":false});;},{},{});
+
+/* cache key: korg_mediawiki_perf:resourceloader:filter:minify-js:7:74a832f2292f1f4d40d425d223444e78 */
+}</script>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.page.startup","mediawiki.legacy.wikibits","mediawiki.legacy.ajax"]);
+}</script>
+</head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-Tutorial skin-monobook action-view">
+<div id="globalWrapper">
+<div id="column-content"><div id="content">
+	<a id="top"></a>
+	
+	<h1 id="firstHeading" class="firstHeading"><span dir="auto">Tutorial</span></h1>
+	<div id="bodyContent" class="mw-body">
+		<div id="siteSub">From Perf Wiki</div>
+		<div id="contentSub"></div>
+		<div id="jump-to-nav" class="mw-jump">Jump to: <a href="#column-one">navigation</a>, <a href="#searchInput">search</a></div>
+		<!-- start content -->
+<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><p><big><b>Linux kernel profiling with <tt>perf</tt></b></big>
+</p>
+<table id="toc" class="toc"><tr><td><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Commands"><span class="tocnumber">1.1</span> <span class="toctext">Commands</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Events"><span class="tocnumber">1.2</span> <span class="toctext">Events</span></a>
+<ul>
+<li class="toclevel-3 tocsection-4"><a href="#Hardware_events"><span class="tocnumber">1.2.1</span> <span class="toctext">Hardware events</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Counting_with_perf_stat"><span class="tocnumber">2</span> <span class="toctext">Counting with perf stat</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Options_controlling_event_selection"><span class="tocnumber">2.1</span> <span class="toctext">Options controlling event selection</span></a>
+<ul>
+<li class="toclevel-3 tocsection-7"><a href="#Modifiers"><span class="tocnumber">2.1.1</span> <span class="toctext">Modifiers</span></a></li>
+<li class="toclevel-3 tocsection-8"><a href="#Hardware_events_2"><span class="tocnumber">2.1.2</span> <span class="toctext">Hardware events</span></a></li>
+<li class="toclevel-3 tocsection-9"><a href="#multiple_events"><span class="tocnumber">2.1.3</span> <span class="toctext">multiple events</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#multiplexing_and_scaling_events"><span class="tocnumber">2.1.4</span> <span class="toctext">multiplexing and scaling events</span></a></li>
+<li class="toclevel-3 tocsection-11"><a href="#Repeated_measurement"><span class="tocnumber">2.1.5</span> <span class="toctext">Repeated measurement</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-12"><a href="#Options_controlling_environment_selection"><span class="tocnumber">2.2</span> <span class="toctext">Options controlling environment selection</span></a>
+<ul>
+<li class="toclevel-3 tocsection-13"><a href="#Counting_and_inheritance"><span class="tocnumber">2.2.1</span> <span class="toctext">Counting and inheritance</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="#Processor-wide_mode"><span class="tocnumber">2.2.2</span> <span class="toctext">Processor-wide mode</span></a></li>
+<li class="toclevel-3 tocsection-15"><a href="#Attaching_to_a_running_process"><span class="tocnumber">2.2.3</span> <span class="toctext">Attaching to a running process</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-16"><a href="#Options_controlling_output"><span class="tocnumber">2.3</span> <span class="toctext">Options controlling output</span></a>
+<ul>
+<li class="toclevel-3 tocsection-17"><a href="#Pretty_printing_large_numbers"><span class="tocnumber">2.3.1</span> <span class="toctext">Pretty printing large numbers</span></a></li>
+<li class="toclevel-3 tocsection-18"><a href="#Machine_readable_output"><span class="tocnumber">2.3.2</span> <span class="toctext">Machine readable output</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-19"><a href="#Sampling_with_perf_record"><span class="tocnumber">3</span> <span class="toctext">Sampling with perf record</span></a>
+<ul>
+<li class="toclevel-2 tocsection-20"><a href="#Event-based_sampling_overview"><span class="tocnumber">3.1</span> <span class="toctext">Event-based sampling overview</span></a>
+<ul>
+<li class="toclevel-3 tocsection-21"><a href="#Default_event:_cycle_counting"><span class="tocnumber">3.1.1</span> <span class="toctext">Default event: cycle counting</span></a></li>
+<li class="toclevel-3 tocsection-22"><a href="#Period_and_rate"><span class="tocnumber">3.1.2</span> <span class="toctext">Period and rate</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-23"><a href="#Collecting_samples"><span class="tocnumber">3.2</span> <span class="toctext">Collecting samples</span></a></li>
+<li class="toclevel-2 tocsection-24"><a href="#Processor-wide_mode_2"><span class="tocnumber">3.3</span> <span class="toctext">Processor-wide mode</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-25"><a href="#Sample_analysis_with_perf_report"><span class="tocnumber">4</span> <span class="toctext">Sample analysis with perf report</span></a>
+<ul>
+<li class="toclevel-2 tocsection-26"><a href="#Options_controlling_output_2"><span class="tocnumber">4.1</span> <span class="toctext">Options controlling output</span></a></li>
+<li class="toclevel-2 tocsection-27"><a href="#Options_controlling_kernel_reporting"><span class="tocnumber">4.2</span> <span class="toctext">Options controlling kernel reporting</span></a></li>
+<li class="toclevel-2 tocsection-28"><a href="#Processor-wide_mode_3"><span class="tocnumber">4.3</span> <span class="toctext">Processor-wide mode</span></a></li>
+<li class="toclevel-2 tocsection-29"><a href="#Overhead_calculation"><span class="tocnumber">4.4</span> <span class="toctext">Overhead calculation</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-30"><a href="#Source_level_analysis_with_perf_annotate"><span class="tocnumber">5</span> <span class="toctext">Source level analysis with perf annotate</span></a>
+<ul>
+<li class="toclevel-2 tocsection-31"><a href="#Using_perf_annotate_on_kernel_code"><span class="tocnumber">5.1</span> <span class="toctext">Using perf annotate on kernel code</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-32"><a href="#Live_analysis_with_perf_top"><span class="tocnumber">6</span> <span class="toctext">Live analysis with perf top</span></a></li>
+<li class="toclevel-1 tocsection-33"><a href="#Benchmarking_with_perf_bench"><span class="tocnumber">7</span> <span class="toctext">Benchmarking with perf bench</span></a>
+<ul>
+<li class="toclevel-2 tocsection-34"><a href="#sched:_Scheduler_benchmarks"><span class="tocnumber">7.1</span> <span class="toctext">sched: Scheduler benchmarks</span></a></li>
+<li class="toclevel-2 tocsection-35"><a href="#mem:_Memory_access_benchmarks"><span class="tocnumber">7.2</span> <span class="toctext">mem: Memory access benchmarks</span></a></li>
+<li class="toclevel-2 tocsection-36"><a href="#numa:_NUMA_scheduling_and_MM_benchmarks"><span class="tocnumber">7.3</span> <span class="toctext">numa: NUMA scheduling and MM benchmarks</span></a></li>
+<li class="toclevel-2 tocsection-37"><a href="#futex:_Futex_stressing_benchmarks"><span class="tocnumber">7.4</span> <span class="toctext">futex: Futex stressing benchmarks</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-38"><a href="#Troubleshooting_and_Tips"><span class="tocnumber">8</span> <span class="toctext">Troubleshooting and Tips</span></a>
+<ul>
+<li class="toclevel-2 tocsection-39"><a href="#Open_file_limits"><span class="tocnumber">8.1</span> <span class="toctext">Open file limits</span></a>
+<ul>
+<li class="toclevel-3 tocsection-40"><a href="#increasing_open_file_limit"><span class="tocnumber">8.1.1</span> <span class="toctext">increasing open file limit</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-41"><a href="#Binary_identification_with_build-id"><span class="tocnumber">8.2</span> <span class="toctext">Binary identification with build-id</span></a>
+<ul>
+<li class="toclevel-3 tocsection-42"><a href="#The_build-id_cache"><span class="tocnumber">8.2.1</span> <span class="toctext">The build-id cache</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-43"><a href="#Access_Control"><span class="tocnumber">8.3</span> <span class="toctext">Access Control</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-44"><a href="#Other_Scenarios"><span class="tocnumber">9</span> <span class="toctext">Other Scenarios</span></a>
+<ul>
+<li class="toclevel-2 tocsection-45"><a href="#Profiling_sleep_times"><span class="tocnumber">9.1</span> <span class="toctext">Profiling sleep times</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-46"><a href="#Other_Resources"><span class="tocnumber">10</span> <span class="toctext">Other Resources</span></a>
+<ul>
+<li class="toclevel-2 tocsection-47"><a href="#Linux_sourcecode"><span class="tocnumber">10.1</span> <span class="toctext">Linux sourcecode</span></a></li>
+</ul>
+</li>
+</ul>
+</td></tr></table>
+<p><br />
+</p>
+<h2> <span class="mw-headline" id="Introduction">  Introduction </span></h2>
+<p>Perf is a profiler tool for Linux 2.6+ based systems that abstracts away CPU hardware differences
+in Linux performance measurements and presents a simple commandline interface.
+Perf is based on the <tt>perf_events</tt> interface exported by recent versions of the Linux kernel. This article
+demonstrates the <tt>perf</tt> tool through example runs. Output was obtained on a Ubuntu 11.04
+system with
+kernel 2.6.38-8-generic results running on an HP 6710b with dual-core Intel Core2 T7100 CPU).
+For readability, some output is abbreviated using ellipsis (<tt>[...]</tt>).
+</p>
+<h3> <span class="mw-headline" id="Commands">  Commands </span></h3>
+<p>The perf tool offers a rich set of commands to collect and analyze performance and trace data. The command line
+usage is reminiscent of <tt>git</tt> in that there is a generic tool, <tt>perf</tt>, which implements a set of commands:
+<tt>stat</tt>, <tt>record</tt>, <tt>report</tt>, [...]
+</p><p>The list of supported commands:
+</p>
+<pre>
+perf
+
+ usage: perf [--version] [--help] COMMAND [ARGS]
+
+ The most commonly used perf commands are:
+  annotate        Read perf.data (created by perf record) and display annotated code
+  archive         Create archive with object files with build-ids found in perf.data file
+  bench           General framework for benchmark suites
+  buildid-cache   Manage &lt;tt&gt;build-id&lt;/tt&gt; cache.
+  buildid-list    List the buildids in a perf.data file
+  diff            Read two perf.data files and display the differential profile
+  inject          Filter to augment the events stream with additional information
+  kmem            Tool to trace/measure kernel memory(slab) properties
+  kvm             Tool to trace/measure kvm guest os
+  list            List all symbolic event types
+  lock            Analyze lock events
+  probe           Define new dynamic tracepoints
+  record          Run a command and record its profile into perf.data
+  report          Read perf.data (created by perf record) and display the profile
+  sched           Tool to trace/measure scheduler properties (latencies)
+  script          Read perf.data (created by perf record) and display trace output
+  stat            Run a command and gather performance counter statistics
+  test            Runs sanity tests.
+  timechart       Tool to visualize total system behavior during a workload
+  top             System profiling tool.
+
+ See 'perf help COMMAND' for more information on a specific command.
+</pre>
+<p>Certain commands require special support in the kernel and may not be
+available.
+To obtain the list of options for each command, simply type the command name followed by <tt>-h</tt>:
+</p>
+<pre>
+perf stat -h
+
+ usage: perf stat [&lt;options&gt;] [&lt;command&gt;]
+
+    -e, --event &lt;event&gt;   event selector. use 'perf list' to list available events
+    -i, --no-inherit      child tasks do not inherit counters
+    -p, --pid &lt;n&gt;         stat events on existing process id
+    -t, --tid &lt;n&gt;         stat events on existing thread id
+    -a, --all-cpus        system-wide collection from all CPUs
+    -c, --scale           scale/normalize counters
+    -v, --verbose         be more verbose (show counter open errors, etc)
+    -r, --repeat &lt;n&gt;      repeat command and print average + stddev (max: 100)
+    -n, --null            null run - dont start any counters
+    -B, --big-num         print large numbers with thousands' separators
+</pre>
+<h3> <span class="mw-headline" id="Events">  Events </span></h3>
+<p>The <tt>perf</tt> tool supports a list of measurable events.  The tool
+and underlying kernel interface can measure events coming from different
+sources. For instance, some event are pure kernel counters, in this case they are
+called <b>software events</b>. Examples include: context-switches, minor-faults.
+</p><p>Another source of events is the processor itself and its Performance Monitoring
+Unit (PMU). It provides a list of events to measure micro-architectural events
+such as the number of cycles, instructions retired, L1 cache misses and so on.
+Those events are called <b>PMU hardware events</b> or <b>hardware events</b> for short.
+They vary with each processor type and model.
+</p><p>The perf_events interface also provides a small set of common hardware
+events monikers. On each processor, those events get mapped
+onto an actual events provided by the CPU, if they exists, otherwise the event
+cannot be used. Somewhat confusingly, these are also called <b>hardware events</b>
+and <b>hardware cache events</b>.
+</p><p>Finally, there are also <b>tracepoint events</b> which are implemented by the kernel <tt>ftrace</tt>
+infrastructure. Those are <b>only</b> available with the 2.6.3x and newer kernels.
+</p><p>To obtain a list of supported events:
+</p>
+<pre>
+perf list
+
+List of pre-defined events (to be used in -e):
+
+ cpu-cycles OR cycles                       [Hardware event]
+ instructions                               [Hardware event]
+ cache-references                           [Hardware event]
+ cache-misses                               [Hardware event]
+ branch-instructions OR branches            [Hardware event]
+ branch-misses                              [Hardware event]
+ bus-cycles                                 [Hardware event]
+
+ cpu-clock                                  [Software event]
+ task-clock                                 [Software event]
+ page-faults OR faults                      [Software event]
+ minor-faults                               [Software event]
+ major-faults                               [Software event]
+ context-switches OR cs                     [Software event]
+ cpu-migrations OR migrations               [Software event]
+ alignment-faults                           [Software event]
+ emulation-faults                           [Software event]
+
+ L1-dcache-loads                            [Hardware cache event]
+ L1-dcache-load-misses                      [Hardware cache event]
+ L1-dcache-stores                           [Hardware cache event]
+ L1-dcache-store-misses                     [Hardware cache event]
+ L1-dcache-prefetches                       [Hardware cache event]
+ L1-dcache-prefetch-misses                  [Hardware cache event]
+ L1-icache-loads                            [Hardware cache event]
+ L1-icache-load-misses                      [Hardware cache event]
+ L1-icache-prefetches                       [Hardware cache event]
+ L1-icache-prefetch-misses                  [Hardware cache event]
+ LLC-loads                                  [Hardware cache event]
+ LLC-load-misses                            [Hardware cache event]
+ LLC-stores                                 [Hardware cache event]
+ LLC-store-misses                           [Hardware cache event]
+
+ LLC-prefetch-misses                        [Hardware cache event]
+ dTLB-loads                                 [Hardware cache event]
+ dTLB-load-misses                           [Hardware cache event]
+ dTLB-stores                                [Hardware cache event]
+ dTLB-store-misses                          [Hardware cache event]
+ dTLB-prefetches                            [Hardware cache event]
+ dTLB-prefetch-misses                       [Hardware cache event]
+ iTLB-loads                                 [Hardware cache event]
+ iTLB-load-misses                           [Hardware cache event]
+ branch-loads                               [Hardware cache event]
+ branch-load-misses                         [Hardware cache event]
+
+ rNNN (see 'perf list --help' on how to encode it) [Raw hardware event descriptor]
+
+ mem:&lt;addr&gt;[:access]                        [Hardware breakpoint]
+
+ kvmmmu:kvm_mmu_pagetable_walk              [Tracepoint event]
+
+ [...]
+
+ sched:sched_stat_runtime                   [Tracepoint event]
+ sched:sched_pi_setprio                     [Tracepoint event]
+ syscalls:sys_enter_socket                  [Tracepoint event]
+ syscalls:sys_exit_socket                   [Tracepoint event]
+
+ [...]
+
+</pre>
+<p>An event can have sub-events (or unit masks). On some processors and for some events,
+it may be possible to combine unit masks and measure when either sub-event occurs.
+Finally, an event can have modifiers, i.e., filters which alter when or how the event is
+counted.
+</p>
+<h4> <span class="mw-headline" id="Hardware_events">  Hardware events </span></h4>
+<p>PMU hardware events are CPU specific and documented by the CPU vendor. The <tt>perf</tt> tool, if linked against the <tt>libpfm4</tt>
+library, provides some short description of the events. For a listing of PMU hardware events for Intel and AMD
+processors, see
+</p>
+<ul><li> Intel PMU event tables: Appendix A of manual <a rel="nofollow" class="external text" href="http://www.intel.com/Assets/PDF/manual/253669.pdf">here</a>
+</li><li> AMD PMU event table: section 3.14 of manual <a rel="nofollow" class="external text" href="http://support.amd.com/us/Processor_TechDocs/31116.pdf">here</a>
+</li></ul>
+<h2> <span class="mw-headline" id="Counting_with_perf_stat">  Counting with <tt>perf stat</tt> </span></h2>
+<p>For any of the supported events, perf can keep a running count during process execution.
+In counting modes, the occurrences of events are simply aggregated and presented on standard
+output at the end
+of an application run.
+To generate these statistics, use the <tt>stat</tt> command of <tt>perf</tt>. For instance:
+</p>
+<pre>
+perf stat -B dd if=/dev/zero of=/dev/null count=1000000
+
+1000000+0 records in
+1000000+0 records out
+512000000 bytes (512 MB) copied, 0.956217 s, 535 MB/s
+
+ Performance counter stats for 'dd if=/dev/zero of=/dev/null count=1000000':
+
+            5,099 cache-misses             #      0.005 M/sec (scaled from 66.58%)
+          235,384 cache-references         #      0.246 M/sec (scaled from 66.56%)
+        9,281,660 branch-misses            #      3.858&#160;%     (scaled from 33.50%)
+      240,609,766 branches                 #    251.559 M/sec (scaled from 33.66%)
+    1,403,561,257 instructions             #      0.679 IPC   (scaled from 50.23%)
+    2,066,201,729 cycles                   #   2160.227 M/sec (scaled from 66.67%)
+              217 page-faults              #      0.000 M/sec
+                3 CPU-migrations           #      0.000 M/sec
+               83 context-switches         #      0.000 M/sec
+       956.474238 task-clock-msecs         #      0.999 CPUs
+
+       0.957617512  seconds time elapsed
+
+</pre>
+<p>With no events specified, <tt>perf stat</tt> collects the common events listed above. Some are software
+events, such as <tt>context-switches</tt>, others are generic hardware events such as <tt>cycles</tt>.
+After the hash sign, derived metrics may be presented, such as 'IPC' (instructions per cycle).
+</p>
+<h3> <span class="mw-headline" id="Options_controlling_event_selection">  Options controlling event selection </span></h3>
+<p>It is possible to measure one or more events per run of the <tt>perf</tt> tool. Events are designated
+using their symbolic names followed by optional unit masks and modifiers. Event names, unit masks,
+and modifiers are case insensitive.
+</p><p>By default, events are measured at <b>both</b> user and kernel levels:
+</p>
+<pre>
+perf stat -e cycles dd if=/dev/zero of=/dev/null count=100000
+</pre>
+<p>To measure only at the user level, it is necessary to pass a modifier:
+</p>
+<pre>
+perf stat -e cycles:u dd if=/dev/zero of=/dev/null count=100000
+</pre>
+<p>To measure both user and kernel (explicitly):
+</p>
+<pre>
+perf stat -e cycles:uk dd if=/dev/zero of=/dev/null count=100000
+</pre>
+<h4> <span class="mw-headline" id="Modifiers">  Modifiers </span></h4>
+<p>Events can optionally have a modifier by appending a colon and one or more modifiers.
+Modifiers allow the user to restrict when events are counted.
+</p><p>To measure a PMU event and pass modifiers:
+</p>
+<pre>
+perf stat -e instructions:u dd if=/dev/zero of=/dev/null count=100000
+</pre>
+<p>In this example, we are measuring the number of instructions at the user level.
+Note that for actual events, the modifiers depends on the underlying PMU model.
+All modifiers can be combined at will.
+Here is a simple table to summarize the most common modifiers for Intel and
+AMD x86 processors.
+</p>
+<table border="1">
+<tr>
+<th> Modifiers
+</th>
+<th> Description
+</th>
+<th> Example
+</th></tr>
+<tr>
+<td>u             </td>
+<td> monitor at priv level 3, 2, 1 (user)</td>
+<td> event:u
+</td></tr>
+<tr>
+<td>k             </td>
+<td> monitor at priv level 0 (kernel)     </td>
+<td> event:k
+</td></tr>
+<tr>
+<td>h             </td>
+<td> monitor hypervisor events on a virtualization environment </td>
+<td> event:h
+</td></tr>
+<tr>
+<td>H             </td>
+<td> monitor host machine on a virtualization environment </td>
+<td> event:H
+</td></tr>
+<tr>
+<td>G             </td>
+<td> monitor guest machine on a virtualization environment </td>
+<td> event:G
+</td></tr></table>
+<p>All modifiers above are considered as a boolean (flag).
+</p>
+<h4> <span class="mw-headline" id="Hardware_events_2">  Hardware events </span></h4>
+<p>To measure an actual PMU as provided by the HW vendor documentation, pass the hexadecimal parameter code:
+</p>
+<pre>
+perf stat -e r1a8 -a sleep 1
+
+Performance counter stats for 'sleep 1':
+
+            210,140 raw 0x1a8
+       1.001213705  seconds time elapsed
+</pre>
+<h4> <span class="mw-headline" id="multiple_events">  multiple events </span></h4>
+<p>To measure more than one event, simply provide a comma-separated list with no space:
+</p>
+<pre>
+perf stat -e cycles,instructions,cache-misses [...]
+</pre>
+<p>There is no theoretical limit in terms of the number of events that can be provided. If there are more
+events than there are actual hw counters, the kernel will automatically multiplex them. There
+is no limit of the number of software events. It is possible to simultaneously measure
+events coming from different sources.
+</p><p>However, given that there is one file descriptor used per event and either per-thread (per-thread mode)
+or per-cpu (system-wide), it is possible to reach the maximum number of open file descriptor per process
+as imposed by the kernel. In that case, perf will report an error. See the troubleshooting section for
+help with this matter.
+</p>
+<h4> <span class="mw-headline" id="multiplexing_and_scaling_events">  multiplexing and scaling events </span></h4>
+<p>If there are more events than counters, the kernel uses time multiplexing (switch frequency = <tt>HZ</tt>, generally 100 or 1000) to give each event a chance to access the monitoring hardware. Multiplexing only applies
+to PMU events.
+With multiplexing, an event is <b>not</b> measured all the time. At the end of the run, the tool <b>scales</b>
+the count based on total time enabled vs time running. The actual formula is:
+</p><p><tt>final_count =  raw_count * time_enabled/time_running</tt>
+</p><p>This provides an <b>estimate</b> of what the count would have been, had the event been measured during the
+entire run. It is <b>very</b> important to understand this is an <b>estimate</b> not an actual count.
+Depending on the workload, there will be blind spots which can introduce errors during
+scaling.
+</p><p>Events are currently managed in round-robin fashion. Therefore each event will eventually get a chance
+to run. If there are N counters, then up to the first N events on the round-robin list are programmed into
+the PMU. In certain situations it may be less than that because some events may not be measured together
+or they compete for the same counter.
+Furthermore, the perf_events interface allows multiple tools to measure the same thread or CPU at the
+same time. Each event is added to the same round-robin list. There is no guarantee that all events of
+a tool are stored sequentially in the list.
+</p><p>To avoid scaling (in the presence of only one active perf_event user), one can try and reduce the number of
+events. The following table provides the number of counters for a few common processors:
+</p>
+<table border="1">
+<tr>
+<th>Processor
+</th>
+<th>Generic counters
+</th>
+<th>Fixed counters
+</th></tr>
+<tr>
+<td>Intel Core  </td>
+<td> 2 </td>
+<td> 3
+</td></tr>
+<tr>
+<td>Intel Nehalem</td>
+<td> 4 </td>
+<td> 3
+</td></tr></table>
+<p>Generic counters can measure any events. Fixed counters can only measure one event. Some counters
+may be reserved for special purposes, such as a watchdog timer.
+</p><p>The following examples show the effect of scaling:
+</p>
+<pre>
+perf stat -B -e cycles,cycles ./noploop 1
+
+ Performance counter stats for './noploop 1':
+
+    2,812,305,464 cycles
+    2,812,304,340 cycles
+
+       1.302481065  seconds time elapsed
+
+</pre>
+<p>Here, there is no multiplexing and thus no scaling. Let's add one more event:
+</p>
+<pre>
+perf stat -B -e cycles,cycles,cycles ./noploop 1
+
+ Performance counter stats for './noploop 1':
+
+    2,809,725,593 cycles                    (scaled from 74.98%)
+    2,810,797,044 cycles                    (scaled from 74.97%)
+    2,809,315,647 cycles                    (scaled from 75.09%)
+
+       1.295007067  seconds time elapsed
+
+</pre>
+<p>There was multiplexing and thus scaling.
+It can be interesting to try and pack events in a way that
+guarantees that event A and B are always measured together. Although the perf_events kernel interface
+provides support for event grouping, the current <tt>perf</tt> tool does <b>not</b>.
+</p>
+<h4> <span class="mw-headline" id="Repeated_measurement">  Repeated measurement </span></h4>
+<p>It is possible to use <tt>perf stat</tt> to run the same test workload multiple times and get for each count,
+the standard deviation from the mean.
+</p>
+<pre>
+perf stat -r 5 sleep 1
+
+ Performance counter stats for 'sleep 1' (5 runs):
+
+    &lt;not counted&gt; cache-misses
+           20,676 cache-references         #     13.046 M/sec   ( +-   0.658% )
+            6,229 branch-misses            #      0.000&#160;%       ( +-  40.825% )
+    &lt;not counted&gt; branches
+    &lt;not counted&gt; instructions
+    &lt;not counted&gt; cycles
+              144 page-faults              #      0.091 M/sec   ( +-   0.139% )
+                0 CPU-migrations           #      0.000 M/sec   ( +-    -nan% )
+                1 context-switches         #      0.001 M/sec   ( +-   0.000% )
+         1.584872 task-clock-msecs         #      0.002 CPUs    ( +-  12.480% )
+
+       1.002251432  seconds time elapsed   ( +-   0.025% )
+
+</pre>
+<p>Here, <tt>sleep</tt> is run 5 times and the mean count for each event, along
+with ratio of std-dev/mean is printed.
+</p>
+<h3> <span class="mw-headline" id="Options_controlling_environment_selection">  Options controlling environment selection </span></h3>
+<p>The <tt>perf</tt> tool can be used to count events on a per-thread, per-process, per-cpu
+or system-wide basis.
+In <i>per-thread</i> mode, the counter only monitors the execution of a designated thread.
+When the thread is scheduled out, monitoring stops. When a thread migrated from one
+processor to another, counters are saved on the current processor and are restored
+on the new one.
+</p><p>The <i>per-process</i> mode is a variant of per-thread where <b>all</b> threads of the process
+are monitored. Counts and samples are aggregated at the process level.
+The perf_events interface allows for automatic inheritance on <tt>fork()</tt> and <tt>pthread_create()</tt>.
+By default, the perf tool <b>activates</b> inheritance.
+</p><p>In <i>per-cpu</i> mode, all threads running on the designated processors are monitored. Counts and
+samples are thus aggregated per CPU. An event is only monitoring one CPU at a time. To monitor
+across multiple processors, it is necessary to create multiple events.  The perf tool can aggregate
+counts and samples across multiple processors. It can also monitor only a subset of the processors.
+</p>
+<h4> <span class="mw-headline" id="Counting_and_inheritance">  Counting and inheritance </span></h4>
+<p>By default, <tt>perf stat</tt> counts for all threads of the process and subsequent child processes and
+threads. This can be altered using the <tt>-i</tt> option. It is not possible to obtain a count breakdown per-thread or per-process.
+</p>
+<h4> <span class="mw-headline" id="Processor-wide_mode">  Processor-wide mode </span></h4>
+<p>By default, <tt>perf stat</tt> counts in per-thread mode. To count on a per-cpu basis pass
+the <tt>-a</tt> option. When it is specified by itself, all online processors are monitored and counts are
+aggregated. For instance:
+</p>
+<pre>
+perf stat -B -ecycles:u,instructions:u -a dd if=/dev/zero of=/dev/null count=2000000
+
+2000000+0 records in
+2000000+0 records out
+1024000000 bytes (1.0 GB) copied, 1.91559 s, 535 MB/s
+
+ Performance counter stats for 'dd if=/dev/zero of=/dev/null count=2000000':
+
+    1,993,541,603 cycles
+      764,086,803 instructions             #      0.383 IPC
+
+       1.916930613  seconds time elapsed
+</pre>
+<p>This measurement collects events <tt>cycles</tt> and <tt>instructions</tt> across all CPUs.
+The duration of the measurement is determined by the execution of <tt>dd</tt>.
+In other words, this measurement captures execution of the <tt>dd</tt> process <b>and</b> anything else
+than runs at the user level on all CPUs.
+</p><p>To time the duration of the measurement without actively consuming cycles, it is possible to  use the
+=/usr/bin/sleep= command:
+</p>
+<pre>
+perf stat -B -ecycles:u,instructions:u -a sleep 5
+
+ Performance counter stats for 'sleep 5':
+
+      766,271,289 cycles
+      596,796,091 instructions             #      0.779 IPC
+
+       5.001191353  seconds time elapsed
+
+</pre>
+<p>It is possible to restrict monitoring to a subset of the CPUS using the <tt>-C</tt> option. A list of CPUs
+to monitor can be passed. For instance, to measure on CPU0, CPU2 and CPU3:
+</p>
+<pre>
+perf stat -B -e cycles:u,instructions:u -a -C 0,2-3 sleep 5
+</pre>
+<p>The demonstration machine has only two CPUs, but we can limit to CPU 1.
+</p>
+<pre>
+perf stat -B -e cycles:u,instructions:u -a -C 1 sleep 5
+
+ Performance counter stats for 'sleep 5':
+
+      301,141,166 cycles
+      225,595,284 instructions             #      0.749 IPC
+
+       5.002125198  seconds time elapsed
+
+</pre>
+<p>Counts are aggregated across all the monitored CPUs. Notice how the number of counted
+cycles and instructions are both halved when measuring a single CPU.
+</p>
+<h4> <span class="mw-headline" id="Attaching_to_a_running_process">  Attaching to a running process </span></h4>
+<p>It is possible to use perf to attach to an already running thread or process. This requires the permission
+to attach along with the thread or process ID. To attach to a process, the <tt>-p</tt> option must be
+the process ID. To attach to the sshd service that is commonly running on many Linux machines, issue:
+</p>
+<pre>
+ps ax | fgrep sshd
+
+ 2262&#160;?        Ss     0:00 /usr/sbin/sshd -D
+ 2787 pts/0    S+     0:00 fgrep --color=auto sshd
+
+perf stat -e cycles -p 2262 sleep 2
+
+ Performance counter stats for process id '2262':
+
+    &lt;not counted&gt; cycles
+
+       2.001263149  seconds time elapsed
+
+</pre>
+<p>What determines the duration of the measurement is the command to execute. Even though we are
+attaching to a process, we can still pass the name of a command. It is used to time the measurement.
+Without it, <tt>perf</tt> monitors until it is killed.
+Also note that when attaching to a process, all threads of the process are monitored. Furthermore,
+given that inheritance is on by default, child processes or threads will also be monitored. To turn
+this off, you must use the <tt>-i</tt> option.
+It is possible to attach a specific thread within a process. By thread, we mean kernel visible thread.
+In other words, a thread visible by the <tt>ps</tt> or <tt>top</tt> commands. To attach to a thread, the <tt>-t</tt>
+option must be used. We look at <tt>rsyslogd</tt>, because it always runs on Ubuntu 11.04, with
+multiple threads.
+</p>
+<pre>
+ps -L ax | fgrep rsyslogd | head -5
+
+ 889   889&#160;?        Sl     0:00 rsyslogd -c4
+ 889   932&#160;?        Sl     0:00 rsyslogd -c4
+ 889   933&#160;?        Sl     0:00 rsyslogd -c4
+ 2796  2796 pts/0    S+     0:00 fgrep --color=auto rsyslogd
+
+perf stat -e cycles -t 932 sleep 2
+
+ Performance counter stats for thread id '932':
+
+    &lt;not counted&gt; cycles
+
+       2.001037289  seconds time elapsed
+
+</pre>
+<p>In this example, the thread 932 did not run during the 2s of the measurement. Otherwise, we would
+see a count value. Attaching to kernel threads is possible, though not really recommended. Given that kernel threads tend
+to be pinned to a specific CPU, it is best to use the cpu-wide mode.
+</p><p><br />
+</p>
+<h3> <span class="mw-headline" id="Options_controlling_output">  Options controlling output </span></h3>
+<p><tt>perf stat</tt> can modify output to suit different needs.
+</p>
+<h4> <span class="mw-headline" id="Pretty_printing_large_numbers">  Pretty printing large numbers </span></h4>
+<p>For most people, it is hard to read large numbers. With <tt>perf stat</tt>, it is possible to print
+large numbers using the comma separator for thousands (US-style). For that the <tt>-B</tt>
+option and the correct locale for <tt>LC_NUMERIC</tt> must be set. As the above example showed, Ubuntu
+already sets the locale information correctly. An explicit call looks as follows:
+</p>
+<pre>
+LC_NUMERIC=en_US.UTF8 perf stat -B -e cycles:u,instructions:u dd if=/dev/zero of=/dev/null count=10000000
+
+100000+0 records in
+100000+0 records out
+51200000 bytes (51 MB) copied, 0.0971547 s, 527 MB/s
+
+ Performance counter stats for 'dd if=/dev/zero of=/dev/null count=100000':
+
+       96,551,461 cycles
+       38,176,009 instructions             #      0.395 IPC
+
+       0.098556460  seconds time elapsed
+
+</pre>
+<h4> <span class="mw-headline" id="Machine_readable_output">  Machine readable output </span></h4>
+<p><tt>perf stat</tt> can also print counts in a format that can easily be imported
+into a spreadsheet or parsed by scripts. The <tt>-x</tt> option alters the format of the output and allows users to pass a field
+delimiter. This makes is easy to produce CSV-style output:
+</p>
+<pre>
+perf stat  -x, date
+
+Thu May 26 21:11:07 EDT 2011
+884,cache-misses
+32559,cache-references
+&lt;not counted&gt;,branch-misses
+&lt;not counted&gt;,branches
+&lt;not counted&gt;,instructions
+&lt;not counted&gt;,cycles
+188,page-faults
+2,CPU-migrations
+0,context-switches
+2.350642,task-clock-msecs
+</pre>
+<p>Note that the <tt>-x</tt> option is not compatible with <tt>-B</tt>.
+</p>
+<h2> <span class="mw-headline" id="Sampling_with_perf_record">  Sampling with <tt>perf record</tt> </span></h2>
+<p>The <tt>perf</tt> tool can be used to collect profiles on per-thread, per-process and per-cpu basis.
+</p><p>There are several commands associated with sampling: <tt>record</tt>, <tt>report</tt>, <tt>annotate</tt>.
+You must first collect the samples using <tt>perf record</tt>. This generates an output
+file called <tt>perf.data</tt>. That file can then be analyzed, possibly on another machine, using
+the <tt>perf report</tt> and <tt>perf annotate</tt> commands. The model is fairly similar to that of
+OProfile.
+</p>
+<h3> <span class="mw-headline" id="Event-based_sampling_overview">  Event-based sampling overview </span></h3>
+<p>Perf_events is based on event-based sampling. The period is expressed as the number of occurrences
+of an event, not the number of timer ticks.
+A sample is recorded when the sampling counter overflows, i.e., wraps from 2^64 back to 0.
+No PMU implements 64-bit hardware counters, but perf_events emulates such counters in software.
+</p><p>The way perf_events emulates 64-bit counter is limited to expressing sampling periods
+using the number of bits in the actual hardware counters. If this is smaller than 64, the kernel <b>silently</b> truncates
+the period in this case. Therefore, it is best if the period is always smaller than 2^31 if running
+on 32-bit systems.
+</p><p>On counter overflow, the kernel records information, i.e., a sample, about the execution of the
+program. What gets recorded depends on the type of measurement. This is all specified by the
+user and the tool. But the key information that is common in all samples is the instruction pointer,
+i.e. where was the program when it was interrupted.
+</p><p>Interrupt-based sampling introduces skids on modern processors. That means that the instruction pointer
+stored in each sample designates the place where the program was
+interrupted to process the PMU interrupt, not the place where the counter actually overflows, i.e.,
+where it was at the end of the sampling period. In some case, the distance between those two points
+may be several dozen instructions or more if there were taken branches. When the program cannot
+make forward progress, those two locations are indeed identical. <i>For this reason, care must be taken</i>
+when interpreting profiles<i>.</i>
+</p>
+<h4> <span class="mw-headline" id="Default_event:_cycle_counting">  Default event: cycle counting </span></h4>
+<p>By default, <tt>perf record</tt> uses the <tt>cycles</tt> event as the sampling event.
+This is a generic hardware event that is mapped to a hardware-specific
+PMU event by the kernel. For Intel, it is mapped to <tt>UNHALTED_CORE_CYCLES</tt>. This event
+does not maintain a constant correlation to time in the presence of CPU frequency scaling.
+Intel provides another event, called <tt>UNHALTED_REFERENCE_CYCLES</tt> but this event is NOT
+currently available with perf_events.
+</p><p>On AMD systems, the event is mapped to <tt>CPU_CLK_UNHALTED</tt>
+and this event is also subject to frequency scaling.
+On any Intel or AMD processor, the <tt>cycle</tt> event does not count when the processor is idle, i.e.,
+when it calls <tt>mwait()</tt>.
+</p>
+<h4> <span class="mw-headline" id="Period_and_rate">  Period and rate </span></h4>
+<p>The perf_events interface allows two modes to express the sampling period:
+</p>
+<ul><li> the number of occurrences of the event (period)
+</li><li> the average rate of samples/sec (frequency)
+</li></ul>
+<p>The <tt>perf</tt> tool defaults to the average rate. It is set to 1000Hz, or 1000 samples/sec. That means
+that the kernel is dynamically adjusting the sampling period to achieve the target average rate.
+The adjustment in period is reported in the raw profile data.
+In contrast, with the other mode, the sampling period is set by the user and does not vary
+between samples.
+There is currently no support for sampling period randomization.
+</p>
+<h3> <span class="mw-headline" id="Collecting_samples">  Collecting samples </span></h3>
+<p>By default, <tt>perf record</tt> operates in per-thread mode, with inherit mode enabled.
+The simplest mode looks as follows, when executing a simple program that busy loops:
+</p>
+<pre>
+perf record ./noploop 1
+
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.002 MB perf.data (~89 samples) ]
+</pre>
+<p>The example above collects samples for event <tt>cycles</tt> at an average target rate of 1000Hz.
+The resulting samples are saved into the <tt>perf.data</tt> file. If the file already existed, you may be prompted
+to pass <tt>-f</tt> to overwrite it. To put the results in a specific file, use the <tt>-o</tt> option.
+</p><p>WARNING: The number of reported samples is only an <b>estimate</b>. It does not
+reflect the actual number of samples collected. The estimate is based on
+the number of bytes written to the <tt>perf.data</tt> file and the minimal sample size. But
+the size of each sample depends on the type of measurement. Some samples are generated
+by the counters themselves but others are recorded to support symbol correlation during
+post-processing, e.g., <tt>mmap()</tt> information.
+</p><p>To get an accurate number of samples for the <tt>perf.data</tt> file, it is possible to use the <tt>perf report</tt>
+command:
+</p>
+<pre>
+perf record ./noploop 1
+
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.058 MB perf.data (~2526 samples) ]
+perf report -D -i perf.data | fgrep RECORD_SAMPLE | wc -l
+
+1280
+
+</pre>
+<p>To specify a custom rate, it is necessary to use the <tt>-F</tt> option. For instance,
+to sample on event <tt>instructions</tt> only at the user level and
+</p>
+<pre>at an average rate of 250 samples/sec:
+</pre>
+<pre>
+perf record -e instructions:u -F 250 ./noploop 4
+
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.049 MB perf.data (~2160 samples) ]
+
+</pre>
+<p>To specify a sampling period, instead, the <tt>-c</tt> option must be used. For instance,
+to collect a sample every 2000 occurrences of event <tt>instructions</tt>  only at the user level
+only:
+</p>
+<pre>
+perf record -e retired_instructions:u -c 2000 ./noploop 4
+
+[ perf record: Woken up 55 times to write data ]
+[ perf record: Captured and wrote 13.514 MB perf.data (~590431 samples) ]
+
+</pre>
+<h3> <span class="mw-headline" id="Processor-wide_mode_2">  Processor-wide mode </span></h3>
+<p>In per-cpu mode mode,  samples are collected for all threads executing on the monitored
+CPU. To switch <tt>perf record</tt> in per-cpu mode, the <tt>-a</tt> option must be used.  By default
+in this mode, <b>ALL</b> online CPUs are monitored. It is possible to restrict to the a subset
+of CPUs using the <tt>-C</tt> option, as explained with <tt>perf stat</tt> above.
+</p><p>To sample on <tt>cycles</tt> at both user and kernel levels for 5s on all CPUS with an average
+target rate of 1000 samples/sec:
+</p>
+<pre>
+perf record -a -F 1000 sleep 5
+
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.523 MB perf.data (~22870 samples) ]
+
+</pre>
+<h2> <span class="mw-headline" id="Sample_analysis_with_perf_report">  Sample analysis with <tt>perf report</tt> </span></h2>
+<p>Samples collected by <tt>perf record</tt> are saved into a binary file called, by default, <tt>perf.data</tt>.
+The <tt>perf report</tt> command reads this file and generates
+a concise execution profile. By default, samples are sorted by functions with the most samples first.
+It is possible to customize the sorting order and therefore to view the data differently.
+</p>
+<pre>
+perf report
+
+# Events: 1K cycles
+#
+# Overhead          Command                   Shared Object  Symbol
+# ........  ...............  ..............................  .....................................
+#
+    28.15%      firefox-bin  libxul.so                       [.] 0xd10b45
+     4.45%          swapper  [kernel.kallsyms]               [k] mwait_idle_with_hints
+     4.26%          swapper  [kernel.kallsyms]               [k] read_hpet
+     2.13%      firefox-bin  firefox-bin                     [.] 0x1e3d
+     1.40%  unity-panel-ser  libglib-2.0.so.0.2800.6         [.] 0x886f1
+     [...]
+</pre>
+<p>The column 'Overhead' indicates the percentage of the overall samples collected in the corresponding function.
+The second column reports the process from which the samples were collected. In per-thread/per-process
+mode, this is always the name of the monitored command. But in cpu-wide mode, the command can vary.
+The third column shows the name of the ELF image where the samples came from.  If a program is dynamically
+linked, then this may show the name of a shared library. When the samples come from the kernel, then
+the pseudo ELF image name <tt>[kernel.kallsyms]</tt> is used. The fourth column indicates the privilege level
+at which the sample was taken, i.e. when the program was running when it was interrupted:
+</p>
+<ul><li> [.]&#160;: user level
+</li><li> [k]: kernel level
+</li><li> [g]: guest kernel level (virtualization)
+</li><li> [u]: guest os user space
+</li><li> [H]: hypervisor
+</li></ul>
+<p>The final column shows the symbol name.
+</p><p>There are many different ways samples can be presented, i.e., sorted.
+To sort by shared objects, i.e., dsos:
+</p>
+<pre>
+perf report --sort=dso
+
+# Events: 1K cycles
+#
+# Overhead                   Shared Object
+# ........  ..............................
+#
+    38.08%  [kernel.kallsyms]
+    28.23%  libxul.so
+     3.97%  libglib-2.0.so.0.2800.6
+     3.72%  libc-2.13.so
+     3.46%  libpthread-2.13.so
+     2.13%  firefox-bin
+     1.51%  libdrm_intel.so.1.0.0
+     1.38%  dbus-daemon
+     1.36%  [drm]
+     [...]
+</pre>
+<p><br />
+</p>
+<h3> <span class="mw-headline" id="Options_controlling_output_2">  Options controlling output </span></h3>
+<p>To make the output easier to parse, it is possible to change the column separator
+to a single character:
+</p>
+<pre>
+perf report -t
+</pre>
+<h3> <span class="mw-headline" id="Options_controlling_kernel_reporting">  Options controlling kernel reporting </span></h3>
+<p>The <tt>perf</tt> tool does not know how to extract symbols form compressed kernel images (vmlinuz). Therefore, users
+must pass the path of the uncompressed kernel using the <tt>-k</tt> option:
+</p>
+<pre>
+perf report -k /tmp/vmlinux
+</pre>
+<p>Of course, this works only if the kernel is compiled to with debug symbols.
+</p>
+<h3> <span class="mw-headline" id="Processor-wide_mode_3">  Processor-wide mode </span></h3>
+<p>In per-cpu mode, samples are recorded from all threads running on the monitored
+CPUs. As as result, samples from many different processes may be collected.
+For instance, if we monitor across all CPUs for 5s:
+</p>
+<pre>
+perf record -a sleep 5
+perf report
+
+# Events: 354  cycles
+#
+# Overhead          Command               Shared Object  Symbol
+# ........  ...............  ..........................  ......................................
+#
+    13.20%          swapper  [kernel.kallsyms]           [k] read_hpet
+     7.53%          swapper  [kernel.kallsyms]           [k] mwait_idle_with_hints
+     4.40%    perf_2.6.38-8  [kernel.kallsyms]           [k] _raw_spin_unlock_irqrestore
+     4.07%    perf_2.6.38-8  perf_2.6.38-8               [.] 0x34e1b
+     3.88%    perf_2.6.38-8  [kernel.kallsyms]           [k] format_decode
+     [...]
+</pre>
+<p>When the symbol is printed as an hexadecimal address, this is because the ELF image does not
+have a symbol table. This happens when binaries are stripped.
+We can sort by cpu as well. This could be useful to determine if the workload is well balanced:
+</p>
+<pre>
+perf report --sort=cpu
+
+# Events: 354  cycles
+#
+# Overhead  CPU
+# ........  ...
+#
+   65.85%  1
+   34.15%  0
+</pre>
+<h3> <span class="mw-headline" id="Overhead_calculation"> Overhead calculation </span></h3>
+<p>The overhead can be shown in two columns as 'Children' and 'Self' when
+perf collects callchains.  The 'self' overhead is simply calculated by
+adding all period values of the entry - usually a function (symbol).
+This is the value that perf shows traditionally and sum of all the
+'self' overhead values should be 100%.
+</p><p>The 'children' overhead is calculated by adding all period values of
+the child functions so that it can show the total overhead of the
+higher level functions even if they don't directly execute much.
+'Children' here means functions that are called from another (parent)
+function.
+</p><p>It might be confusing that the sum of all the 'children' overhead
+values exceeds 100% since each of them is already an accumulation of
+'self' overhead of its child functions.  But with this enabled, users
+can find which function has the most overhead even if samples are
+spread over the children.
+</p><p>Consider the following example; there are three functions like below.
+</p>
+<pre>
+void foo(void) {
+    /* do something */
+}
+
+void bar(void) {
+    /* do something */
+    foo();
+}
+
+int main(void) {
+    bar()
+    return 0;
+}
+</pre>
+<p>In this case 'foo' is a child of 'bar', and 'bar' is an immediate
+child of 'main' so 'foo' also is a child of 'main'.  In other words,
+'main' is a parent of 'foo' and 'bar', and 'bar' is a parent of 'foo'.
+</p><p>Suppose all samples are recorded in 'foo' and 'bar' only.  When it's
+recorded with callchains the output will show something like below
+in the usual (self-overhead-only) output of perf report:
+</p>
+<pre>
+Overhead  Symbol
+........  .....................
+  60.00%  foo
+          |
+          --- foo
+              bar
+              main
+              __libc_start_main
+
+  40.00%  bar
+          |
+          --- bar
+              main
+              __libc_start_main
+</pre>
+<p>When the --children option is enabled, the 'self' overhead values of
+child functions (i.e. 'foo' and 'bar') are added to the parents to
+calculate the 'children' overhead.  In this case the report could be
+displayed as:
+</p>
+<pre>
+Children      Self  Symbol
+........  ........  ....................
+ 100.00%     0.00%  __libc_start_main
+          |
+          --- __libc_start_main
+
+ 100.00%     0.00%  main
+          |
+          --- main
+              __libc_start_main
+
+ 100.00%    40.00%  bar
+          |
+          --- bar
+              main
+              __libc_start_main
+
+  60.00%    60.00%  foo
+          |
+          --- foo
+              bar
+              main
+              __libc_start_main
+</pre>
+<p>In the above output, the 'self' overhead of 'foo' (60%) was add to the
+'children' overhead of 'bar', 'main' and '__libc_start_main'.
+Likewise, the 'self' overhead of 'bar' (40%) was added to the
+'children' overhead of 'main' and '__libc_start_main'.
+</p><p>So '__libc_start_main' and 'main' are shown first since they have
+same (100%) 'children' overhead (even though they have zero 'self'
+overhead) and they are the parents of 'foo' and 'bar'.
+</p><p>Since v3.16 the 'children' overhead is shown by default and the output
+is sorted by its values. The 'children' overhead is disabled by
+specifying --no-children option on the command line or by adding
+'report.children = false' or 'top.children = false' in the perf config
+file.
+</p>
+<h2> <span class="mw-headline" id="Source_level_analysis_with_perf_annotate">  Source level analysis with <tt>perf annotate</tt> </span></h2>
+<p>It is possible to drill down to the instruction level with <tt>perf annotate</tt>.
+For that, you need to invoke <tt>perf annotate</tt> with the name of the command to annotate.
+All the functions with samples will be disassembled and each instruction will have its relative
+percentage of samples reported:
+</p>
+<pre>
+perf record ./noploop 5
+perf annotate -d ./noploop
+
+------------------------------------------------
+ Percent |   Source code &amp; Disassembly of noploop.noggdb
+------------------------------------------------
+        &#160;:
+        &#160;:
+        &#160;:
+        &#160;:   Disassembly of section .text:
+        &#160;:
+        &#160;:   08048484 &lt;main&gt;:
+    0.00&#160;:    8048484:       55                      push  &#160;%ebp
+    0.00&#160;:    8048485:       89 e5                   mov   &#160;%esp,%ebp
+[...]
+    0.00&#160;:    8048530:       eb 0b                   jmp    804853d &lt;main+0xb9&gt;
+   15.08&#160;:    8048532:       8b 44 24 2c             mov    0x2c(%esp),%eax
+    0.00&#160;:    8048536:       83 c0 01                add    $0x1,%eax
+   14.52&#160;:    8048539:       89 44 24 2c             mov   &#160;%eax,0x2c(%esp)
+   14.27&#160;:    804853d:       8b 44 24 2c             mov    0x2c(%esp),%eax
+   56.13&#160;:    8048541:       3d ff e0 f5 05          cmp    $0x5f5e0ff,%eax
+    0.00&#160;:    8048546:       76 ea                   jbe    8048532 &lt;main+0xae&gt;
+[...]
+</pre>
+<p>The first column reports the percentage of samples for function ==noploop()== captured for at that instruction.
+As explained earlier, you should interpret this information carefully.
+</p><p><tt>perf annotate</tt> can generate sourcecode level information if the application is compiled with <tt>-ggdb</tt>. The following
+snippet shows the much more informative output for the same execution of <tt>noploop</tt> when compiled with this debugging
+information.
+</p>
+<pre>
+------------------------------------------------
+ Percent |   Source code &amp; Disassembly of noploop
+------------------------------------------------
+        &#160;:
+        &#160;:
+        &#160;:
+        &#160;:   Disassembly of section .text:
+        &#160;:
+        &#160;:   08048484 &lt;main&gt;:
+        &#160;:   #include &lt;string.h&gt;
+        &#160;:   #include &lt;unistd.h&gt;
+        &#160;:   #include &lt;sys/time.h&gt;
+        &#160;:
+        &#160;:   int main(int argc, char **argv)
+        &#160;:   {
+    0.00&#160;:    8048484:       55                      push  &#160;%ebp
+    0.00&#160;:    8048485:       89 e5                   mov   &#160;%esp,%ebp
+[...]
+    0.00&#160;:    8048530:       eb 0b                   jmp    804853d &lt;main+0xb9&gt;
+        &#160;:                           count++;
+   14.22&#160;:    8048532:       8b 44 24 2c             mov    0x2c(%esp),%eax
+    0.00&#160;:    8048536:       83 c0 01                add    $0x1,%eax
+   14.78&#160;:    8048539:       89 44 24 2c             mov   &#160;%eax,0x2c(%esp)
+        &#160;:           memcpy(&amp;tv_end, &amp;tv_now, sizeof(tv_now));
+        &#160;:           tv_end.tv_sec += strtol(argv[1], NULL, 10);
+        &#160;:           while (tv_now.tv_sec &lt; tv_end.tv_sec ||
+        &#160;:                  tv_now.tv_usec &lt; tv_end.tv_usec) {
+        &#160;:                   count = 0;
+        &#160;:                   while (count &lt; 100000000UL)
+   14.78&#160;:    804853d:       8b 44 24 2c             mov    0x2c(%esp),%eax
+   56.23&#160;:    8048541:       3d ff e0 f5 05          cmp    $0x5f5e0ff,%eax
+    0.00&#160;:    8048546:       76 ea                   jbe    8048532 &lt;main+0xae&gt;
+[...]
+</pre>
+<h3> <span class="mw-headline" id="Using_perf_annotate_on_kernel_code">  Using <tt>perf annotate</tt> on kernel code </span></h3>
+<p>The <tt>perf</tt> tool does not know how to extract symbols from compressed kernel images (vmlinuz).
+As in the case of <tt>perf report</tt>, users
+must pass the path of the uncompressed kernel using the <tt>-k</tt> option:
+</p>
+<pre>
+perf annotate -k /tmp/vmlinux -d symbol
+</pre>
+<p>Again, this only works if the kernel is compiled to with debug symbols.
+</p>
+<h2> <span class="mw-headline" id="Live_analysis_with_perf_top">  Live analysis with <tt>perf top</tt> </span></h2>
+<p>The perf tool can operate in a mode similar to the Linux <tt>top</tt> tool,
+printing sampled functions in real time.
+The default sampling event is <tt>cycles</tt> and default order
+is descending number of samples per symbol, thus <tt>perf top</tt> shows the functions
+where most of the time is spent.
+By default, <tt>perf top</tt> operates in processor-wide mode, monitoring
+all online CPUs at both user and kernel levels. It is possible to monitor only
+a subset of the CPUS using the <tt>-C</tt> option.
+</p>
+<pre>
+perf top
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+  PerfTop:     260 irqs/sec  kernel:61.5%  exact:  0.0% [1000Hz
+cycles],  (all, 2 CPUs)
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            samples  pcnt function                       DSO
+            _______ _____ ______________________________ ___________________________________________________________
+
+              80.00 23.7% read_hpet                      [kernel.kallsyms]
+              14.00  4.2% system_call                    [kernel.kallsyms]
+              14.00  4.2% __ticket_spin_lock             [kernel.kallsyms]
+              14.00  4.2% __ticket_spin_unlock           [kernel.kallsyms]
+               8.00  2.4% hpet_legacy_next_event         [kernel.kallsyms]
+               7.00  2.1% i8042_interrupt                [kernel.kallsyms]
+               7.00  2.1% strcmp                         [kernel.kallsyms]
+               6.00  1.8% _raw_spin_unlock_irqrestore    [kernel.kallsyms]
+               6.00  1.8% pthread_mutex_lock             /lib/i386-linux-gnu/libpthread-2.13.so
+               6.00  1.8% fget_light                     [kernel.kallsyms]
+               6.00  1.8% __pthread_mutex_unlock_usercnt /lib/i386-linux-gnu/libpthread-2.13.so
+               5.00  1.5% native_sched_clock             [kernel.kallsyms]
+               5.00  1.5% drm_addbufs_sg                 /lib/modules/2.6.38-8-generic/kernel/drivers/gpu/drm/drm.ko
+</pre>
+<p>By default, the first column shows the aggregated number of samples since the beginning of the
+run. By pressing the 'Z' key, this can be changed to print the number of samples since the last
+refresh. Recall that the <tt>cycle</tt> event counts CPU cycles when the
+processor is not in halted state, i.e. not idle. Therefore this is <b>not</b> equivalent to
+wall clock time. Furthermore, the event is also subject to frequency scaling.
+</p><p>It is also possible to drill down into single functions to see which instructions
+have the most samples.
+To drill down into a specify function, press the 's' key and enter the name of the function.
+Here we selected the top function <tt>noploop</tt> (not shown above):
+</p>
+<pre>
+------------------------------------------------------------------------------------------------------------------------------------------
+   PerfTop:    2090 irqs/sec  kernel:50.4%  exact:  0.0% [1000Hz cycles],  (all, 16 CPUs)
+------------------------------------------------------------------------------------------------------------------------------------------
+Showing cycles for noploop
+  Events  Pcnt (&gt;=5%)
+       0  0.0%   00000000004003a1 &lt;noploop&gt;:
+       0  0.0%     4003a1:   55                      push  &#160;%rbp
+       0  0.0%     4003a2:   48 89 e5                mov   &#160;%rsp,%rbp
+    3550 100.0%    4003a5:   eb fe                   jmp    4003a5 &lt;noploop+0x4&gt;
+
+</pre>
+<h2> <span class="mw-headline" id="Benchmarking_with_perf_bench"> Benchmarking with <tt>perf bench</tt> </span></h2>
+<p>The <tt>perf bench</tt> command includes a number of multi-threaded microbenchmarks
+to exercise different subsystems in the Linux kernel and system calls. This allows
+hackers to easily stress and measure the impact of changes, and therefore help mitigate
+performance regressions.
+</p><p>It also serves as a general benchmark framework, enabling developers to easily create
+test cases and transparently integrate and make use of the rich perf tool subsystem.
+</p>
+<h3> <span class="mw-headline" id="sched:_Scheduler_benchmarks">  sched: Scheduler benchmarks </span></h3>
+<p>Measures <tt>pipe(2)</tt> and <tt>socketpair(2)</tt> operations between multiple tasks.
+Allows the measurement of thread versus process context switch performance.
+</p>
+<pre>
+$perf bench sched messaging -g 64
+# Running 'sched/messaging' benchmark:
+# 20 sender and receiver processes per group
+# 64 groups == 2560 processes run
+
+     Total time: 1.549 [sec]
+</pre>
+<h3> <span class="mw-headline" id="mem:_Memory_access_benchmarks"> mem: Memory access benchmarks </span></h3>
+<h3> <span class="mw-headline" id="numa:_NUMA_scheduling_and_MM_benchmarks"> numa: NUMA scheduling and MM benchmarks </span></h3>
+<h3> <span class="mw-headline" id="futex:_Futex_stressing_benchmarks"> futex: Futex stressing benchmarks </span></h3>
+<p>Deals with finer grained aspects of the kernel's implementation of futexes. It is mostly 
+useful for kernel hacking. It currently supports wakeup and requeue/wait operations, as 
+well as stressing the hashing scheme for both private and shared futexes. An example run
+for nCPU threads, each handling 1024 futexes measuring the hashing logic:
+</p>
+<pre>
+$ perf bench futex hash
+# Running 'futex/hash' benchmark:
+Run summary [PID 17428]: 4 threads, each operating on 1024 [private] futexes for 10 secs.
+
+[thread  0] futexes: 0x2775700 ... 0x27766fc [ 3343462 ops/sec ]
+[thread  1] futexes: 0x2776920 ... 0x277791c [ 3679539 ops/sec ]
+[thread  2] futexes: 0x2777ab0 ... 0x2778aac [ 3589836 ops/sec ]
+[thread  3] futexes: 0x2778c40 ... 0x2779c3c [ 3563827 ops/sec ]
+
+Averaged 3544166 operations/sec (+- 2.01%), total secs = 10
+</pre>
+<h2> <span class="mw-headline" id="Troubleshooting_and_Tips">  Troubleshooting and Tips </span></h2>
+<p>This section lists a number of tips to avoid common pitfalls when using perf.
+</p>
+<h3> <span class="mw-headline" id="Open_file_limits">  Open file limits </span></h3>
+<p>The design of the perf_event kernel interface which is used by the perf tool, is such  that it uses one file descriptor
+per event per-thread or per-cpu.
+</p><p>On a 16-way system, when you do:
+</p>
+<pre>
+perf stat -e cycles sleep 1
+</pre>
+<p>You are effectively creating 16 events, and thus consuming 16 file descriptors.
+</p><p>In per-thread mode, when you are sampling a process with 100 threads on
+the same 16-way system:
+</p>
+<pre>
+perf record -e cycles my_hundred_thread_process
+</pre>
+<p>Then, once all the threads are created, you end up with 100 * 1 (event) * 16 (cpus) = 1600 file descriptors.
+Perf creates one instance of the event on each CPU. Only when the thread executes
+on that CPU does the event effectively measure. This approach enforces sampling buffer locality and thus
+mitigates sampling overhead. At the end of the run, the tool aggregates all the samples into a single output file.
+</p><p>In case perf aborts with 'too many open files' error, there are a few solutions:
+</p>
+<ul><li> increase the number of per-process open files using ulimit -n. Caveat: you must be root
+</li><li> limit the number of events you measure in one run
+</li><li> limit the number of CPU you are measuring
+</li></ul>
+<h4> <span class="mw-headline" id="increasing_open_file_limit">  increasing open file limit </span></h4>
+<p>The superuser can override the per-process open file limit using the <tt>ulimit</tt> shell builtin command:
+</p>
+<pre>
+ulimit -a
+[...]
+open files                      (-n) 1024
+[...]
+
+ulimit -n 2048
+ulimit -a
+[...]
+open files                      (-n) 2048
+[...]
+</pre>
+<p><br />
+</p>
+<h3> <span class="mw-headline" id="Binary_identification_with_build-id">  Binary identification with <tt>build-id</tt> </span></h3>
+<p>The <tt>perf record</tt> command saves in the <tt>perf.data</tt> unique identifiers for all ELF images relevant to the
+measurement. In per-thread mode, this includes all the ELF images of the monitored processes. In cpu-wide
+mode, it includes all running processes running on the system. Those unique identifiers are generated by the linker if
+the <tt>-Wl,--build-id</tt> option is used. Thus, they are called <tt>build-id</tt>.
+The <tt>build-id</tt> are a helpful tool when correlating instruction addresses to ELF images.
+To extract all <tt>build-id</tt> entries used in a <tt>perf.data</tt> file, issue:
+</p>
+<pre>
+perf buildid-list -i perf.data
+
+06cb68e95cceef1ff4e80a3663ad339d9d6f0e43 [kernel.kallsyms]
+e445a2c74bc98ac0c355180a8d770cd35deb7674 /lib/modules/2.6.38-8-generic/kernel/drivers/gpu/drm/i915/i915.ko
+83c362c95642c3013196739902b0360d5cbb13c6 /lib/modules/2.6.38-8-generic/kernel/drivers/net/wireless/iwlwifi/iwlcore.ko
+1b71b1dd65a7734e7aa960efbde449c430bc4478 /lib/modules/2.6.38-8-generic/kernel/net/mac80211/mac80211.ko
+ae4d6ec2977472f40b6871fb641e45efd408fa85 /lib/modules/2.6.38-8-generic/kernel/drivers/gpu/drm/drm.ko
+fafad827c43e34b538aea792cc98ecfd8d387e2f /lib/i386-linux-gnu/ld-2.13.so
+0776add23cf3b95b4681e4e875ba17d62d30c7ae /lib/i386-linux-gnu/libdbus-1.so.3.5.4
+f22f8e683907b95384c5799b40daa455e44e4076 /lib/i386-linux-gnu/libc-2.13.so
+[...]
+</pre>
+<h4> <span class="mw-headline" id="The_build-id_cache">  The <tt>build-id</tt> cache </span></h4>
+<p>At the end of each run, the <tt>perf record</tt> command updates a <tt>build-id</tt> cache, with new entries for ELF images with samples.
+The cache contains:
+</p>
+<ul><li> <tt>build-id</tt> for ELF images with samples
+</li><li> copies of the ELF images with samples
+</li></ul>
+<p>Given  that <tt>build-id</tt> are immutable, they uniquely identify a binary. If a binary is recompiled, a new <tt>build-id</tt> is generated
+and a new copy of the ELF images is saved in the cache.
+The cache is saved on disk in a directory which is by default $HOME/.debug. There is a global configuration file ==/etc/perfconfig==
+which can be used by sysadmin to specify an alternate global directory for the cache:
+</p>
+<pre>
+$ cat /etc/perfconfig
+[buildid]
+dir = /var/tmp/.debug
+</pre>
+<p>In certain situations it may be beneficial to turn off the <tt>build-id</tt> cache updates altogether. For that, you must pass the <tt>-N</tt> option to <tt>perf record</tt>
+</p>
+<pre>
+perf record -N dd if=/dev/zero of=/dev/null count=100000
+</pre>
+<h3> <span class="mw-headline" id="Access_Control">  Access Control </span></h3>
+<p>For some events, it is necessary to be <tt>root</tt> to invoke the <tt>perf</tt> tool. This document assumes
+that the user has root privileges. If you try to run perf with insufficient privileges, it will
+report
+</p>
+<pre>
+No permission to collect system-wide stats.
+</pre>
+<h2> <span class="mw-headline" id="Other_Scenarios"> Other Scenarios </span></h2>
+<h3> <span class="mw-headline" id="Profiling_sleep_times">Profiling sleep times</span></h3>
+<p>This feature shows where and how long a program is sleeping or waiting something.
+</p><p>The first step is collecting data. We need to collect sched_stat and sched_switch events. Sched_stat events are not enough, because they are generated in the context  of a task, which wakes up a target task (e.g. releases a lock). We need the same event but with a call-chain of the target task. This call-chain can be extracted from a previous sched_switch event.
+</p><p>The second step is merging sched_start and sched_switch events. It can be done with help of "perf inject -s".
+</p>
+<pre>$ ./perf record -e sched:sched_stat_sleep -e sched:sched_switch  -e sched:sched_process_exit -g -o ~/perf.data.raw ~/foo
+$ ./perf inject -v -s -i ~/perf.data.raw -o ~/perf.data
+$ ./perf report --stdio --show-total-period -i ~/perf.data
+# Overhead        Period  Command      Shared Object          Symbol
+# ........  ............  .......  .................  ..............
+#
+  100.00%     502408738      foo  [kernel.kallsyms]  [k] __schedule
+               |
+               --- __schedule
+                   schedule
+                  |          
+                  |--79.85%-- schedule_hrtimeout_range_clock
+                  |          schedule_hrtimeout_range
+                  |          poll_schedule_timeout
+                  |          do_select
+                  |          core_sys_select
+                  |          sys_select
+                  |          system_call_fastpath
+                  |          __select
+                  |          __libc_start_main
+                  |          
+                   --20.15%-- do_nanosleep
+                             hrtimer_nanosleep
+                             sys_nanosleep
+                             system_call_fastpath
+                             __GI___libc_nanosleep
+                             __libc_start_main
+</pre>
+<pre>$cat foo.c
+...
+          for (i = 0; i &lt;  10; i++) {
+                  ts1.tv_sec = 0;
+                  ts1.tv_nsec = 10000000;
+                  nanosleep(&amp;ts1, NULL);
+
+                  tv1.tv_sec = 0;
+                  tv1.tv_usec = 40000;
+                  select(0, NULL, NULL, NULL,&amp;tv1);
+          }
+...
+</pre>
+<h2> <span class="mw-headline" id="Other_Resources"> Other Resources </span></h2>
+<h3> <span class="mw-headline" id="Linux_sourcecode"> Linux sourcecode </span></h3>
+<p>The <tt>perf tools</tt> sourcecode lives in the Linux kernel tree under <a rel="nofollow" class="external text" href="http://lxr.linux.no/linux+v2.6.39/tools/perf/%7C"><tt>/tools/perf</tt></a>. You will find much more documentation in <a rel="nofollow" class="external text" href="http://lxr.linux.no/linux+v2.6.39/tools/perf/Documentation/">| <tt>/tools/perf/Documentation</tt></a>. To build manpages, info pages and more, install these tools:
+</p>
+<ul><li> asciidoc
+</li><li> tetex-fonts
+</li><li> tetex-dvips
+</li><li> dialog
+</li><li> tetex
+</li><li> tetex-latex
+</li><li> xmltex
+</li><li> passivetex
+</li><li> w3m
+</li><li> xmlto
+</li></ul>
+<p>and issue a <tt>make install-man</tt> from <tt>/tools/perf</tt>. This step is also required to 
+be able to run <tt>perf help &lt;command&gt;</tt>.
+</p>
+<hr />
+<p>This guide is adapted from a tutorial by Stephane Eranian at Google, with contributions from Eric Gouriou, Tipp Moseley and Willem de Bruijn. The original content imported into wiki.perf.google.com is made available under the <a rel="nofollow" class="external text" href="http://creativecommons.org/licenses/by-sa/3.0/">CreativeCommons attribution sharealike 3.0 license</a>.
+</p>
+<!-- 
+NewPP limit report
+Preprocessor node count: 628/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Expensive parser function count: 0/100
+-->
+
+<!-- Saved in parser cache with key korg_mediawiki_perf:pcache:idhash:22-0!*!*!!en!*!* and timestamp 20171025052721 -->
+</div><div class="printfooter">
+Retrieved from "<a href="https://perf.wiki.kernel.org/index.php?title=Tutorial&amp;oldid=3520">https://perf.wiki.kernel.org/index.php?title=Tutorial&amp;oldid=3520</a>"</div>
+		<div id='catlinks' class='catlinks catlinks-allhidden'></div>		<!-- end content -->
+				<div class="visualClear"></div>
+	</div>
+</div></div>
+<div id="column-one">
+	<div id="p-cactions" class="portlet">
+		<h5>Views</h5>
+		<div class="pBody">
+			<ul>
+				<li id="ca-nstab-main" class="selected"><a href="/index.php/Tutorial" primary="1" context="subject" title="View the content page [c]" accesskey="c">Page</a></li>
+				<li id="ca-talk" class="new"><a href="/index.php?title=Talk:Tutorial&amp;action=edit&amp;redlink=1" primary="1" context="talk" title="Discussion about the content page [t]" accesskey="t">Discussion</a></li>
+				<li id="ca-viewsource"><a href="/index.php?title=Tutorial&amp;action=edit" primary="1" title="This page is protected.&#10;You can view its source [e]" accesskey="e">View source</a></li>
+				<li id="ca-history"><a href="/index.php?title=Tutorial&amp;action=history" rel="archives" title="Past revisions of this page [h]" accesskey="h">History</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-personal">
+		<h5>Personal tools</h5>
+		<div class="pBody">
+			<ul>
+				<li id="pt-login"><a href="/index.php?title=Special:UserLogin&amp;returnto=Tutorial" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o">Log in / create account</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="portlet" id="p-logo">
+<a href="/index.php/Main_Page" style="background-image: url(/skins/common/images-perf/wiki.png);" title="Visit the main page"></a>
+	</div>
+	<div class="generated-sidebar portlet" id="p-navigation">
+		<h5>Navigation</h5>
+		<div class='pBody'>
+			<ul>
+				<li id="n-mainpage-description"><a href="/index.php/Main_Page" title="Visit the main page [z]" accesskey="z">Main page</a></li>
+				<li id="n-recentchanges"><a href="/index.php/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li>
+				<li id="n-randompage"><a href="/index.php/Special:Random" title="Load a random page [x]" accesskey="x">Random page</a></li>
+			</ul>
+		</div>
+	</div>
+	<div id="p-search" class="portlet">
+		<h5><label for="searchInput">Search</label></h5>
+		<div id="searchBody" class="pBody">
+			<form action="/index.php" id="searchform">
+				<input type='hidden' name="title" value="Special:Search"/>
+				<input type="search" name="search" title="Search Perf Wiki [f]" accesskey="f" id="searchInput" />
+				<input type="submit" name="go" value="Go" title="Go to a page with this exact name if exists" id="searchGoButton" class="searchButton" />&#160;
+				<input type="submit" name="fulltext" value="Search" title="Search the pages for this text" id="mw-searchButton" class="searchButton" />
+			</form>
+		</div>
+	</div>
+	<div class="portlet" id="p-tb">
+		<h5>Tools</h5>
+		<div class="pBody">
+			<ul>
+				<li id="t-whatlinkshere"><a href="/index.php/Special:WhatLinksHere/Tutorial" title="A list of all wiki pages that link here [j]" accesskey="j">What links here</a></li>
+				<li id="t-recentchangeslinked"><a href="/index.php/Special:RecentChangesLinked/Tutorial" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li>
+				<li id="t-specialpages"><a href="/index.php/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li>
+				<li><a href="/index.php?title=Tutorial&amp;printable=yes" rel="alternate">Printable version</a></li>
+				<li id="t-permalink"><a href="/index.php?title=Tutorial&amp;oldid=3520" title="Permanent link to this revision of the page">Permanent link</a></li>
+			</ul>
+		</div>
+	</div>
+</div><!-- end of the left (by default at least) column -->
+<div class="visualClear"></div>
+<div id="footer">
+	<div id="f-poweredbyico">
+		<a href="//www.mediawiki.org/"><img src="/skins/common/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" width="88" height="31" /></a>
+	</div>
+	<ul id="f-list">
+		<li id="lastmod"> This page was last modified on 5 May 2015, at 04:32.</li>
+		<li id="privacy"><a href="/index.php/Perf_Wiki:Privacy_policy" title="Perf Wiki:Privacy policy">Privacy policy</a></li>
+		<li id="about"><a href="/index.php/Perf_Wiki:About" title="Perf Wiki:About">About Perf Wiki</a></li>
+		<li id="disclaimer"><a href="/index.php/Perf_Wiki:General_disclaimer" title="Perf Wiki:General disclaimer">Disclaimers</a></li>
+	</ul>
+</div>
+</div>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.user","mediawiki.page.ready"], null, true);
+}</script>
+<!-- Served in 0.088 secs. --></body></html>

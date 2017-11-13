@@ -1,0 +1,591 @@
+
+<!-- saved from url=(0064)http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Java -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>CPU Flame Graphs</title>
+
+<meta name="Author" content="Brendan Gregg">
+<meta name="GENERATOR" content="Vim">
+<meta name="KeyWords" content="CPU Flame Graphs performance visualization">
+<link rel="stylesheet" href="./CPU Flame Graphs_brendangregg_files/page.css">
+<script type="text/javascript" async="" src="./CPU Flame Graphs_brendangregg_files/ga.js"></script><script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-7747513-3']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</head>
+<body>
+
+<div class="nav">
+<p class="navhdr">This Site:</p>
+<a href="http://www.brendangregg.com/index.html">Homepage</a><br>
+<a href="http://www.brendangregg.com/blog/index.html">Blog</a><br>
+<a href="http://www.brendangregg.com/sitemap.html">Full Site Map</a><br>
+<a href="http://www.brendangregg.com/sysperfbook.html">Sys Perf book</a><br>
+<a href="http://www.brendangregg.com/linuxperf.html">Linux Perf</a><br>
+<a href="http://www.brendangregg.com/methodology.html">Perf Methods</a><br>
+<a href="http://www.brendangregg.com/usemethod.html">USE Method</a><br>
+<a href="http://www.brendangregg.com/tsamethod.html">TSA Method</a><br>
+<a href="http://www.brendangregg.com/offcpuanalysis.html">Off-CPU Analysis</a><br>
+<a href="http://www.brendangregg.com/activebenchmarking.html">Active Bench.</a><br>
+<a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a><br>
+<a href="http://www.brendangregg.com/heatmaps.html">Heat Maps</a><br>
+<a href="http://www.brendangregg.com/frequencytrails.html">Frequency Trails</a><br>
+<a href="http://www.brendangregg.com/colonygraphs.html">Colony Graphs</a><br>
+<a href="http://www.brendangregg.com/perf.html">perf Examples</a><br>
+<a href="http://www.brendangregg.com/ebpf.html">eBPF Tools</a><br>
+<a href="http://www.brendangregg.com/dtrace.html">DTrace Tools</a><br>
+<a href="http://www.brendangregg.com/dtracetoolkit.html">DTraceToolkit</a><br>
+<a href="http://www.brendangregg.com/dtkshdemos.html">DtkshDemos</a><br>
+<a href="http://www.brendangregg.com/guessinggame.html">Guessing Game</a><br>
+<a href="http://www.brendangregg.com/specials.html">Specials</a><br>
+<a href="http://www.brendangregg.com/books.html">Books</a><br>
+<a href="http://www.brendangregg.com/sites.html">Other Sites</a><br>
+
+<br>
+<p class="navhdr">This Page:</p>
+<a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html">CPU Flame Graphs</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Problem">Problem</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#FlameGraph">Flame Graph</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Description">Description</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Instructions">Instructions</a><br>
+&nbsp; &nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#perf">perf</a><br>
+&nbsp; &nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#DTrace">DTrace</a><br>
+&nbsp; &nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#SystemTap">SystemTap</a><br>
+&nbsp; &nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#ktap">ktap</a><br>
+&nbsp; &nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#OtherProfilers">Others</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Examples">Examples</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Java">Java</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Node.js">Node.js</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#OtherUses">Other Uses</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Background">Background</a><br>
+<p class="navhdr2"><a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a>:</p>
+<a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html">CPU</a><br> 
+<a href="http://www.brendangregg.com/FlameGraphs/memoryflamegraphs.html">Memory</a><br> 
+<a href="http://www.brendangregg.com/FlameGraphs/offcpuflamegraphs.html">Off-CPU</a><br> 
+<a href="http://www.brendangregg.com/FlameGraphs/hotcoldflamegraphs.html">Hot/Cold</a><br> 
+</div>
+
+<div class="content">
+<h1>CPU Flame Graphs</h1>
+<div style="float:right;padding-left:30px;padding-right:10px;padding-bottom:3px"><a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#FlameGraph"><img src="./CPU Flame Graphs_brendangregg_files/cpu-mysql-filt-500.png" width="250" height="156" style="padding-bottom:3px"></a><br><center><font size="-1"><i>MySQL CPU Flame Graph</i></font></center></div>
+<p>Determining why CPUs are busy is a routine task for performance analysis, which often involves profiling stack traces.  Profiling by sampling at a fixed rate is a coarse but effective way to see which code-paths are hot (busy on-CPU).  It usually works by creating a timed interrupt that collects the current program counter, function address, or entire stack back trace, and translates these to something human readable when printing a summary report.</p>
+
+<p>Profiling data can be thousands of lines long, and difficult to comprehend.  <i>Flame graphs</i> are a visualization for sampled stack traces, which allows hot code-paths to be identified quickly. See the <a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a> main page for uses of this visualization other than CPU profiling.</p>
+
+<p>Flame Graphs can work with any CPU profiler on any operating system. My examples here use Linux perf_events, DTrace, SystemTap, and ktap. See the <a href="http://www.brendangregg.com/flamegraphs.html#Updates">Updates</a> list for other profiler examples, and <a href="https://github.com/brendangregg/FlameGraph">github</a> for the flame graph software.</p>
+
+<p>On this page I'll introduce and explain CPU flame graphs, list generic instructions for their creation, then discuss generation for specific languages. A full table of contents:</p>
+
+<ul><p>
+<table border="0"><tbody><tr><td valign="top" width="30%">
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Problem">1. Problem</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#FlameGraph">2. Flame Graph</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Description">3. Description</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Instructions">4. Instructions</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Examples">5. Examples</a><br>
+</td><td valign="top" width="30%">
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#C">6. C</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#C++">7. C++</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Java">8. Java</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Node.js">9. Node.js</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#OtherLanguages">10. Other Languages</a><br>
+</td><td valign="top" width="30%">
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#OtherUses">11. Other Uses</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Background">12. Background</a><br>
+&nbsp; <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#References">13. References</a><br>
+</td></tr></tbody></table>
+</p></ul><p></p>
+
+<a name="Problem"></a>
+<h2>1. Problem</h2>
+
+<p>Here I'm using Linux <a href="http://www.brendangregg.com/perf.html">perf_events</a> (aka the "perf" command) to profile a bash program that is consuming CPU:</p>
+
+<pre># <b>perf record -F 99 -p 13204 -g -- sleep 30</b>
+# <b>perf report -n --stdio</b>
+# ========
+# captured on: Tue Dec  9 03:54:11 2014
+# hostname : bgregg-test
+# os release : 3.13.11.6
+[...]
+# Overhead       Samples  Command      Shared Object                               Symbol
+# ........  ............  .......  .................  ...................................
+#
+    20.42%           605     bash  [kernel.kallsyms]  [k] xen_hypercall_xen_version      
+               |
+               --- xen_hypercall_xen_version
+                   check_events
+                  |          
+                  |--44.13%-- syscall_trace_enter
+                  |          tracesys
+                  |          |          
+                  |          |--35.58%-- __GI___libc_fcntl
+                  |          |          |          
+                  |          |          |--65.26%-- do_redirection_internal
+                  |          |          |          do_redirections
+                  |          |          |          execute_builtin_or_function
+                  |          |          |          execute_simple_command
+                  |          |          |          execute_command_internal
+                  |          |          |          execute_command
+                  |          |          |          execute_while_or_until
+                  |          |          |          execute_while_command
+                  |          |          |          execute_command_internal
+                  |          |          |          execute_command
+                  |          |          |          reader_loop
+                  |          |          |          main
+                  |          |          |          __libc_start_main
+                  |          |          |          
+                  |          |           --34.74%-- do_redirections
+                  |          |                     |          
+                  |          |                     |--54.55%-- execute_builtin_or_function
+                  |          |                     |          execute_simple_command
+                  |          |                     |          execute_command_internal
+                  |          |                     |          execute_command
+                  |          |                     |          execute_while_or_until
+                  |          |                     |          execute_while_command
+                  |          |                     |          execute_command_internal
+                  |          |                     |          execute_command
+                  |          |                     |          reader_loop
+                  |          |                     |          main
+                  |          |                     |          __libc_start_main
+                  |          |                     |          
+[...]
+</pre>
+
+<p>The <tt>perf record</tt> command sampled at 99 Hertz (-F 99), on our target PID (-p 13204), and captured stack traces (-g --) for call graph info.</p>
+
+<p>The <tt>perf report</tt> command does a good job of summarizing the hundreds of stack trace samples as text. Similar code paths are coalesced, and the summary is shown as a tree graph, with percentages on each leaf. Read paths from top left to bottom right, which follows a code path's ancestry (and its stack trace sample). The percentages must be multiplied to determine a full stack trace's absolute frequency.</p>
+
+<p>The first stack trace shown (which includes do_redirection_internal()), accounts for only 2% of the samples. The next stack trace (including execute_builtin_or_function()), 1%. So after reading this screen of text, we can only account for 3% of the samples. In order to understand where the bulk of the CPU time is spent, we'll want an idea of the code path for over 50% of the samples. We might need to do a lot more reading.</p>
+
+<h3>Too Much Data</h3>
+
+<p>The above output has been truncated, and only shows 45 lines from over 8,000 lines of output. The full output, visualized, looks like this:</p>
+
+<p><a href="./CPU Flame Graphs_brendangregg_files/cpu-bash-profile-1800.jpg"><img class="p" src="./CPU Flame Graphs_brendangregg_files/cpu-bash-profile-1800.jpg" width="900" height="558"></a></p>
+
+<p>Can you see the earlier two stacks? They are in the top left. (Other versions: <a href="http://www.brendangregg.com/FlameGraphs/cpu-bash-profile.txt">text</a>, larger <a href="http://www.brendangregg.com/FlameGraphs/cpu-bash-profile.jpg">JPG</a>.)</p>
+
+<p>Sometimes, the bulk of the CPU time is in a single code path, and <tt>perf report</tt> summarizes this easily on a single screen. However, often you need to read many screen fulls of text to understand the profile, which is time consuming and tedious.</p>
+
+<a name="FlameGraph"></a>
+<h2>2. The Flame Graph</h2>
+
+<p>Now the same data show previously as a flame graph (click to zoom):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-bash-flamegraph.svg" type="image/svg+xml" width="900" height="522">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-bash-flamegraph.png" width="900" height="522">
+</object></p>
+
+<p>If you have troubles in your browser, try the direct <a href="./CPU Flame Graphs_brendangregg_files/cpu-bash-flamegraph.svg">SVG</a> or <a href="./CPU Flame Graphs_brendangregg_files/cpu-bash-flamegraph.png">PNG</a> version.</p>
+
+<p>With the flame graph, all the data is on screen at once, and the hottest code-paths are immediately obvious as the widest functions.</p>
+
+<a name="Description"></a>
+<h2>3. Description</h2>
+
+<p>I'll explain this carefully: it may look similar to other visualizations from profilers, but it is different.</p>
+
+<ul>
+<li>Each box represents a function in the stack (a "stack frame").</li>
+<li>The <b>y-axis</b> shows stack depth (number of frames on the stack).  The top box shows the function that was on-CPU. Everything beneath that is ancestry. The function beneath a function is its parent, just like the stack traces shown earlier. </li>
+<li>The <b>x-axis</b> spans the sample population.  It does <i>not</i> show the passing of time from left to right, as most graphs do. The left to right ordering has no meaning (it's sorted alphabetically to maximize frame merging).</li>
+<li>The width of the box shows the <i>total</i> time it was on-CPU or part of an ancestry that was on-CPU (based on sample count). Functions with wide boxes may consume more CPU per execution than those with narrow boxes, or, they may simply be called more often. The call count is not shown (or known via sampling).</li>
+<li>The sample count can exceed elapsed time if multiple threads were running and sampled concurrently.</li>
+</ul>
+
+<p>The colors aren't significant, and are usually picked at random to be warm colors (other meaningful palettes are supported). This visualization was called a "flame graph" as it was first used to show what is hot on-CPU, and, it looked like flames. It is also interactive: mouse over the SVGs to reveal details, and click to zoom.</p>
+
+<a name="Instructions"></a>
+<h2>4. Instructions</h2>
+
+<p>The code to the <a href="https://github.com/brendangregg/FlameGraph">FlameGraph tool</a> and instructions are on github.  It's a simple Perl program that outputs SVG.  They are generated in three steps:</p>
+
+<ol>
+<li>Capture stacks</li>
+<li>Fold stacks</li>
+<li>flamegraph.pl</li>
+</ol>
+
+<p>The first step is to use the profiler of your choice. See below for some examples using perf, DTrace, SystemTap, and ktap.</p>
+
+<p>The second step generates a line-based output for flamegraph.pl to read, which can also be grep'd to filter for functions of interest. There are a collection of simple Perl programs to do this, named stackcollapse*.pl, to process the output from different profilers.</p>
+
+<a name="perf"></a>
+<h3>perf</h3>
+
+<p>Linux perf_events has a variety of capabilities, including CPU sampling. Using it to sample all CPUs and generate a flame graph:</p>
+
+<pre># <b>git clone https://github.com/brendangregg/FlameGraph</b>  # or download it from github
+# <b>cd FlameGraph</b>
+# <b>perf record -F 99 -a -g -- sleep 60</b>
+# <b>perf script | ./stackcollapse-perf.pl &gt; out.perf-folded</b>
+# <b>./flamegraph.pl out.perf-folded &gt; perf-kernel.svg</b>
+</pre>
+
+<p>The <tt>perf record</tt> command samples at 99 Hertz (-F 99) across all CPUs (-a), capturing stack traces so that a call graph (-g) of function ancestry can be generated later.  The samples are saved in a perf.data file, which are read by <tt>perf script</tt>.</p>
+
+<p>I create the intermediate file, out.perf-folded, to make it a little quicker when creating multiple filtered flame graphs from the same data. Eg:</p>
+
+<pre># perf script | ./stackcollapse-perf.pl &gt; out.perf-folded
+# <b>grep -v cpu_idle</b> out.perf-folded | ./flamegraph.pl &gt; nonidle.svg
+# <b>grep ext4</b> out.perf-folded | ./flamegraph.pl &gt; ext4internals.svg
+# <b>egrep 'system_call.*sys_(read|write)'</b> out.perf-folded | ./flamegraph.pl &gt; rw.svg
+</pre>
+
+<p>It would be a little more efficient to process the output of <tt>perf report</tt>; better still, <tt>perf report</tt> could have a report style (eg, "-g folded") that output folded stacks directly, obviating the need for stackcollapse-perf.pl.  There could even be a perf mode that output the flame graph SVG directly, although, that would miss the value of being able to grep the folded stacks.</p>
+
+<p>For more details, see my <a href="http://www.brendangregg.com/perf.html#FlameGraphs">perf_events Flame Graphs</a> page.</p>
+
+<a name="DTrace"></a>
+<h3>DTrace</h3>
+
+<p>DTrace can be used to profile on-CPU stack traces on systems that support it (Solaris, BSDs). The following example uses DTrace to sample user-level stacks at 99 Hertz for processes named "mysqld", and then generates the flame graph (see the <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#MySQL">MySQL example</a> later on for example results):</p>
+
+<pre># <b>git clone https://github.com/brendangregg/FlameGraph</b>  # or download it from github
+# <b>cd FlameGraph</b>
+# <b>dtrace -x ustackframes=100 -n 'profile-99 /execname == "mysqld" &amp;&amp; arg1/ {
+    @[ustack()] = count(); } tick-60s { exit(0); }' -o out.stacks</b>
+# <b>./stackcollapse.pl out.stacks &gt; out.folded</b>
+# <b>./flamegraph.pl out.folded &gt; out.svg</b>
+</pre>
+
+<p>The out.folded intermediate file isn't necessary, as stackcollapse.pl could be piped directly to flamegraph.pl. However, I find it handy in case I'd like to edit the profile data a little using vi. For example, when sampling the kernel, to find and delete the idle threads.</p>
+
+<p>To explain the "arg1" check: arg1 is the user-land program counter, so this checks that it is non-zero; arg0 is the kernel. The following is an example DTrace command to sample the kernel:</p>
+
+<pre># <b>dtrace -x stackframes=100 -n 'profile-199 /arg0/ {
+    @[stack()] = count(); } tick-60s { exit(0); }' -o out.stacks</b>
+</pre>
+
+<p>This time, all threads are sampled, so the output will contain many idle thread samples (you can either use DTrace to filter them, or grep/vi to filter the folded output). The rate is also increased to 199 Hertz, as capturing kernel stacks is much less expensive than user-level stacks. The odd numbered rates, 99 and 199, are used to avoid sampling in lockstep with other activity and producing misleading results.</p>
+
+<a name="SystemTap"></a>
+<h3>SystemTap</h3>
+
+<p>SystemTap can also sample stack traces via the timer.profile probe, which fires at the system clock rate (CONFIG_HZ).  Unlike perf, which dumps samples to a file for later aggregation and reporting, SystemTap can do the aggregation in-kernel and pass a (much smaller) report to user-land.  The data collected and output generated can be customized much further via its scripting language.</p>
+
+<p>Using SystemTap v1.7 on Fedora 16 to generate a flame graph:</p>
+
+<pre># <b>stap -s 32 -D MAXBACKTRACE=100 -D MAXSTRINGLEN=4096 -D MAXMAPENTRIES=10240 \
+    -D MAXACTION=10000 -D STP_OVERLOAD_THRESHOLD=5000000000 --all-modules \
+    -ve 'global s; probe timer.profile { s[backtrace()] &lt;&lt;&lt; 1; } 
+    probe end { foreach (i in s+) { print_stack(i);
+    printf("\t%d\n", @count(s[i])); } } probe timer.s(60) { exit(); }' \
+    &gt; out.stap-stacks</b>
+# <b>./stackcollapse-stap.pl out.stap-stacks &gt; out.stap-folded</b>
+# <b>cat out.stap-folded | ./flamegraph.pl &gt; stap-kernel.svg</b>
+</pre>
+
+<p>The six options used (-s 32, -D ...) increase various SystemTap limits.  The only ones really necessary for flame graphs are "-D MAXBACKTRACE=100 -D MAXSTRINGLEN=4096", so that stack traces aren't truncated; the others became necessary when sampling for long periods (in this case, 60 seconds) on busy workloads, to avoid various threshold and overflow errors.</p>
+
+<p>The timer.profile probe was used, which samples all CPUs at 100 Hertz: a little coarse, and risking lockstep sampling. Last I checked, the timer.hz(997) probe fired at the correct rate, but couldn't read stack backtraces.</p>
+
+<a name="ktap"></a>
+<h3>ktap</h3>
+
+<p>ktap already supports CPU flame graphs via the scripts/profiling/stack_profile.kp script in the ktap distribution, which captures the sample data. Here's the steps using a ktap one-liner instead of that script:</p>
+
+<pre># <b>ktap -e 's = ptable(); profile-1ms { s[backtrace(12, -1)] &lt;&lt;&lt; 1 }
+    trace_end { for (k, v in pairs(s)) { print(k, count(v), "\n") } }
+    tick-30s { exit(0) }' -o out.kstacks</b>
+# <b>sed 's/	//g' out.kstacks | stackcollapse.pl &gt; out.kstacks.folded</b>
+# <b>./flamegraph.pl out.kstacks.folded &gt; out.kstacks.svg</b>
+</pre>
+
+<p>The sed(1) command remove tab characters (that's a tab, not a series of spaces), so that stackcollapse.pl can process the text. A stackcollapse-ktap.pl could be easily written to process ktap output directly, and avoid the need for sed(1).</p>
+
+<p>This full example is on my <a href="http://www.brendangregg.com/ktap.html">ktap</a> page under <a href="http://www.brendangregg.com/ktap.html#FlameGraphs">ktap Flame Graphs</a>.</p>
+
+<a name="OtherProfilers"></a>
+<h3>Other Profilers</h3>
+
+<p>See the Updates links on the <a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a> main page for other profilers. These include Dave Pacheco's flame graphs for <a href="http://dtrace.org/blogs/dap/2012/01/05/where-does-your-node-program-spend-its-time/">node.js functions</a>, Mark Probst's <a href="http://schani.wordpress.com/2012/11/16/flame-graphs-for-instruments/">Flame Graphs for Instruments</a> on OS X, and Bruce Dawson's <a href="http://randomascii.wordpress.com/2013/03/26/summarizing-xperf-cpu-usage-with-flame-graphs/">Summarizing Xperf CPU Usage with Flame Graphs</a> on Microsoft Windows.</p>
+
+<a name="Examples"></a>
+<h2>5. Examples</h2>
+
+<p>The next example profiles MySQL using DTrace, followed by two CPU flame graphs of the Linux kernel using perf_events. These are old examples, that don't support click-to-zoom (you can still mouse-over for details).</p>
+
+<p>The Linux examples were generated on 3.2.9 (Fedora 16 guest) running under KVM (Ubuntu host), with one virtual CPU. Some code paths and sample ratios will be very different on bare-metal: networking won't be processed via the virtio-net driver, for example.</p>
+
+<a name="MySQL"></a>
+<h3>MySQL</h3>
+
+<p>This is the original performance issue that led me to create flame graphs. It was a production MySQL database which was consuming more CPU than hoped. The profiler available was DTrace, and I used it to frequency count on-CPU user-level stacks:</p>
+
+<pre># <b>dtrace -x ustackframes=100 -n 'profile-997 /execname == "mysqld"/ {
+    @[ustack()] = count(); } tick-60s { exit(0); }'</b>
+dtrace: description 'profile-997 ' matched 2 probes
+CPU     ID                    FUNCTION:NAME
+  1  75195                        :tick-60s 
+[...]
+              libc.so.1`__priocntlset+0xa
+              libc.so.1`getparam+0x83
+              libc.so.1`pthread_getschedparam+0x3c
+              libc.so.1`pthread_setschedprio+0x1f
+              mysqld`_Z16dispatch_command19enum_server_commandP3THDPcj+0x9ab
+              mysqld`_Z10do_commandP3THD+0x198
+              mysqld`handle_one_connection+0x1a6
+              libc.so.1`_thrp_setup+0x8d
+              libc.so.1`_lwp_start
+             4884
+
+              mysqld`_Z13add_to_statusP17system_status_varS0_+0x47
+              mysqld`_Z22calc_sum_of_all_statusP17system_status_var+0x67
+              mysqld`_Z16dispatch_command19enum_server_commandP3THDPcj+0x1222
+              mysqld`_Z10do_commandP3THD+0x198
+              mysqld`handle_one_connection+0x1a6
+              libc.so.1`_thrp_setup+0x8d
+              libc.so.1`_lwp_start
+             5530
+</pre>
+
+<p>The last two most frequent stacks are shown here. The last was sampled on-CPU 5,530 times, and looks like it is MySQL doing some system status housekeeping. If that's the hottest, and we know we have a CPU issue, perhaps I should go hunting for tunables to disable system stats.</p>
+
+<p>The problem was that most of the output was truncated from this screenshot ("[...]"), and (unlike Linux perf), DTrace doesn't print percentages, so you aren't sure how much these stacks really matter. I manually calculated percentages based on the total sample count (which was 348,427), and found, to my dismay, that these two stacks only represent less than 3% of the CPU samples.</p>
+
+<p>The full output was 591,622 lines long, and included 27,053 stacks. It looks like this:</p>
+
+<p><a href="http://www.brendangregg.com/FlameGraphs/cpu-mysql-stacks.jpg"><img class="p" src="./CPU Flame Graphs_brendangregg_files/cpu-mysql-stacks-1800.jpg" width="900" height="574"></a></p>
+
+<p>Click for a larger image (7 Mbyte JPG, although you still can't read the text). DTrace doesn't summarize as well as Linux perf_events (as perf_events can coalesce partial stacks), although I'm not sure that would have helped much here. Production workloads can involve many code paths.</p>
+
+<p>The same MySQL profile data, rendered as a flame graph:</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-mysql-updated.svg" type="image/svg+xml" width="900" height="563">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-mysql-updated.svg" width="900">
+</object></p>
+
+<p>You can mouse over elements to see percentages (but not click-to-zoom, as this is an old version), showing how frequent the element was present in the profiling data. You can also view the <a href="./CPU Flame Graphs_brendangregg_files/cpu-mysql-updated.svg">SVG</a> separately, or the <a href="http://www.brendangregg.com/FlameGraphs/cpu-mysql-filt.png">PNG</a> version.</p>
+
+<p>The earlier truncated text output identified a MySQL status stack as the hottest. The flame graph shows reality: most of the time is really in JOIN::exec. This pointed the investigation in the right direction: JOIN::exec, and the functions above it, and led to the issue being solved.</p>
+
+<h3>File Systems</h3>
+
+<p>As an example of a different workload, this shows the Linux kernel CPU time while an ext4 file system was being archived (<a href="./CPU Flame Graphs_brendangregg_files/cpu-linux-tar.svg">SVG</a>, <a href="./CPU Flame Graphs_brendangregg_files/cpu-linux-tar.png">PNG</a>):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-linux-tar.svg" type="image/svg+xml" width="900" height="314">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-linux-tar.png" width="600">
+</object></p>
+
+<p>This shows how the file system was being read and where kernel CPU time was spent.  Most of the kernel time is in sys_newfstatat() and sys_getdents(): metadata work as the file system is walked. sys_openat() is on the right, as files are opened to be read, which are then mmap()d (look to the right of sys_getdents(), these are in alphabetical order), and finally page faulted into user-space (see the page_fault() mountain on the left).</p><p>The actual work of moving bytes is then spent in user-land on the mmap'd segments (and not shown in this kernel flame graph).  Had the archiver used the read() syscall instead, this flame graph would look very different, and have a large sys_read() component.</p>
+
+<h3>Short Lived Processes</h3>
+
+<p>For this flame graph, I executed a workload of short-lived processes to see where kernel time is spent creating them (<a href="./CPU Flame Graphs_brendangregg_files/cpu-linux-execs.svg">SVG</a>, <a href="./CPU Flame Graphs_brendangregg_files/cpu-linux-execs.png">PNG</a>):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-linux-execs.svg" type="image/svg+xml" width="900" height="314">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-linux-execs.png" width="900">
+</object></p>
+
+<p>Apart from performance analysis, this is also a great tool for learning the internals of the Linux kernel.</p>
+
+<h3>User+Kernel Flame Graph</h3>
+
+<p>This example shows both user and kernel stacks on an illumos kernel hypervisor host (<a href="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.svg">SVG</a>, <a href="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.png">PNG</a>):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.svg" type="image/svg+xml" width="900" height="458">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.png" width="900">
+</object></p>
+
+<p>You can also see the standalone <a href="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.svg">SVG</a> and <a href="./CPU Flame Graphs_brendangregg_files/cpu-qemu-both.png">PNG</a> versions. This shows the CPU usage of qemu thread 3, a KVM virtual CPU.  Both user and kernel stacks are included (DTrace can access both at the same time), with the syscall in-between colored gray.</p>
+
+<p>The plateau of vcpu_enter_guest() is where that virtual CPU was executing code inside the virtual machine.  I was more interested in the mountains on the right, to examine the performance of the KVM exit code paths.</p>
+
+<a name="C"></a>
+<h2>6. C</h2>
+
+<p>Easy to profile, see <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#Instructions">Instructions</a> for steps. A catch is that many compilers, including gcc, don't honour the frame pointer register as a compiler optimization, which breaks frame pointer-based stack walking. This commonly happens for software installed via Linux repositories, and your flame graph will be missing towers. The fixes are either:</p>
+
+<ul>
+<li>Recompile with -fno-omit-frame-pointer.</li>
+<li>On Linux: install debuginfo for the software with DWARF data and use perf's DWARF stack walker.</li>
+</ul>
+
+<a name="C"></a>
+<h2>7. C++</h2>
+
+<p>Easy to profile, but can suffer broken stack traces for the same reason as C: see the <a href="http://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html#C">profiling C</a> section.</p>
+
+<a name="Java"></a>
+<h2>8. Java</h2>
+
+<p>My JavaOne 2016 talk <a href="http://www.slideshare.net/brendangregg/java-performance-analysis-on-linux-with-flame-graphs">Java Performance Analysis on Linux with Flame Graphs</a> summarizes the latest technique to use Linux perf to generate mixed-mode flame graphs.</p>
+
+<h3>Background</h3>
+
+<p>In order to generate flame graphs, you need a profiler that can sample stack traces. There has historically been two types of profilers:</p>
+
+<ol>
+<li><b>System profilers</b>: like Linux perf, which shows system code paths (eg, JVM GC, syscalls, TCP), but not Java methods.</li>
+<li><b>JVM profilers</b>: like hprof, LJP, and commercial profilers. These show Java methods, but usually not system code paths.</li>
+</ol>
+
+<p>A flame graph using (1) can be performed as previously described. (2) depends on the profiler you want to use. The flame graph software includes stackcollapse-ljp.pl, for processing the output of the <a href="https://code.google.com/p/lightweight-java-profiler">Lightweight Java Profiler</a> (LJP). My blog post <a href="http://www.brendangregg.com/blog/2014-06-12/java-flame-graphs.html">Java Flame Graphs</a> summarizes how to use LJP. If you create a system flame graph (eg, using perf on Linux), as well as an LJP flame graph, you can generally solve all issues by examining both.</p>
+
+<p>Ideally, we have one flame graph that does it all: system and Java code paths. Apart from convenience, it also shows system code-paths in Java context, which can be crucial for understanding a profile properly.</p>
+
+<p>The problem is getting a system profiler to understand Java methods and stack traces. If you try Linux perf_events, for example, you'll see hexadecimal numbers and broken stack traces, as it can't convert addresses into Java symbols, and can't walk the JVM stack. DTrace has long supported a jstack() action, however that also has issues, described later.</p>
+
+<p>There are two specific problems:</p>
+
+<ol>
+<li>The JVM compiles methods on the fly (just-in-time: JIT), and doesn't expose a traditional symbol table for system profilers to read.</li>
+<li>The JVM also uses the frame pointer register (RBP on x86-64) as a general purpose register, breaking traditional stack walking.</li>
+</ol>
+
+<h3>Linux perf_events</h3>
+
+<p>One approach to solve the above two problems involves:</p>
+
+<ol>
+<li>A JVMTI agent, <a href="https://github.com/jvm-profiling-tools/perf-map-agent">perf-map-agent</a> (previously <a href="https://github.com/jrudolph/perf-map-agent">here</a>), which can provide a Java symbol table for perf to read (/tmp/perf-PID.map).</li>
+<li>The -XX:+PreserveFramePointer JVM option, so that perf can walk frame pointer-based stacks.</li>
+</ol>
+
+<p>The +PreserveFramePointer was added to JDK8u60 to facilitate perf and flame graph generation (I'd emailed a prototype to the hotspot compiler devs mailing list, <a href="http://mail.openjdk.java.net/pipermail/hotspot-compiler-dev/2014-December/016477.html">A hotspot patch for stack profiling (frame pointer)</a>, which became <a href="https://bugs.openjdk.java.net/browse/JDK-8068945">JDK-8068945: Use RBP register as proper frame pointer in JIT compiled code on x64</a>).
+I summarized the final steps on the Netflix Tech blog: <a href="http://techblog.netflix.com/2015/07/java-in-flames.html">Java in Flames</a>. Here are updated steps:</p>
+
+<p>1. install perf-map-agent:</p>
+
+<pre>sudo bash
+apt-get install cmake
+export JAVA_HOME=/path-to-your-new-jdk8
+cd /destination-for-perf-map-agent	# I use /usr/lib/jvm
+git clone --depth=1 https://github.com/jvm-profiling-tools/perf-map-agent
+cd perf-map-agent
+cmake .
+make
+</pre>
+
+<p>2. profiling and flame graph generation:</p>
+
+<pre>git clone --depth=1 https://github.com/brendangregg/FlameGraph
+sudo bash
+perf record -F 49 -a -g -- sleep 30; ./FlameGraph/jmaps
+perf script &gt; out.stacks01
+cat out.stacks01 | ./FlameGraph/stackcollapse-perf.pl | grep -v cpu_idle | \
+    ./FlameGraph/flamegraph.pl --color=java --hash &gt; out.stacks01.svg
+</pre>
+
+<p>Note that jmaps (a helper script that calls perf-map-agent to do symbol dumps) runs immediately after perf record, to minimize symbol churn.</p>
+
+<p>An example resulting flame graph is (<a href="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-vertx.svg">SVG</a>, supports click-to-zoom):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-vertx.svg" type="image/svg+xml" width="900" height="914">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-vertx.png" width="900" height="914">
+</object></p>
+
+<p>When running flamegraph.pl I used <tt>--color=java</tt>, which uses different hues for different types of frames. Green is Java, yellow is C++, orange is kernel, and red is the remainder (native user-level, or kernel modules).</p>
+
+<p>This is currently a proof of concept, and the patch is unsupported. See the mailing list for the discussion and status, and also caveats for this approach. It does cost a little performance to return the frame pointer (depends on workload, it may be negligible), and the flame graph does not show inlined methods. I hope the patch is included as a tunable option, eg, -XX:+NoOmitFramePointer.</p>
+
+<h3>DTrace</h3>
+
+<p>DTrace, using its jstack() action, can profile user-level stacks along with Java methods and classes. (In theory: see the bugs listed below.) The capability it uses is called a "DTrace ustack helper" (search for that term to learn more about them). So, to generate a CPU flame graph for a Java program, the stacks can be collected using:</p>
+
+<pre># <b>dtrace -n 'profile-97 /execname == "java"/ { @[jstack(100, 8000)] = count(); }
+    tick-30s { exit(0); }' -o out.javastacks_01</b>
+</pre>
+
+<p>The output file can then be fed to stackcollapse.pl and flamegraph.pl as shown in earlier sections.</p>
+
+<p>The ustack helper action is jstack(), and if it worked you'll have stacks that look like this:</p>
+
+<pre>              libjvm.so`jni_GetObjectField+0x10f
+              libnet.so`Java_java_net_PlainSocketImpl_socketAvailable+0x39
+<b>              java/net/PlainSocketImpl.socketAvailable()I*
+              java/net/PlainSocketImpl.available()I*
+              java/lang/Thread.run()V
+</b>              0xfb60035e
+              libjvm.so`__1cJJavaCallsLcall_helper6FpnJJavaValue_pnMmethodHa...
+              libjvm.so`__1cCosUos_exception_wrapper6FpFpnJJavaValue_pnMmeth...
+              libjvm.so`__1cJJavaCallsMcall_virtual6FpnJJavaValue_nGHandle_n...
+              libjvm.so`__1cMthread_entry6FpnKJavaThread_pnGThread__v_+0x113
+              libjvm.so`__1cKJavaThreadDrun6M_v_+0x2c6
+              libjvm.so`java_start+0x1f2
+              libc.so.1`_thrp_setup+0x88
+              libc.so.1`_lwp_start
+                9
+</pre>
+
+<p>Note that it includes both libjvm frames and classes/methods: java/net/PlainSocketImpl.available() etc. If there are no classes/methods visible, only hexadecimal numbers, you'll need to get jstack() to work first.</p>
+
+<p>Unfortunately, there are multiple issues. First, jstack() doesn't work at all in many JVM versions. See <a href="https://bugs.openjdk.java.net/browse/JDK-7187999">bug JDK-7187999</a> for the list. Fortunately, there is a workaround, described in <a href="http://www.listbox.com/member/archive/182179/2012/08/sort/from/page/1/entry/12:485/20120825135923:985080F4-EEDE-11E1-9042-E562A4591383/">Adam's email</a> and <a href="https://www.illumos.org/issues/3123">illumos issue 3123</a>, and the final usage (which was changed since his original proposal) involves setting an environment variable when launching your Java program, which ensures that the ustack helper is loaded. Eg:</p>
+
+<pre>illumos# <b>LD_AUDIT_32=/usr/lib/dtrace/libdtrace_forceload.so</b> java myprog
+</pre>
+
+<p>Note that this may add over 60 seconds of startup time. (This, itself, needs performance analysis.)</p>
+
+<p>See the resulting flame graph as a <a href="http://www.brendangregg.com/FlameGraphs/cpu-java-ttcp.svg">SVG</a> or <a href="http://www.brendangregg.com/FlameGraphs/cpu-java-ttcp.png">PNG</a>. The workload is ttcp (test TCP), a TCP benchmark written in Java. The flame graph shows that most CPU time is spent in socketWrite(), with 9.2% in releaseFD().</p>
+
+<p>The second issue is that jstack() may not be able to walk stacks properly due to bug <a href="https://bugs.openjdk.java.net/browse/JDK-6276264">JDK-6276264</a>, filed in 2005, and as of 2014 not fixed. For my production workloads, almost all sampled stacks are broken due to this bug.</p>
+
+<a name="Node.js"></a>
+<h2>9. Node.js</h2>
+
+<p>Profiling v8 has similar issues to Java. We ideally would like some profiler that can sample both system code-paths and v8 JavaScript code-paths.</p>
+
+<h3>Linux perf_events</h3>
+
+<p>Linux <a href="http://www.brendangregg.com/FlameGraphs/perf.html">perf_events</a> can profile JavaScript stacks, when using the v8 option --perf_basic_prof or --perf_basic_prof_only_functions. See my blog post <a href="http://www.brendangregg.com/blog/2014-09-17/node-flame-graphs-on-linux.html">Node Flame Graphs on Linux</a>. There is also the original <a href="https://gist.github.com/trevnorris/9616784">instructions</a> by Trevor Norris, and his <a href="https://twitter.com/trevnorris/status/445720118207606784">example</a>.</p>
+
+<p>Here is an example Linux perf CPU flame graph (<a href="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-node.svg">SVG</a>):</p>
+
+<p><object class="p" data="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-node.svg" type="image/svg+xml" width="900" height="998">
+<img src="./CPU Flame Graphs_brendangregg_files/cpu-mixedmode-node.png" width="900" height="998">
+</object></p>
+
+<p>This uses <tt>--color=js</tt> to use different hues: green == JS, aqua == built-ins, yellow == C++, red == system (native user-level, and kernel).</p>
+
+<p>My example here is little more than hello world, so there's very little JavaScript (green frames) to be seen. Here's a more interesting <a href="https://twitter.com/YunongX/status/540685044583378945">example</a>.</p>
+
+<h3>DTrace</h3>
+
+<p>Like with Java, DTrace employs a different approach, using a "ustack helper". See Dave Pacheco's <a href="http://dtrace.org/blogs/dap/2012/01/05/where-does-your-node-program-spend-its-time/">post</a>, where he also demonstrates flame graphs.</p>
+
+<a name="OtherLanguages"></a>
+<h2>10. Other Languages</h2>
+
+<p>Until I add sections here, please see the <a href="http://www.brendangregg.com/flamegraphs.html#Updates">Flame Graphs Updates</a> section, and search for the language you are interested in.</p>
+
+<a name="OtherUses"></a>
+<h2>11. Other Uses</h2>
+
+<p>The flame graph visualization works for any stack trace plus value combination, not just stack traces with CPU sample counts like those above. For example, you could trace device I/O, syscalls, off-CPU events, specific function calls, and memory allocation. For any of these, the stack trace can be gathered, along with a relevant value: counts, bytes, or latency. See the other types on the <a href="http://www.brendangregg.com/flamegraphs.html">Flame Graphs</a> page.</p>
+
+<a name="Background"></a>
+<h2>12. Background &amp; Acknowledgements</h2>
+
+<p>I created this visualization out of necessity: I had huge amounts of stack sample data from a variety of different performance issues, and needed to quickly dig through it.  I first tried creating some text-based tools to summarize the data, with limited success.  Then I remembered a time-ordered visualization created by <a href="http://blogs.sun.com/realneel/entry/visualizing_callstacks_via_dtrace_and">Neelakanth Nadgir</a> (and another <a href="http://blogs.oracle.com/roch/">Roch Bourbonnais</a> had created and shown me), and thought stack samples could be presented in a similar way.  Neel's visualization looked great, but the process of tracing every function entry and return for my workloads altered performance too much.  In my case, what mattered more was to have accurate percentages for quantifying code-paths, not the time ordering.  This meant I could sample stacks (low overhead) instead of tracing functions (high overhead).</p>
+
+<p>The very first visualization worked, and immediately identified a performance improvement to our KVM code (some added functions were more costly than expected).  I've since used it many times for both kernel and application analysis, and others have been using it on a wide range of targets, including node.js profiling.  Happy hunting!</p>
+
+<a name="References"></a>
+<h2>13. References</h2>
+
+<ul>
+<li>The <a href="http://www.brendangregg.com/flamegraphs.html">Flame Graph</a> page, and <a href="https://github.com/brendangregg/FlameGraph">github repo</a></li>
+<li>Linux perf_events <a href="https://perf.wiki.kernel.org/">wiki</a></li>
+<li>The Unofficial Linux Perf Events <a href="http://web.eecs.utk.edu/~vweaver1/projects/perf-events/">Web-Page</a></li>
+<li>The SystemTap <a href="http://sourceware.org/systemtap/">homepage</a></li>
+<li>My <a href="http://www.brendangregg.com/USEmethod/use-linux.html">Linux Performance Checklist</a>, which includes perf_events, SystemTap and other tools</li>
+</ul>
+
+<p>See the <a href="http://www.brendangregg.com/flamegraphs.html#Updates">Flame Graph: Updates</a> section for other articles, examples, and instructions for using flame graphs on many other targets, including Ruby, OS X, Lua, Erlang, node.js, and Oracle.</p>
+
+</div>
+<hr>
+Last updated: 27-Mar-2017<br>
+<font size="-1">Copyright 2017 Brendan Gregg</font><br>
+
+
+</body></html>

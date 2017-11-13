@@ -1,0 +1,1196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head><script type="text/javascript" src="/static/js/analytics.js?v=1504164704.0" charset="utf-8"></script>
+
+<script type="text/javascript">archive_analytics.values.service='wb';archive_analytics.values.server_name='wwwb-app41.us.archive.org';archive_analytics.values.server_ms=627;</script><script type="text/javascript" src="/static/js/wbhack.js?v=1504164704.0" charset="utf-8"></script>
+
+<script type="text/javascript">
+__wbhack.init('https://web.archive.org/web');
+</script>
+<link rel="stylesheet" type="text/css" href="/static/css/banner-styles.css?v=1504164704.0" />
+<link rel="stylesheet" type="text/css" href="/static/css/iconochive.css?v=1504164704.0" />
+
+<!-- End Wayback Rewrite JS Include -->
+	<meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+	<title>Garbage Collection - Frequently Asked Questions</title>
+<meta name="collection" content="exclude">
+
+	<meta name="GENERATOR" content="StarOffice 6.0  (Solaris Sparc)">
+	<meta name="CREATED" content="20021202;8205700">
+	<meta name="CHANGEDBY" content="Jon Masamitsu">
+	<meta name="CHANGED" content="20030206;16255100">
+	<style>
+	<!--
+		P { margin-bottom: 0.21cm }
+		TD P { margin-bottom: 0.21cm }
+		TH P { margin-bottom: 0.21cm; font-style: italic }
+	-->
+	</style>
+</head>
+<body lang="en-US"><!-- BEGIN WAYBACK TOOLBAR INSERT -->
+<script type="text/javascript" src="/static/js/timestamp.js?v=1504164704.0" charset="utf-8"></script>
+<script type="text/javascript" src="/static/js/graph-calc.js?v=1504164704.0" charset="utf-8"></script>
+<script type="text/javascript" src="/static/js/auto-complete.js?v=1504164704.0" charset="utf-8"></script>
+<script type="text/javascript" src="/static/js/toolbar.js?v=1504164704.0" charset="utf-8"></script>
+
+<style type="text/css">
+body {
+  margin-top:0 !important;
+  padding-top:0 !important;
+  /*min-width:800px !important;*/
+}
+.wb-autocomplete-suggestions {
+    text-align: left; cursor: default; border: 1px solid #ccc; border-top: 0; background: #fff; box-shadow: -1px 1px 3px rgba(0,0,0,.1);
+    position: absolute; display: none; z-index: 2147483647; max-height: 254px; overflow: hidden; overflow-y: auto; box-sizing: border-box;
+}
+.wb-autocomplete-suggestion { position: relative; padding: 0 .6em; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.02em; color: #333; }
+.wb-autocomplete-suggestion b { font-weight: bold; }
+.wb-autocomplete-suggestion.selected { background: #f0f0f0; }
+</style>
+<div id="wm-ipp" lang="en" style="display:none;direction:ltr;">
+<div style="position:fixed;left:0;top:0;right:0;">
+<div id="wm-ipp-inside">
+  <div style="position:relative;">
+    <div id="wm-logo" style="float:left;width:130px;padding-top:10px;">
+      <a href="/web/" title="Wayback Machine home page"><img src="/static/images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0" /></a>
+    </div>
+    <div class="r" style="float:right;">
+      <div id="wm-btns" style="text-align:right;height:25px;">
+	<a href="http://faq.web.archive.org/" title="Get some help using the Wayback Machine" style="top:-5px;"><span class="iconochive-question" style="color:rgb(87,186,244);font-size:160%;"></span></a>
+	<a id="wm-tb-close" href="#close" onclick="__wm.h(event);return false;" style="top:-2px;" title="Close the toolbar"><span class="iconochive-remove-circle" style="color:#888888;font-size:240%;"></span></a>
+      </div>
+      <div id="wm-share" style="text-align:right;">
+	<a href="#" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=https://web.archive.org/web/20110714032357/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html', '', 'height=400,width=600'); return false;" title="Share on Facebook" style="margin-right:5px;" target="_blank"><span class="iconochive-facebook" style="color:#3b5998;font-size:160%;"></span></a>
+	<a href="#" onclick="window.open('https://twitter.com/intent/tweet?text=https://web.archive.org/web/20110714032357/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html&amp;via=internetarchive', '', 'height=400,width=600'); return false;" title="Share on Twitter" style="margin-right:5px;" target="_blank"><span class="iconochive-twitter" style="color:#1dcaff;font-size:160%;"></span></a>
+      </div>
+    </div>
+    <table class="c" style="">
+      <tbody>
+	<tr>
+	  <td class="u" colspan="2">
+	    <form target="_top" method="get" action="/web/submit" name="wmtb" id="wmtb"><input type="text" name="url" id="wmtbURL" value="http://java.sun.com/docs/hotspot/gc1.4.2/faq.html" onfocus="this.focus();this.select();" /><input type="hidden" name="type" value="replay" /><input type="hidden" name="date" value="20110714032357" /><input type="submit" value="Go" /></form>
+	  </td>
+	  <td class="n" rowspan="2" style="width:110px;">
+	    <table>
+	      <tbody>
+		<!-- NEXT/PREV MONTH NAV AND MONTH INDICATOR -->
+		<tr class="m">
+		  <td class="b" nowrap="nowrap"><a href="https://web.archive.org/web/20090831090856/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html" title="31 Aug 2009"><strong>Aug</strong></a></td>
+		  <td class="c" id="displayMonthEl" title="You are here: 03:23:57 Jul 14, 2011">JUL</td>
+		  <td class="f" nowrap="nowrap"><a href="https://web.archive.org/web/20110815101841/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html" title="15 Aug 2011"><strong>Aug</strong></a></td>
+		</tr>
+		<!-- NEXT/PREV CAPTURE NAV AND DAY OF MONTH INDICATOR -->
+		<tr class="d">
+		  <td class="b" nowrap="nowrap"><a href="https://web.archive.org/web/20090831090856/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html" title="09:08:56 Aug 31, 2009"><img src="/static/images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" /></a></td>
+		  <td class="c" id="displayDayEl" style="width:34px;font-size:24px;" title="You are here: 03:23:57 Jul 14, 2011">14</td>
+		  <td class="f" nowrap="nowrap"><a href="https://web.archive.org/web/20110815101841/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html" title="10:18:41 Aug 15, 2011"><img src="/static/images/toolbar/wm_tb_nxt_on.png" alt="Next capture" width="14" height="16" border="0" /></a></td>
+		</tr>
+		<!-- NEXT/PREV YEAR NAV AND YEAR INDICATOR -->
+		<tr class="y">
+		  <td class="b" nowrap="nowrap"><a href="https://web.archive.org/web/20090831090856/http://java.sun.com:80/docs/hotspot/gc1.4.2/faq.html" title="31 Aug 2009"><strong>2009</strong></a></td>
+		  <td class="c" id="displayYearEl" title="You are here: 03:23:57 Jul 14, 2011">2011</td>
+		  <td class="f" nowrap="nowrap"><a href="https://web.archive.org/web/20120804155915/http://java.sun.com/docs/hotspot/gc1.4.2/faq.html" title="04 Aug 2012"><strong>2012</strong></a></td>
+		</tr>
+	      </tbody>
+	    </table>
+	  </td>
+	</tr>
+	<tr>
+	  <td class="s">
+	    	    <div id="wm-nav-captures">
+	      	      <a class="t" href="/web/20110714032357*/http://java.sun.com/docs/hotspot/gc1.4.2/faq.html" title="See a list of every capture for this URL">163 captures</a>
+	      <div class="r" title="Timespan for captures of this URL">06 Oct 2003 - 30 Jun 2017</div>
+	      </div>
+	  </td>
+	  <td class="k">
+	    <a href="" id="wm-graph-anchor">
+	      <div id="wm-ipp-sparkline" title="Explore captures for this URL" style="position: relative">
+		<canvas id="wm-sparkline-canvas" width="550" height="27" border="0"></canvas>
+	      </div>
+	    </a>
+	  </td>
+	</tr>
+      </tbody>
+    </table>
+    <div style="position:absolute;bottom:0;right:2px;text-align:right;">
+      <a id="wm-expand" class="wm-btn" href="#expand" onclick="__wm.ex(event);return false;"><span class="iconochive-down-solid"></span> <span style="font-size:80%">About this capture</span></a>
+    </div>
+  </div>
+    <div id="wm-capinfo" style="border-top:1px solid #777;display:none;">
+            <div style="background-color:#353535;color:#aaa;font-weight:bold;text-align:center;"><a class="wm-selector selected" href="javascript:void(0)">COLLECTED BY</a></div>
+    <div style="padding:3px;position:relative;">
+            <div style="display:inline-block;vertical-align:top;width:50%;">
+			<span class="c-logo" style="background-image:url(https://archive.org/services/img/alexacrawls);"></span>
+		Organization: <a style="color:#33f;" href="https://archive.org/details/alexacrawls" target="_new"><span class="wm-title">Alexa Crawls</span></a>
+		<div style="max-height:75px;overflow:hidden;position:relative;">
+	  <div style="position:absolute;top:0;left:0;width:100%;height:75px;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,255) 100%);"></div>
+	  Starting in 1996, <a href="http://www.alexa.com/">Alexa Internet</a> has been donating their crawl data to the Internet Archive.  Flowing in every day, these data are added to the <a href="http://web.archive.org/">Wayback Machine</a> after an embargo period.
+	</div>
+	      </div>
+      <div style="display:inline-block;vertical-align:top;width:49%;">
+			<span class="c-logo" style="background-image:url(https://archive.org/services/img/alexacrawls)"></span>
+		<div>Collection: <a style="color:#33f;" href="https://archive.org/details/alexacrawls" target="_new"><span class="wm-title">Alexa Crawls</span></a></div>
+		<div style="max-height:75px;overflow:hidden;position:relative;">
+	  <div style="position:absolute;top:0;left:0;width:100%;height:75px;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,0) 90%,rgba(255,255,255,255) 100%);"></div>
+	  Starting in 1996, <a href="http://www.alexa.com/">Alexa Internet</a> has been donating their crawl data to the Internet Archive.  Flowing in every day, these data are added to the <a href="http://web.archive.org/">Wayback Machine</a> after an embargo period.
+	</div>
+	      </div>
+    </div></div></div></div></div><script type="text/javascript">
+__wm.bt(550,27,25,2,"web","http://java.sun.com/docs/hotspot/gc1.4.2/faq.html","2011-07-14",1996);
+</script>
+<!-- END WAYBACK TOOLBAR INSERT -->
+
+<center>
+<h1>Frequently Asked Questions<br> 
+about Garbage Collection<br>
+in the Hotspot<sup><font size="-2">TM</font></sup> 
+Java<sup><font size="-2">TM</font></sup> Virtual Machine</h1>
+</center>
+
+<p style="margin-bottom: 0cm">This document describes the behavior of
+the Java(<span lang="en-US">tm</span>) <span lang="en-US">HotSpot</span>(<span lang="en-US">tm</span>)
+virtual machine. This behavior is not part of the VM specification,
+however, and is subject to change in future releases. Moreover the<span lang="en-US">
+behavior </span>described here is generic behavior and will not apply
+to the execution of all Java applications.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol>
+	<li><p class="question">How is the generational collector
+	implemented in HotSpot(tm)?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The default
+collector in HotSpot has two generations: the young generation and
+the tenured generation.  Most allocations are done in the young
+generation.  The young generation is optimized for objects that have
+a short lifetime relative to the interval between collections. 
+Objects that survive several collections in the young generation are
+moved to the tenured generation.  The young generation is typically
+smaller and is collected more often.  The tenured generation is
+typically larger and collected less often.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The young
+generation collector is a copying collector.  The young generation is
+divided into 3 spaces: eden-space, to-space, and from-space. 
+Allocations are done from eden-space and from-space. When those are
+full a young generation is collection is done. The expectation is
+that most of the objects are garbage and any surviving objects can be
+copied to to-space.  If there are more surviving objects than can fit
+into to-space, the remaining objects are copied into the tenured
+generation. There is an option to collect the young generation in
+parallel.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The tenured
+generation is collected with a mark-sweep-compact collection. There
+is an option to collect the tenured generation concurrently.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="2">
+	<li><p class="question">What is the relevance of -XX:MaxNewSize?
+	Where will the differences between -XX:NewSize and -XX:MaxNewSize
+	grow, Eden or Survivor Spaces?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The young
+generation is set by a policy that bounds the size from below by
+NewSize and bounds it from above by MaxNewSize.  As the young
+generation grows from NewSize to MaxNewSize, both eden and the
+survivor spaces grow.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="3">
+	<li><p class="question">Are all eden-space objects moved into the
+	survivor space so that after a minor gc, eden-space is empty?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Yes.  If all the
+live objects in eden do no fit into a survivor space, the remaining
+live objects are promoted into the old generation.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="4">
+	<li><p class="question">When using -XX:<span lang="en-US">TargetSurvivorRatio</span>=90
+	will this leave ten percent of to-space for objects to be moved from
+	eden? 
+	</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">No. It means that a
+<span lang="en-US">tenuring</span> threshold is chosen so that, based
+on the ages of what was scavenged in the last minor collection, there
+should be nearly 90% of the survivor size used.  The actual amount
+scavenged  from either the survivor space or eden may be considerably
+more or less.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">TargetSurvivorRatio
+does not usually make a big difference.</p>
+<p style="margin-bottom: 0cm">   
+</p>
+<ol start="5">
+	<li><p class="question">If objects in eden-space require more space
+	than is available in the to-survivor space, will eden-space objects
+	have precedence over from-survivor space objects?  How does the age
+	of from-survivor space objects affect promotion?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">There is no
+distinction here between what comes from eden and what comes from the
+from-survivor space.  After a minor collection completes, both eden
+and the from-survivor space are empty.  If the to-survivor space
+fills up, any remaining objects are promoted directly into the old
+generation regardless of their age or origin.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="6">
+	<li><p class="question">Between NewSize and NewRatio which option
+	takes precedence?	</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">In jdk 1.4.1 and
+later, neither has strict precedence. The maximum of NewSize and the
+size calculated using NewRatio is used.  The formula is</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><span lang="en-US">min</span>(MaxNewSize,
+<span lang="en-US">max</span>(NewSize, heap/(NewRatio+1))) 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol start="7">
+	<li><p class="question">How should the permanent generation be
+	sized?</p>
+</ol>
+<p style="margin-left: 2.2cm">The permanent generation is used to
+hold reflective of the VM itself such as class objects and method
+objects.  These<span lang="en-US"> reflective </span>objects are
+allocated directly into the permanent generation, and it is sized
+independently from the other generations.  Generally, sizing of this
+generation can be ignored because the default size is adequate. 
+However,  programs that load many classes may need a larger permanent
+generation.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="8">
+	<li><p class="question">How can I tell if the permanent generation
+	is filling up?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Starting in 1.4.2 
+-XX:+PrintGCDetails will print information about all  parts of the
+heap collected at each garbage collection. For a full collection</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">[Full GC [Tenured:
+30437K-&gt;33739K(280576K), 0.7050569 secs] 106231K-&gt;33739K(362112K),
+[Perm : 2919K-&gt;2919K(16384K)], 0.7052334 secs]</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">this example shows
+that little was collected in the permanent generation (it went from 
+2919K  used before the collection to 2919K used after the collection)
+and the current size of the permanent generation is 16384K.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="9">
+	<li><p class="question">How can I increase the permanent generation
+	size?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Use the command
+line option -XX:MaxPermSize=&lt;desired size&gt;</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="10">
+	<li><p class="question">How do I know what classes are being loaded
+	or unloaded?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Use the command
+line options -XX:+<span lang="en-US">TraceClassloading</span> and
+-XX:+<span lang="en-US">TraceClassUnloading</span></p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="11">
+	<li><p class="question">What is the best size for the young
+	generation?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The young
+generation should be sized large enough so that short-lived objects
+have a chance to die before the next young generation collection. 
+This is a tradeoff since a larger young generation will allow more
+time for objects to die but may also take longer to collect. 
+Experiment with the size of the young generation to optimize the
+young generation collection time or the<span lang="en-US">
+application </span>throughput.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="12">
+	<li><p class="question">What should I do if my application has mid-
+	or long-lived objects?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Objects that
+survive a young generation collection have a copying cost (part of
+the algorithm for a young generation collection is to copy any
+objects that survive).  Mid- or long-lived objects may be copied
+multiple times.  Use the -XX option <span lang="en-US">MaxTenuringThreshold</span>
+to determine the copying costs. Use -XX:MaxTenuringThreshold=0 to
+move an object that survives a young generation collection
+immediately to the tenured generation.  If that improves the
+performance of the application, the copying of long-lived objects is
+significant.  Note that the throughput collector does not use the 
+MaxTenuringThreshold parameter. 
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="13">
+	<li><p class="question">When is a garbage collection started?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">In the default
+garbage collector a generation is collected when it is full (i.e.,
+when no further allocations can be done from that generation).  This
+is also true of the throughput collector. The concurrent low pause
+collector starts a collection when the occupancy of the tenured
+generation reaches a specified value (by default 68%). The
+incremental low pause collector collects a portion of the tenured
+generation during each young generation collection. A collection can
+also be started explicitly by the application.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="14">
+	<li><p class="question">What type of collection does a System.gc()
+	do?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">An explicit request
+to do a garbage collection does a full collection (both young
+generation and tenured generation).  A full collection is always done
+with the application paused for the duration of the collection.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="15">
+	<li><p class="question">What is the Concurrent Mark Sweep (CMS)
+	collector?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The Concurrent Mark
+Sweep (CMS) collector (also referred to as the concurrent low pause
+collector) collects the tenured generation. It attempts to<span lang="en-US">
+minimize </span>the pauses due to garbage collection by doing most of
+the garbage collection work concurrently with the  application
+threads.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol start="16">
+	<li><p class="question">Why is fragmentation a<span lang="en-US">
+	potential </span>problem for the concurrent low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Normally the
+concurrent low pause collector does not copy nor compact the live
+objects.  A garbage collection is done without moving the live
+objects. If fragmentation becomes a problem, allocate a larger heap. 
+In 1.4.2 if fragmentation in the tenured generation becomes a
+problem, a <span lang="en-US">compaction</span> of the tenured
+generation will be done although not concurrently.  In 1.4.1 that
+compaction will occur if the <span lang="en-US">UseCMSCompactAtFullCollection</span>
+option is turned on.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><font face="Courier, monospace">-XX:+UseCMSCompactAtFullCollection</font></p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="17">
+	<li><p class="question">What are the phases of the concurrent low
+	pause  collector?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-bottom: 0cm">	There are six phases involved in the
+collection:</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 1 (Initial
+Checkpoint) involves stopping all the Java  threads, marking all the
+objects directly reachable from the roots,  and restarting the Java
+threads.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 2 (Concurrent
+Marking) starts scanning from marked objects and transitively marks
+all objects reachable from the roots.  The  <span lang="en-US">mutators</span>
+are executing during the concurrent phases 2, 3, and 5 below and any
+objects allocated in the CMS generation during these phases 
+(including promoted objects) are immediately marked as live. 
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 3: During the
+concurrent marking phase mutators may be  modifying objects.  Any
+object that has been modified since the  start of the concurrent
+marking phase (and which was not subsequently  scanned during that
+phase) must be <span lang="en-US">rescanned.</span>  Phase 3 
+(Concurrent <span lang="en-US">Precleaning</span>) scans objects that
+have been modified  concurrently.  Due to continuing <span lang="en-US">mutator</span>
+activity the scanning for modified cards may be done multiple times.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 4 (Final
+Checkpoint) is a stop-the-world phase.  With mutators stopped the
+final marking is done by scanning objects  reachable from the roots
+and by scanning any modified objects.  Note that after this phase
+there may be objects that have been  marked  but are no longer live. 
+Such objects will survive the current  collection but will be
+collected on the next collection.</p>
+<p style="margin-bottom: 0cm">	</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 5 (Concurrent
+Sweep) collects dead objects.  The<span lang="en-US"> collection of </span>a
+dead object adds the space for the object to a free list for later
+allocation.  Coalescing of dead objects may occur at this point. Note
+that live objects are not moved.</p>
+<p style="margin-bottom: 0cm">	</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Phase 6 (Resetting)
+clears data structures in preparation for the next collection.</p>
+<p style="margin-bottom: 0cm">	</p>
+<ol start="18">
+	<li><p class="question">Does the VM allocate large int arrays for
+	its own use?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">One place the JVM
+does allocate big int[]'s is when it<span lang="en-US"> fills up
+</span>various fragmented parts of memory to make things look whole
+for the garbage collector.  E.g., the unused parts of each
+thread-local allocation buffer before a GC, or all of the young
+generation when running with JVMPI object allocation events.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="19">
+	<li><p class="question">Can I see how much of a thread allocation
+	buffer is being left unused?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">There's a flag,
+-XX:+<span lang="en-US">PrintTLAB</span>,that will trace all the
+operations on <span lang="en-US">TLAB's.</span>  In particular,  it
+prints lines like</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">reset TLAB: 
+thread: 0x0002d7d0  size: 8KB  unused: 76B  Total fragmentation
+0.004499</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">each time a TLAB is
+filled with a int[].  In this case, the unused trailing 76B will be
+unused.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">This is an example
+of a TLAB that has filled up and a new one will be allocated.  The
+amount of waste here is relatively small.  More waste can occur in
+preparation for a garbage collection.  For TLAB output that show up
+just before the  a garbage collection like 
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">reset TLAB: 
+thread: 0x0002d840  size: 8KB  unused: 7276B  Total fragmentation
+0.004580</p>
+<p style="margin-bottom: 0cm">	[Full GC 10424K-&gt;591K(15688K),
+0.1222677 secs]</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">	where we are
+filling 7276 bytes of the 8192 byte TLAB.  (The &quot;Total
+fragmentation&quot; is a cumulative accounting of the  fragmentation
+caused by <span lang="en-US">TLAB's.</span>)  TLAB's resize by
+default on  SPARC -server, or if you use the -XX:+<span lang="en-US">ResizeTLAB</span>
+flag, so you  may well get large TLAB's if you are running that JVM. 
+Note  that we aren't &quot;wasting&quot; the space for the fillers
+right before  collections, as the collection will recover the space
+the filler  objects occupy.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="20">
+	<li><p class="question">Does the default of NewRatio change with the
+	compiler?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">On SPARC's,
+-XX:NewRatio defaults to 8 with -client and 2 with -server, so the
+ratio  of the young generation to the old generation will be 1::8 and
+ the young generation will be 1/9th of the heap in -client and  1::2
+or 1/3rd of the heap with -server.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="21">
+	<li><p class="question">What is the Parallel Garbage collector
+	(-XX:+UseParallelGC)?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The new parallel
+garbage collector is similar to the young  generation collector in
+the default garbage collector but uses  multiple threads to do the
+collection.  By default on a host with  N <span lang="en-US">CPUs</span>,
+the parallel garbage collector uses N garbage  collector threads in
+the collection.  The number of garbage  collector threads can be
+controlled with a command line option  (see below).  On a host with a
+single CPU the default garbage  collector is used even if the
+parallel garbage collector has been requested.  On a host with 2 <span lang="en-US">cpus</span>
+the Parallel garbage  collector generally performs as well as the
+default  garbage collector and a reduction in the young generation 
+garbage collector pause times can be expected on hosts with  more
+than 2 cpus.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">This new parallel
+garbage collector can be enabled by using  command line product flag
+-XX:+UseParallelGC.  The number of  garbage collector threads can be
+controlled with the  ParallelGCThreads command line option 
+(-XX:ParallelGCThreads=&lt;desired number&gt;).  This collector 
+cannot be used with concurrent low pause collector. 
+</p>
+<p style="margin-bottom: 0cm">	</p>
+<ol start="22">
+	<li><p class="question">What is the Parallel Young Generation
+	collector (-XX:+UseParNewGC)?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The parallel young
+generation collector is similar to the parallel  garbage collector
+(-XX:+UseParallelGC) in intent and differs in implementation.  Most
+of the above description for the parallel garbage collector
+(-XX:+UseParallelGC) therefore applies equally for the parallel young
+generation collector.  Unlike the parallel garbage collector
+(-XX:+UseParallelGC) this parallel young generation collector can be
+used with the concurrent low pause collector that collects the
+tenured generation.</p>
+<p style="margin-bottom: 0cm">	</p>
+<ol start="23">
+	<li><p class="question">Which parallel collector should I use?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Although similar in
+intent the collectors are different in some details of the
+implementation that make the parallel garbage collector better for
+some applications while the parallel young generation collector is
+better for others.  Both should be tried to determine which might be
+better suited to a specific <span lang="en-US">application.</span></p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">In addition the 
+parallel young generation collector (-XX:+UseParNewGC) is integrated
+with the concurrent low pause collector whereas the parallel garbage
+collector (-XX:+UseParallelGC) is not.  There are some costs
+associated with this integration which are borne even when the
+concurrent low pause collector is not used.  Conversely the parallel
+garbage collector (-XX:+UseParallelGC) can be used with adaptive
+sizing (-XX:+UseAdaptiveSizePolicy) whereas the parallel young
+generation collector (-XX:+UseParNewGC) cannot.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="24">
+	<li><p class="question">Why is the startup with the concurrent low
+	pause (CMS) collector slow?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">With<span lang="en-US">
+CMS </span>(+XX:UseConcMarkSweepGC) you sometimes need to set the
+minimum and maximum heap size to the same value (or at least set a
+large minimum value) because CMS sometimes spends time early growing
+its heap.  This may also be true of the perm generation.  Try a
+larger perm generation size using the options -XX:<span lang="en-US">PermSize</span>=&lt;initial
+size&gt; -XX:MaxPermSize=&lt;maximum size&gt;.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="25">
+	<li><p class="question">What young generation collector  is used
+	with concurrent low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">By default low
+pause collector uses the default, single threaded young generation
+copying collector.  If you specify the +XX:UseParNewGC a parallel
+version of the copying collector will be used. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol start="26">
+	<li><p class="question">Why does the low pause collector sometimes
+	do more collections than the default collector?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">If you are not
+seeing major collections with the default collector but are seeing
+many major collections with the concurrent low pause collector, you
+are probably seeing some type of fragmentation problem. Try using a
+larger heap with the concurrent low pause collector.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="27">
+	<li><p class="question">Are there other external sources for garbage
+	collection documentation?</p>
+</ol>
+<p style="margin-bottom: 0cm">	<a href="https://web.archive.org/web/20110714032357/http://developer.java.sun.com/developer/technicalArticles/Programming/turbo">http://developer.java.sun.com/developer/technicalArticles/Programming/turbo/</a></p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="28">
+	<li><p class="question">With the concurrent low pause collector,
+	what is a minimum value for NewRatio?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">A minimum<span lang="en-US">
+value </span>of 4 is advisable.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="29">
+	<li><p class="question">Do objects ever get allocated directly into
+	the old generation?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">In 1.4.1 there two
+situations where allocation may occur<span lang="en-US"> directly
+into </span>the old generation.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol type="i">
+	<li><p style="margin-bottom: 0cm">If an allocation fails in the
+	young generation and the object is a large array that does not
+	contain any references to objects, it can be allocated directly into
+	the old generation.  In some select instances, this strategy was
+	intended to avoid a collection of the young generation by allocating
+	from the old generation.</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol>
+	<ol>
+		<ol>
+			<ol>
+				<ol type="i" start="2">
+					<li><p style="margin-bottom: 0cm">There is a flag (available in
+					1.4.2 and later)  l-XX:<span lang="en-US">PretenureSizeThreshold</span>=&lt;byte
+					size&gt;  that can be set to limit the size of allocations in
+					the young generation.  Any allocation larger than this will not
+					be attempted in the young generation and so will be allocated
+					out of the old generation.</p>
+				</ol>
+			</ol>
+		</ol>
+	</ol>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The threshold size
+for 1) is 64k words.  The default size for  PretenureSizeThreshold is
+0 which says that any size can be allocated in the young generation.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">In 1.4.2 case 1)
+the 64k word threshold continues to be true for the incremental
+collector (-Xincgc).  For the  default collector and the concurrent
+collector (-XX:+UseConcMarkSweepGC) the threshold value has been
+changed so that an attempt to allocate into the old generation only
+occurs if the size of the allocation is larger than the entire young
+generation  (available space when it is empty).  It was observed that
+there were cases where the 1.4.1 strategy for the default collector
+and concurrent collector were leading to full collections only (no
+young generation collections were being done).  We deemed that bad
+enough to raise the threshold.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="30">
+	<li><p class="question">Should I increase the size of the permanent
+	generation in the client vm?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">This will always be
+a<span lang="en-US"> judgment </span>call. In general increasing the
+size of a generation (and this applies not just to the permanent
+generation) can reduce  the incidence of a wide variety of problems 
+However, this may cause other processes to excessively page and/or
+garbage collect or throw out-of-memory exceptions.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">There are two
+failure modes to consider.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">When raising
+MaxPermSize, it is possible that previously well behaved programs
+that used to garbage collect to recover the permanent generation
+space will die by endless paging.  For the permanent generation this
+usually only happens with the heavy interning of temporary strings.  
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The other failure
+mode is that address space must be reserved for the permanent
+generation and this will reduce that available for the rest of the
+heap (the maximum -Xmx may then be too large).  This will cause
+programs configured to use all available space to fail at
+initialization.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Permanent
+generation defaults in recent <span lang="en-US">VM's.</span></p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<table width="100%" border="1" bordercolor="#000000" cellpadding="4" cellspacing="0">
+	<col width="51*">
+	<col width="51*">
+	<col width="51*">
+	<col width="51*">
+	<col width="51*">
+	<thead>
+		<tr valign="TOP">
+			<th width="20%">
+				<p>release</p>
+			</th>
+			<th width="20%">
+				<p><br>
+				</p>
+			</th>
+			<th width="20%">
+				<p>v1.3.1_06</p>
+			</th>
+			<th width="20%">
+				<p>v1.4.1_01</p>
+			</th>
+			<th width="20%">
+				<p>v1.4.2</p>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr valign="TOP">
+			<td width="20%">
+				<p>Client</p>
+			</td>
+			<td width="20%">
+				<p>PermSize</p>
+			</td>
+			<td width="20%">
+				<p>1M</p>
+			</td>
+			<td width="20%">
+				<p>4M</p>
+			</td>
+			<td width="20%">
+				<p>4M</p>
+			</td>
+		</tr>
+		<tr valign="TOP">
+			<td width="20%">
+				<p>Server</p>
+			</td>
+			<td width="20%">
+				<p>PermSize</p>
+			</td>
+			<td width="20%">
+				<p>1M</p>
+			</td>
+			<td width="20%">
+				<p>4M</p>
+			</td>
+			<td width="20%">
+				<p>16M</p>
+			</td>
+		</tr>
+		<tr valign="TOP">
+			<td width="20%">
+				<p>Client</p>
+			</td>
+			<td width="20%">
+				<p>MaxPermSize</p>
+			</td>
+			<td width="20%">
+				<p>32M</p>
+			</td>
+			<td width="20%">
+				<p>64M</p>
+			</td>
+			<td width="20%">
+				<p>64M</p>
+			</td>
+		</tr>
+		<tr valign="TOP">
+			<td width="20%">
+				<p>Server</p>
+			</td>
+			<td width="20%">
+				<p>MaxPermSize</p>
+			</td>
+			<td width="20%">
+				<p>64M</p>
+			</td>
+			<td width="20%">
+				<p>64M</p>
+			</td>
+			<td width="20%">
+				<p>64M</p>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p><br><br>
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="31">
+	<li><p class="question">Should I pool objects to help GC? Should I
+	call System.gc() periodically? 
+	</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The answer to these
+is No! 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Pooling objects
+will cause them to live longer than necessary. We strongly advise
+against object pools. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Don't call
+System.gc(). The system  will make the determination of when it's
+appropriate to do garbage collection  and generally has the
+information necessary to do a much better job of initiating a garbage
+collection. If you are having problems with the garbage collection
+(pause times or frequency), consider adjusting the size of the
+generations.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="32">
+	<li><p class="question">What determines when softly referenced
+	objects are flushed?</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">Starting with Java<span lang="en-US">
+HotSpot </span>VM implementations in J2SE 1.3.1, softly reachable
+objects will remain alive for some amount of time after the last time
+they were referenced. The default value is one second of lifetime per
+free megabyte in the heap. This value can be adjusted using the
+-XX:SoftRefLRUPolicyMSPerMB flag, which accepts integer values
+representing milliseconds per MB of free memory. For example, to
+change the  value from one second to 2.5 seconds, use this flag: 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">-XX:<span lang="en-US">SoftRefLRUPolicyMSPerMB</span>=2500</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The Java<span lang="en-US">
+HotSpot </span>Server VM uses the maximum possible heap size (as set
+by the -Xmx option) to calculate free space remaining. 
+</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The Java HotSpot
+Client VM uses the current heap size to calculate the free space. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">This means that the
+general tendency is for the Server VM to grow the heap rather than
+flush soft references, and -Xmx therefore has a significant effect on
+when soft references are garbage collected. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">On the other hand,
+the Client VM will have a greater tendency to flush soft references
+rather than grow the heap. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm">The behavior
+described above is true for the current (J2SE 1.3.1 and J2SE 1.4.x)
+versions of the Java<span lang="en-US"> HotSpot VMs.</span>  Note
+that the -XX:SoftRefLRUPolicyMSPerMB flag is not guaranteed to be
+present in any given release. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.2cm">Prior to version 1.3.1, the Java
+<span lang="en-US">HotSpot</span> VMs cleared soft references
+whenever it found them.</p>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<ol start="33">
+	<li><p class="question">I'm getting lots of full garbage collection<span lang="en-US">s</span>
+	(<span lang="en-US">GC's</span>)when I turn on -verbose:gc.  The
+	GC's are at regular intervals. My application never calls System.gc.
+	I've tuned the heap and it makes no difference, what's going on? 
+	</p>
+</ol>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.06cm; margin-bottom: 0cm">If you're using
+RMI (remote method invocation), then you could be running into
+distributed garbage collection (GC). Also, some applications are
+adding explicit GC's thinking that it will make their application
+faster. Luckily, you can disable this with an option available in
+version 1.3 and 1.4.  Try -XX:+<span lang="en-US">DisableExplicitGC</span>
+along with -verbose:gc and see if this helps. 
+</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol start="34">
+	<li><p class="question">The concurrent low pause collector seems to
+	be doing full collections much of the time.  How can the concurrent
+	collection be sped up?</p>
+</ol>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<p style="margin-left: 2.04cm">The concurrent collection generally
+cannot be sped up but it can be started earlier.</p>
+<p style="margin-left: 2cm">A concurrent collection starts running
+when the percentage of allocated space in the old generation crosses
+a threshold.  This threshold is calculated based on general
+experience with the concurrent collector.  If full collections are
+occurring, the concurrent collections may need to be started earlier.
+ The command line flag  <span lang="en-US">CMSInitiatingOccupancyFraction</span>
+can be used to set the level at which the collection is started. Its
+default value is approximately 68%. The command line to adjust the
+value is</p>
+<p style="margin-left: 4cm"><font face="Courier, monospace">-XX:CMSInitiatingOccupancyFraction=&lt;percent&gt;</font>
+</p>
+<p style="margin-left: 2cm">The concurrent collector also keeps
+statistics on the promotion rate into the old generation for the
+application and makes a prediction on when to start a concurrent
+collection based on that promotion rate and the available free space
+in the old generation.  Whereas the use of 
+CMSInitiatingOccupancyFraction must be conservative to avoid full
+collections over the life of the application, the start of a
+concurrent collection based on the anticipated promotion adapts to
+the changing requirements of the application.  The statistics that
+are used  to calculate the promotion rate are based on the recent
+concurrent collections.  The promotion rate is not calculated until
+at least one concurrent collection has completed so at least the
+first concurrent collection has to be initiated because the occupancy
+has reached CMSInitiatingOccupancyFraction .  Setting
+CMSInitiatingOccupancyFraction to 100 would not cause only the
+anticipated promotion to be used to start a concurrent collection but
+would rather cause only non-concurrent collections to occur since a
+concurrent collection would not start until it was already too late. 
+To eliminate the use of the anticipated promotions to start a
+concurrent collection set <span lang="en-US">UseCMSInitiatingOccupancyOnly</span>
+to true.</p>
+<p style="margin-left: 4cm"><font face="Courier, monospace">-XX:+UseCMSInitiatingOccupancyOnly</font></p>
+<ol start="35">
+	<li><p class="question">Sometimes the concurrent low pause collector
+	is about to finish the last part of a concurrent collection when a
+	full collection starts.  The full collection looks like it does the
+	whole collection again.  Can that happen?</p>
+</ol>
+<ol start="30">
+	<p style="margin-bottom: 0cm"></p>
+</ol>
+<p style="margin-left: 2cm">A full collection by default uses a
+different collection algorithm (a <span lang="en-US">compaction</span>)
+than the concurrent collection.  As such all the work done by a
+concurrent collection in progress is lost.  An adjustment to this can
+be made such that a full collection will complete the concurrent
+collection, albeit not concurrently.  A full collection normally does
+a compaction because the inability to finish its collection
+concurrently is often the sign of a fragmentation problem.  In many
+cases a compaction is needed but the compaction can be delayed for 1
+full collection by setting the value of  <span lang="en-US">CMSFullGCsBeforeCompaction</span>
+to 1.</p>
+<p style="margin-left: 4cm"><font face="Courier, monospace">-XX:CMSFullGCsBeforeCompaction=1</font></p>
+<p style="margin-left: 2cm"><font face="Thorndale">With this value
+when a full collection starts it will complete the concurrent
+collection in progress.  If another full collection occurs before a
+normal concurrent collection has completed, a compaction will be
+done.</font></p>
+<ol start="36">
+	<li><p class="question">With the concurrent low pause collector how
+	can I tell how much floating garbage is left?</p>
+</ol>
+<p style="margin-left: 2.04cm">Because the application threads and
+the GC thread run concurrently, an object that is live at  the
+beginning of a collection and which the GC thread has marked as live
+may die by the end of the collection.  Such objects are referred to
+as floating garbage.  The amount of floating garbage can be inferred
+if a full compacting collection occurs immediate following a
+concurrent collection. Any reduction in the heap size is due to
+floating garbage.</p>
+<p style="margin-left: 2.2cm; margin-bottom: 0cm"><br>
+</p>
+<ol start="37">
+	<li><p class="question">The parallel collectors seem to use as many
+	garbage collector (GC) threads as there are processors on the
+	machine.  How can I ask for more or fewer GC threads?</p>
+</ol>
+<p style="margin-left: 2.2cm">The number of GC threads is controlled
+with the option</p>
+<p style="margin-left: 2.2cm"><font face="Courier, monospace">-XX:ParallelGCThreads=&lt;number_of_GC_threads&gt;</font></p>
+<ol start="38">
+	<li><p class="question">Why does fragmentation occur with the
+	concurrent low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm">The concurrent low pause collector
+normally does not move objects during a garbage collection.
+Fragmentation occurs when live objects are interspersed with the free
+space left as the result of the collection.  The exception is when a
+non-concurrent, full collection occurs. In this latter case the
+applications is stopped during the collection and the live objects
+are compacted to one end of the generation and all the free space
+reside in a single<span lang="en-US"> contiguous </span>piece.</p>
+<ol start="39">
+	<li><p class="question">What options should be used with the
+	throughput collector?</p>
+</ol>
+<p style="margin-left: 2.2cm">The correct options to use depends on
+your application.  Here are a few typical uses but none of these may
+be best for your application.</p>
+<p style="margin-left: 2.2cm">Server application running alone on a
+large multi-processor server with 4gb of physical memory.</p>
+<ol>
+	<p><font face="Courier, monospace"><i>#java -server
+	-XX:+AggressiveHeap</i></font></p>
+</ol>
+<p style="margin-left: 2.2cm">Two application instances running on a
+large multi-processor server with 4gb of physical memory. <span style="font-style: normal">Each
+java application instance is allocated a part of total system memory
+by an explicit specification of the maximum and minimum heap sizes</span><i>.</i></p>
+<ol>
+	<p><font face="Courier, monospace"><i>#java -server
+	-XX:+AggressiveHeap -Xms1024m -Xmx1024m</i></font></p>
+</ol>
+<p style="margin-left: 2.2cm">Example without using AggressiveHeap
+flag</p>
+<p><font face="Courier, monospace"><i>  #java -server
+-XX:+UseParallelGC -XX:ParallelGCThreads=4 -Xms1024m -Xmx1024m</i></font></p>
+<ol start="40">
+	<li><p class="question">What options should I use with the
+	concurrent low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm">The correct options to use depends on
+your application.  Here are a few typical uses but none of these may
+be best for your application.</p>
+<p style="margin-left: 2.2cm">Server application running on a 
+processor system with 1 GB of physical memory.</p>
+<ol>
+	<p><code><font face="Courier, monospace">#java -Xmx512m -Xms512m
+	-XX:MaxNewSize=24m -XX:NewSize=24m -XX:+UseConcMarkSweepGC</font></code></p>
+</ol>
+<p style="margin-left: 2.2cm">Server application running on a
+multiprocessor system  with 1GB of physical memory &ndash; using
+parallel minor collection option.</p>
+<ol>
+	<p><font face="Courier, monospace">#</font><code><font face="Courier, monospace">java
+	-Xmx512m -Xms512m -XX:MaxNewSize=24m -XX:NewSize=24m
+	-XX:+UseParNewGC <span style="font-weight: medium"><font size="3">-XX:+CMSParallelRemarkEnabled
+	</font></span>-XX:+UseConcMarkSweepGC </font></code>
+	</p>
+</ol>
+<ol start="41">
+	<li><p class="question">What are the default settings for the
+	concurrent low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm">The default heap size for the
+concurrent low pause collector is the same as for the default
+collector. The other parameters are set a described below.  These
+setting have been shown to work well for an application that has
+mostly very short lived data plus some data that is very long lived.
+Some of the options require a computation which is enclosed in angle
+brackets (&lt;&gt;), of which two depend on the number of cpus on the
+machine (#cpus.)</p>
+<p style="margin-left: 2.2cm"># enable the concurrent low pause
+collector  
+</p>
+<p style="margin-left: 2.2cm">-XX:+UseConcMarkSweepGC</p>
+<p style="margin-left: 2.2cm"><br><br>
+</p>
+<p style="margin-left: 2.2cm"># use parallel threads</p>
+<p style="margin-left: 2.2cm">-XX:+UseParNewGC</p>
+<p style="margin-left: 2.2cm">-XX:ParallelGCThreads=&lt;#cpus &lt; 8 
+?  #cpus  :  3 + ((5 * #cpus) / 8) &gt;</p>
+<p style="margin-left: 2.2cm">-XX:+CMSParallelRemarkEnabled</p>
+<p style="margin-left: 2.2cm"><br><br>
+</p>
+<p style="margin-left: 2.2cm"># size young generation for short
+pauses</p>
+<p style="margin-left: 2.2cm">-XX:NewSize=4m</p>
+<p style="margin-left: 2.2cm">-XX:MaxNewSize=&lt; 4m *
+ParallelGCThreads &gt;</p>
+<p style="margin-left: 2.2cm"><br><br>
+</p>
+<p style="margin-left: 2.2cm"># promote all live young generation
+objects</p>
+<p style="margin-left: 2.2cm">-XX:<span lang="en-US">MaxTenuringThreshold</span>=0</p>
+<p style="margin-left: 2.2cm">-XX:SurvivorRatio=1024</p>
+<p style="margin-left: 2.2cm"><br><br>
+</p>
+<p style="margin-left: 2.2cm">It is also recommended that a heap size
+be used that is 20-30% larger than that which would be used with the
+default collector.</p>
+<p style="margin-left: 2.2cm"><br><br>
+</p>
+<ol start="42">
+	<li><p class="question">What options should I use with the
+	incremental low pause collector?</p>
+</ol>
+<p style="margin-left: 2.2cm">The correct options to use depends on
+your application.  Here are a few typical uses but none of these may
+be best for your application.</p>
+<p style="margin-left: 2.2cm; font-weight: medium; text-decoration: none">
+<font face="Thorndale"><font size="3">Server application with 1GB of
+physical memory.</font></font></p>
+<ol>
+	<p style="font-weight: medium; text-decoration: none"><font face="Courier, monospace"><font size="3">#java
+	-server  -Xincgc -XX:NewSize=64m -XX:MaxNewSize=64m -Xms512m
+	-Xmx512m </font></font>
+	</p>
+</ol>
+<p style="margin-left: 2.2cm; font-weight: medium; text-decoration: none">
+<font face="Thorndale"><font size="3">Above application if full
+collection are occurring, which indicates the tenured generation is
+not being incrementally collected fast enough.</font></font></p>
+<ol>
+	<p style="font-weight: medium; text-decoration: none"><font face="Courier, monospace"><font size="3">#java
+	-server  -Xincgc -XX:NewSize=24m -XX:MaxNewSize=24m -Xms512m
+	-Xmx512m</font></font></p>
+</ol>
+<div id="Section1">
+	<ol>
+		<p style="font-weight: medium; text-decoration: none"><font face="Courier, monospace"><font size="2">Draft
+		version: <sdfield type="DATETIME" sdnum="1033;1033;MMMM D, YYYY">February 6, 2003</sdfield></font></font></p>
+		<p style="font-weight: medium; text-decoration: none"><font face="Courier, monospace"><font size="3"><font size="2">Copyright
+		&copy; 2003 </font><a href="https://web.archive.org/web/20110714032357/http://www.sun.com/"><font size="2">Sun
+		Microsystems, Inc.</font></a><font size="2"> All Rights Reserved. </font></font></font>
+		</p>
+	</ol>
+</div>
+<p style="margin-bottom: 0cm"><br>
+</p>
+<script language="JavaScript" src="/web/20110714032357js_/http://java.sun.com/js/omi/jsc/s_code_remote.js"></script></body>
+</html>

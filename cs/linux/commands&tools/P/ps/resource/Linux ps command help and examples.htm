@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]><html class="ie6 ie"><![endif]--><!--[if IE 7]><html class="ie7 ie"><![endif]--><!--[if IE 8]><html class="ie8 ie"><![endif]--><!--[if IE 9]><html class="ie9 ie"><![endif]-->
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+<title>Linux ps command help and examples</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta content="Unix and Linux ps command help, examples, and additional information." name="description" />
+<meta itemprop="name" content="Linux ps command help and examples" />
+<meta itemprop="description" content="Unix and Linux ps command help, examples, and additional information." />
+<meta property="og:url" content="https://www.computerhope.com/unix/ups.htm" />
+<meta property="og:description" content="Unix and Linux ps command help, examples, and additional information." />
+<meta property="og:title" content="Linux ps command help and examples" />
+<meta property="og:type" content="article" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Linux ps command help and examples" />
+<meta name="twitter:description" content="Unix and Linux ps command help, examples, and additional information." />
+<meta name="twitter:creator" content="@computerhope" />
+<!--[if lt IE 9]>
+<script src="https://www.computerhope.com/cdn/html5shiv.js"></script>
+<![endif]-->
+<meta property="og:image" content="https://www.computerhope.com/cdn/linux/ps.gif" />
+<meta itemprop="image" content="https://www.computerhope.com/cdn/linux/ps.gif" />
+<link rel="image_src" href="https://www.computerhope.com/cdn/linux/ps.gif" />
+<link rel="alternate" type="application/rss+xml" title="RSS-Feed" href="https://feeds.feedburner.com/LatestNewPagesOnComputerHope" />
+<link rel="apple-touch-icon" href="https://www.computerhope.com/cdn/apple-touch-icon.png" />
+<link rel="shortcut icon" href="https://www.computerhope.com/cdn/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+<div class="skip"><a href="#main-content">Skip to Main Content</a></div>
+<div class="wrapper">
+<header class="cf"> <a href="/"><img src="https://www.computerhope.com/cdn/computer-hope.jpg" width="412" height="82" alt="Computer Hope" class="logo" /></a>
+<div itemscope itemtype="https://schema.org/SiteNavigationElement">
+<form action="https://www.computerhope.com/cgi-bin/search.cgi" method="post">
+<input class="sbar" name="q" title="Search" type="text" accesskey="s" />
+<button type="Submit">Search</button>
+</form>
+<ul id="nav">
+<li><a href="/oh.htm" title="Questions and answers, troubleshooting, and help">Help</a></li>
+<li><a href="/tips/" title="Computer tips and tricks">Tips</a></li>
+<li><a href="/jargon.htm" title="Computer terms, jargon, and glossary">Dictionary</a></li>
+<li><a href="/history/" title="Computer timeline, events, and biographies">History</a></li>
+<li><a href="/forum/" title="Computer Hope forums and community">Forums</a></li>
+<li><a href="/contact/" title="Contact Computer Hope or other computer companies">Contact</a></li>
+</ul>
+</div>
+</header>
+<div class="container">
+<ol class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a href="/" itemprop="item"><span itemprop="name">Home</span></a><meta itemprop="position" content="1" /></li>
+<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a href="/oh.htm" itemprop="item"><span itemprop="name">Help</span></a><meta itemprop="position" content="2" /></li>
+<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a href="/unix.htm" itemprop="item"><span itemprop="name">Linux and Unix</span></a><meta itemprop="position" content="3" /></li>
+</ol>
+</div>
+<div class="container content" id="main-content">
+<article>
+<h1 itemprop="headline">Linux ps command</h1>
+<div class="updated">Updated: <span itemprop="dateModified" content="2017-06-27">06/27/2017</span> by <span itemprop="author publisher creator" itemscope itemtype="https://schema.org/Organization"><span itemprop="name">Computer Hope</span></span></div>
+<div class="pagenav">
+<img src="https://www.computerhope.com/cdn/linux/ps.gif" alt="ps command" width="300" height="300" class="floatRight">
+<ul>
+<li><a href="#about">About ps</a></li>
+<li><a href="#syntax">ps syntax</a></li>
+<li><a href="#examples">ps examples</a></li>
+<li><a href="#related">Related commands</a></li>
+<li><a href="/unix.htm">Linux and Unix commands help</a></li>
+</ul>
+</div>
+<h2 id="about">About ps</h2>
+<p class="tab intro">Reports a snapshot of the status of currently running <a href="/jargon/p/process.htm">processes</a>.</p>
+<h2>Description</h2>
+<p class="tab">On every <a href="/jargon/u/unix.htm">UNIX</a>-like <a href="/os.htm">operating system</a>, the <i>process status</i> command (<b>ps</b>) displays information about active processes. Every operating system's version of <b>ps</b> is slightly different, so consult your own documentation for specific options.</p>
+<p class="tab">This documentation describes a version of <b>ps</b> common to many distributions of <a href="/jargon/l/linux.htm">Linux</a>. It accepts several kinds of options:</p>
+<ol>
+<li>UNIX options, which may be grouped and must be preceded by a dash ("<b>-</b>").</li>
+<li><a href="/jargon/b/bsd.htm">BSD</a> options, which may be grouped and must <i>not</i> be used with a dash.</li>
+<li><a href="/jargon/g/gnu.htm">GNU</a> long options, which are preceded by two dashes ("<b>--</b>").</li>
+</ol>
+<p class="tab">Options of different types may be freely mixed, but might cause conflicts. There are some synonymous options, which are functionally identical, due to the many standards and <b>ps</b> implementations that <b>ps</b> is compatible with.</p>
+<p class="tab">Note that "<b>ps -aux</b>" is different than "<b>ps aux</b>". The <a href="/jargon/p/posix.htm">POSIX</a> and UNIX standards require that "<b>ps -aux</b>" print all processes <a href="/jargon/o/owner.htm">owned</a> by a <a href="/jargon/u/user.htm">user</a> named "<b>x</b>", as well as printing all processes that would be selected by the <b>-a</b> option. If the user named "<b>x</b>" does not exist, <b>ps</b> may interpret the command as "<b>ps aux</b>" instead and print a warning. This behavior is intended to aid in the transitioning of legacy scripts, but it is subject to change, and thus should not be relied upon.</p>
+<p class="tab">By default, <b>ps</b> selects all processes with the same effective user ID (<b>euid=EUID</b>) as the current user and associated with the same terminal as the invoker. It displays the process ID (<b>pid=PID</b>), the terminal associated with the process (<b>tname=TTY</b>), the cumulated <a href="/jargon/c/cpu.htm">CPU</a> time in [<b>DD-</b>]<b>hh:mm:ss</b> format (<b>time=TIME</b>), and the <a href="/jargon/e/execfile.htm">executable</a> name (<b>ucmd=CMD</b>). Output is unsorted by default.</p>
+<p class="tab">The use of BSD-style options will add process state (<b>stat=STAT</b>) to the default display and show the command <a href="/jargon/a/argument.htm">arguments</a> (<b>args=COMMAND</b>) instead of the executable name. You can override this with the <b>PS_FORMAT</b> <a href="/jargon/e/envivari.htm">environment variable</a>. The use of BSD-style options will also change the process selection to include processes on other terminals (TTYs) that are owned by you; alternately, this may be described as setting the selection to be the set of all processes filtered to exclude processes owned by other users or not on a terminal. These effects are not considered when options are described as being "identical" below, so <b>-M</b> will be considered identical to <b>Z</b> and so on.</p>
+<p class="tab">Except as described below, process selection options are additive. The default selection is discarded, and then the selected processes are added to the set of processes to be displayed. A process will thus be shown if it meets any of the given selection criteria.</p>
+<h2 id="syntax">ps syntax</h2>
+<pre class="tcy tab">ps [<i>options</i>]</pre>
+<h2>Options: Simple Process Selection</h2>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>a</b></td>
+<td>Lift the BSD-style "only yourself" restriction, which is imposed upon the set of all processes when some BSD-style (without "<b>-</b>") options are used or when the <b>ps</b> personality setting is BSD-like. The set of processes selected in this manner is in addition to the set of processes selected by other means. An alternate description is that this option causes <b>ps</b> to list all processes with a <a href="/jargon/t/terminal.htm">terminal</a> (<a href="/jargon/t/tty.htm">tty</a>), or to list all processes when used together with the <b>x</b> option.</td>
+</tr>
+<tr class="tcw">
+<td><b>-A</b></td>
+<td>Select all processes. Identical to <b>-e</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-a</b></td>
+<td>Select all processes except both session leaders and processes not associated with a terminal.</td>
+</tr>
+<tr class="tcw">
+<td><b>-d</b></td>
+<td>Select all processes except session leaders.</td>
+</tr>
+<tr class="tcw">
+<td><b>--deselect</b></td>
+<td>Select all processes except those that fulfill the specified conditions (negates the selection). Identical to <b>-N</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-e</b></td>
+<td>Select all processes. Identical to <b>-A</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>g</b></td>
+<td><i>Really</i> all processes, even session leaders. This flag is obsolete and may be discontinued in a future release. It is normally implied by the a flag, and is only useful when operating in the <a href="/comp/sun.htm">SunOS4</a> personality.</td>
+</tr>
+<tr class="tcw">
+<td><b>-N</b></td>
+<td>Select all processes except those that fulfill the specified conditions (negates the selection). Identical to <b>--deselect</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>T</b></td>
+<td>Select all processes associated with this terminal. Identical to the <b>t</b> option without any argument.</td>
+</tr>
+<tr class="tcw">
+<td><b>r</b></td>
+<td>Restrict the selection to only running processes.</td>
+</tr>
+<tr class="tcw">
+<td><b>x</b></td>
+<td>Lift the BSD-style "must have a tty" restriction, which is imposed upon the set of all processes when some BSD-style (without "<b>-</b>") options are used or when the <b>ps</b> personality setting is BSD-like. The set of processes selected in this manner is in addition to the set of processes selected by other means. An alternate description is that this option causes <b>ps</b> to list all processes owned by you (same EUID as <b>ps</b>), or to list all processes when used together with the a option.</td>
+</tr>
+</table>
+<h2>Options: Process Selection By List</h2>
+<p class="tab">These options accept a single argument in the form of a blank-separated or comma-separated list, and they can be used multiple times. For example:</p>
+<pre class="tcy tab">ps -p "1 2" -p 3,4</pre>
+<p class="tab">...is a valid command.</p>
+<p class="tab">Options which select processes by list are as follows:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>-</b><i>123</i></td>
+<td>Identical to "<b>--pid</b> <i>123</i>".</td>
+</tr>
+<tr class="tcw">
+<td><i>123</i></td>
+<td>Identical to "<b>--pid</b> <i>123</i>".</td>
+</tr>
+<tr class="tcw">
+<td><span style="white-space:nowrap"><b>-C</b> <i>cmdlist</i></span></td>
+<td>Select by command name. This selects the processes whose executable name is given in <i>cmdlist</i>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-G</b> <i>grplist</i></td>
+<td>Select by real group ID (RGID) or name. This selects the processes whose real group name or ID is in the <i>grplist</i> list. The real group ID identifies the group of the user who created the process.</td>
+</tr>
+<tr class="tcw">
+<td><b>-g</b> <i>grplist</i></td>
+<td>Select by session OR by effective group name. Selection by session is specified by many standards, but selection by effective group is the logical behavior that several other operating systems use. This <b>ps</b> will select by session when the list is completely numeric (as sessions are). Group ID numbers will work only when some group names are also specified. See the <b>-s</b> and <b>--group</b> options.</td>
+</tr>
+<tr class="tcw">
+<td><span style="white-space:nowrap"><b>--Group</b> <i>grplist</i></span></td>
+<td>Select by real group ID (RGID) or name. Identical to <b>-G</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--group</b> <i>grplist</i></td>
+<td>Select by effective group ID (EGID) or name. This selects the processes whose effective group name or ID is in <i>grouplist</i>. The effective group ID describes the group whose file access <a href="/jargon/p/permissi.htm">permissions</a> are used by the process. The <b>-g</b> option is often an alternative to <b>--group</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>p</b> <i>pidlist</i></td>
+<td>Select by process ID. Identical to <b>-p</b> and <b>--pid</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-p</b> <i>pidlist</i></td>
+<td>Select by PID. This selects the processes whose process ID numbers appear in <i>pidlist</i>. Identical to <b>p</b> and <b>--pid</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--pid</b> <i>pidlist</i></td>
+<td>Select by process ID. Identical to <b>-p</b> and <b>p</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--ppid</b> <i>pidlist</i></td>
+<td>Select by <a href="/jargon/p/parechil.htm">parent</a> process ID. This selects the processes with a parent process ID in <i>pidlist</i>. That is, it selects processes that are children of those listed in <i>pidlist</i>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-s</b> <i>sesslist</i></td>
+<td>Select by session ID. This selects the processes with a session ID specified in <i>sesslist</i>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--sid</b> <i>sesslist</i></td>
+<td>Select by session ID. Identical to <b>-s</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>t</b> <i>ttylist</i></td>
+<td>Select by tty. Nearly identical to <b>-t</b> and <b>--tty</b>, but can also be used with an empty <i>ttylist</i> to indicate the terminal associated with <b>ps</b>. Using the <b>T</b> option is considered cleaner than using <b>t</b> with an empty <i>ttylist</i>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-t</b> <i>ttylist</i></td>
+<td>Select by tty. This selects the processes associated with the terminals given in <i>ttylist</i>. Terminals (ttys, or screens for text output) can be specified in several forms: <b>/dev/ttyS1</b>, <b>ttyS1</b>, <b>S1</b>. A plain "<b>-</b>" may be used to select processes not attached to any terminal.</td>
+</tr>
+<tr class="tcw">
+<td><b>--tty</b> <i>ttylist</i></td>
+<td>Select by terminal. Identical to <b>-t</b> and <b>t</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>U</b> <i>userlist</i></td>
+<td>Select by effective user ID (EUID) or name. This selects the processes whose effective user name or ID is in <i>userlist</i>. The effective user ID describes the user whose file access permissions are used by the process. Identical to <b>-u</b> and <b>--user</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-U</b> <i>userlist</i></td>
+<td>Select by real user ID (RUID) or name. It selects the processes whose real user name or ID is in the <i>userlist</i> list. The real user ID identifies the user who created the process.</td>
+</tr>
+<tr class="tcw">
+<td><b>-u</b> <i>userlist</i></td>
+<td>Select by effective user ID (EUID) or name. This selects the processes whose effective user name or ID is in <i>userlist</i>.<br>
+<br>
+The effective user ID describes the user whose file access permissions are used by the process. Identical to <b>U</b> and <i>--user</i>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--User</b> <i>userlist</i></td>
+<td>Select by real user ID (RUID) or name. Identical to <b>-U</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--user</b> <i>userlist</i></td>
+<td>Select by effective user ID (EUID) or name. Identical to <b>-u</b> and <b>U</b>.</td>
+</tr>
+</table>
+<h2>Options: Output Format Control</h2>
+<p class="tab">These options are used to choose the information displayed by <b>ps</b>. The output may differ from version to version.</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>-c</b></td>
+<td>Show different scheduler information for the <b>-l</b> option.</td>
+</tr>
+<tr class="tcw">
+<td><b>--context</b></td>
+<td>Display security context format (when using SE Linux).</td>
+</tr>
+<tr class="tcw">
+<td><b>-f</b></td>
+<td>Do full-format listing. This option can be combined with many other UNIX-style options to add additional columns. It also causes the command arguments to be printed. When used with <b>-L</b>, the NLWP (number of <a href="/jargon/t/thread.htm">threads</a>) and LWP (thread ID) columns will be added. See the <b>c</b> option, the format keyword <b>args</b>, and the format keyword <b>comm</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-F</b></td>
+<td>Extra full format. See the <b>-f</b> option, which <b>-F</b> implies.</td>
+</tr>
+<tr class="tcw">
+<td><span style="white-space:nowrap"><b>--format</b> <i>format</i></span></td>
+<td>user-defined format. Identical to <b>-o</b> and <b>o</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>j</b></td>
+<td>BSD job control format.</td>
+</tr>
+<tr class="tcw">
+<td><b>-j</b></td>
+<td>Jobs format.</td>
+</tr>
+<tr class="tcw">
+<td><b>l</b></td>
+<td>Display BSD long format.</td>
+</tr>
+<tr class="tcw">
+<td><b>-l</b></td>
+<td>Long format. The <b>-y</b> option is often useful with this.</td>
+</tr>
+<tr class="tcw">
+<td><b>-M</b></td>
+<td>Add a column of security data. Identical to <b>Z</b> (for SE Linux).</td>
+</tr>
+<tr class="tcw">
+<td><b>O</b> <i>format</i></td>
+<td>is preloaded <b>o</b> (overloaded). The BSD <b>O</b> option can act like <b>-O</b> (user-defined output format with some common fields predefined) or can be used to specify <a href="/jargon/s/sort.htm">sort</a> order. <a href="/jargon/h/heuristi.htm">Heuristics</a> are used to determine the behavior of this option. To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g. with <b>-O</b> or <b>--sort</b>). When used as a formatting option, it is identical to <b>-O</b>, with the BSD personality.</td>
+</tr>
+<tr class="tcw">
+<td><b>-O</b> <i>format</i></td>
+<td>Like <b>-o</b>, but preloaded with some default columns. Identical to "<b>-o pid,format,state,tname,time,command</b>" or "<b>-o pid,format,tname,time,cmd</b>"; see <b>-o</b>, below.</td>
+</tr>
+<tr class="tcw">
+<td><b>o</b> <i>format</i></td>
+<td>Specify user-defined <i>format</i>. Identical to <b>-o</b> and <b>--format</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>-o</b> <i>format</i></td>
+<td>User-defined format. <i>format</i> is a single argument in the form of a blank-separated or comma-separated list, which offers a way to specify individual output columns. The recognized keywords are described in the <a href="#Standard-Format-Specifiers">STANDARD FORMAT SPECIFIERS</a> section below. Headers may be renamed ("<b>ps -o pid,ruser=RealUser -o comm=Command</b>") as desired. If all column headers are empty ("<b>ps -o pid= -o comm=</b>") then the header line will not be output. Column width will increase as needed for wide headers; this may be used to widen up columns such as WCHAN ("<b>ps -o pid,wchan=WIDE- WCHAN-COLUMN -o comm</b>"). Explicit width control ("<b>ps opid,wchan:42,cmd</b>") is offered too. The behavior of "<b>ps -o pid=X,comm=Y</b>" varies with personality; output may be one column named "<b>X,comm=Y</b>" or two columns named "<b>X</b>" and "<b>Y</b>". Use multiple <b>-o</b> options when in doubt. Use the <b>PS_FORMAT</b> environment variable to specify a default as desired; <b>DefSysV</b> and <b>DefBSD</b> are macros that may be used to choose the default UNIX or BSD columns.</td>
+</tr>
+<tr class="tcw">
+<td><b>s</b></td>
+<td>Display signal format.</td>
+</tr>
+<tr class="tcw">
+<td><b>u</b></td>
+<td>Display user-oriented format.</td>
+</tr>
+<tr class="tcw">
+<td><b>v</b></td>
+<td>Display <a href="/jargon/v/virtmemo.htm">virtual memory</a> format.</td>
+</tr>
+<tr class="tcw">
+<td><b>X</b></td>
+<td><a href="/jargon/r/register.htm">Register</a> format.</td>
+</tr>
+<tr class="tcw">
+<td><b>-y</b></td>
+<td>Do not show flags; show <b>rss</b> in place of <b>addr</b>. This option can only be used with <b>-l</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>Z</b></td>
+<td>Add a column of security data. Identical to <b>-M</b> (for SE Linux).</td>
+</tr>
+</table>
+<h2>Options: Output Modifiers</h2>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>c</b></td>
+<td>Show the true command name. This is derived from the name of the executable file, rather than from the <b>argv</b> value. Command arguments and any modifications to them are thus not shown. This option effectively turns the <b>args</b> format keyword into the <b>comm</b> format keyword; it is useful with the <b>-f</b> format option and with the various BSD-style format options, which all normally display the command arguments. See the <b>-f</b> option, the format keyword <b>args</b>, and the format keyword <b>comm</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--cols</b> <i>n</i></td>
+<td>Set screen width.</td>
+</tr>
+<tr class="tcw">
+<td><b>--columns</b> <i>n</i></td>
+<td>Set screen width.</td>
+</tr>
+<tr class="tcw">
+<td><b>--cumulative</b></td>
+<td>Include some dead child process data (as a sum with the parent).</td>
+</tr>
+<tr class="tcw">
+<td><b>e</b></td>
+<td>Show the environment after the command.</td>
+</tr>
+<tr class="tcw">
+<td><b>f</b></td>
+<td><a href="/jargon/a/asciiart.htm">ASCII art</a> process hierarchy (as many trees, also referred to as a "forest").</td>
+</tr>
+<tr class="tcw">
+<td><b>--forest</b></td>
+<td>ASCII art process tree.</td>
+</tr>
+<tr class="tcw">
+<td><b>h</b></td>
+<td>No header. (or, one header per screen in the BSD personality). The <b>h</b> option is problematic. Standard BSD <b>ps</b> uses this option to print a header on each page of output, but older Linux <b>ps</b> uses this option to totally disable the header. Linux <b>ps</b> follows the standard usage of not printing the header unless the BSD personality has been selected, in which case it prints a header on each page of output. Regardless of the current personality, you can use the long options <b>--headers</b> and <b>--no-headers</b> to enable printing headers each page or disable headers entirely, respectively.</td>
+</tr>
+<tr class="tcw">
+<td><b>-H</b></td>
+<td>Show process hierarchy (forest).</td>
+</tr>
+<tr class="tcw">
+<td><b>--headers</b></td>
+<td>Repeat header lines, one per page of output.</td>
+</tr>
+<tr class="tcw">
+<td><b>k</b> <i>spec</i></td>
+<td>Specify sorting order. Sorting syntax is "[<b>+</b>|<b>-</b>]<i>key</i>[,[<b>+</b>|<b>-</b>]<i>key</i>[<b>,</b>...]]". Choose a multi-letter key from the <a href="#Standard-Format-Specifiers">STANDARD FORMAT SPECIFIERS</a> section. The "<b>+</b>" is optional since default direction is increasing numerical or lexicographic order. Identical to <b>--sort</b>.<br>
+<br>
+Examples:<br>
+<br>
+<pre class="tcy">ps jaxkuid,-ppid,+pid</pre>
+<pre class="tcy">ps axk comm o comm,args</pre>
+<pre class="tcy">ps kstart_time -ef</pre></td>
+</tr>
+<tr class="tcw">
+<td><b>--lines</b> <i>n</i></td>
+<td>Set screen height.</td>
+</tr>
+<tr class="tcw">
+<td><b>-n</b> <i>namelist</i></td>
+<td>Set <i>namelist</i> file. Identical to <b>N</b>. The <i>namelist</i> file is needed for a proper WCHAN display, and must match the current Linux <a href="/jargon/k/kernel.htm">kernel</a> exactly for correct output. Without this option, the default search <a href="/jargon/p/path.htm">path</a> for the <i>namelist</i> is:<br>
+<br>
+<ul>
+<li><b>$PS_SYSMAP</b></li>
+<li><b>$PS_SYSTEM_MAP</b></li>
+<li><b>/proc/*/wchan</b></li>
+<li><b>/boot/System.map-$(uname -r)</b></li>
+<li><b>/boot/System.map</b></li>
+<li><b>/lib/modules/$(uname -r)/System.map</b></li>
+<li><b>/usr/src/linux/System.map</b></li>
+<li><b>/System.map</b></li>
+</ul></td>
+</tr>
+<tr class="tcw">
+<td><b>n</b></td>
+<td>Numeric output for WCHAN and USER (including all types of UID and GID).</td>
+</tr>
+<tr class="tcw">
+<td><b>N</b> <i>namelist</i></td>
+<td>Specify <i>namelist</i> file. Identical to <b>-n</b>; see <b>-n</b>, above.</td>
+</tr>
+<tr class="tcw">
+<td><b>--no-headers</b></td>
+<td>Print no header line at all. <b>--no-heading</b> is an alias for this option.</td>
+</tr>
+<tr class="tcw">
+<td><b>O</b> <i>order</i></td>
+<td>Sorting order (overloaded). The BSD <b>O</b> option can act like <b>-O</b> (user-defined output format with some common fields predefined) or can be used to specify sort order. Heuristics are used to determine the behavior of this option. To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g. with <b>-O</b> or <b>--sort</b>).<br>
+<br>
+For sorting, obsolete BSD <b>O</b> option syntax is "<b>O</b>[<b>+</b>|<b>-</b>]<i>k1</i>[<b>,</b>[<b>+</b>|<b>-</b>]<i>k2</i>[<b>,</b>...]]". It orders the processes listing according to the multilevel sort specified by the sequence of one-letter short keys <i>k1</i>,<i>k2</i>, ... described in the <a href="#Obsolete-Sort-Keys">OBSOLETE SORT KEYS</a> section below. The "<b>+</b>" is currently optional, merely re-iterating the default direction on a key, but may help to distinguish an <b>O</b> sort from an <b>O</b> format. The "<b>-</b>" reverses direction only on the key it precedes.</td>
+</tr>
+<tr class="tcw">
+<td><b>--rows</b> <i>n</i></td>
+<td>Set screen height.</td>
+</tr>
+<tr class="tcw">
+<td><b>S</b></td>
+<td>Sum up some information, such as CPU usage, from dead child processes into their parent. This is useful for examining a system where a parent process repeatedly <a href="/jargon/f/fork.htm">forks</a> off short-lived children to do work.</td>
+</tr>
+<tr class="tcw">
+<td><b>--sort</b> <i>spec</i></td>
+<td>Specify sorting order. Sorting syntax is "[<b>+</b>|<b>-</b>]<i>key</i>[<b>,</b>[<b>+</b>|<b>-</b>]<i>key</i>[<b>,</b>...]]". Choose a multi-letter key from the <a href="#Standard-Format-Specifiers">STANDARD FORMAT SPECIFIERS</a> section. The "<b>+</b>" is optional since default direction is increasing numerical or lexicographic order. Identical to <b>k</b>. For example: "<b>ps jax --sort=</b><i>uid</i><b>, -p</b><i>pid</i><b>,+</b><i>pid</i>"</td>
+</tr>
+<tr class="tcw">
+<td><b>w</b></td>
+<td>Wide output. Use this option twice for unlimited width.</td>
+</tr>
+<tr class="tcw">
+<td><b>-w</b></td>
+<td>Wide output. Use this option twice for unlimited width.</td>
+</tr>
+<tr class="tcw">
+<td><b>--width</b> <i>n</i></td>
+<td>Set screen width.</td>
+</tr>
+</table>
+<h2>Options: Thread Display</h2>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>H</b></td>
+<td>Show threads as if they were processes.</td>
+</tr>
+<tr class="tcw">
+<td><b>-L</b></td>
+<td>Show threads, possibly with LWP and NLWP columns.</td>
+</tr>
+<tr class="tcw">
+<td><b>m</b></td>
+<td>Show threads after processes.</td>
+</tr>
+<tr class="tcw">
+<td><b>-m</b></td>
+<td>Show threads after processes.</td>
+</tr>
+<tr class="tcw">
+<td><b>-T</b></td>
+<td>Show threads, possibly with SPID column.</td>
+</tr>
+</table>
+<h2>Options: Displaying Other Information</h2>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><span style="white-space:nowrap"><b>--help</b> <i>section</i></span></td>
+<td>Print a help message. The section argument can be one of <b>simple</b>, <b>list</b>, <b>output</b>, <b>threads</b>, <b>misc</b> or <b>all</b>. The argument can be shortened to one of the underlined letters as in: <b>s</b>|<b>l</b>|<b>o</b>|<b>t</b>|<b>m</b>|<b>a</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>--info</b></td>
+<td>Print <a href="/jargon/d/debug.htm">debugging</a> info.</td>
+</tr>
+<tr class="tcw">
+<td><b>L</b></td>
+<td>List all format specifiers.</td>
+</tr> 
+<tr class="tcw">
+<td><b>V</b></td>
+<td>Print the procps-ng version.</td>
+</tr>
+<tr class="tcw">
+<td><b>-V</b></td>
+<td>Print the procps-ng version.</td>
+</tr>
+<tr class="tcw">
+<td><b>--version</b></td>
+<td>Print the procps-ng version.</td>
+</tr>
+</table>
+<h2>Notes</h2>
+<p class="tab"><b>ps</b> works by reading the virtual files in <b>/proc</b>. <b>ps</b> does not need to be <a href="/jargon/s/suid.htm">setuid</a> <b>kmem</b> or have any <a href="/jargon/p/permissi.htm">privileges</a> to run. Do not give this <b>ps</b> any special permissions.</p>
+<p class="tab">This <b>ps</b> needs access to <i>namelist</i> data for proper WCHAN display. For kernels prior to 2.6, the <b>System.map</b> file must be installed.</p>
+<p class="tab">CPU usage is currently expressed as the percentage of time spent running during the entire lifetime of a process. This is not ideal, and it does not conform to the standards that <b>ps</b> otherwise conforms to. CPU usage is unlikely to add up to exactly 100%.</p>
+<p class="tab">The SIZE and RSS fields don't count some parts of a process including the page tables, kernel stack, <b>struct thread_info</b>, and <b>struct task_struct</b>. This is usually at least 20 KiB of <a href="/jargon/m/memory.htm">memory</a> that is always resident. SIZE is the virtual size of the process (code+data+stack).</p>
+<p class="tab">Processes marked <b>&lt;defunct&gt;</b> are dead processes (so-called "zombies") that remain because their parent has not destroyed them properly. These processes will be destroyed by <a href="/unix/telinit.htm">init</a> if the parent process exits.</p>
+<p class="tab">If the length of the username is greater than the length of the display column, the numeric user ID is displayed instead.</p>
+<h2 id="Process-Flags">Process Flags</h2>
+<p class="tab">The sum of these values is displayed in the "<b>F</b>" column, which is provided by the flags output specifier:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>1</b></td>
+<td>forked but didn't exec</td>
+</tr>
+<tr class="tcw">
+<td><b>4</b></td>
+<td>used <a href="/jargon/r/root.htm">super-user</a> privileges</td>
+</tr>
+</table>
+<h2>Process State Codes</h2>
+<p class="tab">Here are the different values that the <b>s</b>, <b>stat</b> and state output specifiers (header "<b>STAT</b>" or "<b>S</b>") will display to describe the state of a process:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>D</b></td>
+<td>uninterruptible sleep (usually IO)</td>
+</tr>
+<tr class="tcw">
+<td><b>R</b></td>
+<td>running or runnable (on run queue)</td>
+</tr>
+<tr class="tcw">
+<td><b>S</b></td>
+<td>interruptible sleep (waiting for an event to complete)</td>
+</tr>
+<tr class="tcw">
+<td><b>T</b></td>
+<td>stopped, either by a job control signal or because it is being traced</td>
+</tr>
+<tr class="tcw">
+<td><b>W</b></td>
+<td>paging (not valid since the 2.6.xx kernel)</td>
+</tr>
+<tr class="tcw">
+<td><b>X</b></td>
+<td>dead (should never be seen)</td>
+</tr>
+<tr class="tcw">
+<td><b>Z</b></td>
+<td>defunct ("zombie") process, terminated but not reaped by its parent</td>
+</tr>
+</table>
+<p class="tab">For BSD formats and when the <b>stat</b> keyword is used, additional characters may be displayed:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>&lt;</b></td>
+<td>high-priority (not nice to other users)</td>
+</tr>
+<tr class="tcw">
+<td><b>N</b></td>
+<td>low-priority (nice to other users)</td>
+</tr>
+<tr class="tcw">
+<td><b>L</b></td>
+<td>has pages locked into memory (for real-time and custom IO)</td>
+</tr>
+<tr class="tcw">
+<td><b>s</b></td>
+<td>is a session leader</td>
+</tr>
+<tr class="tcw">
+<td><b>l</b></td>
+<td>is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)</td>
+</tr>
+<tr class="tcw">
+<td><b>+</b></td>
+<td>is in the foreground process group</td>
+</tr>
+</table>
+<h2 id="Obsolete-Sort-Keys">Obsolete Sort Keys</h2>
+<p class="tab">These keys are used by the BSD <b>O</b> option (when it is used for sorting). The GNU <b>--sort</b> option doesn't use these keys, but the specifiers described below in the <a href="#Standard-Format-Specifiers">STANDARD FORMAT SPECIFIERS</a> section. Note that the values used in sorting are the internal values <b>ps</b> uses and not the "cooked" values used in some of the output format fields (e.g. sorting on tty will sort into device number, not according to the terminal name displayed). Pipe <b>ps</b> output into the <a href="/unix/usort.htm">sort</a> command if you want to sort the cooked values.</p>
+<table class="mtable3 tab">
+<tr class="tcy">
+<th><b>key</b></th>
+<th><b>long name</b></th>
+<th><b>description</b></th>
+</tr>
+<tr class="tcw">
+<td><b>c</b></td>
+<td><b>cmd</b></td>
+<td>simple name of executable</td>
+</tr>
+<tr class="tcw">
+<td><b>C</b></td>
+<td><b>pcpu</b></td>
+<td>CPU utilization</td>
+</tr>
+<tr class="tcw">
+<td><b>f</b></td>
+<td><b>flags</b></td>
+<td>flags as in long format <b>F</b> field</td>
+</tr>
+<tr class="tcw">
+<td><b>g</b></td>
+<td><b>pgrp</b></td>
+<td>process group ID</td>
+</tr>
+<tr class="tcw">
+<td><b>G</b></td>
+<td><b>tpgid</b></td>
+<td>controlling tty process group ID</td>
+</tr>
+<tr class="tcw">
+<td><b>j</b></td>
+<td><b>cutime</b></td>
+<td>cumulative user time</td>
+</tr>
+<tr class="tcw">
+<td><b>J</b></td>
+<td><b>cstime</b></td>
+<td>cumulative system time</td>
+</tr>
+<tr class="tcw">
+<td><b>k</b></td>
+<td><b>utime</b></td>
+<td>user time</td>
+</tr>
+<tr class="tcw">
+<td><b>m</b></td>
+<td><b>min_flt</b></td>
+<td>number of minor page faults</td>
+</tr>
+<tr class="tcw">
+<td><b>M</b></td>
+<td><b>maj_flt</b></td>
+<td>number of major page faults</td>
+</tr>
+<tr class="tcw">
+<td><b>n</b></td>
+<td><b>cmin_flt</b></td>
+<td>cumulative minor page faults</td>
+</tr>
+<tr class="tcw">
+<td><b>N</b></td>
+<td><b>cmaj_flt</b></td>
+<td>cumulative major page faults</td>
+</tr>
+<tr class="tcw">
+<td><b>o</b></td>
+<td><b>session</b></td>
+<td>session ID</td>
+</tr>
+<tr class="tcw">
+<td><b>p</b></td>
+<td><b>pid</b></td>
+<td>process ID</td>
+</tr>
+<tr class="tcw">
+<td><b>P</b></td>
+<td><b>ppid</b></td>
+<td>parent process ID</td>
+</tr>
+<tr class="tcw">
+<td><b>r</b></td>
+<td><b>rss</b></td>
+<td>resident set size</td>
+</tr>
+<tr class="tcw">
+<td><b>R</b></td>
+<td><b>resident</b></td>
+<td>resident pages</td>
+</tr>
+<tr class="tcw">
+<td><b>s</b></td>
+<td><b>size</b></td>
+<td>memory size in <a href="/jargon/k/kilobyte.htm">kilobytes</a></td>
+</tr>
+<tr class="tcw">
+<td><b>S</b></td>
+<td><b>share</b></td>
+<td>amount of shared pages</td>
+</tr>
+<tr class="tcw">
+<td><b>t</b></td>
+<td><b>tty</b></td>
+<td>the device number of the controlling tty</td>
+</tr>
+<tr class="tcw">
+<td><b>T</b></td>
+<td><b>start_time</b></td>
+<td>time process was started</td>
+</tr>
+<tr class="tcw">
+<td><b>U</b></td>
+<td><b>uid</b></td>
+<td>user ID number</td>
+</tr>
+<tr class="tcw">
+<td><b>u</b></td>
+<td><b>user</b></td>
+<td>user name</td>
+</tr>
+<tr class="tcw">
+<td><b>v</b></td>
+<td><b>vsize</b></td>
+<td>total VM size in KiB</td>
+</tr>
+<tr class="tcw">
+<td><b>y</b></td>
+<td><b>priority</b></td>
+<td>kernel scheduling priority</td>
+</tr>
+</table>
+<h2>AIX Format Descriptors</h2>
+<p class="tab"><b>ps</b> supports AIX format descriptors, which work somewhat like the formatting codes of <a href="/unix/uprintf.htm">printf</a>. For example, the normal default output can be produced with this:</p>
+<pre class="tcy">ps -eo "%p %y %x %c"</pre>
+<p class="tab">AIX Format Descriptors are as follows:</p>
+<table class="mtable3 tab">
+<tr class="tcy">
+<th><b>code</b></th>
+<th><b>normal</b></th>
+<th><b>header</b></th>
+</tr>
+<tr class="tcw">
+<td><b>%C</b></td>
+<td><b>pcpu</b></td>
+<td><b>%CPU</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%G</b></td>
+<td><b>group</b></td>
+<td><b>GROUP</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%P</b></td>
+<td><b>ppid</b></td>
+<td><b>PPID</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%U</b></td>
+<td><b>user</b></td>
+<td><b>USER</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%a</b></td>
+<td><b>args</b></td>
+<td><b>COMMAND</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%c</b></td>
+<td><b>comm</b></td>
+<td><b>COMMAND</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%g</b></td>
+<td><b>rgroup</b></td>
+<td><b>RGROUP</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%n</b></td>
+<td><b>nice</b></td>
+<td><b>NI</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%p</b></td>
+<td><b>pid</b></td>
+<td><b>PID</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%r</b></td>
+<td><b>pgid</b></td>
+<td><b>PGID</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%t</b></td>
+<td><b>etime</b></td>
+<td><b>ELAPSED</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%u</b></td>
+<td><b>ruser</b></td>
+<td><b>RUSER</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%x</b></td>
+<td><b>time</b></td>
+<td><b>TIME</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%y</b></td>
+<td><b>tty</b></td>
+<td><b>TTY</b></td>
+</tr>
+<tr class="tcw">
+<td><b>%z</b></td>
+<td><b>vsz</b></td>
+<td><b>VSZ</b></td>
+</tr>
+</table>
+<h2 id="Standard-Format-Specifiers">Standard Format Specifiers</h2>
+<p class="tab">Here are the different keywords that may be used to control the output format (e.g. with option <b>-o</b>) or to sort the selected processes with the GNU-style <b>--sort</b> option.</p>
+<p class="tab">For example: "<b>ps -eo pid,user,args --sort user</b>".</p>
+<p class="tab"><b>ps</b> tries to recognize most of the keywords used in other implementations of <b>ps</b>.</p>
+<p class="tab">The following user-defined format specifiers may contain spaces:</p>
+<ul>
+<li><b>args</b></li>
+<li><b>cmd</b></li>
+<li><b>comm</b></li>
+<li><b>command</b></li>
+<li><b>fname</b></li>
+<li><b>ucmd</b></li>
+<li><b>ucomm</b></li>
+<li><b>lstart</b></li>
+<li><b>bsdstart</b></li>
+<li><b>start</b></li>
+</ul>
+<p class="tab">Some keywords may not be available for sorting.</p>
+<table class="mtable3 tab">
+<tr class="tcy">
+<th><b>code</b></th>
+<th><b>header</b></th>
+<th><b>description</b></th>
+</tr>
+<tr class="tcw">
+<td><b>%cpu</b></td>
+<td>%CPU</td>
+<td>CPU utilization of the process in "<b>##.#</b>" format. Currently, it is the CPU time used divided by the time the process has been running (cputime/realtime ratio), expressed as a percentage. It will not add up to 100% unless you are lucky. (alias: <b>pcpu</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>%mem</b></td>
+<td>%MEM</td>
+<td>ratio of the process's resident set size to the physical memory on the machine, expressed as a percentage. (alias: <b>pmem</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>args</b></td>
+<td>COMMAND</td>
+<td>command with all its arguments as a string. Modifications to the arguments may be shown. The output in this column may contain spaces. A process marked <b>&lt;defunct&gt;</b> is partly dead, waiting to be fully destroyed by its parent. Sometimes the process arguments will be unavailable; when this happens, <b>ps</b> will instead print the executable name in brackets. (alias: <b>cmd</b>, <b>command</b>). See also the <b>comm</b> format keyword, the <b>-f</b> option, and the <b>c</b> option. When specified last, this column will extend to the edge of the display. If <b>ps</b> can not determine display width, as when output is redirected (piped) into a file or another command, the output width is undefined (it may be 80, unlimited, determined by the <b>TERM</b> variable, and so on). The <b>COLUMNS</b> environment variable or <b>--cols</b> option may be used to exactly determine the width in this case. The <b>w</b> or <b>-w</b> option may be also be used to adjust width. </td>
+</tr>
+<tr class="tcw">
+<td><b>blocked</b></td>
+<td>BLOCKED</td>
+<td>mask of the blocked signals, see <a href="/unix/signals.htm">signals</a>. According to the width of the field, a 32 or 64-bit mask in hexadecimal format is displayed. (alias: <b>sig_block</b>, <b>sigmask</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>bsdstart</b></td>
+<td>START</td>
+<td>time the command started. If the process was started less than 24 hours ago, the output format is "<b>HH:MM</b>", else it is "<b>Mmm:SS</b>" (where <b>Mmm</b> is the three letters of the month). See also <b>lstart</b>, <b>start</b>, <b>start_time</b>, and <b>stime</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>bsdtime</b></td>
+<td>TIME</td>
+<td>accumulated CPU time, user + system. The display format is usually "MMM:SS", but can be shifted to the right if the process used more than 999 minutes of CPU time.</td>
+</tr>
+<tr class="tcw">
+<td><b>c</b></td>
+<td>C</td>
+<td>processor utilization. Currently, this is the integer value of the percent usage over the lifetime of the process. (see <b>%cpu</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>caught</b></td>
+<td>CAUGHT</td>
+<td>mask of the caught signals, see signals. According to the width of the field, a 32 or 64 bits mask in hexadecimal format is displayed. (alias: <b>sig_catch</b>, <b>sigcatch</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>cgroup</b></td>
+<td>CGROUP</td>
+ <td>display control groups to which the process belongs.</td>
+</tr>
+<tr class="tcw">
+<td><b>class</b></td>
+<td>CLS</td>
+<td><p>scheduling class of the process. (alias: <b>policy</b>, <b>cls</b>). Field's possible values are:
+</p>
+<table class="mtable3">
+<tr class="tcw">
+<td><b>-</b></td>
+<td>not reported</td>
+</tr>
+<tr class="tcw">
+<td><b>TS</b></td>
+<td>SCHED_OTHER</td>
+</tr>
+<tr class="tcw">
+<td><b>FF</b></td>
+<td>SCHED_FIFO</td>
+</tr>
+<tr class="tcw">
+<td><b>RR</b></td>
+<td>SCHED_RR</td>
+</tr>
+<tr class="tcw">
+<td><b>B</b></td>
+<td>SCHED_BATCH</td>
+</tr>
+<tr class="tcw">
+<td><b>ISO</b></td>
+<td>SCHED_ISO</td>
+</tr>
+<tr class="tcw">
+<td><b>IDL</b></td>
+<td>SCHED_IDLE</td>
+</tr>
+<tr class="tcw">
+<td><b>?</b></td>
+<td>unknown value</td>
+</tr>
+</table></td>
+</tr>
+<tr class="tcw">
+<td><b>cls</b></td>
+<td>CLS</td>
+<td>scheduling class of the process. (alias: policy, class). Field's possible values are the same as for <b>class</b>, listed above.</td>
+</tr>
+<tr class="tcw">
+<td><b>cmd</b></td>
+<td>CMD</td>
+<td>see <b>args</b>. (alias: <b>args</b>, <b>command</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>comm</b></td>
+<td>COMMAND</td>
+<td>command name (only the executable name). Modifications to the command name will not be shown. A process marked <b>&lt;defunct&gt;</b> is partly dead, waiting to be fully destroyed by its parent. The output in this column may contain spaces. (alias: <b>ucmd</b>, <b>ucomm</b>). See also the <b>args</b> format keyword, the <b>-f</b> option, and the <b>c</b> option.<br>
+<br>
+When specified last, this column will extend to the edge of the display. If <b>ps</b> can not determine display width, as when output is redirected (piped) into a file or another command, the output width is undefined (it may be <b>80</b>, <b>unlimited</b>, determined by the <b>TERM</b> variable, and so on). The <b>COLUMNS</b> environment variable or <b>--cols</b> option may be used to exactly determine the width in this case. The <b>w</b> or <b>-w</b> option may be also be used to adjust width.</td>
+</tr>
+<tr class="tcw">
+<td><b>command</b></td>
+<td>COMMAND</td>
+<td>See <b>args</b>. (alias: <b>args</b>, <b>command</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>cp</b></td>
+<td>CP</td>
+<td>per-mill (tenths of a percent) CPU usage. (see <b>%cpu</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>cputime</b></td>
+<td>TIME</td>
+<td>cumulative CPU time, "[<b>DD-</b>]<b>hh:mm:ss</b>" format. (alias: <b>time</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>egid</b></td>
+<td>EGID</td>
+<td>effective group ID number of the process as a decimal integer. (alias: &lt;bgid&gt;).</td>
+</tr>
+<tr class="tcw">
+<td><b>egroup</b></td>
+<td>EGROUP</td>
+<td>effective group ID of the process. This will be the textual group ID, if it can be obtained and the field width permits, or a decimal representation otherwise. (alias: <b>group</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>eip</b></td>
+<td>EIP</td>
+<td>instruction pointer.</td>
+</tr>
+<tr class="tcw">
+<td><b>esp</b></td>
+<td>ESP</td>
+<td>stack pointer.</td>
+</tr>
+<tr class="tcw">
+<td><b>etime</b></td>
+<td>ELAPSED</td>
+<td>elapsed time since the process was started, in the form "[[<b>DD-</b>]<b>hh:</b>]<b>mm:ss</b>".</td>
+</tr>
+<tr class="tcw">
+<td><b>etimes</b></td>
+<td>ELAPSED</td>
+<td>elapsed time since the process was started, in seconds.</td>
+</tr>
+<tr class="tcw">
+<td><b>euid</b></td>
+<td>EUID</td>
+<td>effective user ID (alias: <b>uid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>euser</b></td>
+<td>EUSER</td>
+<td>effective user name. This will be the textual user ID, if it can be obtained and the field width permits, or a decimal representation otherwise. The <b>n</b> option can be used to force the decimal representation. (alias: <b>uname</b>, <b>user</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>f</b></td>
+<td>F</td>
+<td>flags associated with the process, see the <a href="#Process-Flags">PROCESS FLAGS</a> section. (alias: <b>flag</b>, <b>flags</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>fgid</b></td>
+<td>FGID</td>
+<td>filesystem access group ID. (alias: <b>fsgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>fgroup</b></td>
+<td>FGROUP</td>
+<td>filesystem access group ID. This will be the textual group ID, if it can be obtained and the field width permits, or a decimal representation otherwise. (alias: <b>fsgroup</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>flag</b></td>
+<td>F</td>
+<td>see <b>f</b>. (alias: <b>f</b>, <b>flags</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>flags</b></td>
+<td>F</td>
+<td>see <b>f</b>. (alias: <b>f</b>, <b>flag</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>fname</b></td>
+<td>COMMAND</td>
+<td>first 8 bytes of the base name of the process's executable file. The output in this column may contain spaces.</td>
+</tr>
+<tr class="tcw">
+<td><b>fuid</b></td>
+<td>FUID</td>
+<td>filesystem access user ID. (alias: <b>fsuid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>fuser</b></td>
+<td>FUSER</td>
+<td>filesystem access user ID. This will be the textual user ID, if it can be obtained and the field width permits, or a decimal representation otherwise.</td>
+</tr>
+<tr class="tcw">
+<td><b>gid</b></td>
+<td>GID</td>
+<td>see <b>egid</b>. (alias: <b>egid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>group</b></td>
+<td>GROUP</td>
+<td>see <b>egroup</b>. (alias: <b>egroup</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>ignored</b></td>
+<td>IGNORED</td>
+<td>mask of the ignored signals, see signals. According to the width of the field, a 32 or 64 bits mask in hexadecimal format is displayed. (alias: <b>sig_ignore</b>, <b>sigignore</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>label</b></td>
+<td>LABEL</td>
+<td>security label, most commonly used for SE Linux context data. This is for the Mandatory Access Control ("MAC") found on high-security systems.</td>
+</tr>
+<tr class="tcw">
+<td><b>lstart</b></td>
+<td>STARTED</td>
+<td>time the command started. See also <b>bsdstart</b>, <b>start</b>, <b>start_time</b>, and <b>stime</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>lwp</b></td>
+<td>LWP</td>
+<td>light weight process (thread) ID of the dispatchable entity (alias: <b>spid</b>, <b>tid</b>). See <b>tid</b> for additional information.</td>
+</tr>
+<tr class="tcw">
+<td><b>maj_flt</b></td>
+ <td>MAJFLT</td>
+<td>The number of major page faults that have occurred with this process.</td>
+</tr>
+<tr class="tcw">
+<td><b>min_flt</b></td>
+<td>MINFLT</td>
+<td>The number of minor page faults that have occurred with this process.</td>
+</tr>
+<tr class="tcw">
+<td><b>ni</b></td>
+<td>NI</td>
+<td><a href="/unix/unice.htm">nice</a> value. This ranges from <b>19</b> (nicest) to <b>-20</b> (not nice to others). (alias: <b>nice</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>nice</b></td>
+<td>NI</td>
+<td>see <b>ni</b>. (alias: <b>ni</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>nlwp</b></td>
+<td>NLWP</td>
+<td>number of lwps (threads) in the process. (alias: <b>thcount</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>nwchan</b></td>
+<td>WCHAN</td>
+<td>address of the kernel function where the process is sleeping (use <b>wchan</b> if you want the kernel function name). Running tasks will display a dash ('<b>-</b>') in this column.</td>
+</tr>
+<tr class="tcw">
+<td><b>pcpu</b></td>
+<td>%CPU</td>
+<td>see <b>%cpu</b>. (alias: <b>%cpu</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>pending</b></td>
+<td>PENDING</td>
+<td>mask of the pending signals. See signals. Signals pending on the process are distinct from signals pending on individual threads. Use the <b>m</b> option or the <b>-m</b> option to see both. According to the width of the field, a 32 or 64 bits mask in hexadecimal format is displayed. (alias: <b>sig</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>pgid</b></td>
+<td>PGID</td>
+<td>process group ID or, equivalently, the process ID of the process group leader. (alias: <b>pgrp</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>pgrp</b></td>
+<td>PGRP</td>
+<td>see <b>pgid</b>. (alias: <b>pgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>pid</b></td>
+<td>PID</td>
+<td>a number representing the process ID (alias: <b>tgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>pmem</b></td>
+<td>%MEM</td>
+<td>see <b>%mem</b>. (alias: <b>%mem</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>policy</b></td>
+<td>POL</td>
+<td>scheduling class of the process. (alias: <b>class</b>, <b>cls</b>). Possible values are:<br>
+<br>
+<table class="mtable3">
+<tr class="tcw">
+<td><b>-</b></td>
+<td>not reported</td>
+</tr>
+<tr class="tcw">
+<td><b>TS</b></td>
+<td>SCHED_OTHER</td>
+</tr>
+<tr class="tcw">
+<td><b>FF</b></td>
+<td>SCHED_FIFO</td>
+</tr>
+<tr class="tcw">
+<td><b>RR</b></td>
+<td>SCHED_RR</td>
+</tr>
+<tr class="tcw">
+<td><b>B</b></td>
+<td>SCHED_BATCH</td>
+</tr>
+<tr class="tcw">
+<td><b>ISO</b></td>
+<td>SCHED_ISO</td>
+</tr>
+<tr class="tcw">
+<td><b>IDL</b></td>
+<td>SCHED_IDLE</td>
+</tr>
+<tr class="tcw">
+<td><b>?</b></td>
+<td>unknown value</td>
+</tr>
+</table></td>
+<tr class="tcw">
+<td><b>ppid</b></td>
+<td>PPID</td>
+<td>parent process ID.</td>
+</tr>
+<tr class="tcw">
+<td><b>pri</b></td>
+<td>PRI</td>
+<td>priority of the process. Higher number means lower priority.</td>
+</tr>
+ <tr class="tcw">
+<td><b>psr</b></td>
+<td>PSR</td>
+<td>processor that process is currently assigned to.</td>
+</tr>
+<tr class="tcw">
+<td><b>rgid</b></td>
+<td>RGID</td>
+<td>real group ID.</td>
+</tr>
+<tr class="tcw">
+<td><b>rgroup</b></td>
+<td>RGROUP</td>
+<td>real group name. This will be the textual group ID, if it can be obtained and the field width permits, or a decimal representation otherwise.</td>
+</tr>
+<tr class="tcw">
+<td><b>rss</b></td>
+<td>RSS</td>
+<td>resident set size, the non-swapped physical memory that a task has used (in kilobytes). (alias: <b>rssize</b>, <b>rsz</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>rssize</b></td>
+<td>RSS</td>
+<td>see <b>rss</b>. (alias: <b>rss</b>, <b>rsz</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>rsz</b></td>
+<td>RSZ</td>
+<td>see <b>rss</b>. (alias: <b>rss</b>, <b>rssize</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>rtprio</b></td>
+<td>RTPRIO</td>
+<td>realtime priority.</td>
+</tr>
+<tr class="tcw">
+<td><b>ruid</b></td>
+<td>RUID</td>
+<td>real user ID.</td>
+</tr>
+<tr class="tcw">
+<td><b>ruser</b></td>
+<td>RUSER</td>
+<td>real user ID. This will be the textual user ID, if it can be obtained and the field width permits, or a decimal representation otherwise.</td>
+</tr>
+<tr class="tcw">
+<td><b>s</b></td>
+<td>S</td>
+<td>minimal state display (one character). See section PROCESS STATE CODES for the different values. See also stat if you want additional information displayed. (alias: state).</td>
+</tr>
+<tr class="tcw">
+<td><b>sched</b></td>
+<td>SCH</td>
+<td>scheduling policy of the process. The policies <b>SCHED_OTHER</b> (<b>SCHED_NORMAL</b>), <b>SCHED_FIFO</b>, <b>SCHED_RR</b>, <b>SCHED_BATCH</b>, <b>SCHED_ISO</b>, and <b>SCHED_IDLE</b> are respectively displayed as <b>0</b>, <b>1</b>, <b>2</b>, <b>3</b>, <b>4</b>, and <b>5</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>sess</b></td>
+<td>SESS</td>
+<td>session ID or, equivalently, the process ID of the session leader. (alias: <b>session</b>, <b>sid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sgi_p</b></td>
+<td>P</td>
+<td>processor that the process is currently executing on. Displays "<b>*</b>" if the process is not currently running or runnable.</td>
+</tr>
+<tr class="tcw">
+<td><b>sgid</b></td>
+<td>SGID</td>
+<td>saved group ID. (alias: <b>svgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sgroup</b></td>
+<td>SGROUP</td>
+<td>saved group name. This will be the textual group ID, if it can be obtained and the field width permits, or a decimal representation otherwise.</td>
+</tr>
+<tr class="tcw">
+<td><b>sid</b></td>
+<td>SID</td>
+<td>see <b>sess</b>. (alias: <b>sess</b>, <b>session</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sig</b></td>
+<td>PENDING</td>
+<td>see <b>pending</b>. (alias: <b>pending</b>, <b>sig_pend</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sigcatch</b></td>
+<td>CAUGHT</td>
+<td>see <b>caught</b>. (alias: <b>caught</b>, <b>sig_catch</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sigignore</b></td>
+<td>IGNORED</td>
+<td>see <b>ignored</b>. (alias: <b>ignored</b>, <b>sig_ignore</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sigmask</b></td>
+<td>BLOCKED</td>
+<td>see <b>blocked</b>. (alias: <b>blocked</b>, <b>sig_block</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>size</b></td>
+<td>SIZE</td>
+<td>approximate amount of swap space that would be required if the process were to dirty all writable pages and then be swapped out. This approximation is very rough.</td>
+</tr>
+<tr class="tcw">
+<td><b>spid</b></td>
+<td>SPID</td>
+<td>see <b>lwp</b>. (alias: <b>lwp</b>, <b>tid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>stackp</b></td>
+<td>STACKP</td>
+<td>address of the bottom (start) of stack for the process.</td>
+</tr>
+<tr class="tcw">
+<td><b>start</b></td>
+<td>STARTED</td>
+<td>time the command started. If the process was started less than 24 hours ago, the output format is "<b>HH:MM:SS</b>", else it is " <b>Mmm dd</b>" (where <b>Mmm</b> is a three-letter month name). See also <b>lstart</b>, <b>bsdstart</b>, <b>start_time</b>, and <b>stime</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>start_time</b></td>
+<td>START</td>
+<td>starting time or date of the process. Only the year will be displayed if the process was not started the same year ps was invoked, or "MmmDD" if it was not started the same day, or "HH:MM" otherwise. See also bsdstart, start, lstart, and stime.</td>
+</tr>
+<tr class="tcw">
+<td><b>stat</b></td>
+<td>STAT</td>
+<td>multi-character process state. See section PROCESS STATE CODES for the different values meaning. See also s and state if you just want the first character displayed.</td>
+</tr>
+<tr class="tcw">
+<td><b>state</b></td>
+<td>S</td>
+<td>see <b>s</b>. (alias: <b>s</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>suid</b></td>
+<td>SUID</td>
+<td>saved user ID. (alias: <b>svuid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>supgid</b></td>
+<td>SUPGID</td>
+<td>group ids of supplementary groups, if any.</td>
+</tr>
+<tr class="tcw">
+<td><b>supgrp</b></td>
+<td>SUPGRP</td>
+<td>group names of supplementary groups, if any.</td>
+</tr>
+<tr class="tcw">
+<td><b>suser</b></td>
+<td>SUSER</td>
+<td>saved user name. This will be the textual user ID, if it can be obtained and the field width permits, or a decimal representation otherwise. (alias: <b>svuser</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>svgid</b></td>
+<td>SVGID</td>
+<td>see <b>sgid</b>. (alias: <b>sgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>svuid</b></td>
+<td>SVUID</td>
+<td>see <b>suid</b>. (alias: <b>suid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>sz</b></td>
+<td>SZ</td>
+<td>size in physical pages of the core image of the process. This includes text, data, and stack space. Device mappings are currently excluded; this is subject to change. See <b>vsz</b> and <b>rss</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>tgid</b></td>
+<td>TGID</td>
+<td>a number representing the thread group to which a task belongs (alias: <b>pid</b>). It is the process ID of the thread group leader.</td>
+</tr>
+<tr class="tcw">
+<td><b>thcount</b></td>
+<td>THCNT</td>
+<td>see <b>nlwp</b>. (alias: <b>nlwp</b>). number of kernel threads owned by the process.</td>
+</tr>
+<tr class="tcw">
+<td><b>tid</b></td>
+<td>TID</td>
+<td>the unique number representing an entity (alias: <b>lwp</b>, <b>spid</b>). This value may also appear as: a process ID (<b>pid</b>); a process group ID (<b>pgrp</b>); a session ID for the session leader (<b>sid</b>); a thread group ID for the thread group leader (<b>tgid</b>); and a tty process group ID for the process group leader (<b>tpgid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>time</b></td>
+<td>TIME</td>
+<td>cumulative CPU time, "[<b>DD-</b>]<b>HH:MM:SS</b>" format. (alias: <b>cputime</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>tname</b></td>
+<td>TTY</td>
+<td>controlling tty (<b>terminal</b>). (alias: <b>tt</b>, <b>tty</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>tpgid</b></td>
+<td>TPGID</td>
+<td>ID of the foreground process group on the tty (<b>terminal</b>) that the process is connected to, or <b>-1</b> if the process is not connected to a tty.</td>
+</tr>
+<tr class="tcw">
+<td><b>tt</b></td>
+<td>TT</td>
+<td>controlling tty (<b>terminal</b>). (alias: <b>tname</b>, <b>tty</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>tty</b></td>
+<td>TT</td>
+<td>controlling tty (<b>terminal</b>). (alias: <b>tname</b>, <b>tt</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>ucmd</b></td>
+<td>CMD</td>
+<td>see <b>comm</b>. (alias: <b>comm</b>, <b>ucomm</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>ucomm</b></td>
+<td>COMMAND</td>
+<td>see <b>comm</b>. (alias: <b>comm</b>, <b>ucmd</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>uid</b></td>
+<td>UID</td>
+<td>see <b>euid</b>. (alias: <b>euid</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>uname</b></td>
+<td>USER</td>
+<td>see <b>euser</b>. (alias: <b>euser</b>, <b>user</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>user</b></td>
+<td>USER</td>
+<td>see <b>euser</b>. (alias: <b>euser</b>, <b>uname</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>vsize</b></td>
+<td>VSZ</td>
+<td>see <b>vsz</b>. (alias: <b>vsz</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>vsz</b></td>
+<td>VSZ</td>
+<td>virtual memory size of the process in KiB (1024-byte units). Device mappings are currently excluded; this is subject to change. (alias: <b>vsize</b>).</td>
+</tr>
+<tr class="tcw">
+<td><b>wchan</b></td>
+<td>WCHAN</td>
+<td>name of the kernel function in which the process is sleeping, a "<b>-</b>" if the process is running, or a "<b>*</b>" if the process is multi-threaded and <b>ps</b> is not displaying threads.</td>
+</tr>
+</table>
+<h2>Environment Variables</h2>
+<p class="tab">The following environment variables could affect <b>ps</b>:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>COLUMNS</b></td>
+<td>Override default display width.</td>
+</tr>
+<tr class="tcw">
+<td><b>LINES</b></td>
+<td>Override default display height.</td>
+</tr>
+<tr class="tcw">
+<td><b>PS_PERSONALITY</b></td>
+<td>Set to one of <b>posix</b>, <b>old</b>, <b>linux</b>, <b>bsd</b>, <b>sun</b>, <b>digital</b>... (see section <a href="#Personality">Personality</a> below).</td>
+</tr>
+<tr class="tcw">
+<td><b>CMD_ENV</b></td>
+<td>Set to one of <b>posix</b>, <b>old</b>, <b>linux</b>, <b>bsd</b>, <b>sun</b>, <b>digital</b>... (see section <a href="#Personality">Personality</a> below).</td>
+</tr>
+<tr class="tcw">
+<td><b>I_WANT_A_BROKEN_PS</b></td>
+<td>Force obsolete command line interpretation.</td>
+</tr>
+<tr class="tcw">
+<td><b>LC_TIME</b></td>
+<td>Date format.</td>
+</tr>
+<tr class="tcw">
+<td><b>PS_COLORS</b></td>
+<td>Not currently supported.</td>
+</tr>
+<tr class="tcw">
+<td><b>PS_FORMAT</b></td>
+<td>Default output format override. You may set this to a format string of the type used for the -o option. The DefSysV and DefBSD values are particularly useful.</td>
+</tr>
+<tr class="tcw">
+<td><b>PS_SYSMAP</b></td>
+<td>Default namelist (<b>System.map</b>) location.</td>
+</tr>
+<tr class="tcw">
+<td><b>PS_SYSTEM_MAP</b></td>
+<td>Default namelist (<b>System.map</b>) location.</td>
+</tr>
+<tr class="tcw">
+<td><b>POSIXLY_CORRECT</b></td>
+<td>Don't find excuses to ignore bad "features".</td>
+</tr>
+<tr class="tcw">
+<td><b>POSIX2</b></td>
+<td>When set to "<b>on</b>", acts as <b>POSIXLY_CORRECT</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>UNIX95</b></td>
+<td>Don't find excuses to ignore bad "features".</td>
+</tr>
+<tr class="tcw">
+<td><b>_XPG</b></td>
+<td>Cancel <b>CMD_ENV=irix</b> non-standard behavior.</td>
+</tr>
+</table>
+<p class="tab">In general, it is a bad idea to set these variables. The one exception is <b>CMD_ENV</b> or <b>PS_PERSONALITY</b>, which could be set to Linux for normal systems. Without that setting, <b>ps</b> follows the useless and bad parts of the Unix98 standard.</p>
+<h2 id="Personality">Personality</h2>
+<p class="tab">The following "personalities" affect the output of <b>ps</b>:</p>
+<table class="mtable3 tab">
+<tr class="tcw">
+<td><b>390</b></td>
+<td>like the OS/390 OpenEdition <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>aix</b></td>
+<td>like <a href="/jargon/a/aix.htm">AIX</a> <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>bsd</b></td>
+<td>like FreeBSD <b>ps</b> (totally non-standard)</td>
+</tr>
+<tr class="tcw">
+<td><b>compaq</b></td>
+<td>like <a href="/comp/digital.htm">Digital</a> Unix <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>debian</b></td>
+<td>like the old <a href="/jargon/d/debian.htm">Debian</a> <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>digital</b></td>
+<td>like Tru64 (was Digital Unix, was OSF/1) <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>gnu</b></td>
+<td>like the old Debian <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>hp</b></td>
+<td>like HP-UX <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>hpux</b></td>
+<td>like HP-UX <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>irix</b></td>
+<td>like Irix <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>linux</b></td>
+<td>This is the recommended personality for <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>old</b></td>
+<td>like the original Linux <b>ps</b> (totally non-standard)</td>
+</tr>
+<tr class="tcw">
+<td><b>os390</b></td>
+<td>like OS/390 Open Edition <b>ps</b></td>
+</tr>
+<tr class="tcw">
+<td><b>posix</b></td>
+<td>The personality which conforms to the <a href="/jargon/p/posix.htm">POSIX</a> standard.</td>
+</tr>
+<tr class="tcw">
+<td><b>s390</b></td>
+<td>like OS/390 Open Edition <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>sco</b></td>
+<td>like <a href="/comp/sco.htm">SCO</a> <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>sgi</b></td>
+<td>like Irix <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>solaris2</b></td>
+<td>like Solaris 2+ (SunOS 5) <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>sunos4</b></td>
+<td>like SunOS 4 (Solaris 1) <b>ps</b> (totally non-standard).</td>
+</tr>
+<tr class="tcw">
+<td><b>svr4</b></td>
+<td>Standard.</td>
+</tr>
+<tr class="tcw">
+<td><b>sysv</b></td>
+<td>Standard.</td>
+</tr>
+<tr class="tcw">
+<td><b>tru64</b></td>
+<td>like Tru64 (was Digital Unix, was OSF/1) <b>ps</b>.</td>
+</tr>
+<tr class="tcw">
+<td><b>unix</b></td>
+<td>Standard.</td>
+</tr>
+<tr class="tcw">
+<td><b>unix95</b></td>
+<td>Standard.</td>
+</tr>
+<tr class="tcw">
+<td><b>unix98</b></td>
+<td>Standard.</td>
+</tr>
+</table>
+<h2 id="examples">ps examples</h2>
+<p class="tab">To see every process running on the system, using the standard syntax:</p>
+<pre class="tcy tab">ps -e</pre>
+<pre class="tcy tab">ps -ef</pre>
+<pre class="tcy tab">ps -eF</pre>
+<pre class="tcy tab">ps -ely</pre>
+<p class="tab">To see every process on the system, using BSD syntax:</p>
+<pre class="tcy tab">ps ax</pre>
+<pre class="tcy tab">ps axu</pre>
+<p class="tab">To display a process tree:</p>
+<pre class="tcy tab">ps -ejH</pre>
+<pre class="tcy tab">ps axjf</pre>
+<p class="tab">To get info about threads:</p>
+<pre class="tcy tab">ps -eLf</pre>
+<pre class="tcy tab">ps axms</pre>
+<p class="tab">To get security info:</p>
+<pre class="tcy tab">ps -eo euser,ruser,suser,fuser,f,comm,label</pre>
+<pre class="tcy tab">ps axZ</pre>
+<pre class="tcy tab">ps -eM</pre>
+<p class="tab">To see every process running as root (real and effective ID) in user format:</p>
+<pre class="tcy tab">ps -U root -u root u</pre>
+<p class="tab">To see every process with a user-defined format:</p>
+<pre class="tcy tab">ps -eo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,wchan:14,comm</pre>
+<pre class="tcy tab">ps axo stat,euid,ruid,tty,tpgid,sess,pgrp,ppid,pid,pcpu,comm</pre>
+<pre class="tcy tab">ps -Ao pid,tt,user,fname,tmout,f,wchan</pre>
+<p class="tab">Print only the process IDs of <b>syslogd</b>, the <a href="/jargon/s/syslog.htm">syslog</a> <a href="/jargon/d/daemon.htm">daemon</a>:</p>
+<pre class="tcy tab">ps -C syslogd -o pid=</pre>
+<p class="tab">Print only the name of process ID <b>15</b>:</p>
+<pre class="tcy tab">ps -p 15 -o comm=</pre>
+<h2 id="related">Related commands</h2>
+<p class="tab"><a href="/unix/ubg.htm"><b>bg</b></a> &mdash; Resume a suspended program without bringing it to the foreground.<br>
+<a href="/unix/free.htm"><b>free</b></a> &mdash; Display the amount of free and used memory.<br>
+<a href="/unix/fuser.htm"><b>fuser</b></a> &mdash; Identify processes using files or sockets.<br>
+<a href="/unix/ukill.htm"><b>kill</b></a> &mdash; Send a signal to a process, affecting its behavior or killing it.<br>
+<a href="/unix/killall.htm"><b>killall</b></a> &mdash; Kill processes by name.<br>
+<a href="/unix/unice.htm"><b>nice</b></a> &mdash; Invoke a command with an altered scheduling priority.<br>
+<a href="/unix/upagesiz.htm"><b>pagesize</b></a> &mdash; Display the size of a page of memory in bytes.<br>
+<a href="/unix/upgrep.htm"><b>pgrep</b></a> &mdash; Look up processes based on the name or other attributes.<br>
+<a href="/unix/upriocnt.htm"><b>priocntrl</b></a> &mdash; Display or set scheduling parameters of a processes under Solaris.<br>
+<a href="/unix/pstree.htm"><b>pstree</b></a> &mdash; Display processes in a tree format.<br>
+<a href="/unix/top.htm"><b>top</b></a> &mdash; Display a sortable, continually-updated list of processes.<br>
+<a href="/unix/tty.htm"><b>tty</b></a> &mdash; Print the file name of the terminal connected to standard input.<br>
+<a href="/unix/uptime.htm"><b>uptime</b></a> &mdash; Display information about how long the system has been running.<br>
+<a href="/unix/uwho.htm"><b>who</b></a> &mdash; Display information about how long the system has been running.</p>
+</article>
+<div id="meta_wrap" class="cf">
+<ul class="options cf">
+<li class="useful-page"> <span class="nolink">Was this page useful?</span> <a href="/cgi-bin/feedback.cgi?yes" rel="nofollow" class="first-child">Yes</a> <a href="/cgi-bin/feedback.cgi?no" rel="nofollow">No</a></li>
+<li>
+<ul>
+<li class="feedback"><a href="/feedback/" rel="nofollow" title="Give us your feedback about this page">Feedback</a></li>
+<li class="email"><a href="/contact/" rel="nofollow" title="E-mail Computer Hope">E-mail</a></li>
+<li class="share"><a href="/share/" rel="nofollow" title="Share this page with friends and social networks">Share</a></li>
+<li class="first-child print"><a href="#" onclick="window.print();return false;" rel="nofollow" title="Print a copy of this page">Print</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<footer>
+<input class="sbar" name="q" title="Search" type="text" />
+<button type="Submit">Search</button>
+</form>
+<ul class="cf">
+<li class="recent-pages">
+<ol>
+<li class="widget-title"><h4>Recently added pages</h4></li>
+<li id="ra1"></li>
+<li id="ra2"></li>
+<li id="ra3"></li>
+<li id="ra4"></li>
+<li id="ra5"></li>
+<li><a href="/whatnew.htm">View all recent updates</a></li>
+</ol>
+</li>
+<li class="useful-links">
+<ol>
+<li class="widget-title"><h4>Useful links</h4></li>
+<li><a href="/more.htm">About Computer Hope</a></li>
+<li><a href="/sindex.htm">Site Map</a></li>
+<li><a href="/forum/">Forum</a></li>
+<li><a href="/contact/">Contact Us</a></li>
+<li><a href="/issues/ch000586.htm">How to Help</a></li>
+<li><a href="/chtop10.htm">Top 10 pages</a></li>
+</ol>
+</li>
+<li class="social-networks">
+<ol>
+<li class="widget-title first-child"><h4>Follow us</h4></li>
+<li><a href="/rss.htm" class="rss">RSS</a></li>
+</ol>
+</li>
+</ul>
+<div class="copyright">&copy; 2017 Computer Hope<br><a href="/legal.htm" class="legal">Legal Disclaimer - Privacy Statement</a></div>
+</footer>
+</div>
+</body>
+</html>

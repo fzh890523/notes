@@ -102,3 +102,45 @@ Java堆，是Java虚拟机管理的最大的一块内存，也是GC的主战场�
 
 但是该区域不会抛出OutOfMemoryError异常。
 
+
+
+## 三、内存使用
+
+
+
+### 统计
+
+
+
+#### MemoryMXBean
+
+
+
+```
+java.lang.management.MemoryMXBean#getNonHeapMemoryUsage 这个方法的Javadoc说的也比较含糊，麻 
+
+code cache + metaspace + compressedKlassSpace
+
+ok， 那和我的理解相符啊，非堆内存和Mapped堆外内存和Direct堆外内存没有关系。
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
