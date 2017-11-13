@@ -155,6 +155,8 @@ java [ options ] -jar file.jar [ arguments ]
 
   print each classload
 
+  输出看起来跟`TraceClassLoading`一样。
+
 * `-verbose:gc`
 
   print each gc
@@ -1075,7 +1077,7 @@ java [ options ] -jar file.jar [ arguments ]
 
   启用特性： 记录编译活动到日志文件`${cwd}/hotspot.log`，可以通过`-XX:LogFile`来指定其他路径。
 
-  默认禁用 - 不记录…。 需要和`-XX:UnlockDiagnosticVMOptions`一起使用才能生效。
+  默认禁用 - 不记录…。 需要和`-XX:+UnlockDiagnosticVMOptions`一起使用才能生效。
 
 * `-XX:MaxInlineSize=${size}`
 
@@ -2717,6 +2719,86 @@ RTM
   ```
 
   ​
+
+
+#### `-XX:+TraceClassResolution`
+
+启用对常量池resolutions的追踪。
+
+默认禁用。
+
+
+
+```Java
+RESOLVE java.io.Serializable java.lang.Object (super)  // 父类
+RESOLVE java.lang.Comparable java.lang.Object (super)
+RESOLVE java.lang.CharSequence java.lang.Object (super)
+RESOLVE java.lang.String java.lang.Object (super)
+RESOLVE java.lang.String java.io.Serializable (interface)  // 实现的接口
+RESOLVE java.lang.String java.lang.Comparable (interface)
+RESOLVE java.lang.String java.lang.CharSequence (interface)
+
+RESOLVE yonka.snippets.java.clazz.load.A java.lang.String A.java:17 (reflection)  // method = ClassLoader.class.getDeclaredMethod("findLoadedClass", String.class);
+RESOLVE yonka.snippets.java.clazz.load.A java.lang.Class A.java:17 (reflection)
+RESOLVE java.lang.ClassLoader java.lang.ClassNotFoundException Class.java:-1
+
+RESOLVE java.lang.ThreadLocal java.util.concurrent.atomic.AtomicInteger ThreadLocal.java:103
+RESOLVE java.util.concurrent.atomic.AtomicInteger sun.misc.Unsafe AtomicInteger.java:135
+RESOLVE java.lang.System java.nio.charset.Charset System.java:-1 (java.lang.System.initProperties(Ljava/util/Properties;)Ljava/util/Properties;)
+
+RESOLVE yonka.snippets.java.clazz.load.A java.lang.ClassLoader A.java:17 (explicit)  // method = ClassLoader.class.getDeclaredMethod("findLoadedClass", String.class);
+```
+
+
+
+##### 输出内容理解
+
+```cpp
+// classFileParser.cpp
+// instanceKlassHandle ClassFileParser::parseClassFile(Symbol* name, ClassLoaderData* loader_data, Handle protection_domain, KlassHandle host_klass, GrowableArray<Handle>* cp_patches, TempNewSymbol& parsed_name,  bool verify, TRAPS) 
+
+    if (TraceClassResolution) {
+      ResourceMark rm;
+      // print out the superclass.
+      const char * from = this_klass()->external_name();
+      if (this_klass->java_super() != NULL) {
+        tty->print("RESOLVE %s %s (super)\n", from, InstanceKlass::cast(this_klass->java_super())->external_name());
+      }
+      // print out each of the interface classes referred to by this class.
+      Array<Klass*>* local_interfaces = this_klass->local_interfaces();
+      if (local_interfaces != NULL) {
+        int length = local_interfaces->length();
+        for (int i = 0; i < length; i++) {
+          Klass* k = local_interfaces->at(i);
+          InstanceKlass* to_class = InstanceKlass::cast(k);
+          const char * to = to_class->external_name();
+          tty->print("RESOLVE %s %s (interface)\n", from, to);
+        }
+      }
+    }
+```
+
+从代码里可以看到，打印了 `父类` 和 `实现接口` 的
+
+
+
+```cpp
+// reflection.cpp
+// static void trace_class_resolution(Klass* to_class)
+  if (caller != NULL) {
+    const char * from = caller->external_name();
+    const char * to = to_class->external_name();
+    // print in a single call to reduce interleaving between threads
+    if (source_file != NULL) {
+      tty->print("RESOLVE %s %s %s:%d (reflection)\n", from, to, source_file, line_number);
+    } else {
+      tty->print("RESOLVE %s %s (reflection)\n", from, to);
+    }
+  }
+```
+
+
+
 
 
 

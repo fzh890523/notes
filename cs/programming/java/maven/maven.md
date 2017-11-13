@@ -17,3 +17,66 @@
   > 默认scope，也就是说这个项目在编译，测试，运行阶段都需要这个artifact对应的jar包在classpath中。
 
 
+
+
+
+
+# 问题
+
+
+
+## jdk
+
+### 默认jdk 1.5问题
+
+
+
+处理：
+
+在maven配置（如 `~/.m2/settings.xml`）里加入类似：
+
+```xml
+<profile>
+  <id>jdk-1.8</id>
+  <activation>
+      <activeByDefault>true</activeByDefault>
+      <jdk>1.8</jdk>
+  </activation>
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+  </properties>
+</profile>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

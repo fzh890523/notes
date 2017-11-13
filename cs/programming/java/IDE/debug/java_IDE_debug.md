@@ -15,6 +15,10 @@
 
 加到要（被）debug的JVM进程的启动参数（JAVA_OPTS）。
 
+然后在要（主动）配置debug的地方（如IDE的remote debug配置）里使用同样的参数。
+
+
+
 
 
 ## 远程debug 和 debug的冲突

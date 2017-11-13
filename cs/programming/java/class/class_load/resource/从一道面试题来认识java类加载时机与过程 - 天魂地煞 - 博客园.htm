@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<!-- saved from url=(0084)http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&utm_medium=referral -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园</title>
+<link type="text/css" rel="stylesheet" href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/bundle-darkgreentrip.css">
+<link id="mobile-style" media="only screen and (max-width: 768px)" type="text/css" rel="stylesheet" href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/bundle-darkgreentrip-mobile.css">
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/javaee6/rss">
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/javaee6/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/javaee6/wlwmanifest.xml">
+<script async="" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/analytics.js"></script><script src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'javaee6', cb_enable_mathjax=true;var isLogined=false;</script>
+<script src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/blog-common.js" type="text/javascript"></script>
+<script type="text/javascript" async="" src="http://static.duoshuo.com/embed.js" charset="UTF-8"></script><script type="text/x-mathjax-config;executed=true">MathJax.Hub.Config({
+  tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] },
+  TeX: { equationNumbers: { autoNumber: ['AMS'], useLabelIds: true }, extensions: ['extpfeil.js'] },
+  'HTML-CSS': { linebreaks: { automatic: true } },
+  SVG: { linebreaks: { automatic: true } }});</script><script type="text/javascript" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/MathJax.js"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 5px 0px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; -khtml-border-radius: 5px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 1px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: .7em}
+.MathJax_MenuRadioCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuLabel {padding: 1px 2em 3px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #DDDDDD; margin: 4px 3px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: #606872; color: white}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+<body><div id="MathJax_Message" style="display: none;"></div>
+<a name="top"></a>
+<!--PageBeginHtml Block Begin-->
+<link href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/blog-min.css" rel="stylesheet" type="text/css">
+<link href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/mulu.css" rel="stylesheet" type="text/css">
+<style>
+.postBody a:hover{
+   color:red;
+}
+#cnblogs_post_body table{
+    border:1px solid #9CF;
+    border-collapse:collapse;
+    margin:5px auto;
+    
+}
+#cnblogs_post_body table th{
+	  border:1px solid #9CF;
+	  background-color: #F4FFFC;
+ }
+ 
+ #cnblogs_post_body  table td{
+	  border:1px solid #9CF;
+	  padding: 3px 3px 3px 10px;;
+ }
+
+ #cnblogs_post_body table p{
+     margin:0px;
+     
+  }
+#sideBarContents dt{
+    margin-top:8px;
+    margin-left:10px;
+}
+#sideBarContents dd{
+    margin-left:20px;
+	 margin-top:8px;
+}
+#BlogPostCategory{
+   display:block;
+}
+</style>
+<div id="next_page" style="display:none"><a href="http://www.cnblogs.com/javaee6/default.html?page=2">下一页</a></div>
+<div id="my_navigator">
+            <ul id="my_navList">
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/default.html?page=1">主页</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/p/">我的文章</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576326.html">Web前端</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576327.html">Java</a>
+                    <div class="dropdown-menu">
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576368.html">Core Java</a>
+                        </div>
+                         <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/725346.html">并发与网络</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576372.html">JavaEE</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576369.html">JVM虚拟机</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576377.html">Java开源框架</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576370.html">Java设计模式</a>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576329.html">数据库</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576330.html">Linux</a>
+                     <div class="dropdown-menu">
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580515.html">基础与系统管理</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580516.html">Shell编程</a>
+                        </div>
+                          <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580520.html">软件安装部署</a>
+                        </div>
+                       <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/715001.html">内核理论</a>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576331.html">计算机理论</a>
+                    <div class="dropdown-menu">
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580999.html">基础理论</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576374.html">计算机网络</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576373.html">算法数据结构</a>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576332.html">前沿技术</a>
+                    <div class="dropdown-menu">
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576375.html">云计算</a>
+                        </div>
+                         <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/851918.html">qemu/libvirt</a>
+                        </div>
+                         <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/851919.html">openstack</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576376.html">NOSQL</a>
+                        </div>
+                         <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/609534.html">消息队列MQ</a>
+                        </div>
+                          <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580529.html">分布式/大数据</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/623422.html">负载均衡</a>
+                        </div>
+                         <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/747601.html">安全</a>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/580543.html">Python</a>
+                </li>
+                 <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/580544.html">Node.js</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/category/576334.html">其他</a>
+                    <div class="dropdown-menu">
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576379.html">开发工具</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576380.html">乱七八糟</a>
+                        </div>
+                       <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/576335.html">程序人生</a>
+                        </div>
+                        <div>
+                            <a href="http://www.cnblogs.com/javaee6/category/580992.html">资源收藏</a>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/p/3708893.html">关于我</a>
+                </li>
+                <li>
+                    <a class="menu" href="http://www.cnblogs.com/javaee6/p/3709390.html">友情链接</a>
+                </li>
+                <li>
+                    <a href="http://www.cnblogs.com/javaee6/rss" target="_blank" class="menu">订阅</a>
+                </li>
+            </ul>
+        </div>
+<!--PageBeginHtml Block End-->
+
+<!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+	<a id="lnkBlogLogo" href="http://www.cnblogs.com/javaee6/"><img id="blogLogo" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/logo.gif" alt="返回主页"></a>			
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/javaee6/">爱老婆、爱生活、爱工作、爱编程</a></h1>
+<h2>生活的理想就是为了理想的生活</h2>
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li></li>
+<li></li>
+<li></li>
+<li></li>
+<li>
+<!----></li>
+<li><a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a></li>
+</ul>
+		<div class="blogStats">
+			
+			
+			
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		
+<div id="post_detail">
+<!--done-->
+<div id="topics">
+	<div class="post">
+		<h1 class="postTitle">
+			<a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/javaee6/p/3714716.html">从一道面试题来认识java类加载时机与过程</a>
+		</h1>
+		<div class="clear"></div>
+		<div class="postBody">
+			<div id="cnblogs_post_body"><p>&nbsp;</p>
+<p><span style="font-size: 14px; background-color: #000000;"><span style="color: #ffffff;">说明:本文的内容是看了《深入理解Java虚拟机：JVM高级特性与最佳实践》后为加印象和理解，便记录了重要的内容。</span></span></p>
+<p>&nbsp;</p>
+<h1 id="blogTitle0">1 &nbsp;开门见山</h1>
+<p>以前曾经看到过一个java的面试题,当时觉得此题很简单，可是自己把代码运行起来,可是结果并不是自己想象的那样。题目如下:</p>
+<p>&nbsp;</p>
+<pre class="brush:java; auto-links: true; collapse: false; first-line: 1; gutter: true; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true">class SingleTon {
+	private static SingleTon singleTon = new SingleTon();
+	public static int count1;
+	public static int count2 = 0;
+
+	private SingleTon() {
+		count1++;
+		count2++;
+	}
+
+	public static SingleTon getInstance() {
+		return singleTon;
+	}
+}
+
+public class Test {
+	public static void main(String[] args) {
+		SingleTon singleTon = SingleTon.getInstance();
+		System.out.println("count1=" + singleTon.count1);
+		System.out.println("count2=" + singleTon.count2);
+	}
+}
+</pre>
+<p>错误答案</p>
+<p>&nbsp;</p>
+<p><span style="color: #ff0000;">count1=1</span></p>
+<p><span style="color: #ff0000;">count2=1</span></p>
+<p>&nbsp;正确答案</p>
+<p>&nbsp;</p>
+<p><strong>count1=1</strong></p>
+<p><strong>count2=0</strong></p>
+<p>为神马？为神马？这要从java的类加载时机说起。</p>
+<h1 id="blogTitle1">2 类的加载时机</h1>
+<div>类从被加载到虚拟机内存中开始，直到卸载出内存为止，它的整个生命周期包括了：<strong>加载、验证、准备、解析、初始化、使用和卸载</strong>这7个阶段。其中，<strong>验证、准备和解析这三个部分统称为连接（linking）</strong>。<br>
+</div>
+<div style="text-align: center;"><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/20140317163048593" alt=""><br>
+</div>
+<div>其中，加载、验证、准备、初始化和卸载这五个阶段的顺序是确定的，类的加载过程必须按照这种顺序按部就班的“开始”（仅仅指的是开始，而非执行或者结束，因为这些阶段通常都是互相交叉的混合进行，通常会在一个阶段执行的过程中调用或者激活另一个阶段），而解析阶段则不一定（它在某些情况下可以在初始化阶段之后再开始，这是为了支持Java语言的运行时绑定。<br>
+</div>
+<h1 id="blogTitle2">3 何时开始类的初始化</h1>
+<div>什么情况下需要开始类加载过程的第一个阶段:"加载"。虚拟机规范中并没强行约束，这点可以交给虚拟机的的具体实现自由把握，但是对于初始化阶段虚拟机规范是严格规定了如下几种情况，如果类未初始化会对类进行初始化。</div>
+<div><ol>
+<li><span style="color: #ff0000;">创建类的实例</span></li>
+<li><span style="color: #ff0000;">访问类的静态变量</span>(除常量【<span style="color: #ff0000;">被final修辞的静态变量】</span><span style="background-color: #9999ff;">原因:常量一种特殊的变量，因为编译器把他们当作值(value)而不是域(field)来对待。如果你的代码中用到了常变量(constant variable)，编译器并不会生成字节码来从对象中载入域的值，而是直接把这个值插入到字节码中。这是一种很有用的优化，但是如果你需要改变final域的值那么每一块用到那个域的代码都需要重新编译。</span></li>
+<li><span style="color: #ff0000;">访问类的静态方法</span></li>
+<li><span style="color: #ff0000;"><span style="background-color: #ffffff;">反射</span>如(<strong>Class.forName("my.xyz.Test")</strong>)</span></li>
+<li><span style="color: #ff0000;">当初始化一个类时，发现其父类还未初始化，则先出发父类的初始化</span></li>
+<li><span style="background-color: #ffffff;"><span style="color: #ff0000;">虚拟机启动时，定义了main()方法的那个类先初始化</span></span></li>
+
+
+
+
+</ol>
+<div>以上情况称为称对一个类进行<strong>“主动引用”</strong>，除此种情况之外，均不会触发类的初始化，称为<strong>“被动引用”</strong></div>
+
+
+
+
+
+</div>
+<div>接口的加载过程与类的加载过程稍有不同。接口中不能使用static{}块。当一个接口在初始化时，并不要求其父接口全部都完成了初始化，只有真正在使用到父接口时（例如引用接口中定义的常量）才会初始化。<strong><br>
+</strong></div>
+<div>
+<h1 id="blogTitle3">4 被动引用例子</h1>
+<div><ol>
+<li><strong>子类调用父类的静态变量，子类不会被初始化。只有父类被初始化。<span style="color: #008200; font-family: Monaco,&#39;DejaVu Sans Mono&#39;,&#39;Bitstream Vera Sans Mono&#39;,Consolas,&#39;Courier New&#39;,monospace; line-height: 18px; background-color: #fafafa;">。</span>对于静态字段，只有直接定义这个字段的类才会被初始化.</strong></li>
+<li><strong>通过数组定义来引用类，不会触发类的初始化</strong></li>
+<li><strong>访问类的常量，不会初始化类</strong></li>
+
+
+
+
+</ol>
+</div>
+<pre class="brush:java; auto-links: true; collapse: false; first-line: 1; gutter: true; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true">class SuperClass {
+	static {
+		System.out.println("superclass init");
+	}
+	public static int value = 123;
+}
+
+class SubClass extends SuperClass {
+	static {
+		System.out.println("subclass init");
+	}
+}
+
+public class Test {
+	public static void main(String[] args) {
+		System.out.println(SubClass.value);// 被动应用1
+		SubClass[] sca = new SubClass[10];// 被动引用2
+	}
+}</pre>
+程序运行输出 &nbsp; &nbsp;superclass init&nbsp;</div>
+<div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 123</div>
+<div>从上面的输入结果证明了被动引用1与被动引用2</div>
+<div>
+<pre class="brush:java; auto-links: true; collapse: false; first-line: 1; gutter: true; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true">class ConstClass {
+	static {
+		System.out.println("ConstClass init");
+	}
+	public static final String HELLOWORLD = "hello world";
+}
+
+public class Test {
+	public static void main(String[] args) {
+		System.out.println(ConstClass.HELLOWORLD);// 调用类常量
+	}
+}</pre>
+程序输出结果</div>
+<div>hello world</div>
+<div>从上面的输出结果证明了被动引用3<br>
+<h1 id="blogTitle4">5 类的加载过程</h1>
+
+
+
+
+
+</div>
+<h2 id="blogTitle5">5.1 加载</h2>
+<div>
+<p>&nbsp;“加载”(Loading)阶段是“类加载”(Class Loading)过程的第一个阶段，在此阶段，虚拟机需要完成以下三件事情：</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;1、&nbsp;通过一个类的全限定名来获取定义此类的二进制字节流。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;2、&nbsp;将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;3、&nbsp;在Java堆中生成一个代表这个类的java.lang.Class对象，作为方法区这些数据的访问入口。</p>
+<p>&nbsp;&nbsp; &nbsp; &nbsp;加载阶段即可以使用系统提供的类加载器在完成，也可以由用户自定义的类加载器来完成。加载阶段与连接阶段的部分内容(如一部分字节码文件格式验证动作)是交叉进行的，加载阶段尚未完成，连接阶段可能已经开始。</p>
+<p>&nbsp;</p>
+<h2 id="blogTitle6">5.2&nbsp;验证</h2>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;验证是连接阶段的第一步，这一阶段的目的是为了确保Class文件的字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。</p>
+<p>&nbsp;&nbsp; &nbsp; &nbsp;&nbsp;Java语言本身是相对安全的语言，使用Java编码是无法做到如访问数组边界以外的数据、将一个对象转型为它并未实现的类型等，如果这样做了，编译器将拒绝编译。但是，Class文件并不一定是由Java源码编译而来，可以使用任何途径，包括用十六进制编辑器(如UltraEdit)直接编写。如果直接编写了有害的“代码”(字节流)，而虚拟机在加载该Class时不进行检查的话，就有可能危害到虚拟机或程序的安全。</p>
+<p>&nbsp; &nbsp; &nbsp;&nbsp;不同的虚拟机，对类验证的实现可能有所不同，但大致都会完成下面四个阶段的验证<span style="color: #ff0000;">：文件格式验证、元数据验证、字节码验证和符号引用验证。</span></p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;1、文件格式验证，是要验证字节流是否符合Class文件格式的规范，并且能被当前版本的虚拟机处理。如验证魔数是否0xCAFEBABE；主、次版本号是否正在当前虚拟机处理范围之内；常量池的常量中是否有不被支持的常量类型……该验证阶段的主要目的是保证输入的字节流能正确地解析并存储于方法区中，经过这个阶段的验证后，字节流才会进入内存的方法区中存储，所以后面的三个验证阶段都是基于方法区的存储结构进行的。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;2、元数据验证，是对字节码描述的信息进行语义分析，以保证其描述的信息符合Java语言规范的要求。可能包括的验证如：这个类是否有父类；这个类的父类是否继承了不允许被继承的类；如果这个类不是抽象类，是否实现了其父类或接口中要求实现的所有方法……</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;3、字节码验证，主要工作是进行数据流和控制流分析，保证被校验类的方法在运行时不会做出危害虚拟机安全的行为。如果一个类方法体的字节码没有通过字节码验证，那肯定是有问题的；但如果一个方法体通过了字节码验证，也不能说明其一定就是安全的。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;4、符号引用验证，发生在虚拟机将符号引用转化为直接引用的时候，这个转化动作将在“解析阶段”中发生。验证符号引用中通过字符串描述的权限定名是否能找到对应的类；在指定类中是否存在符合方法字段的描述符及简单名称所描述的方法和字段；符号引用中的类、字段和方法的访问性(private、protected、public、default)是否可被当前类访问</p>
+<p>验证阶段对于虚拟机的类加载机制来说，不一定是必要的阶段。如果所运行的全部代码确认是安全的，<span style="color: #ff0000;">可以使用<strong>-Xverify：none</strong>参数来关闭大部分的类验证措施，以缩短虚拟机类加载时间。</span></p>
+<h2 id="blogTitle7">5.3&nbsp;准备</h2>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;准备阶段是为类的静态变量分配内存并将其初始化为默认值，这些内存都将在方法区中进行分配。准备阶段不分配类中的实例变量的内存，实例变量将会在对象实例化时随着对象一起分配在Java堆中。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">public static int value=123;//在准备阶段value初始值为0 。在初始化阶段才会变为123 。</span></p>
+<h2 id="blogTitle8">5.4 解析</h2>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;符号引用（Symbolic Reference）：符号引用以一组符号来描述所引用的目标，符号可以是任何形式的字面量，只要使用时能无歧义地定位到目标即可。符号引用与虚拟机实现的内存布局无关，引用的目标并不一定已经加载到内存中。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;直接引用（Direct Reference）：直接引用可以是直接指向目标的指针、相对偏移量或是一个能间接定位到目标的句柄。直接引用是与虚拟机实现的内存布局相关的，如果有了直接引用，那么引用的目标必定已经在内存中存在。</p>
+<h2 id="blogTitle9">5.5 初始化</h2>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;类初始化是类加载过程的最后一步，前面的类加载过程，除了在加载阶段用户应用程序可以通过自定义类加载器参与之外，其余动作完全由虚拟机主导和控制。到了初始化阶段，才真正开始执行类中定义的Java程序代码。</p>
+<p>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;初始化阶段是执行类构造器&lt;clinit&gt;()方法的过程。&lt;clinit&gt;()方法是由编译器自动<span style="color: #ff0000;">收集类中的所有类变量的赋值动作和静态语句块(static{}块)中的语句合并产生的</span>。</p>
+<h1 id="blogTitle10">6 题目分析</h1>
+<div>上面很详细的介绍了类的加载时机和类的加载过程，通过上面的理论来分析本文开门见上的题目</div>
+<div>
+<pre class="brush:java; auto-links: true; collapse: false; first-line: 1; gutter: true; html-script: false; light: false; ruler: false; smart-tabs: true; tab-size: 4; toolbar: true">class SingleTon {
+	private static SingleTon singleTon = new SingleTon();
+	public static int count1;
+	public static int count2 = 0;
+
+	private SingleTon() {
+		count1++;
+		count2++;
+	}
+
+	public static SingleTon getInstance() {
+		return singleTon;
+	}
+}
+
+public class Test {
+	public static void main(String[] args) {
+		SingleTon singleTon = SingleTon.getInstance();
+		System.out.println("count1=" + singleTon.count1);
+		System.out.println("count2=" + singleTon.count2);
+	}
+}</pre>
+<p>分析:</p>
+</div>
+</div>
+<div>1:SingleTon singleTon = SingleTon.getInstance();调用了类的SingleTon调用了类的静态方法，触发类的初始化<br>
+2:类加载的时候在准备过程中为类的静态变量分配内存并初始化默认值 singleton=null count1=0,count2=0<br>
+3:类初始化化，为类的静态变量赋值和执行静态代码快。singleton赋值为new SingleTon()调用类的构造方法<br>
+4:调用类的构造方法后count=1;count2=1<br>
+5:继续为count1与count2赋值,此时count1没有赋值操作,所有count1为1,但是count2执行赋值操作就变为0</div>
+<div><br>
+</div>
+<div><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/saved_resource" alt=""><br>
+</div>
+<p>&nbsp;</p></div><div id="MySignature" style="display: block;"><div>作者：<a href="http://weibo.com/javaee6" target="_blank">天魂地煞</a></div>
+<div>网站：<a href="http://www.mypad.tk/" target="_blank">http://www.mypad.tk</a></div>
+<div>出处：<a href="http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" id="wzdz">http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral</a></div>
+<div>如果，您认为阅读这篇博客让您有些收获，不妨收藏起来，给予评论下！</div>
+<div>如果，您希望更容易地发现我的新博客，不妨关注下我！</div>
+<div>如果，您对我的博客所讲述的内容有兴趣，请继续关注我的后续博文！</div>
+<div>本博客中未标明原文地址的文章归作者<a href="http://weibo.com/javaee6" target="_blank">天魂地煞</a>，欢迎转载，希望在文章页面明显位置给出原文连接！ 
+</div></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="http://www.cnblogs.com/javaee6/category/576368.html" target="_blank">Java-----Core Java</a>,<a href="http://www.cnblogs.com/javaee6/category/576327.html" target="_blank">Java</a>,<a href="http://www.cnblogs.com/javaee6/category/576369.html" target="_blank">Java-----jvm虚拟机</a></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(3714716,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow(&#39;f3d945d1-4067-e011-a53f-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/javaee6/" target="_blank"><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/20140503151052.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/javaee6/">天魂地煞</a><br>
+            <a href="http://home.cnblogs.com/u/javaee6/followees">关注 - 11</a><br>
+            <a href="http://home.cnblogs.com/u/javaee6/followers">粉丝 - 60</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;f3d945d1-4067-e011-a53f-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(3714716,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">9</span>
+    </div>
+    <div class="buryit" onclick="votePost(3714716,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="http://www.cnblogs.com/javaee6/p/3714698.html" class="p_n_p_prefix">« </a> 上一篇：<a href="http://www.cnblogs.com/javaee6/p/3714698.html" title="发布于2014-05-14 00:52">String构造器中originalValue.length&gt;size 发生的情况</a><br><a href="http://www.cnblogs.com/javaee6/p/3714711.html" class="p_n_p_prefix">» </a> 下一篇：<a href="http://www.cnblogs.com/javaee6/p/3714711.html" title="发布于2014-05-14 21:41">Java 6 JVM参数选项大全（中文版）</a><br></div>
+</div>
+
+
+		</div>
+		<div class="postDesc">posted @ <span id="post-date">2014-05-14 21:27</span> <a href="http://www.cnblogs.com/javaee6/">天魂地煞</a> 阅读(<span id="post_view_count">8824</span>) |  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=3714716" rel="nofollow">编辑</a> <a href="http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral#" onclick="AddToWz(3714716);return false;">收藏</a></div>
+	</div>
+	<script type="text/javascript">var allowComments=true,cb_blogId=87442,cb_entryId=3714716,cb_blogApp=currentBlogApp,cb_blogUserGuid='f3d945d1-4067-e011-a53f-842b2b196315',cb_entryCreatedDate='2014/5/14 21:27:00';loadViewCount(cb_entryId);</script>
+	
+</div><!--end: topics 文章、评论容器-->
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral#" onclick="return RefreshPage();">刷新页面</a><a href="http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/saved_resource">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="http://www.ucancode.com/index.htm" target="_blank">【推荐】50万行VC++源码: 大型组态工控、电力仿真CAD与GIS源码库</a><br><a href="https://cloud.tencent.com/solution/la?fromSource=gwzcw.436846.436846.436846" target="_blank">【推荐】搭建微信小程序 就选腾讯云</a><br><a href="http://www.gcpowertools.com.cn/products/activereports_overview.htm?utm_source=cnblogs&amp;utm_medium=blogpage&amp;utm_term=bottom&amp;utm_content=AR&amp;utm_campaign=community" target="_blank">【推荐】报表开发有捷径：快速设计轻松集成，数据可视化和交互</a><br></div>
+<div id="opt_under_post"></div>
+<div id="cnblogs_c1" class="c_ad_block"><a href="http://activity.huaweicloud.com/cloudide/index.html?utm_source=cnblogs&amp;utm_medium=MediaB&amp;utm_campaign=%E5%8D%8E%E4%B8%BA%E4%BA%91-10%E6%9C%88%E5%B9%BF%E5%91%8A%E6%8A%95%E6%94%BE&amp;utm_content=%E5%8D%9A%E5%AE%A2%E5%9B%AD%E5%86%85%E9%A1%B5C1%E7%9F%A9%E5%BD%A2&amp;utm_term=%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91%E4%BA%91-CloudIDE%E5%85%AC%E6%B5%8B" target="_blank"><img width="300" height="250" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/24442-20171009212224793-54391594.jpg" alt="华为云1009"></a></div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>最新IT新闻</b>:<br> ·  <a href="http://news.cnblogs.com/n/580172/" target="_blank">利润创新高的繁荣景象掩盖了三星电子背后的危机</a><br> ·  <a href="http://news.cnblogs.com/n/580171/" target="_blank">支付王国炼成记：4年增长1000余倍 数据仍在动态跃升</a><br> ·  <a href="http://news.cnblogs.com/n/580170/" target="_blank">阿里巴巴Java开发规约插件全球首发！</a><br> ·  <a href="http://news.cnblogs.com/n/580169/" target="_blank">国产喷气客机用上北斗导航！定位精度超GPS</a><br> ·  <a href="http://news.cnblogs.com/n/580168/" target="_blank">小米与印度连锁集团达成合作 在超市卖手机</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="cnblogs_c2" class="c_ad_block"><a href="http://click.aliyun.com/m/22446/" target="_blank"><img width="468" height="60" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/24442-20171001085719794-417760373.jpg" alt="阿里云1001"></a></div>
+<div id="under_post_kb"><div class="itnews c_ad_block" id="kb_block"><b>最新知识库文章</b>:<br><div id="kb_recent"> ·  <a href="http://kb.cnblogs.com/page/579480/" target="_blank">实用VPC虚拟私有云设计原则</a><br> ·  <a href="http://kb.cnblogs.com/page/576251/" target="_blank">如何阅读计算机科学类的书</a><br> ·  <a href="http://kb.cnblogs.com/page/578103/" target="_blank">Google 及其云智慧</a><br> ·  <a href="http://kb.cnblogs.com/page/575829/" target="_blank">做到这一点，你也可以成为优秀的程序员</a><br> ·  <a href="http://kb.cnblogs.com/page/566880/" target="_blank">写给立志做码农的大学生</a><br></div>» <a href="http://kb.cnblogs.com/" target="_blank">更多知识库文章...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+	<div class="ds-thread" data-thread-key="3714716" data-title="从一道面试题来认识java类加载时机与过程" data-url="http://www.cnblogs.com/javaee6/p/3714716.html?utm_source=tuicool&amp;utm_medium=referral"></div></div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+
+	<div id="sideBar">
+		<div id="sideBarMain">
+			
+			<div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script>
+			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block">
+<div id="sidebar_search" class="mySearch">
+<h3 class="catListTitle">文章搜索</h3>
+<div id="sidebar_search_box">
+<div id="widget_my_zzk" class="div_my_zzk"><input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk"></div>
+<div id="widget_my_google" class="div_my_zzk"><input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event)" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk"></div>
+</div>
+</div>
+
+</div><div id="sidebar_recentposts" class="sidebar-block">
+<div class="catListEssay">
+<h3 class="catListTitle">最新文章</h3>
+<ul>
+<li><a href="http://www.cnblogs.com/javaee6/p/7452151.html">1. spring boot基础之servlet3.0和spring4.x零配置相关文章</a></li><li><a href="http://www.cnblogs.com/javaee6/p/6375722.html">2. jvm系列文章收集</a></li><li><a href="http://www.cnblogs.com/javaee6/p/6346757.html">3. java调用c/c++</a></li><li><a href="http://www.cnblogs.com/javaee6/p/5757156.html">4. linux top命令结果参数详解</a></li><li><a href="http://www.cnblogs.com/javaee6/p/5668029.html">5. kvm/qemu/libvirt学习笔记 (1) qemu/kvm/libvirt介绍及虚拟化环境的安装</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4961350.html">6. 云计算设计模式系列文章</a></li><li><a href="http://www.cnblogs.com/javaee6/p/5047635.html">7. RSA算法原理</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4961326.html">8. 数据库Sharding系列文章</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4955565.html">9. spring bean的生命周期</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4952230.html">10. spring HttpInvoker相关学习资料</a></li>
+</ul>
+</div>
+</div><div id="sidebar_categories">
+<div id="sidebar_postarchive" class="catListPostArchive sidebar-block">
+<h3 class="catListTitle">文章归档</h3>
+
+<ul>
+
+<li><a id="CatList_LinkList_0_Link_0" href="http://www.cnblogs.com/javaee6/archive/2017/08.html">2017年8月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_1" href="http://www.cnblogs.com/javaee6/archive/2017/02.html">2017年2月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_2" href="http://www.cnblogs.com/javaee6/archive/2017/01.html">2017年1月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_3" href="http://www.cnblogs.com/javaee6/archive/2016/08.html">2016年8月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_4" href="http://www.cnblogs.com/javaee6/archive/2016/07.html">2016年7月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_5" href="http://www.cnblogs.com/javaee6/archive/2016/03.html">2016年3月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_6" href="http://www.cnblogs.com/javaee6/archive/2015/12.html">2015年12月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_7" href="http://www.cnblogs.com/javaee6/archive/2015/11.html">2015年11月 (7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_8" href="http://www.cnblogs.com/javaee6/archive/2015/10.html">2015年10月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_9" href="http://www.cnblogs.com/javaee6/archive/2015/09.html">2015年9月 (8)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_10" href="http://www.cnblogs.com/javaee6/archive/2015/08.html">2015年8月 (17)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_11" href="http://www.cnblogs.com/javaee6/archive/2015/07.html">2015年7月 (10)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_12" href="http://www.cnblogs.com/javaee6/archive/2015/06.html">2015年6月 (7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_13" href="http://www.cnblogs.com/javaee6/archive/2015/05.html">2015年5月 (8)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_14" href="http://www.cnblogs.com/javaee6/archive/2015/03.html">2015年3月 (6)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_15" href="http://www.cnblogs.com/javaee6/archive/2015/02.html">2015年2月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_16" href="http://www.cnblogs.com/javaee6/archive/2015/01.html">2015年1月 (7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_17" href="http://www.cnblogs.com/javaee6/archive/2014/12.html">2014年12月 (7)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_18" href="http://www.cnblogs.com/javaee6/archive/2014/11.html">2014年11月 (4)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_19" href="http://www.cnblogs.com/javaee6/archive/2014/10.html">2014年10月 (10)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_20" href="http://www.cnblogs.com/javaee6/archive/2014/09.html">2014年9月 (13)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_21" href="http://www.cnblogs.com/javaee6/archive/2014/08.html">2014年8月 (1)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_22" href="http://www.cnblogs.com/javaee6/archive/2014/07.html">2014年7月 (5)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_23" href="http://www.cnblogs.com/javaee6/archive/2014/06.html">2014年6月 (12)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_24" href="http://www.cnblogs.com/javaee6/archive/2014/05.html">2014年5月 (39)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_25" href="http://www.cnblogs.com/javaee6/archive/2014/04.html">2014年4月 (56)</a> </li>
+
+<li><a id="CatList_LinkList_0_Link_26" href="http://www.cnblogs.com/javaee6/archive/2014/03.html">2014年3月 (4)</a> </li>
+
+</ul>
+
+</div>
+
+</div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<div class="catListView">
+<h3 class="catListTitle">热门文章</h3>
+	<div id="TopViewPostsBlock"><ul><li><a href="http://www.cnblogs.com/javaee6/p/3714719.html">1. java中的SPI机制(17836)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3756249.html">2. 用html5 js实现浏览器全屏(17499)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3784588.html">3. 代码提交时让svn忽略classpath、target、.project等(11226)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4754523.html">4. 深入理解Thread.sleep的含义(9245)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3714716.html">5. 从一道面试题来认识java类加载时机与过程(8822)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4849051.html">6. protobuf学习(1)-ubuntu14.04下protobuf2.6安装(6385)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3721932.html">7. js快速判断IE浏览器(兼容IE10与IE11)(4909)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4057275.html">8. linux中tar之解压和压缩常用(4678)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4026108.html">9. linux特殊权限SUID、SGID、SBIT(4228)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3735687.html">10. java中设置代理的两种方式(4010)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3726812.html">11. IT技术思维导图(3881)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4372433.html">12. The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.(3832)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4162795.html">13. linux中的输入从定向和输出重定向(3470)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3738689.html">14. HttpUrlConnection 的 setDoOutput 与 setDoInput(2183)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3998188.html">15. linux 命令行中常用光标移动快捷键(2082)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/4642744.html">16. linux压力测试工具stress(2081)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3714713.html">17. java中可定制的序列化过程 writeObject与readObject(2009)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3790128.html">18. 关于java中MessageFormat.format中单引号问题(1993)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3730750.html">19. html中的meta详解(1972)</a></li><li><a href="http://www.cnblogs.com/javaee6/p/3714715.html">20. java动态编译笔记(1514)</a></li></ul></div>
+</div>
+</div></div></div><script type="text/javascript">loadBlogSideColumn();</script>
+			</div>
+			
+		</div><!--end: sideBarMain -->
+	<div class="castWeibo"><h3 class="catListTitle">我的微博</h3><iframe width="100%" height="400" class="share_self" frameborder="0" scrolling="no" src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/index.html"></iframe></div></div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+<!--PageEndHtml Block Begin-->
+<script>
+
+    yP_tourl='http://finead.cn/iclk/?s=ODMwODgxfHx8fHx8fHx8fHwxNDM0OTYyMTY4fDE4My4zMy4yMTMuMjA4fDExNjV8Y3BjfDExfDM5NjU4fDY0MDR8MTUzMDd8NDA4OQ==;ccacc988786c7c8c02defa7e28c2c060;http%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fspm%3Da1z10.1-c.w4004-10796831006.12.BXRYgB%26id%3D520140938778%26qq-pf-to%3Dpcqq.c2c';
+</script>
+
+<script src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/blog-min.js"></script>
+<script src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/mulu.js"></script><div class="sideBar" id="sideBar1"><div id="sideBarTab"><h2>目录导航</h2></div><div id="sideBarContents" style="display: none;"><dl><dt name="0">1 开门见山</dt><dt name="1">2 类的加载时机</dt><dt name="2">3 何时开始类的初始化</dt><dt name="3">4 被动引用例子</dt><dt name="4">5 类的加载过程</dt><dd name="5">5.1 加载</dd><dd name="6">5.2验证</dd><dd name="7">5.3准备</dd><dd name="8">5.4 解析</dd><dd name="9">5.5 初始化</dd><dt name="10">6 题目分析</dt></dl></div></div>
+<!--
+<script src="http://finead.cn/page/?s=15307"></script>
+-->
+<script>
+       var size=$('.entrylist').size();
+       if(size>=2){
+             $('.entrylist').eq(0).hide();
+        }
+      $('.postTitle2').each(function(){
+            var me=$(this);
+            var title=me.html();
+            if(/^\[置顶\].+/.test(title)){
+                  me.html(title.replace(/\[置顶\]/,''));
+            }
+      });
+</script>
+<!--PageEndHtml Block End-->
+
+
+<div id="topcontrol" title="Scroll Back to Top" style="position: fixed; bottom: 5px; right: 5px; opacity: 0; cursor: pointer;"><img src="./从一道面试题来认识java类加载时机与过程 - 天魂地煞 - 博客园_files/up.gif" style="width:24px; height:24px"></div></body></html>
