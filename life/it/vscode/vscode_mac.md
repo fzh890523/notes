@@ -76,9 +76,15 @@
    ​
 
 
+# file
 
 
 
+## search file: cmd+p
+
+
+
+然后输入文件名
 
 
 
