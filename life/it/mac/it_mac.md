@@ -250,11 +250,38 @@ option+鼠标左键（或触摸板）
 
 
 
-# sublime
+# applications
 
 
 
-## 文本
+## 杂项
+
+
+
+### 打开应用内容（content）目录
+
+选择`Show Package Contents`
+
+* 应用图标右键
+* alfred选项里在`*.app`上选项里选择
+
+
+
+比如： `/Applications/NetBeans/NetBeans 8.2.app/Contents/` 这个目录是无法直接进入的（到`*.app`就无法双击进入了），那么想改其下的 `Resources/NetBeans/etc/netbeans.conf`就得通过这种方式了。
+
+
+
+
+
+# 软件
+
+
+
+## sublime
+
+
+
+#### 文本
 
 ### 列选择
 

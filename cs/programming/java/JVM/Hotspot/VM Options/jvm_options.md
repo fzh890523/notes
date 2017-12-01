@@ -1865,6 +1865,197 @@ java [ options ] -jar file.jar [ arguments ]
 
 
 
+## “隐秘”选项 - 官方文档没介绍
+
+
+
+* `-XX:+PrintInterpreter`
+
+  需要和UnlockDiag一起使用:
+
+  ```shell
+  -XX:+UnlockDiagnosticVMOptions -XX:+PrintInterpreter
+  ```
+
+  输出类似：
+
+  ```
+  ----------------------------------------------------------------------
+  Interpreter
+
+  code size        =    137K bytes
+  total space      =    255K bytes
+  wasted space     =    118K bytes
+
+  # of codelets    =    266
+  avg codelet size =    530 bytes
+
+
+  ----------------------------------------------------------------------
+  slow signature handler  [0x0000000115e96640, 0x0000000115e96800]  448 bytes
+
+  ...
+
+  ----------------------------------------------------------------------
+  iload_2  28 iload_2  [0x0000000115eaab60, 0x0000000115eaabc0]  96 bytes
+
+    0x0000000115eaab60: push   %rax
+    0x0000000115eaab61: jmpq   0x0000000115eaab90
+    0x0000000115eaab66: sub    $0x8,%rsp
+    0x0000000115eaab6a: vmovss %xmm0,(%rsp)
+    0x0000000115eaab6f: jmpq   0x0000000115eaab90
+    0x0000000115eaab74: sub    $0x10,%rsp
+    0x0000000115eaab78: vmovsd %xmm0,(%rsp)
+    0x0000000115eaab7d: jmpq   0x0000000115eaab90
+    0x0000000115eaab82: sub    $0x10,%rsp
+    0x0000000115eaab86: mov    %rax,(%rsp)
+    0x0000000115eaab8a: jmpq   0x0000000115eaab90
+    0x0000000115eaab8f: push   %rax
+    0x0000000115eaab90: mov    -0x10(%r14),%eax
+    0x0000000115eaab94: movzbl 0x1(%r13),%ebx
+    0x0000000115eaab99: inc    %r13
+    0x0000000115eaab9c: movabs $0x10e0ff040,%r10
+    0x0000000115eaaba6: jmpq   *(%r10,%rbx,8)
+    0x0000000115eaabaa: nopw   0x0(%rax,%rax,1)
+    0x0000000115eaabb0: add    %al,(%rax)
+    0x0000000115eaabb2: add    %al,(%rax)
+    0x0000000115eaabb4: add    %al,(%rax)
+    0x0000000115eaabb6: add    %al,(%rax)
+    0x0000000115eaabb8: add    %al,(%rax)
+    0x0000000115eaabba: add    %al,(%rax)
+    0x0000000115eaabbc: add    %al,(%rax)
+    0x0000000115eaabbe: add    %al,(%rax)
+    
+    ...
+  ```
+
+* `-XX:+PrintAssembly`
+
+  需要和UnlockDiag一起使用:
+
+  ```shell
+  -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly
+  ```
+
+  输出如下:
+
+  ```shell
+  ...
+  Decoding compiled method 0x0000000104ede250:
+  Code:
+  [Entry Point]
+  [Constants]
+    # {method} {0x000000011cb36c60} 'length' '()I' in 'java/lang/String'
+    #           [sp+0x40]  (sp of caller)
+    0x0000000104ede3c0: mov    0x8(%rsi),%r10d
+    0x0000000104ede3c4: shl    $0x3,%r10
+    0x0000000104ede3c8: cmp    %rax,%r10
+    0x0000000104ede3cb: jne    0x0000000104e22e20  ;   {runtime_call}
+    0x0000000104ede3d1: data32 data32 nopw 0x0(%rax,%rax,1)
+    0x0000000104ede3dc: data32 data32 xchg %ax,%ax
+  [Verified Entry Point]
+    0x0000000104ede3e0: mov    %eax,-0x14000(%rsp)
+    0x0000000104ede3e7: push   %rbp
+    0x0000000104ede3e8: sub    $0x30,%rsp
+    0x0000000104ede3ec: movabs $0x11cd20528,%rax  ;   {metadata(method data for {method} {0x000000011cb36c60} 'length' '()I' in 'java/lang/String')}
+    0x0000000104ede3f6: mov    0xdc(%rax),%edi
+    0x0000000104ede3fc: add    $0x8,%edi
+    0x0000000104ede3ff: mov    %edi,0xdc(%rax)
+    0x0000000104ede405: movabs $0x11cb36c60,%rax  ;   {metadata({method} {0x000000011cb36c60} 'length' '()I' in 'java/lang/String')}
+    0x0000000104ede40f: and    $0x1ff8,%edi
+    0x0000000104ede415: cmp    $0x0,%edi
+    0x0000000104ede418: je     0x0000000104ede434  ;*aload_0
+                                                  ; - java.lang.String::length@0 (line 623)
+
+    0x0000000104ede41e: mov    0xc(%rsi),%eax
+    0x0000000104ede421: shl    $0x3,%rax          ;*getfield value
+                                                  ; - java.lang.String::length@1 (line 623)
+
+    0x0000000104ede425: mov    0xc(%rax),%eax     ;*arraylength
+                                                  ; - java.lang.String::length@4 (line 623)
+                                                  ; implicit exception: dispatches to 0x0000000104ede448
+    0x0000000104ede428: add    $0x30,%rsp
+    0x0000000104ede42c: pop    %rbp
+    0x0000000104ede42d: test   %eax,-0x2efe333(%rip)        # 0x0000000101fe0100
+                                                  ;   {poll_return}
+    0x0000000104ede433: retq   
+    0x0000000104ede434: mov    %rax,0x8(%rsp)
+    0x0000000104ede439: movq   $0xffffffffffffffff,(%rsp)
+    0x0000000104ede441: callq  0x0000000104edaf60  ; OopMap{rsi=Oop off=134}
+                                                  ;*synchronization entry
+                                                  ; - java.lang.String::length@-1 (line 623)
+                                                  ;   {runtime_call}
+    0x0000000104ede446: jmp    0x0000000104ede41e
+    0x0000000104ede448: callq  0x0000000104ed6a40  ; OopMap{off=141}
+                                                  ;*arraylength
+                                                  ; - java.lang.String::length@4 (line 623)
+                                                  ;   {runtime_call}
+    0x0000000104ede44d: nop
+    0x0000000104ede44e: nop
+    0x0000000104ede44f: mov    0x2a8(%r15),%rax
+    0x0000000104ede456: movabs $0x0,%r10
+    0x0000000104ede460: mov    %r10,0x2a8(%r15)
+    0x0000000104ede467: movabs $0x0,%r10
+    0x0000000104ede471: mov    %r10,0x2b0(%r15)
+    0x0000000104ede478: add    $0x30,%rsp
+    0x0000000104ede47c: pop    %rbp
+    0x0000000104ede47d: jmpq   0x0000000104e494a0  ;   {runtime_call}
+    ...
+  ```
+
+  ​
+
+
+
+### develop/notproduct选项 - 只用于debug版本JVM
+
+* `-XX:+CountBytecodes` - develop
+
+  ```shell
+  > java -XX:+CountBytecodes HelloWorld
+  Hello World
+  474030 bytecodes executed in 0.9s (0.501MHz)
+  [BytecodeCounter::counter_value = 474030]
+  ```
+
+* `-XX:+PrintBytecodeHistogram` - develop
+
+  ```shell
+  > java -XX:+PrintBytecodeHistogram HelloWorld
+  Hello World
+  Histogram of 473923 executed bytecodes:
+
+    absolute  relative  code    name
+  -----------------------------------------
+       59653    12.59%    15    iload
+       40571     8.56%    2a    aload_0
+       29706     6.27%    84    iinc
+       24089     5.08%    b4    getfield
+  ...
+  ```
+
+* `-XX:+TraceBytecodes` - develop
+
+  ```shell
+  > java -XX:+TraceBytecodes HelloWorld
+
+  [31744] static void java.lang.Object.()
+  [31744]        1     0  invokestatic 17 <java/lang/Object.registerNatives()V> 
+  [31744]        2     3  return
+
+  [31744] static void java.lang.String.()
+  [31744]        3     0  iconst_0
+  [31744]        4     1  anewarray java/io/ObjectStreamField
+  [31764]        5     4  putstatic 399 <java/lang/String.serialPersistentFields/[Ljava/io/ObjectStreamField;>
+  ...
+  ```
+
+* `-XX:+PrintOptoAssembly` - develop
+
+
+
+
+
 
 # 详解
 
