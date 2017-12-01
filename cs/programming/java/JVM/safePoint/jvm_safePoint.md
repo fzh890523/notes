@@ -293,3 +293,37 @@ Total time for which application threads were stopped: 0.0002376 seconds, Stoppi
 
 
 
+## [JVM模板解释器安全点问题](http://hllvm.group.iteye.com/group/topic/45826)
+
+```
+
+p2p2500 2015-06-18
+JVM在执行过程中，可能会在安全点出进行GC，安全点位置包括如下：
+1、循环的末尾
+2、方法临返回前 / 调用方法的call指令后
+3、可能抛异常的位置
+
+我的问题是：
+1. JVM的解释器执行过程中，是不是在上述指令位置处，修改安全标记，将指令模板由正常版本切换到安全版本？
+
+2. JVM模板解释器生成的 正常指令table模板与安全版本的区别是什么？
+
+```
+
+```
+针对问题1. 答案是否定的。在hotspot中，安全标记的设置及指令模板的切换都发生在SafepointSynchronize::begin()函数中，而该函数的调用者是VMThead线程。该线程负责检查并执行各种VMOperation。如果有某个java线程在执行过程中发现内存不够，则会创建一个GC VMOperation，然后进入等待状态。而VMThread如果发现有GC VMOperation，则会设置安全标记、切换模板表、将polling page置为不可读，然后等待所有java线程进入等待状态，再开始GC。
+设置安全标记是针对java线程正在执行jni代码的情况，这样的线程在从jni返回时会检查安全标记，如果安全标记置位，这让自己block。
+切换模板表是针对java线程正在执行解释器代码的情况。安全版的模板表在执行字节码的正常功能前，会先检查安全标记，然后视情况让自己block。
+将polling page置位不可读是针对java线程执行编译代码的情况。编译代码在循环回跳、方法返回的地方有一个对polling page的读操作。如果polling page可读，则正常回跳或者返回，如果polling page不可读，则发生段违例，进入hotspot的信号处理函数，该函数会让当前java线程block。
+
+针对楼主的问题2，正常模板表与安全模板表的区别就是安全模板表会在执行字节码的正常功能前检查安全标记并视情况block当前java线程。 
+```
+
+
+
+
+
+
+
+
+
