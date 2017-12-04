@@ -47,9 +47,35 @@ The binding of names before the program is run is called static (also "early"); 
 
 
 
-## late/static binding
+## late/dynamic binding
+
+
+
+wikipedia：
+
+> in which the method being called upon an object or the function being called with arguments is looked up by name at [runtime](https://en.wikipedia.org/wiki/Run_time_(program_lifecycle_phase)).
+>
+> With [early binding](https://en.wikipedia.org/wiki/Early_binding), or [static binding](https://en.wikipedia.org/wiki/Static_binding), in an object-oriented language, the compilation phase fixes all types of variables and expressions. This is usually stored in the compiled program as an offset in a [virtual method table](https://en.wikipedia.org/wiki/Virtual_method_table) ("v-table") and is very efficient. With late binding the compiler does not have enough information to verify the method even exists, let alone bind to its particular slot on the v-table. Instead the method is looked up by name at runtime.
+>
+> > 这么说，java倒是late binding了... 而c++不是
+
+
 
 stackexchange上看到的一个定义： `Dynamic binding is another name for Late Binding. That's where the language ties a data element or method to an object after compilation time.`
+
+
+
+
+
+### java的late binding
+
+
+
+几种理解：
+
+* 运行时resolve ref，而不像c等有静态链接。 有运行时的 name -> target 的过程，符合binding定义，也符合late定义 = =
+* 作为 dynamic dispatch 的同义词
+* 反射
 
 
 
@@ -123,47 +149,11 @@ class A {
 
 
 
+## binding VS dispatch
 
 
 
-
-
-
-
-
-
-
-
-
-## early/eager binding、 late/lazy binding 和 static/dynamic binding
-
-
-
-
-
-
-
-- early/eager bound(binding)
-  - 看多early了，编译时？resolve时? java里把resolve时也算early了
-- late/lazy bound
-
-
-
-- static bound
-
-  - 按照*编译时确定（函数）地址*，java编译时是 *ref-by-symbol*，都不能算
-
-  - 不过，invokespecial、invokestatic是resolve时立即确定，而不用根据call site（？）动态确定，所以从这个角度也能算
-
-    > 虽然这种在c里是典型的dynamic-link
-
-- dynamic bound
-
-  - invokevirtual、invokeinterface等
-
-
-
-invokedynamic就谈不上bound了吧（？）
+参见 [《PL concept_static dispatch and dynamic dispatch》](./PL concept_static dispatch and dynamic dispatch.md)
 
 
 
