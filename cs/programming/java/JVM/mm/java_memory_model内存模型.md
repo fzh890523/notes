@@ -313,6 +313,24 @@ Assume that one thread is calling `writer`, and another is calling `reader`. The
 
 
 
+# memory barrier
+
+
+
+Java中的内存中的内存屏障:
+
+|            | LoadLoad 屏障                              | StoreStore屏障                             | LoadStore 屏障                             | StoreLoad屏障                              |
+| ---------- | ---------------------------------------- | ---------------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| 序列         | Load1,Loadload,Load2                     | Store1，StoreStore，Store2                 | Load1,LoadStore,Store                    | Store1,StoreLoad,Load                    |
+| 作用         | 保证Load1所要读入的数据能够在被Load2和后续的load指令访问前读入。  | 保证Store1的数据在Store2以及后续Store指令操作相关数据之前对其它处理器可见 | 确保Load1的数据在Store2和后续Store指令被刷新之前读取。      | 确保Store1的数据在被Load2和后续的Load指令读取之前对其他处理器可见。 |
+| 对buffer的影响 | 在Load buffer插入屏障,清空屏障之前的Load操作,然后才能执行屏障之后的Load操作. | 在Store buffer插入屏障,清空屏障之前的Store操作,然后才能执行屏障之后的store操作. | 在Load buffer插入屏障,清空屏障之前的Load操作,然后才能执行屏障之后的Store操作. | 在Load buffer, Store buffer中都插入屏障,必须清空屏障之前的Load操作并且清空屏障之前的store操作,然后才能执行屏障之后的Load操作,或store操作. |
+
+
+
+> StoreLoad屏障有可以同时获得其它三种屏障(loadload,loadstore,storestore)的的效果,但是StoreLoad是一个比较耗性能的屏障.因为StoreLoad屏障在Loadbuffer, Store buffer中都插入屏障,必须清空屏障之前的Load操作并且清空屏障之前的store操作,然后才能执行屏障之后的Load操作,或store操作.这使得之后的读指令不能从store buffer中直接获取,只能从缓存中获取,综合起来说，storeload屏障最耗性能。
+
+
+
 # memory model
 
 

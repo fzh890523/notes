@@ -40,6 +40,60 @@
 
 
 
+# 日常
+
+
+
+## 编译
+
+
+
+### 反编译
+
+
+
+#### 反编译代码行号对不上问题
+
+
+
+I found that on OSX you can change this setting in the following file:
+
+> ~/Library/Preferences/IntelliJIdea2016.1/options/options.xml
+
+Add the following properties:
+
+```
+    <property name="decompiler.use.line.mapping" value="true" />
+    <property name="decompiler.dump.original.lines" value="true" />
+```
+
+
+
+or through Cmd + Shift + A -> Registry in Intellij
+
+
+
+效果如下：
+
+```java
+    private void run() {
+        int b = this.a;// 17
+        ++b;// 18
+        T.T1 t = new T.T1();// 20
+        ++t.a;// 21
+        this.a = b;// 23
+        ++this.a;// 24
+        sa = b;// 26
+        sa = this.a;// 27
+    }// 28
+```
+
+并没有像想象的做align，只是标注了一下。 = =
+
+
+
+
+
 
 
 

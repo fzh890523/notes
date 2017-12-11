@@ -1,5 +1,31 @@
 
 
+# intro
+
+
+
+from [Volatile从入门到放弃](http://blog.csdn.net/w329636271/article/details/54616543)
+
+c/c++volatile的第一特性：易变性。
+
+c/c++的volatile的第二特性：不可优化性。即不要对volatile变量进行各种激进的优化，保持变量原有的语义,不能被优化掉。
+
+c/c++的volatile的第三特性：顺序性。基于前面的两个特性，让Volatile经常被解读为一个为多线程而生的关键词。但更要命的是很多程序员往往会忽略掉顺序性，这使得c/c++ volatile很难被正确使用的重要原因。同时，**c/c+的volatile是不能完全保证顺序性的**。
+
+> 怎么个不完全法呢？
+>
+> From [C/C++ Volatile关键词深度剖析](http://hedengcheng.com/?p=725)
+>
+> 1. C/C++ Volatile变量，与非Volatile变量之间的操作，是可能被编译器交换顺序的
+>
+> 2. C/C++ Volatile变量间的操作，是不会被编译器交换顺序的
+>
+>    > 从1、2来看，跟java的老MM一样，或者换句话说，java的老MM“沿袭”了这一缺陷
+>
+> 3. 哪怕将所有的变量全部都声明为volatile，哪怕杜绝了编译器的乱序优化，但是针对生成的汇编代码，CPU有可能仍旧会乱序执行指令，导致程序依赖的逻辑出错，volatile对此无能为力
+
+
+
 # 问题
 
 
