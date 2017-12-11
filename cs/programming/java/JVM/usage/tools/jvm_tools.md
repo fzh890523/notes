@@ -108,7 +108,7 @@ public class SandboxTest
 
 
 
-### 查看java反编译出的java指令
+### 查看java编译出的java指令
 
 * javap、
 * IDE插件
@@ -150,7 +150,33 @@ public class TestPrintClassLoading {
 
 
 
+
+
+### 反编译 java byte code -> java code
+
+
+
+* JD-GUI
+
+  好像不支持8
+
+* JAD
+
+* procyon-decompiler
+
+
+
+
+
+
+
 ## class file
+
+
+
+### 解析class file结构 - lib
+
+* BCEL
 
 
 

@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)https://liuzhengyang.github.io/2017/05/12/javamemorymodel/ -->
+<html class="theme-next muse use-motion" lang="zh-Hans"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="./Java内存模型JMM浅析 _ 刘正阳_files/jquery.fancybox.css" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="./Java内存模型JMM浅析 _ 刘正阳_files/css" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="./Java内存模型JMM浅析 _ 刘正阳_files/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+<link href="./Java内存模型JMM浅析 _ 刘正阳_files/main.css" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="liuzhengyang,刘正阳">
+
+
+
+
+
+  <link rel="alternate" href="https://liuzhengyang.github.io/atom.xml" title="刘正阳" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="https://liuzhengyang.github.io/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="JMM简介Java Memory Model简称JMM, 是一系列的Java虚拟机平台对开发者提供的多线程环境下的内存可见性、是否可以重排序等问题的无关具体平台的统一的保证。(可能在术语上与Java运行时内存分布有歧义，后者指堆、方法区、线程栈等内存区域)。并发编程有多种风格，除了CSP(通信顺序进程)、Actor等模型外，大家最熟悉的应该是基于线程和锁的共享内存模型了。在多线程编程中，需要注意三">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java内存模型JMM浅析">
+<meta property="og:url" content="http://liuzhengyang.github.io/2017/05/12/javamemorymodel/index.html">
+<meta property="og:site_name" content="刘正阳">
+<meta property="og:description" content="JMM简介Java Memory Model简称JMM, 是一系列的Java虚拟机平台对开发者提供的多线程环境下的内存可见性、是否可以重排序等问题的无关具体平台的统一的保证。(可能在术语上与Java运行时内存分布有歧义，后者指堆、方法区、线程栈等内存区域)。并发编程有多种风格，除了CSP(通信顺序进程)、Actor等模型外，大家最熟悉的应该是基于线程和锁的共享内存模型了。在多线程编程中，需要注意三">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://liuzhengyang.github.io/images/cpu-arch.jpg">
+<meta property="og:image" content="http://liuzhengyang.github.io/images/instruction-pipeline.jpg">
+<meta property="og:updated_time" content="2017-08-11T13:12:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java内存模型JMM浅析">
+<meta name="twitter:description" content="JMM简介Java Memory Model简称JMM, 是一系列的Java虚拟机平台对开发者提供的多线程环境下的内存可见性、是否可以重排序等问题的无关具体平台的统一的保证。(可能在术语上与Java运行时内存分布有歧义，后者指堆、方法区、线程栈等内存区域)。并发编程有多种风格，除了CSP(通信顺序进程)、Actor等模型外，大家最熟悉的应该是基于线程和锁的共享内存模型了。在多线程编程中，需要注意三">
+<meta name="twitter:image" content="http://liuzhengyang.github.io/images/cpu-arch.jpg">
+
+
+
+<script src="./Java内存模型JMM浅析 _ 刘正阳_files/hm.js"></script><script type="text/javascript" async="" src="./Java内存模型JMM浅析 _ 刘正阳_files/widget.js"></script><script async="" src="./Java内存模型JMM浅析 _ 刘正阳_files/analytics.js"></script><script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://liuzhengyang.github.io/2017/05/12/javamemorymodel/">
+
+
+
+
+
+  <title>Java内存模型JMM浅析 | 刘正阳</title>
+  
+
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-91032718-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?08b46d274cbc903db4f3c371a40a669f";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+<script type="text/javascript" defer="" src="./Java内存模型JMM浅析 _ 刘正阳_files/busuanzi"></script><script src="./Java内存模型JMM浅析 _ 刘正阳_files/embed.js" data-timestamp="1512915080593"></script><style type="text/css">.fancybox-margin{margin-right:0px;}</style><script src="./Java内存模型JMM浅析 _ 刘正阳_files/count-data.js"></script><script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/rating.js" async=""></script><link rel="stylesheet" type="text/css" href="./Java内存模型JMM浅析 _ 刘正阳_files/rating.css"></head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans" class="" style="padding-right: 320px;">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="https://liuzhengyang.github.io/" class="brand" rel="start" style="opacity: 1;">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title" style="opacity: 1; top: 0px;">刘正阳</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle" style="opacity: 1; top: 0px;"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-github" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://github.com/liuzhengyang" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-github"></i> <br>
+            
+            Github
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-resume" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/resume" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-graduation-cap"></i> <br>
+            
+            resume
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-book" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/book" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br>
+            
+            书单
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-research" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/research" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-graduation-cap"></i> <br>
+            
+            research
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-presentation" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/presentation" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-graduation-cap"></i> <br>
+            
+            ppt
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about" style="opacity: 1; transform: translateY(0px);">
+          <a href="https://liuzhengyang.github.io/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article" style="opacity: 1; display: block; transform: translateY(0px);">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://liuzhengyang.github.io/2017/05/12/javamemorymodel/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="liuzhengyang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="刘正阳">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Java内存模型JMM浅析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-12T17:13:45+08:00">
+                2017-05-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/05/12/javamemorymodel/" itemprop="commentCount">0 Comments</span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/05/12/javamemorymodel/" class="leancloud_visitors" data-flag-title="Java内存模型JMM浅析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数:</span>
+               
+                 <span class="leancloud-visitors-count">2066</span>
+             </span>
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="JMM简介"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#JMM简介" class="headerlink" title="JMM简介"></a>JMM简介</h1><p>Java Memory Model简称JMM, 是一系列的Java虚拟机平台对开发者提供的多线程环境下的内存可见性、是否可以重排序等问题的无关具体平台的统一的保证。(可能在术语上与Java运行时内存分布有歧义，后者指堆、方法区、线程栈等内存区域)。<br>并发编程有多种风格，除了CSP(通信顺序进程)、Actor等模型外，大家最熟悉的应该是基于线程和锁的共享内存模型了。在多线程编程中，需要注意三类并发问题:</p>
+<ol>
+<li>原子性</li>
+<li>可见性</li>
+<li>重排序<br>原子性涉及到，一个线程执行一个复合操作的时候，其他线程是否能够看到中间的状态、或进行干扰。典型的就是i++的问题了，两个线程同时对共享的堆内存执行++操作，而++操作在JVM、运行时、CPU中的实现都可能是一个复合操作, 例如在JVM指令的角度来看是将i的值从堆内存读到操作数栈、加上一、再写回到堆内存的i，这几个操作的期间，如果没有正确的同步，其他线程也可以同时执行，可能导致数据丢失等问题。常见的原子性问题又叫竞太条件，是基于一个可能失效的结果进行判断，如读取-修改-写入。<a id="more"></a>
+可见性和重排序问题都源于系统的优化。<br>简单说重排序就是程序实际执行的顺序和程序中的顺序不一致。<br>由于CPU的执行速度和内存的存取速度严重不匹配，为了优化性能，基于时间局部性、空间局部性等局部性原理，CPU在和内存间增加了多层高速缓存，当需要取数据时，CPU会先到高速缓存中查找对应的缓存是否存在，存在则直接返回，如果不存在则到内存中取出并保存在高速缓存中。现在多核处理器越基本已经成为标配，这时每个处理器都有自己的缓存，这就涉及到了缓存一致性的问题，CPU有不同强弱的一致性模型，最强的一致性安全性最高，也符合我们的顺序思考的模式，但是在性能上因为需要不同CPU之间的协调通信就会有很多开销<br>典型的CPU缓存结构示意图如下<br><a href="./Java内存模型JMM浅析 _ 刘正阳_files/cpu-arch.jpg" class="fancybox fancybox.image" rel="group"><img src="./Java内存模型JMM浅析 _ 刘正阳_files/cpu-arch.jpg" alt="cpu-arch"></a><br>CPU的指令周期通常为取指令、解析指令读取数据、执行指令、数据写回寄存器或内存。串行执行指令时其中的读取存储数据部分占用时间较长，所以CPU普遍采取指令流水线的方式同时执行多个指令, 提高整体吞吐率，就像工厂流水线一样。<br><a href="./Java内存模型JMM浅析 _ 刘正阳_files/instruction-pipeline.jpg" class="fancybox fancybox.image" rel="group"><img src="./Java内存模型JMM浅析 _ 刘正阳_files/instruction-pipeline.jpg" alt="instruction-pipeline"></a><br>读取数据和写回数据到内存相比执行指令的速度不在一个数量级上，所以CPU使用寄存器、高速缓存作为缓存和缓冲，在从内存中读取数据时，会读取一个缓存行(cache line)的数据（类似磁盘读取读取一个block）。数据写回的模块在旧数据没有在缓存中的情况下会将存储请求放入一个store buffer中继续执行指令周期的下一个阶段，如果存在于缓存中则会更新缓存，缓存中的数据会根据一定策略flush到内存。(可以用git模型类比理解缓存间的同步)<figure class="highlight gradle"><table><tbody><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">class</span> MemoryModel {</div><div class="line">    <span class="keyword">private</span> <span class="keyword">int</span> <span class="keyword">count</span>;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> stop;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">void</span> initCountAndStop() {</div><div class="line">        <span class="keyword">count</span> = <span class="number">1</span>;</div><div class="line">        stop = <span class="keyword">false</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">void</span> doLoop() {</div><div class="line">        <span class="keyword">while</span>(!stop) {</div><div class="line">            <span class="keyword">count</span>++;</div><div class="line">        }</div><div class="line">    }</div><div class="line">    <span class="keyword">public</span> <span class="keyword">void</span> printResult() {</div><div class="line">        System.out.<span class="keyword">println</span>(<span class="keyword">count</span>);</div><div class="line">        System.out.<span class="keyword">println</span>(stop);</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></tbody></table></figure>
+</li>
+</ol>
+<p>上面这段代码执行时我们可能认为<code>count = 1</code>会在<code>stop = false</code>前执行完成，这在上面的CPU执行图中显示的理想状态下是正确的，但是要考虑上寄存器、缓存缓冲的时候就不正确了, 例如stop本身在缓存中但是count不在，则可能stop更新后再count的write buffer写回之前刷新到了内存。<br>另外CPU、编译器（对于Java一般指JIT）都可能会修改指令执行顺序，例如上述代码中count = 1和stop = false两者并没有依赖关系，所以CPU、编译器都有可能修改这两者的顺序，而在单线程执行的程序看来结果是一样的，这也是CPU、编译器要保证的as-if-sequantial(不管如何修改执行顺序，单线程的执行结果不变)。由于很大部分程序执行都是单线程的，所以这样的优化是可以接受并且带来了较大的性能提升。但是在多线程的情况下，如果没有进行必要的同步操作则可能会出现令人意想不到的结果。例如在线程T1执行完initCountAndStop方法后，线程T2执行printResult，得到的可能是0, false, 可能是1, false, 也可能是0, true。如果线程T1先执行doLoop()，线程T2一秒后执行initCountAndStop, 则T1可能会跳出循环、也可能由于编译器的优化永远无法看到stop的修改。<br>由于上述这些多线程情况下的各种问题，多线程中的程序顺序已经不是底层机制中的执行顺序和结果，编程语言需要给开发者一种保证，这个保证简单来说就是一个线程的修改何时对其他线程可见，因此Java语言提出了JavaMemoryModel即Java内存模型，对于Java语言、JVM、编译器等实现者需要按照这个模型的约定来进行实现。Java提供了volatile、synchronized、final等机制来帮助开发者保证多线程程序在所有处理器平台上的正确性。</p>
+<p>在JDK1.5之前，Java的内存模型有着严重的问题，例如在旧的内存模型中，一个线程可能在构造器执行完成后看到一个final字段的默认值、volatile字段的写入可能会和非volatile字段的读写重排序。<br>所以在JDK1.5中，通过JSR133提出了新的内存模型，修复之前出现的问题。</p>
+<h1 id="重排序规则"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#重排序规则" class="headerlink" title="重排序规则"></a>重排序规则</h1><h2 id="volatile和监视器锁"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#volatile和监视器锁" class="headerlink" title="volatile和监视器锁"></a>volatile和监视器锁</h2><table>
+<thead>
+<tr>
+<th>是否可以重排序</th>
+<th>第二个操作</th>
+<th>第二个操作</th>
+<th>第二个操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一个操作</td>
+<td>普通读/普通写</td>
+<td>volatile读/monitor enter</td>
+<td>volatile写/monitor exit</td>
+</tr>
+<tr>
+<td>普通读/普通写</td>
+<td></td>
+<td></td>
+<td>No</td>
+</tr>
+<tr>
+<td>voaltile读/monitor enter</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>volatile写/monitor exit</td>
+<td></td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>其中普通读指getfield, getstatic, 非volatile数组的arrayload, 普通写指putfield, putstatic, 非volatile数组的arraystore。<br>volatile读写分别是volatile字段的getfield, getstatic和putfield, putstatic。<br>monitorenter是进入同步块或同步方法,monitorexist指退出同步块或同步方法。<br>上述表格中的No指先后两个操作不允许重排序，如(普通写, volatile写)指非volatile字段的写入不能和之后任意的volatile字段的写入重排序。当没有No时，说明重排序是允许的，但是JVM需要保证最小安全性-读取的值要么是默认值，要么是其他线程写入的（64位的double和long读写操作是个特例，当没有volatile修饰时，并不能保证读写是原子的，底层可能将其拆分为两个单独的操作）。</p>
+<h2 id="final字段"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#final字段" class="headerlink" title="final字段"></a>final字段</h2><p>final字段有两个额外的特殊规则</p>
+<ol>
+<li><p>final字段的写入（在构造器中进行）以及final字段对象本身的引用的写入都不能和后续的（构造器外的）持有该final字段的对象的写入重排序。例如, 下面的语句是不能重排序的</p>
+<figure class="highlight nix"><table><tbody><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">x.<span class="attr">finalField</span> = v; ...; <span class="attr">sharedRef</span> = x;</div></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>final字段的第一次加载不能和持有这个final字段的对象的写入重排序，例如下面的语句是不允许重排序的</p>
+<figure class="highlight abnf"><table><tbody><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">x</span> = sharedRef<span class="comment">; ...; i = x.finalField</span></div></pre></td></tr></tbody></table></figure>
+</li>
+</ol>
+<h2 id="内存屏障"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h2><p>处理器都支持一定的内存屏障(memory barrier)或栅栏(fence)来控制重排序和数据在不同的处理器间的可见性。将CPU和内存间的数据存取操作分为<code>load</code>和<code>store</code>。例如，CPU将数据写回时，会将store请求放入write buffer中等待flush到内存，可以通过插入barrier的方式防止这个store请求与其他的请求重排序、保证数据的可见性。可以用一个生活中的例子类比屏障，例如坐地铁的斜坡式电梯时，大家按顺序进入电梯，但是会有一些人从左侧绕过去，这样出电梯时顺序就不相同了，如果有一个人携带了一个大的行李堵住了（屏障），则后面的人就不能绕过去了:)。另外这里的barrier和GC中用到的write barrier是不同的概念。</p>
+<h3 id="内存屏障的分类"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#内存屏障的分类" class="headerlink" title="内存屏障的分类"></a>内存屏障的分类</h3><p>几乎所有的处理器都支持一定粗粒度的barrier指令，通常叫做Fence(栅栏、围墙)，能够保证在fence之前发起的load和store指令都能严格的和fence之后的load和store保持有序。通常按照用途会分为下面四种barrier</p>
+<h4 id="LoadLoad-Barriers"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#LoadLoad-Barriers" class="headerlink" title="LoadLoad Barriers"></a>LoadLoad Barriers</h4><p>Load1; LoadLoad; Load2;<br>保证Load1的数据在Load2及之后的load前加载</p>
+<h4 id="StoreStore-Barriers"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#StoreStore-Barriers" class="headerlink" title="StoreStore Barriers"></a>StoreStore Barriers</h4><p>Store1; StoreStore; Store2<br>保证Store1的数据先于Store2及之后的数据 在其他处理器可见</p>
+<h4 id="LoadStore-Barriers"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#LoadStore-Barriers" class="headerlink" title="LoadStore Barriers"></a>LoadStore Barriers</h4><p>Load1; LoadStore; Store2<br>保证Load1的数据的加载在Store2和之后Store的数据flush前</p>
+<h4 id="StoreLoad-Barriers"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#StoreLoad-Barriers" class="headerlink" title="StoreLoad Barriers"></a>StoreLoad Barriers</h4><p>Store1; StoreLoad; Load2<br>保证Store1的数据在其他处理器前可见(如flush到内存)先于Load2和之后的load的数据的加载。StoreLoad Barrier能够防止load读取到Store1的旧数据而不是最近其他处理器写入的数据，例如Store1的写入在Write Buffer中, Load2可能直接从Write Buffer中读取了Store1的值而不是其他处理器中可能的最新值。<br>几乎近代的所有的多处理器都需要StoreLoad，StoreLoad的开销通常是最大的，并且StoreLoad具有其他三种屏障的效果，所以StoreLoad可以当做一个通用的(但是更高开销的)屏障。</p>
+<p>所以，利用上述的内存屏障，可以实现上面表格中的重排序规则</p>
+<table>
+<thead>
+<tr>
+<th>需要的屏障</th>
+<th>第二个操作</th>
+<th>第二个操作</th>
+<th>第二个操作</th>
+<th>第二个操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一个操作</td>
+<td>普通读</td>
+<td>普通写</td>
+<td>volatile读/monitor enter</td>
+<td>volatile写/monitor exit</td>
+</tr>
+<tr>
+<td>普通读</td>
+<td></td>
+<td></td>
+<td></td>
+<td>LoadStore</td>
+</tr>
+<tr>
+<td>普通读</td>
+<td></td>
+<td></td>
+<td></td>
+<td>StoreStore</td>
+</tr>
+<tr>
+<td>voaltile读/monitor enter</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+<td>LoadLoad</td>
+<td>LoadStore</td>
+</tr>
+<tr>
+<td>volatile写/monitor exit</td>
+<td></td>
+<td></td>
+<td>StoreLoad</td>
+<td>StoreStore</td>
+</tr>
+</tbody>
+</table>
+<p>为了支持final字段的规则，需要对final的写入增加barrier<br>x.finalField = v; StoreStore; sharedRef = x;</p>
+<h3 id="插入内存屏障"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#插入内存屏障" class="headerlink" title="插入内存屏障"></a>插入内存屏障</h3><p>单处理器上由于会保证透明的顺序一致性，所以并不需要明确的插入内存屏障。<br>在多处理器情况下，基于上面的规则，可以在volatile字段、synchronized关键字的处理上增加屏障来满足内存模型的规则。<br>最保守的策略是在volatile的前后都加上所有的屏障，但是这样在大多数情况都是不必要且重复的，所以再以volatile字段通常读多写少的假设，可以得出以下一种策略供编译器开发者参考:</p>
+<ol>
+<li>volatile store前插入LoadStore;StoreStore屏障</li>
+<li>所有final字段写入后但在构造器返回前插入StoreStore</li>
+<li>volatile store后插入StoreLoad屏障</li>
+<li>在volatile load后插入LoadLoad和LoadStore屏障</li>
+<li>monitor enter和volatile load规则一致，monitor exit 和volatile store规则一致。</li>
+</ol>
+<h3 id="x86-64处理器"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#x86-64处理器" class="headerlink" title="x86/64处理器"></a>x86/64处理器</h3><p>x86处理器架构下，只需要插入StoreLoad屏障, 另外JDK9种的Unsafe类提供了新的loadFence、storeFence和fullFence方法。<br>可以看下openjdk9中的templateTable_x86.cpp和assembler_x86.hpp。<br>x86中通过<code>lock; addl $0,0(%%esp)</code>这样的空操作来实现StoreLoad<br></p><figure class="highlight cpp"><table><tbody><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div></pre></td><td class="code"><pre><div class="line">templateTable_x86.cpp</div><div class="line"><span class="keyword">void</span> TemplateTable::volatile_barrier(Assembler::Membar_mask_bits order_constraint ) {</div><div class="line">  <span class="comment">// Helper function to insert a is-volatile test and memory barrier</span></div><div class="line">  <span class="keyword">if</span>(!os::is_MP()) <span class="keyword">return</span>;    <span class="comment">// Not needed on single CPU</span></div><div class="line">  __ membar(order_constraint);</div><div class="line">}</div><div class="line">assembler_x86.hpp</div><div class="line"><span class="comment">// Serializes memory and blows flags</span></div><div class="line">  <span class="function"><span class="keyword">void</span> <span class="title">membar</span><span class="params">(Membar_mask_bits order_constraint)</span> </span>{</div><div class="line">    <span class="keyword">if</span> (os::is_MP()) {</div><div class="line">      <span class="comment">// We only have to handle StoreLoad</span></div><div class="line">      <span class="keyword">if</span> (order_constraint &amp; StoreLoad) {</div><div class="line">        <span class="comment">// All usable chips support "locked" instructions which suffice</span></div><div class="line">        <span class="comment">// as barriers, and are much faster than the alternative of</span></div><div class="line">        <span class="comment">// using cpuid instruction. We use here a locked add [esp-C],0.</span></div><div class="line">        <span class="comment">// This is conveniently otherwise a no-op except for blowing</span></div><div class="line">        <span class="comment">// flags, and introducing a false dependency on target memory</span></div><div class="line">        <span class="comment">// location. We can't do anything with flags, but we can avoid</span></div><div class="line">        <span class="comment">// memory dependencies in the current method by locked-adding</span></div><div class="line">        <span class="comment">// somewhere else on the stack. Doing [esp+C] will collide with</span></div><div class="line">        <span class="comment">// something on stack in current method, hence we go for [esp-C].</span></div><div class="line">        <span class="comment">// It is convenient since it is almost always in data cache, for</span></div><div class="line">        <span class="comment">// any small C.  We need to step back from SP to avoid data</span></div><div class="line">        <span class="comment">// dependencies with other things on below SP (callee-saves, for</span></div><div class="line">        <span class="comment">// example). Without a clear way to figure out the minimal safe</span></div><div class="line">        <span class="comment">// distance from SP, it makes sense to step back the complete</span></div><div class="line">        <span class="comment">// cache line, as this will also avoid possible second-order effects</span></div><div class="line">        <span class="comment">// with locked ops against the cache line. Our choice of offset</span></div><div class="line">        <span class="comment">// is bounded by x86 operand encoding, which should stay within</span></div><div class="line">        <span class="comment">// [-128; +127] to have the 8-byte displacement encoding.</span></div><div class="line">        <span class="comment">//</span></div><div class="line">        <span class="comment">// Any change to this code may need to revisit other places in</span></div><div class="line">        <span class="comment">// the code where this idiom is used, in particular the</span></div><div class="line">        <span class="comment">// orderAccess code.</span></div><div class="line"></div><div class="line">        <span class="keyword">int</span> offset = -VM_Version::L1_line_size();</div><div class="line">        <span class="keyword">if</span> (offset &lt; <span class="number">-128</span>) {</div><div class="line">          offset = <span class="number">-128</span>;</div><div class="line">        }</div><div class="line"></div><div class="line">        lock();  lock前缀</div><div class="line">        addl(Address(rsp, offset), <span class="number">0</span>);<span class="comment">// Assert the lock# signal here  addl $0,0(%%esp)</span></div><div class="line">      }</div><div class="line">    }</div><div class="line">  }</div><div class="line"></div><div class="line">orderAccess_linux_x86.<span class="keyword">inline</span>.hpp</div><div class="line">  <span class="comment">// Compiler version last used for testing: gcc 4.8.2</span></div><div class="line"><span class="comment">// Please update this information when this file changes</span></div><div class="line"></div><div class="line"><span class="comment">// Implementation of class OrderAccess.</span></div><div class="line"></div><div class="line"><span class="comment">// A compiler barrier, forcing the C++ compiler to invalidate all memory assumptions</span></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">compiler_barrier</span><span class="params">()</span> </span>{</div><div class="line">  __<span class="function">asm__ <span class="title">volatile</span> <span class="params">(<span class="string">""</span> : : : <span class="string">"memory"</span>)</span></span>;</div><div class="line">}</div><div class="line"></div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::loadload()   { compiler_barrier(); }</div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::storestore() { compiler_barrier(); }</div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::loadstore()  { compiler_barrier(); }</div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::storeload()  { fence();            }</div><div class="line"></div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::acquire()    { compiler_barrier(); }</div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::release()    { compiler_barrier(); }</div><div class="line"></div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span> OrderAccess::fence() {</div><div class="line">  <span class="keyword">if</span> (os::is_MP()) {</div><div class="line">    <span class="comment">// always use locked addl since mfence is sometimes expensive</span></div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> AMD64</span></div><div class="line">    __<span class="function">asm__ <span class="title">volatile</span> <span class="params">(<span class="string">"lock; addl $0,0(%%rsp)"</span> : : : <span class="string">"cc"</span>, <span class="string">"memory"</span>)</span></span>;</div><div class="line"><span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">    __<span class="function">asm__ <span class="title">volatile</span> <span class="params">(<span class="string">"lock; addl $0,0(%%esp)"</span> : : : <span class="string">"cc"</span>, <span class="string">"memory"</span>)</span></span>;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">  }</div><div class="line">  compiler_barrier();</div><div class="line">}</div></pre></td></tr></tbody></table></figure><p></p>
+<h1 id="Happens-Before"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#Happens-Before" class="headerlink" title="Happens-Before"></a>Happens-Before</h1><p>前面提到的各种内存屏障对应开发者来说还是比较复杂底层，因此JMM又可以使用一系列Happens-Before的偏序关系的规则方式来说明，要想保证执行操作B的线程看到操作A的结果（无论A和B是否在同一个线程中执行), 那么在A和B之间必须要满足Happens-Before关系，否则JVM可以对它们任意重排序。</p>
+<blockquote>
+<p>Two actions can be ordered by a happens-before relationship. If one action happens-before another, then the first is visible to and ordered before the second.<br>Happens-Before术语来自于Lamport的”Time, Clocks and the Ordering of Events in a Distributed System”论文，用于描述分布式环境中发生的事件的偏序关系，偏序是指A Happens-Before B, A Happens-Before C，但是B和C不一定具有Happens-Before关系。</p>
+</blockquote>
+<h2 id="Happens-Before规则列表"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#Happens-Before规则列表" class="headerlink" title="Happens-Before规则列表"></a>Happens-Before规则列表</h2><p>HappendBefore规则包括</p>
+<ol>
+<li>程序顺序规则: 如果程序中操作A在操作B之前，那么同一个线程中操作A将在操作B之前进行</li>
+<li>监视器锁规则: 在监视器锁上的锁操作必须在同一个监视器锁上的加锁操作之前执行</li>
+<li>volatile变量规则: volatile变量的写入操作必须在该变量的读操作之前执行</li>
+<li>线程启动规则: 在线程上对Thread.start的调用必须在该线程中执行任何操作之前执行</li>
+<li>线程结束规则: 线程中的任何操作都必须在其他线程检测到该线程已经结束之前执行</li>
+<li>中断规则: 当一个线程在另一个线程上调用interrupt时，必须在被中断线程检测到interrupt之前执行</li>
+<li>传递性: 如果操作A在操作B之前执行，并且操作B在操作C之前执行，那么操作A在操作C之前执行。</li>
+</ol>
+<p>其中显示锁与监视器锁有相同的内存语义，原子变量与volatile有相同的内存语义。锁的获取和释放、volatile变量的读取和写入操作满足全序关系，所以可以使用volatile的写入在后续的volatile的读取之前进行。<br>可以利用上述Happens-Before的多个规则进行组合。<br>例如线程A进入监视器锁后，在释放监视器锁之前的操作根据程序顺序规则Happens-Before于监视器释放操作，而监视器释放操作Happens-Before于后续的线程B的对相同监视器锁的获取操作，获取操作Happens-Before与线程B中的操作。</p>
+<h1 id="总结"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#总结" class="headerlink" title="总结"></a>总结</h1><p>上面说了那么多，如果要用几句话总结的话：</p>
+<ol>
+<li>JMM是Java程序对线程如何交互的统一的约定协议</li>
+<li>Happens-Before 顺序: 保证了一个线程的操作结果能够对另一个线程可见</li>
+<li><code>synchronized</code>关键字提供互斥区和内存可见性, 防止重排序</li>
+<li><code>volatile</code>提供内存可见性,防止重排序，保证64位元素(double、long)的原子性读写</li>
+</ol>
+<h1 id="更多参考"><a href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#更多参考" class="headerlink" title="更多参考"></a>更多参考</h1><ul>
+<li><a href="http://gee.cs.oswego.edu/dl/jmm/cookbook.html" target="_blank" rel="external">http://gee.cs.oswego.edu/dl/jmm/cookbook.html</a></li>
+<li>《Java Concurrency in practice》</li>
+<li><a href="https://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html" target="_blank" rel="external">https://www.cs.umd.edu/~pugh/java/memoryModel/jsr-133-faq.html</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Java_memory_model" target="_blank" rel="external">https://en.wikipedia.org/wiki/Java_memory_model</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Happened-before" target="_blank" rel="external">https://en.wikipedia.org/wiki/Happened-before</a></li>
+<li><a href="https://zeroturnaround.com/rebellabs/java-memory-model-pragmatics-by-aleksey-shipilev/" target="_blank" rel="external">https://zeroturnaround.com/rebellabs/java-memory-model-pragmatics-by-aleksey-shipilev/</a></li>
+<li><a href="https://dzone.com/articles/java-memory-model-programer%E2%80%99s" target="_blank" rel="external">https://dzone.com/articles/java-memory-model-programer%E2%80%99s</a></li>
+<li><a href="http://www.cs.umd.edu/~pugh/java/memoryModel/Dagstuhl.pdf" target="_blank" rel="external">http://www.cs.umd.edu/~pugh/java/memoryModel/Dagstuhl.pdf</a></li>
+<li><a href="https://shipilev.net/blog/2014/jmm-pragmatics/" target="_blank" rel="external">https://shipilev.net/blog/2014/jmm-pragmatics/</a></li>
+<li><a href="https://www.youtube.com/watch?v=TxqsKzxyySo" target="_blank" rel="external">https://www.youtube.com/watch?v=TxqsKzxyySo</a></li>
+<li><a href="http://tutorials.jenkov.com/java-concurrency/java-memory-model.html" target="_blank" rel="external">http://tutorials.jenkov.com/java-concurrency/java-memory-model.html</a></li>
+<li><a href="http://gee.cs.oswego.edu/dl/cpj/jmm.html" target="_blank" rel="external">http://gee.cs.oswego.edu/dl/cpj/jmm.html</a></li>
+<li><a href="http://www.cs.umd.edu/~pugh/java/memoryModel/" target="_blank" rel="external">http://www.cs.umd.edu/~pugh/java/memoryModel/</a></li>
+<li><a href="http://www.cs.umd.edu/~pugh/java/memoryModel/jsr133.pdf" target="_blank" rel="external">http://www.cs.umd.edu/~pugh/java/memoryModel/jsr133.pdf</a></li>
+<li><a href="http://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4.2" target="_blank" rel="external">http://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4.2</a></li>
+<li><a href="http://preshing.com/20120913/acquire-and-release-semantics/" target="_blank" rel="external">http://preshing.com/20120913/acquire-and-release-semantics/</a></li>
+<li><a href="https://shipilev.net/blog/2014/on-the-fence-with-dependencies/" target="_blank" rel="external">https://shipilev.net/blog/2014/on-the-fence-with-dependencies/</a></li>
+<li><a href="https://www.slideshare.net/frogd/cpu-cache-and-memory-ordering?ref=http://hedengcheng.com/?paged=2" target="_blank" rel="external">https://www.slideshare.net/frogd/cpu-cache-and-memory-ordering?ref=http://hedengcheng.com/?paged=2</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>感觉有收获的话，请我吃个早饭吧!</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById(&#39;QR&#39;); if (qr.style.display === &#39;none&#39;) {qr.style.display=&#39;block&#39;;} else {qr.style.display=&#39;none&#39;}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <a href="./Java内存模型JMM浅析 _ 刘正阳_files/wechat-receive.jpg" class="fancybox fancybox.image" rel="group"><img id="wechat_qr" src="./Java内存模型JMM浅析 _ 刘正阳_files/wechat-receive.jpg" alt="liuzhengyang WeChat Pay"></a>
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <a href="./Java内存模型JMM浅析 _ 刘正阳_files/ali.jpg" class="fancybox fancybox.image" rel="group"><img id="alipay_qr" src="./Java内存模型JMM浅析 _ 刘正阳_files/ali.jpg" alt="liuzhengyang Alipay"></a>
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="https://liuzhengyang.github.io/2017/05/12/aqs/" rel="next" title="AbstractQueuedSynchronizer使用和源码分析">
+                <i class="fa fa-chevron-left"></i> AbstractQueuedSynchronizer使用和源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="https://liuzhengyang.github.io/2017/05/22/countdownlatch/" rel="prev" title="CountDownLatch使用和源码分析">
+                CountDownLatch使用和源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          &lt;a href="https://disqus.com/?ref_noscript"&gt;comments powered by Disqus.&lt;/a&gt;
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first" style="top: 5px; transform: rotateZ(-45deg); width: 100%;"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle" style="opacity: 0;"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last" style="top: -5px; transform: rotateZ(45deg); width: 100%;"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar sidebar-active" style="display: block; width: 320px;">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person" style="opacity: 1; display: block; transform: translateX(0px);">
+          <img class="site-author-image" itemprop="image" src="./Java内存模型JMM浅析 _ 刘正阳_files/avatar.gif" alt="liuzhengyang">
+          <p class="site-author-name" itemprop="name">liuzhengyang</p>
+           
+              <p class="site-description motion-element" itemprop="description" style="opacity: 1; display: block; transform: translateX(0px);"></p>
+          
+        </div>
+        <nav class="site-state motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="https://liuzhengyang.github.io/archives/">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="https://liuzhengyang.github.io/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+            <a href="https://liuzhengyang.github.io/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/liuzhengyang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://stackoverflow.com/users/4302168/liuzhengyang" target="_blank" title="StackOverflow">
+                  
+                    <i class="fa fa-fw fa-stack-overflow"></i>
+                  
+                    
+                      StackOverflow
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active" style="opacity: 1; display: block; transform: translateX(0px);">
+          <div class="post-toc" style="max-height: 618px; width: calc(100% + 0px);">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#JMM简介"><span class="nav-number">1.</span> <span class="nav-text">JMM简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#重排序规则"><span class="nav-number">2.</span> <span class="nav-text">重排序规则</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#volatile和监视器锁"><span class="nav-number">2.1.</span> <span class="nav-text">volatile和监视器锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#final字段"><span class="nav-number">2.2.</span> <span class="nav-text">final字段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#内存屏障"><span class="nav-number">2.3.</span> <span class="nav-text">内存屏障</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#内存屏障的分类"><span class="nav-number">2.3.1.</span> <span class="nav-text">内存屏障的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#LoadLoad-Barriers"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">LoadLoad Barriers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#StoreStore-Barriers"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">StoreStore Barriers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#LoadStore-Barriers"><span class="nav-number">2.3.1.3.</span> <span class="nav-text">LoadStore Barriers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#StoreLoad-Barriers"><span class="nav-number">2.3.1.4.</span> <span class="nav-text">StoreLoad Barriers</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#插入内存屏障"><span class="nav-number">2.3.2.</span> <span class="nav-text">插入内存屏障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#x86-64处理器"><span class="nav-number">2.3.3.</span> <span class="nav-text">x86/64处理器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#Happens-Before"><span class="nav-number">3.</span> <span class="nav-text">Happens-Before</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#Happens-Before规则列表"><span class="nav-number">3.1.</span> <span class="nav-text">Happens-Before规则列表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="https://liuzhengyang.github.io/2017/05/12/javamemorymodel/#更多参考"><span class="nav-number">5.</span> <span class="nav-text">更多参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liuzhengyang</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io/">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 —
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Muse
+    </a>
+  </div>
+
+
+        
+<div class="busuanzi-count">
+  <script async="" src="./Java内存模型JMM浅析 _ 刘正阳_files/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/index.js"></script>
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/fastclick.min.js"></script>
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/jquery.lazyload.js"></script>
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/velocity.min.js"></script>
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/velocity.ui.min.js"></script>
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/utils.js"></script>
+
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/motion.js"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/scrollspy.js"></script>
+<script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/post-details.js"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="./Java内存模型JMM浅析 _ 刘正阳_files/bootstrap.js"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="./Java内存模型JMM浅析 _ 刘正阳_files/count.js" async=""></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://liuzhengyang.github.io/2017/05/12/javamemorymodel/';
+          this.page.identifier = '2017/05/12/javamemorymodel/';
+          this.page.title = 'Java内存模型JMM浅析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://liuzhengyang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="./Java内存模型JMM浅析 _ 刘正阳_files/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("S1GRvf5tQIaTseeCeEgRArcy-gzGzoHsz", "N7TDdNmWqvjoomIaTQqesTKA");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 6646,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+
+
+<iframe name="easyXDM_default8129_provider" id="easyXDM_default8129_provider" src="./Java内存模型JMM浅析 _ 刘正阳_files/index.html" frameborder="0" style="position:absolute!important;top:-2000px!important;left:0!important;"></iframe></body></html>

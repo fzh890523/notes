@@ -1,0 +1,1850 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>          
+            <link rel="canonical" href="http://blog.csdn.net/w329636271/article/details/54616543"/> 
+
+   
+
+  
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848"> 
+       
+    <title>Volatile从入门到放弃 - w329636271的专栏
+        - CSDN博客</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="1.引言如果你对java的volatile有着疑虑请阅读本文,如果你想对volatile想有一个更深的了解,请阅读本文.本文主要讲的是volatile的写happen-before在volatile读之前所涉及相关的原理,以及在Hotspot中相关代码的实现.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;首先从一段代码开始讲起,如下&#160;&#160;&#160; 初始化 int a = 0, int b = 0; void foo" />
+
+    <meta name="keywords" content="" />
+
+   
+    <script src="http://static.blog.csdn.net/scripts/blog_static_head.min.js" type="text/javascript"></script>
+
+    
+        <!--new top-->
+       
+       
+        <!--new top-->
+    
+      <!-- ad begin -->
+         
+    <!-- ad end-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/skin-yellow/css/style.css?v=1.3" />
+
+    
+
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/w329636271/rss/list" />
+    <link rel="shortcut icon" href="http://c.csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/default.css" />
+ 
+
+
+
+    <link href="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.css" type="text/css" rel="stylesheet" />
+     
+         <link rel="stylesheet" href="http://static.blog.csdn.net/css/csdn_blog_detail.min.css" />
+
+  
+
+
+    <!-- 请置于所有广告位代码之前 --> 
+            <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+</head>
+
+
+<body>
+     
+        <div class="tracking-ad" data-view="true" data-mod="ad_popu_72"  data-mtp="62" data-order="40" data-con="ad_content_2072" >
+                     <script id="popuLayer_js_q" src="http://ads.csdn.net/js/popuLayer.js" defer="defer"  type="text/javascript"></script>
+                <div id="layerd" style="position: fixed;bottom:0px;right:0px;line-height:0px;z-index:1000">
+    	                <div class="J_close layer_close" style="display:;background-color:#efefef;padding:0px;color:#333;font:12px/24px Helvetica,Tahoma,Arial,sans-serif;text-align:right;">关闭</div><!-- 广告占位容器 -->
+                    <div id="cpro_u2895327">
+                        <!-- 投放代码 -->
+                        <script src="http://dup.baidustatic.com/js/ds.js"></script>
+                       <!-- 广告位：PC端-博客详情页右侧弹窗-300*250 -->
+                            <script>
+                                (function () {
+                                    var s = "_" + Math.random().toString(36).slice(2);
+                                    document.write('<div id="' + s + '"></div>');
+                                    (window.slotbydup = window.slotbydup || []).push({
+                                        id: '4740870',
+                                        container: s,
+                                        size: '300,250',
+                                        display: 'inlay-fix'
+                                    });
+                                })();
+                            </script>
+                    </div></div>
+                <script>  document.getElementById("popuLayer_js_q").onload = function () {
+      var styObjd = styObj = { width: "300px", "height": parseInt(250) + 28 };
+      window.CSDN.Layer.PopuLayer("#layerd", { storageName: "layerd", styleObj: styObjd, total: 50, expoire: 1000 * 60 });
+  }</script>
+            
+     
+        </div>
+
+    <!-- 广告位开始 -->
+        
+    <!-- 广告位结束 -->
+
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/w329636271">w329636271的专栏</a></h2>
+            <h3></h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+        
+     
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>           
+                <li id="btnContents"><a href="http://blog.csdn.net/w329636271?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/w329636271?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/w329636271/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                   
+            
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "w329636271";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/w329636271";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+<a href="http://blog.csdn.net/turingbooks/article/details/78475571">
+<font color=red><strong>图灵赠书——程序员11月书单</strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://edu.csdn.net/topic/python2?utm_source=blog4">
+<font color=blue><strong>【思考】Python这么厉害的原因竟然是！</strong></font></a>
+&nbsp;&nbsp;&nbsp;&nbsp
+
+<a 
+href="http://blog.csdn.net/epubit17/article/details/78606519">
+<font color=blue><strong>感恩节赠书：《深度学习》等异步社区优秀图书和作译者评选启动！</strong></font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp
+
+
+<a href="http://blog.csdn.net/broadview2006/article/details/78603363">
+<font color=red><strong>每周荐书：京东架构、Linux内核、Python全栈</strong></font></a>
+
+
+
+</div>                        </div>
+
+                        
+
+
+
+  
+
+
+
+
+
+
+<script   type="text/javascript" src="http://static.blog.csdn.net/scripts/category.js"></script>
+
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+      var isBole = false; 
+      var fasrc="http://my.csdn.net/my/favorite/miniadd?t=Volatile%e4%bb%8e%e5%85%a5%e9%97%a8%e5%88%b0%e6%94%be%e5%bc%83&u=http://blog.csdn.net/w329636271/article/details/54616543"
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+    <h1>
+        <span class="link_title"><a href="/w329636271/article/details/54616543">
+        Volatile从入门到放弃        
+           
+        </a>
+        </span>
+
+         
+    </h1>
+</div>
+
+   
+
+        <div class="article_manage clearfix">
+        <div class="article_r">
+            <span class="link_postdate">2017-01-19 15:21</span>
+            <span class="link_view" title="阅读次数">962人阅读</span>
+            <span class="link_comments" title="评论次数"> <a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(0)</span>
+            <span class="link_collect tracking-ad" data-mod="popu_171"> <a href="javascript:void(0);" onclick="javascript:collectArticle('Volatile%e4%bb%8e%e5%85%a5%e9%97%a8%e5%88%b0%e6%94%be%e5%bc%83','54616543');return false;" title="收藏">收藏</a></span>
+             <span class="link_report"> <a href="#report" onclick="javascript:report(54616543,2);return false;" title="举报">举报</a></span>
+
+        </div>
+    </div>    <style type="text/css">        
+            .embody{
+                padding:10px 10px 10px;
+                margin:0 -20px;
+                border-bottom:solid 1px #ededed;                
+            }
+            .embody_b{
+                margin:0 ;
+                padding:10px 0;
+            }
+            .embody .embody_t,.embody .embody_c{
+                display: inline-block;
+                margin-right:10px;
+            }
+            .embody_t{
+                font-size: 12px;
+                color:#999;
+            }
+            .embody_c{
+                font-size: 12px;
+            }
+            .embody_c img,.embody_c em{
+                display: inline-block;
+                vertical-align: middle;               
+            }
+             .embody_c img{               
+                width:30px;
+                height:30px;
+            }
+            .embody_c em{
+                margin: 0 20px 0 10px;
+                color:#333;
+                font-style: normal;
+            }
+    </style>
+    <script  type="text/javascript">
+        $(function () {
+            try
+            {
+                var lib = eval("("+$("#lib").attr("value")+")");
+                var html = "";
+                if (lib.err == 0) {
+                    $.each(lib.data, function (i) {
+                        var obj = lib.data[i];
+                        //html += '<img src="' + obj.logo + '"/>' + obj.name + "&nbsp;&nbsp;";
+                        html += ' <a href="' + obj.url + '" target="_blank">';
+                        html += ' <img src="' + obj.logo + '">';
+                        html += ' <em><b>' + obj.name + '</b></em>';
+                        html += ' </a>';
+                    });
+                    if (html != "") {
+                        setTimeout(function () {
+                            $("#lib").html(html);                      
+                            $("#embody").show();
+                        }, 100);
+                    }
+                }      
+            } catch (err)
+            { }
+            
+        });
+    </script>
+        <div   class="bog_copyright">         
+            <p  class="copyright_p" >版权声明：本文为博主原创文章，未经博主允许不得转载。</p>
+        </div>
+
+  
+
+  
+  
+     
+
+
+<div id="article_content" class="article_content tracking-ad" data-mod=popu_307  data-dsm = "post" >
+
+<p><br>
+</p>
+<h2>1.引言</h2>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;<span style="white-space:pre"> </span>如果你对java的volatile有着疑虑请阅读本文,如果你想对volatile想有一个更深的了解,请阅读本文.本文主要讲的是volatile的写happen-before在volatile读之前所涉及相关的原理,以及在Hotspot中相关代码的实现.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>首先从一段代码开始讲起,如下</p>
+<p>&nbsp;&nbsp;&nbsp; 初始化</p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_1_6255229"  code_snippet_id="2141706" snippet_file_name="blog_20170120_1_6255229" name="code" class="plain"> int a = 0, int b = 0;
+   void foo(void)
+  {
+        a= 1;
+        b= 1;
+  }
+  void bar(void)
+  {
+    while (b == 0) continue;
+     If(a == 1) {
+      System.out.println(“true”);
+     };
+   }</pre><br>
+<p></p>
+<p><span style="white-space:pre"></span>以上的代码,threadA运行foo方法,threadB运行bar方法;在threadB中,能否在while循环跳出之后,即b=1的情况下,得到a一定等于1呢?答案是否定的.因为存在着编译器的乱序和cpu指令的乱序,程序没有按照我们所写的顺序执行.</p>
+<p>&nbsp;</p>
+<h2>2.1编译器乱序</h2>
+<p><span style="white-space:pre"></span>编译器是如何乱序的?编译器在不改变单线程语义的前提之下,为了提高程序的运行速度,可以对指令进行乱序.</p>
+<p><span style="white-space:pre"></span>编译器按照一个原则,进行乱序:不能改变单线程程序的行为.</p>
+<p>&nbsp;&nbsp;&nbsp;<span style="white-space:pre"> </span>在不改变单线程运行的结果,以上foo函数就有可能有两种编译结果:</p>
+<p><span style="white-space:pre"></span>第一种:</p>
+<p><span style="white-space:pre"></span>&nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<span style="white-space:pre"></span>a = 1;</p>
+<p><span style="white-space:pre"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b= 1;</p>
+<p><span style="white-space:pre"></span>第二种:</p>
+<p><span style="white-space:pre"></span>&nbsp; &nbsp; &nbsp; &nbsp;b = 1;</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;a = 1;</p>
+<p><span style="white-space:pre"></span>如上,如果cpu按照第二种编译结果执行,那么就不能正确的输出”true”.虽然乱序了,但是并没有改变单线程threadA执行foo的语义,所以上面的重排是允许的.</p>
+<h2>&nbsp;2.2.cpu乱序</h2>
+<h2><span style="white-space:pre"></span>2.2.1 cpu的结构与cpu乱序:</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>首先来了解一下x86 cpu的结构:</p>
+<p></p>
+<p>c1,c2,c3 .. cn是160个用于整数和144个用于浮点的寄存器单元,用于存储本地变量和函数参数.cpu访问寄存器的需要1cycle&lt; 1ns,cpu访问寄存器是最快的.</p>
+<p>LoadBuffer,storeBuffer合称排序缓冲(Memoryordering Buffers (MOB)),Load缓冲有64长度,store缓冲有36长度.buffer与L1进行数据传输,cpu无须等待.</p>
+<p>L1是本地核心内的缓存,被分成独立的32K的数据缓存和32k指令缓存.访问L1需要3cycles ~1ns.</p>
+<p>L2缓存是本地核心内的缓存,被设计为L1缓存与共享的L3缓存之间的缓冲,L2缓存大小为256K.访问L2需要12cycles-3ns.</p>
+<p>L3:在同插槽的所有核心共享L3缓存,L3缓存被分为数个2M的段,访问L3需要38cycles~12ns.</p>
+<p>DRAM:就是我们通常说的内存,访问内存一般需要65ns.</p>
+<p>cpu加载不同缓存级别的数据,从上往下,需要的时间是越来越多的,而等待对cpu来说是极大的浪费;对于不同的插槽的cpu所拥有的一级二级缓存是不共享的,而不同的缓存之间需要保证一致性,主要通过MESI协议,为了保证不同缓存的一致性也是需要付出时间的,因为不同状态之间的转换需要等待消息的回复,这个等待过程往往是阻塞的.</p>
+<p>根据MESI协议，变量要从S状态变为M状态,本cpu要执行read andmodify ,需要发出Invalidate消息,然后等待,待收到所有其它cpu的回复之后才执行更新状态，其他操作也是如此，都有会等待的过程。这些过程都是阻塞的动作，无疑会给cpu的性能带来巨大的损耗。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 经过不断地改进，在寄存器与cache之间加上loadbuffer、storebuffer，来减小这些阻塞的时间。cpu要读取数据时，先把读请求发到loadbuffer中，无需等待其他cpu的响应，就可以先进行下一步操作。直到其他cpu的响应结果达到之后，再处理这个读请求的结果。cpu写数据时，就把数据写到storebuffer中，此时cpu认为已经把数据写出去了，待到某个适合的时间点（cpu空闲时间），在把storebuffer的数据刷到主存中去。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 根据以上的描述，可知在storebuffer中的数据有临时可见性问题。即在storebuffer中的数据对本cpu是可见的(本cpu读取数据时,可以直接从storebuffer中进行读取),其它槽的cpu对storebuffer中的数据不可见。loadbuffer中的请求无法取到其他cpu修改的最新数据，因为最新数据在其他cpu的storebuffer中。同时，在loadbuffer、storebuffer中的&quot;请求&quot;的完成都是异步的,即表现为它们完成的顺序是不确定的,指令的乱序。</p>
+</blockquote>
+<h2>2.2.2&nbsp; cpu乱序</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>cpu乱序的一种情况:</p>
+<table border="1" cellspacing="0" cellpadding="0" width="568">
+<tbody>
+<tr>
+<td valign="top">
+<p>Processor 0</p>
+</td>
+<td valign="top">
+<p>Processor 1</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p align="left">mov [ _x], 1 </p>
+</td>
+<td valign="top">
+<p>mov [ _y], 1 </p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>mov r1, [ _y] </p>
+</td>
+<td valign="top">
+<p>mov r2, [_x] </p>
+</td>
+</tr>
+<tr>
+<td width="568" colspan="2" valign="top">
+<p>Initially x == y == 0</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p><span style="white-space:pre"></span>解释一下:x,y表示内存中的变量,r1,r2表示寄存器, mov [_x],1,表示把1赋&#20540;给x变量,从顺序执行的角度来说,结果肯定是r1=1,或r2 =1;然而r1=0并且r2=0是存在的.</p>
+<p>cpu实际执行的情况可能如下</p>
+<table border="1" cellspacing="0" cellpadding="0" width="568">
+<tbody>
+<tr>
+<td valign="top">
+<p>Processor 0</p>
+</td>
+<td valign="top">
+<p>Processor 1</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p align="left">mov r1, [ _y] //&nbsp; (1)</p>
+</td>
+<td valign="top">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>&nbsp;</p>
+</td>
+<td valign="top">
+<p>mov r2, [_x] // (2)</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>mov [ _x], 1 // &nbsp;(3)</p>
+</td>
+<td valign="top">
+<p>&nbsp;</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>&nbsp;</p>
+</td>
+<td valign="top">
+<p>mov [ _y], 1 // (4)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span style="white-space:pre"></span>如上(1),(2),(3),(4)的顺序执行,便会得到r1=0,r2=0.可以这么理解,大部分的处理器,在保证单线程执行语义正确的基础上,会根据一定的规则对指令进行重排.&nbsp;&nbsp;</p>
+<p><span style="white-space:pre"></span>为什么会出现上面的情况?</p>
+<p><span style="white-space:pre"></span>因为cpu会将写放入storebuffer中,然后立刻返回不会等待,会将读放入load buffer中,然后立刻返回,这两个队列都是异步的,他们写读的是不同地址,不存在依赖,两者谁先完成是不知道的,如果读指令先完成了,就出现上面的重排的情况.</p>
+</blockquote>
+<p><span style="white-space:pre"></span></p>
+<p><span style="white-space:pre"></span></p>
+<p><span style="white-space:pre"></span></p>
+<h2>3. 编译器屏障与内存屏障</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>由于存在着编译器对程序指令的重排,这个需要编译器屏障来保证程序的正确执行,cpu也会对指令进行重排,这个需要内存屏障来保证.所以屏障需要对编译器和内存同时起作用,来保证程序可以正确执行.</p>
+<p><span style="white-space:pre"></span>因为我们大部分的软件主要都是在x86_linux上运行的,所以我们主要研究的是x86的相关编译器屏障和内存屏障.</p>
+</blockquote>
+<p><span style="white-space:pre"></span></p>
+<p><span style="white-space:pre"></span></p>
+<h2>3.1 编译屏障</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>Open jdk9中x86_linux的栅栏指令编写如下:</p>
+<p>static inline void compiler_barrier() {</p>
+<p>&nbsp;__asm__ volatile (&quot;&quot; : : : &quot;memory&quot;); /*编译器屏障*/</p>
+<p>}</p>
+<p>此处&nbsp; __asm__ volatile(&quot;&quot; : : : &quot;memory&quot;); 是内嵌汇编.</p>
+<p>解释:</p>
+<p>__asm__ :代表汇编代码开始.</p>
+<p>__volatile__:禁止编译器对代码进行某些优化.</p>
+<p>memory: memory代表是内存;这边用”memory”,来通知编译器内存的内容已经发生了修改,要重新生成加载指令(不可以从缓存寄存器中取).因为存在着内存的改变,不可以将前后的代码进行乱序.</p>
+<p>asm volatile(&quot;&quot; :::&quot;memory&quot;),这句内嵌汇编作为编译器屏障，可以防止编译器对相邻指令进行乱序，但是它无法阻止CPU的乱序；也就是说它仅仅禁止了编译器的乱序优化，不会阻止CPU的乱序执行。</p>
+<p>以下利用asm volatile(&quot;&quot; ::: &quot;memory&quot;)来验证,对于屏障之后的读,都是读取的主存,而不是从寄存器中读取的.当然如果您不懂汇编和c&#43;&#43;这部分您可以跳过.</p>
+</blockquote>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>实验一:</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_2_1052805"  code_snippet_id="2141706" snippet_file_name="blog_20170120_2_1052805" name="code" class="java">#include &lt;stdio.h&gt;
+int foo = 10;
+int bar = 15;
+int main(void)
+{
+       int  ss = foo + 1;
+       __asm__ __volatile__(&quot;&quot;:::&quot;memory&quot;);
+       int foo1 = foo + 2;
+       printf(&quot;ss=%d\n&quot;, ss);
+       printf(&quot;foo1=%d\n&quot;, foo1);
+         return0;
+}</pre><br>
+<br>
+<p></p>
+</blockquote>
+<p><span style="white-space:pre"></span>编译命令:</p>
+<p><span style="white-space:pre"></span>g&#43;&#43; -S -O2 test1.cpp</p>
+<p><span style="white-space:pre"></span>编译结果的部分汇编:</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_3_4771369"  code_snippet_id="2141706" snippet_file_name="blog_20170120_3_4771369" name="code" class="plain">main:
+.LFB30:
+       .cfi_startproc
+       movl    foo(%rip), %eax  //将foo变量从内存加载到寄存器eax中
+       pushq   %rbx
+       .cfi_def_cfa_offset 16
+       .cfi_offset 3, -16
+       leal    1(%rax), %edx //将rax变量加1赋值给edx寄存器也是ss变量.                                                                          //rax是64位寄存器,它的低32位是eax寄存器.
+       movl    foo(%rip), %eax//将foo变量从内存加载到寄存器eax中
+       movl    $.LC0, %esi
+       movl    $1, %edi
+       leal    2(%rax), %ebx//将rax变量加2赋值给edx寄存器也是foo1变量.    
+       xorl    %eax, %eax
+       call    __printf_chk
+        movl   %ebx, %edx
+       movl    $.LC1, %esi
+       movl    $1, %edi
+       xorl    %eax, %eax
+       call    __printf_chk
+       xorl    %eax, %eax
+       popq    %rbx
+       .cfi_def_cfa_offset 8
+       ret
+       .cfi_endproc</pre><br>
+<br>
+<p></p>
+<p>实验二:</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_4_1139108"  code_snippet_id="2141706" snippet_file_name="blog_20170120_4_1139108" name="code" class="cpp">#include &lt;stdio.h&gt;
+int foo = 10;
+int bar = 15;
+int main(void)
+{
+       int  ss = foo + 1;
+       int foo1 = foo + 2;
+       printf(&quot;ss=%d\n&quot;, ss);
+       printf(&quot;foo1=%d\n&quot;, foo1);
+         return0;
+}</pre><br>
+<br>
+<p></p>
+<p>编译命令：</p>
+<p><span style="white-space:pre"></span>g&#43;&#43; -S -O2 test2.cpp</p>
+<p>&nbsp;</p>
+<p>编译结果的部分汇编:</p>
+<p>&nbsp;</p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_5_1476582"  code_snippet_id="2141706" snippet_file_name="blog_20170120_5_1476582" name="code" class="plain">  main:
+.LFB30:
+       .cfi_startproc
+       pushq   %rbx
+       .cfi_def_cfa_offset 16
+       .cfi_offset 3, -16
+       movl    foo(%rip), %ebx //将foo变量从内存加载到寄存器ebx中
+ 
+       movl    $.LC0, %esi
+       movl    $1, %edi
+       xorl    %eax, %eax
+       leal    1(%rbx), %edx//将rbx寄存器加1赋值给edx寄存器也是ss变量.                                                                      //rbx是64位寄存器,它的低32位是ebx寄存器.
+       call    __printf_chk
+       leal    2(%rbx), %edx//直接取rbx寄存器,加2赋值给foo1变量
+       movl    $.LC1, %esi
+       movl    $1, %edi
+       xorl    %eax, %eax
+        call   __printf_chk
+       xorl    %eax, %eax
+       popq    %rbx
+       .cfi_def_cfa_offset 8
+       ret
+       .cfi_endproc</pre><br>
+<p></p>
+<p>&nbsp;</p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>结论:第一实验加入了内存屏障中,两次分别从内存中加载foo变量到寄存器中,然后进行操作,第二个实验中取出了内存屏障,第一次将foo变量从内存中加载到了寄存器中,进行第一次操作,然后第二次并没有从内存中加载,而是直接去寄存器中的&#20540;去操作,由此可以看出屏障的后面是不可以缓存变量在寄存器中的,而是屏障后面的变量是需要重新从主存中加载的.</p>
+</blockquote>
+<p><span style="white-space:pre"></span></p>
+<h2>3.2 Java的内存屏障</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>从上文可知:一个load操作需要进入loadbuffer中的,然后在从内存中去加载,一个store操作需要进入storebuffer然后在写入内存.而两个buffer之间是异步,导致出现了不同的乱序(重排),java定义了一系列的内存屏障来指定指令的执行顺序.</p>
+<p>Java中的内存中的内存屏障:</p>
+</blockquote>
+<p><span style="white-space:pre"></span></p>
+<p><span style="white-space:pre"></span></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<table border="1" cellspacing="0" cellpadding="0" width="555">
+<tbody>
+<tr>
+<td valign="top">
+<p>&nbsp;</p>
+</td>
+<td valign="top">
+<p>LoadLoad 屏障</p>
+</td>
+<td valign="top">
+<p>StoreStore屏障</p>
+</td>
+<td valign="top">
+<p>LoadStore 屏障</p>
+<p>&nbsp;</p>
+</td>
+<td valign="top">
+<p>StoreLoad屏障</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>序列</p>
+</td>
+<td valign="top">
+<p>Load1,Loadload,Load2</p>
+</td>
+<td valign="top">
+<p>Store1，StoreStore，Store2</p>
+</td>
+<td valign="top">
+<p>Load1,LoadStore,Store</p>
+</td>
+<td valign="top">
+<p>Store1,StoreLoad,Load</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>作用</p>
+</td>
+<td valign="top">
+<p>保证Load1所要读入的数据能够在被Load2和后续的load指令访问前读入。</p>
+</td>
+<td valign="top">
+<p>保证Store1的数据在Store2以及后续Store指令操作相关数据之前对其它处理器可见</p>
+</td>
+<td valign="top">
+<p>确保Load1的数据在Store2和后续Store指令被刷新之前读取。</p>
+</td>
+<td valign="top">
+<p>确保Store1的数据在被Load2和后续的Load指令读取之前对其他处理器可见。</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>对buffer的影响</p>
+</td>
+<td valign="top">
+<p>在Load buffer插入屏障,清空屏障之前的Load操作,然后才能执行屏障之后的Load操作.</p>
+</td>
+<td valign="top">
+<p>在Store buffer插入屏障,清空屏障之前的Store操作,然后才能执行屏障之后的store操作.</p>
+</td>
+<td valign="top">
+<p>在Load buffer插入屏障,清空屏障之前的Load操作,然后才能执行屏障之后的Store操作.</p>
+</td>
+<td valign="top">
+<p>在Load buffer, Store buffer中都插入屏障,必须清空屏障之前的Load操作并且清空屏障之前的store操作,然后才能执行屏障之后的Load操作,或store操作.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p><span style="white-space:pre"></span>StoreLoad屏障有可以同时获得其它三种屏障(loadload,loadstore,storestore)的的效果,但是StoreLoad是一个比较耗性能的屏障.因为StoreLoad屏障在Loadbuffer, Store buffer中都插入屏障,必须清空屏障之前的Load操作并且清空屏障之前的store操作,然后才能执行屏障之后的Load操作,或store操作.这使得之后的读指令不能从store buffer中直接获取,只能从缓存中获取,综合起来说，storeload屏障最耗性能。</p>
+</blockquote>
+<p><span style="white-space:pre"></span></p>
+<p>&nbsp;</p>
+<h2>3.2 Release 和Acquire,fence</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>Java中又定义了release和acquire,fence三种不同的语境的内存栅栏.&nbsp;</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>如上图,loadLoad和loadStore两种栅栏对应的都是acquire语境,,acquire语境一般定义在java的读之前;在编译器阶段和cpu执行的时候,acquire之后的所有的(读和写)操作不能越过acquire,重排到acquire之前,acquire指令之后所有的读都是具有可见性的.</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>如上图,StoreStore和LoadStore对应的是release语境,release语境一般定义在java的写之后,在编译器和cpu执行的时候,所有release之前的所有的(读和写)操作都不能越过release,重排到release之后,release指令之前所有的写都会刷新到主存中去,其他核的cpu可以看到刷新的最新&#20540;.</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>对于fence,是由storeload栅栏组成的,比较消耗性能.在编译器阶段和cpu执行时候,保证fence之前的任何操作不能重排到屏障之后,fence之后的任何操作不能重排到屏障之前.fence具有acquire和release这两个都有的语境,即可以将fence之前的写刷新到内存中,fence之后的读都是具有可见性的.</p>
+</blockquote>
+<p>&nbsp;</p>
+<h2>3.3 x86中的内存栅栏与实现</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>内存屏障，也称内存栅栏，内存栅障，屏障指令等，是一类同步屏障指令，是CPU或编译器在对内存随机访问的操作中的一个同步点，使得此点之前的所有读写操作都执行后才可以开始执行此点之后的操作。语义上，内存屏障之前的所有写操作都要写入主存；内存屏障之后的读操作,直接读取的主存,可以获得内存屏障之前的写操作的结果。</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>完全内存屏障（full memory barrier）保障了早于屏障的内存读写操作的结果提交到内存之后，再执行晚于屏障的读写操作,在loadbuffer和storebuffer中插入屏障,清空屏障之前的读和写操作。X86中对应MFence;</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>内存读屏障（read memory barrier）仅确保了内存读操作.在loadbuffe中插入屏障,清空屏障之前的读操作；LFence</p>
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>内存写屏障(write memory barrier)仅保证了内存写操作.在storebuffer中插入屏障,清空屏障之的写操作; SFence</p>
+<p><span style="white-space:pre"></span>接下来我们看看在源码中如何实现,主要看open jdk1.9,为什么,jdk1.8里面对栅栏的实现千奇百怪,作者能力有限,不能全部了解jvm开发者当时为啥那么实现,而jdk1.9的实现相对比比较清晰.</p>
+</blockquote>
+<p><span style="white-space:pre"></span>在jdk1.9中对storestore,storeload,loadload,loadstore的实现如下:</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_6_7877341"  code_snippet_id="2141706" snippet_file_name="blog_20170120_6_7877341" name="code" class="plain">static inline void compiler_barrier() {
+ __asm__ volatile (&quot;&quot; : : : &quot;memory&quot;);
+}
+ 
+inline void OrderAccess::loadload()   { compiler_barrier(); }
+inline void OrderAccess::storestore() {compiler_barrier(); }
+inline void OrderAccess::loadstore()  { compiler_barrier(); }
+inline void OrderAccess::storeload()  { fence();            }</pre>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><br>
+</p>
+<p>从上面我们可以看出对除了对loadstore使用了fence()函数,而loadload,loadstore, storestore都是使用的编译器屏障.查看jdk1.8,发现loadload,loadstore对应的acquire语境,storestore对应的是release语境,这与之前介绍的是一致.</p>
+</blockquote>
+<p>&nbsp;</p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>在jdk1.9中对storestore,storeload,loadload,loadstore的实现如下:</p>
+</blockquote>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_7_9403293"  code_snippet_id="2141706" snippet_file_name="blog_20170120_7_9403293" name="code" class="plain">inline void OrderAccess::acquire()    { compiler_barrier(); }
+inline void OrderAccess::release()    { compiler_barrier(); }
+ 
+inline void OrderAccess::fence() {
+  if(os::is_MP()) {
+    //always use locked addl since mfence is sometimes expensive
+#ifdef AMD64
+   __asm__ volatile (&quot;lock; addl $0,0(%%rsp)&quot; : : :&quot;cc&quot;, &quot;memory&quot;);
+#else
+   __asm__ volatile (&quot;lock; addl $0,0(%%esp)&quot; : : :&quot;cc&quot;, &quot;memory&quot;);
+#endif
+  }
+ compiler_barrier();
+}</pre><br>
+<br>
+<p></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>可以发现acquire,release也是编译器屏障,而fence的实现好像比较复杂.</p>
+<p>os::is_MP()判断是否是多核,如果是单核,那么就不存在内存不可见或者乱序的问题,只要保证编译器不乱序就好,所以使用编译器屏障.</p>
+<p>__asm__ volatile (&quot;lock; addl$0,0(%%esp)&quot; : : : &quot;cc&quot;, &quot;memory&quot;);</p>
+<p>解释一下:</p>
+<p>__asm__ :代表汇编代码开始.</p>
+<p>__volatile__:禁止编译器对代码进行某些优化.</p>
+<p>Lock :汇编代码,让后面的操作是原子操作.lock指令会锁住操作的缓存行(cacheline),一般用于read-Modify-write的操作例如 addl.“cc”,”mmeory”:cc代表的是寄存器,memory代表是内存;这边同时用了”cc”和”memory”,来通知编译器内存或者寄存器内的内容已经发生了修改,要重新生成加载指令(不可以从缓存寄存器中取).</p>
+<p><span style="white-space:pre"></span>这边的read/write请求不能越过lock指令进行重排,那么所有带有lock prefix指令(lock ,xchgl等)都会构成一个天然的x86 Mfence(读写屏障),这里用lock指令作为内存屏障,然后利用asm volatile(&quot;&quot; ::: &quot;cc,memory&quot;)作为编译器屏障.</p>
+<p>AMD64这边判断是否是64位,64位机器中使用rsp栈指针寄存器,32位机器中使用32位机器中使用esp栈指针寄存器.</p>
+<p>可以看到jvm开发组没有使用x86的内存屏障指令(mfence,lfence,sfence),个人觉得有以下原因:</p>
+<p>1.x86/64的Intel平台是强一致内存模型,(能够让所有的处理器在任何时候任何指定的内存地址上都可以看到完全相同的&#20540;).</p>
+<p>2.x86/64的Intel平台能够保证读读,写写,读写这些是有序的.</p>
+<p>基于以上两个原因hotSpot对loadload,loadstore,storestore,只要利用编译器屏障,保证程序不能重排就好.对于storeload屏障,利用了编译器屏障,还使用了lock addl作为内存屏障,原因是load,和store指令不能越过lock指令,形成了天然的MFence,没有使用MFence是因为在某些平台上,MFence的代价比较大.</p>
+<p>&nbsp;</p>
+</blockquote>
+<p>&nbsp;</p>
+<h2>4 浅析JVM中的volatile</h2>
+<p><strong>4.1 c/c&#43;&#43;的volatile</strong></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p align="left"><span style="white-space:pre"></span>Java的volatile语义是从c/c&#43;&#43;的volatile发展而来,并且进行增强,首先了解一下c/c&#43;&#43;的volatile的语义.</p>
+<p align="left"><span style="white-space:pre"></span>c/c&#43;&#43;中的volatile，能确保可见性。即：volatile变量的写操作，不会缓存到寄存器中，而是直接回写主存中去。而volatile变量的读取，也不会从寄存器中读取，而是从主存中读取。这就是说c/c&#43;&#43;volatile的第一特性：易变性。</p>
+<p align="left"><span style="white-space:pre"></span>c/c&#43;&#43;的volatile的第二特性：不可优化性。即不要对volatile变量进行各种激进的优化，保持变量原有的语义,不能被优化掉。</p>
+<p align="left"><span style="white-space:pre"></span>c/c&#43;&#43;的volatile的第三特性：顺序性。基于前面的两个特性，让Volatile经常被解读为一个为多线程而生的关键词。但更要命的是很多程序员往往会忽略掉顺序性，这使得c/c&#43;&#43;&nbsp;volatile很难被正确使用的重要原因。同时，c/c&#43;的volatile是不能完全保证顺序性的。</p>
+</blockquote>
+<p align="left"></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p align="left"><span style="white-space:pre"></span><span style="white-space:pre"></span>上面这段伪代码，b变量被声明为一个volatile的变量。在thread1去修改变量，而thread2去读取变量。由于b变量声明成一个volatile变量，在编译器编译时，不会从寄存器读取变量，而是主存中去读变量，同时也不会通过各种激进的优化。即保证volatile的易变性，不可优化行。即：thread1修改b变量，thread2就能读取到变化的b变量。那么问题来了，上面这段伪代码能否确保在b=1的情况下，a等于2。答案显然是否定的。因为编译器会对volatile变量与非volatile变量进行乱序优化。即b=1，有可能在a=2前先执行。</p>
+<p align="left"><span style="white-space:pre"></span>但是在a变量同时也申明成volatile，那么在编译阶段就能确保在thread1中a=2先执行，b=1后执行，不乱序。那么在thread2中，a能否确保看到等于2呢?答案是否定的。</p>
+<p align="left"><span style="white-space:pre"></span><span style="white-space:pre"></span>因为即使c/c&#43;&#43;volatile变量阻止了编译器对volatile变量间的乱序优化，但是终于生成的指令还是交给cpu来执行的。CPU本身为了提高代码运行的效率，也会对代码的执行顺序进行调整，即cpu级别的乱序优化。因此，即便把所有的变量全部都声明为volatile，杜绝了编译器的乱序优化，但是针对生成的汇编代码，CPU有可能仍旧会乱序执行指令，导致程序依赖的逻辑出错，c/c&#43;&#43;的volatile对此无能为力。</p>
+<p align="left"><span style="white-space:pre"></span><span style="white-space:pre"></span>其实，针对这个多线程的应用，真正正确的做法，是构建一个happens-before语义。也就是java对volatile的语义增强,可以防止volatile变量与普通变量或volatile变量之间的重排序,并且保证cpu执行的时候不会重排.</p>
+<p>&nbsp;</p>
+</blockquote>
+<p><strong>4.2 java中的volatile</strong></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>jSR-133专家组增强volatile的内存语义：严&#26684;限制编译器和处理器对volatile变量和普通变量之间的重排序，确保volatile的写-读和监视器的释放-获取一样，具有相同的内存语义。</p>
+</blockquote>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>Java中的volatile在读写时候添加的内存屏障如下:</p>
+</blockquote>
+<p><strong></strong></p>
+<table border="1" cellspacing="0" cellpadding="0" width="568">
+<tbody>
+<tr>
+<td width="568" colspan="2" valign="top">
+<p>&nbsp; //初始化</p>
+<p>&nbsp; Int a = 1; volatile int v =&nbsp; 9;</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>Volatile的写&nbsp;&nbsp; </p>
+</td>
+<td valign="top">
+<p>Volatile的读</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>Storestore;</p>
+<p>v= a;</p>
+<p>Storeload;</p>
+</td>
+<td valign="top">
+<p>a = v;</p>
+<p>loadload;</p>
+<p>loadstore;</p>
+</td>
+</tr>
+<tr>
+<td valign="top">
+<p>即:</p>
+<p>release();</p>
+<p>v= a;</p>
+<p>fence();</p>
+</td>
+<td valign="top">
+<p>即:</p>
+<p>a = v;</p>
+<p>acquire();</p>
+</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span></p>
+</blockquote>
+<p><strong></strong></p>
+<p>&nbsp;</p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>解释一下,对volatile变量的写,在前面插入storestore屏障(release语义),这样就能保证所有在volatile变量写之前写的数据,可以在volatile变量写之前刷入主存,storeload这边的可以将volatile变量刷入主存,还可以防止volatile变量写之后又一个volatile变量的读,会越过这个volatile变量的写,保证volatile变量可以从内存中读数据,而不是从storebuffer中读取.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 对于volatile变量的读,在后面插入了loadload,loadstore,这样就可以volatile变量之后的操作都不能重排到volatile变量的读之前,同时保证了volatile变量之后的变量的读,都是内存中的最新数据.</p>
+<p>总结:</p>
+<p>1. &nbsp;有volatile的标识的变量具有可见性.对volatile变量的写会被刷到主存到去,对volatile变量的读,会直接从主存到读,不会对volatile的变量进行任何的(寄存器的)缓存.</p>
+<p>2. 任何变量的写在volatile变量写之前,那么这个变量在volatile变量读之后可见的.</p>
+<p>那样只要在第一个例程中对第二个变量b加入volatile的标识,那么就可以保证程序正确性了,这就是volatile变量的写happen-before在volatile变量读之前.</p>
+</blockquote>
+<h2>4.3 volatile与release_store_fence,release_store,load_acquire</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>release_store_fence,与load_acquire的具体代表什么意思?</p>
+<p>\openjdk-jdk9-jdk9\hotspot\src\share\vm\runtime\orderAccess.inline.hpp文件中的</p>
+<p>release_store_fence</p>
+<p>inline void&nbsp;&nbsp;&nbsp;&nbsp; OrderAccess::release_store_fence(volatilejbyte*&nbsp;&nbsp; p, jbyte&nbsp;&nbsp; v) { specialized_release_store_fence(p, v);}</p>
+<p>调用得了</p>
+<p>template&lt;typename T&gt; inline voidOrderAccess::specialized_release_store_fence(volatile T* p, T v)&nbsp; { ordered_store&lt;T, RELEASE_X_FENCE&gt;(p,v); }</p>
+<p>RELEASE_X_FENCE,这个有点像是在操作x之前插入了release,在操作x之后插入了fence?具体是不是这样呢?</p>
+<p>接着找到:</p>
+<p>inline voidOrderAccess::ordered_store(volatile FieldType* p, FieldType v) {</p>
+<p>&nbsp;ScopedFence&lt;FenceType&gt; f((void*)p);</p>
+<p>&nbsp;store(p, v);</p>
+<p>}</p>
+</blockquote>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>这段代码定义了一个变量,然后进行存储.神器之处就在于ScopedFence&lt;FenceType&gt;f((void*)p)的定义,</p>
+<p>c&#43;&#43;对一个类的变量的初始化,首先会调用构造函数,然后会在对变量进行回收的时候也就是调用结束的时候,调用析构函数.</p>
+<p></p>
+<p>可以看出构造函数调用了prefix函数,析构函数调用了post函数</p>
+<p>然后对于RELEASE_X_FENCE的中prefix和postfix的定义:</p>
+<p>template&lt;&gt; inline voidScopedFenceGeneral&lt;RELEASE_X_FENCE&gt;::prefix()&nbsp; { OrderAccess::release(); }</p>
+<p>template&lt;&gt; inline voidScopedFenceGeneral&lt;RELEASE_X_FENCE&gt;::postfix() {OrderAccess::fence();&nbsp;&nbsp; }</p>
+<p>如上:在写之前调用了release即storestore,在写之后调用了fence即storeload.</p>
+<p>对于load_acquire相关源码:</p>
+<p><pre code_snippet_id="2141706" snippet_file_name="blog_20170120_8_8969043"  name="code" class="java">inline jbyte    OrderAccess::load_acquire(volatilejbyte*   p) { returnspecialized_load_acquire(p); }
+template&lt;typename T&gt; inline T    OrderAccess::specialized_load_acquire       (volatile T* p)       { return ordered_load&lt;T, X_ACQUIRE&gt;(p);    }
+template&lt;&gt; inline voidScopedFenceGeneral&lt;X_ACQUIRE&gt;::postfix()       { OrderAccess::acquire(); }
+template &lt;typename FieldType,ScopedFenceType FenceType&gt;
+inline FieldTypeOrderAccess::ordered_load(volatile FieldType* p) {
+ ScopedFence&lt;FenceType&gt; f((void*)p);
+ return load(p);
+}</pre></p>
+</blockquote>
+<p>从上代码可知,load_acquire在读之前调用了acquire即loadload或loadstore.</p>
+<p>&nbsp;</p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>inline void&nbsp;&nbsp;&nbsp;&nbsp; OrderAccess::release_store(volatilejbyte*&nbsp;&nbsp; p, jbyte&nbsp;&nbsp; v) { specialized_release_store(p, v); }</p>
+<p>template&lt;typename T&gt; inline voidOrderAccess::specialized_release_store&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(volatile T* p, T v)&nbsp; {ordered_store&lt;T, RELEASE_X&gt;(p, v); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</p>
+<p>template&lt;&gt; inline voidScopedFenceGeneral&lt;RELEASE_X&gt;::prefix()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { OrderAccess::release(); }</p>
+<p>从上面代码可知,releasestore只在store之前插入了release函数.而并没有插入storeload.</p>
+</blockquote>
+<h2>4.2 浅析volatile的源码</h2>
+<p><a target="_blank" target="_blank" name="_GoBack"></a>在hotSpot中对volatile的实现的地方有多处,这里主要看的是从oops中的实现.</p>
+<p><span style="white-space:pre"></span>找到oop中对volatile读写的实现:</p>
+<p><span style="white-space:pre"></span>\openjdk-jdk9-jdk9\hotspot\src\share\vm\oops\oop.inline.hpp</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_8_2597687"  code_snippet_id="2141706" snippet_file_name="blog_20170120_8_2597687" name="code" class="plain">voidoopDesc::obj_field_put_volatile(int offset, oop value) {
+  OrderAccess::release();
+  obj_field_put(offset, value);
+  OrderAccess::fence();
+}</pre>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px"><br>
+对volatile的字段写之前插入了release,写之后插入了fence,跟之前所描述是一致的.</blockquote>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>jint oopDesc::int_field_acquire(intoffset) const</p>
+<p>&nbsp;{ returnOrderAccess::load_acquire(int_field_addr(offset));&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }</p>
+<p>从上文可知,load_acquire在volatile的读之后插入acquire也就是loadload栅栏.</p>
+</blockquote>
+<p>&nbsp;&nbsp;</p>
+<h2>5.1 volatile与unsafe中的黑魔法</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>Unsafe.java里面有API类&#20284;getObjectVolatile,putObjectVolatile等,这两个api具体有什么用处?</p>
+<p>可以从名称看出来这与volatile有关.但是具体有什么作用,我们还是来查看源码.</p>
+<p>可以找到getObjectVolatile在unsafe.cpp中的实现:</p>
+</blockquote>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_9_9380130"  code_snippet_id="2141706" snippet_file_name="blog_20170120_9_9380130" name="code" class="java">UNSAFE_ENTRY(jobject,Unsafe_GetObjectVolatile(JNIEnv *env, jobject unsafe, jobject obj, jlongoffset))
+ UnsafeWrapper(&quot;Unsafe_GetObjectVolatile&quot;);
+  oop p = JNIHandles::resolve(obj);
+  void* addr =index_oop_from_field_offset_long(p, offset);
+  volatile oop v;
+  if (UseCompressedOops) {
+    volatile narrowOop n = *(volatilenarrowOop*) addr;
+    (void)const_cast&lt;oop&amp;&gt;(v =oopDesc::decode_heap_oop(n));
+  } else {
+    (void)const_cast&lt;oop&amp;&gt;(v =*(volatile oop*) addr);
+  }
+  OrderAccess::acquire();
+  return JNIHandles::make_local(env, v);
+UNSAFE_END</pre><br>
+<br>
+<p></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>我们来看看到代码volatile oopv; 定义了一个c&#43;&#43;的volatile,进行一个读取操作;c&#43;&#43; volatile具有的语义是每次都能够从内存中看到的最新的,oop这个类是java中的对象类在c&#43;&#43;中对应的实现类,即使用c&#43;&#43;的语义读取了这个对象的引用地址,保证了可见性.而后是acquire指令.</p>
+<p>OrderAccess::acquire();</p>
+<p><span style="white-space:pre"></span>从上文可知acquire是有loadload,和loadStore组成的这就是volatile变量所要插入的栅栏,并且可以保证,acquire之后的读都是具有可见性的,x86_64在jdk9中是有编译器栅栏实现的,可以推断出,任意的一个变量通过getObjectVolatile是可以获取javavolatile的读的语义的.</p>
+<p>&nbsp;</p>
+<p>找到putObjectVolatile在unsafe.cpp中的具体实现,</p>
+</blockquote>
+<p>&nbsp;</p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_10_5813909"  code_snippet_id="2141706" snippet_file_name="blog_20170120_10_5813909" name="code" class="cpp">UNSAFE_ENTRY(void,Unsafe_SetObjectVolatile(JNIEnv *env, jobject unsafe, jobject obj, jlongoffset, jobject x_h))
+ UnsafeWrapper(&quot;Unsafe_SetObjectVolatile&quot;);
+  oop x = JNIHandles::resolve(x_h);
+  oop p = JNIHandles::resolve(obj);
+  void* addr =index_oop_from_field_offset_long(p, offset);
+  OrderAccess::release();
+  if (UseCompressedOops) {
+    oop_store((narrowOop*)addr, x);
+  } else {
+    oop_store((oop*)addr, x);
+  }
+  OrderAccess::fence();
+UNSAFE_END</pre><br>
+<br>
+<p></p>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span><span style="white-space:pre"></span>opp_store是Java Object变量的写,在这之前插入了release,在之后插入了fence,这边又有了javavolatile写的语义,因为release对应的loadStore,storestore的两个栅栏;fence对应的是storeload栅栏,这与java volatile的写所需要的栅栏是一致的.</p>
+<p>&nbsp;</p>
+<p><span style="white-space:pre"></span>总结:一个引用要变成volatile的读的语义,只要用getObjectVolatile,一个引用要想有volatile写的语义,主要putObjectvolatile.</p>
+</blockquote>
+<p>&nbsp;</p>
+<h2>5.2 volatile的相关特性</h2>
+<h2>5.2 volatile的写</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p><span style="white-space:pre"></span>从上文可知道,volatile的写所插入的storeLoad是一个耗时的操作,所以出现了一个对volatile写的升级版本.</p>
+<p><span style="white-space:pre"></span></p>
+<p><span style="white-space:pre"></span>AtomicIntegeri=new AtomicInteger(5);</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; i.lazySet(5);</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p><span style="white-space:pre"></span>&nbsp;如上利用laySet方法进行性能优化,在实现上对volatile的写只会在之前插入storestore栅栏,这样可以保证的volatile写之前的写都不能重排到volatile写之后,volatile之前的写都会在volatile变量写之前刷入主存,但是这个方法虽然提高了效率,但是volatile的写并不能被马上被其它线程看到,通常需要几纳秒才能被其它线程看到,这个时间比较短,所以代价是可以忍受的.</p>
+</blockquote>
+<p>&nbsp;</p>
+<h2>5.2.2 volatile的读</h2>
+<blockquote style="margin:0 0 0 40px; border:none; padding:0px">
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 网上流传着volatile的读与普通变量是差不多的性能,但是如果你读了本文,你就知道,volatile的读其实也是有代价,而且相比普通的变量的读要慢的多.原因是,volatile的变量不仅要从内存中读,还使得它之后的所读的变量也是从内存中读的.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 为此常常将循环中对volatile的变量的读,提取到循环之外.</p>
+<p><span style="white-space:pre"></span>Volatile int I= 0;</p>
+<p><span style="white-space:pre"></span>For(int j = 0;j &lt; 100000;j&#43;&#43;){</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="white-space:pre"> </span>&nbsp; &nbsp;&nbsp;&nbsp;Int p = I;</p>
+<p><span style="white-space:pre"></span>}</p>
+<p>优化为</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Int p = I;</p>
+<p><span style="white-space:pre"></span>For(int j = 0;j &lt; 100000;j&#43;&#43;){</p>
+<p><span style="white-space:pre"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;//直接操作p</p>
+<p><span style="white-space:pre"></span>}</p>
+<p>如上,这样就可以使得volatile变量缓存在寄存器中,那么就不用每次都去从主存中去读取,这样就可以大大的提高性能.</p>
+</blockquote>
+<h2>5.2.3 volatile与原子性</h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Volatile标识的变量的纯粹的读和写都是原子,普通long变量,double变量的读写是不具有原子性的,但是对volatile的i&#43;&#43;,i—操作都不是原子操作,这是volatile的不足.</p>
+<p>&nbsp;</p>
+<p>Javap -c Test2 </p>
+<p></p>
+<pre code_snippet_id="2141706" snippet_file_name="blog_20170120_11_371505"  code_snippet_id="2141706" snippet_file_name="blog_20170120_11_371505" name="code" class="cpp">public class Test2
+{
+private staticvolatile int i=0;
+i++;
+public staticvoid main(java.lang.String[]);
+ Code:
+0: getstatic #10// Field i:I
+3: iconst_1
+4: iadd
+5: putstatic #10// Field i:I
+8: return</pre>
+<p></p>
+<p>&nbsp;</p>
+<p><span style="white-space:pre"></span>如上面代码所示:i&#43;&#43;是由4个操作组合而成,volatile的加一操作并没有保证原子操作,所以如果有多个线程对volatile进行操作,需要加锁,或者使用Atomic类.</p>
+<p><strong>转载请注明来源&nbsp;http://blog.csdn.net/w329636271/article/details/54616543 &nbsp;老师:leader &nbsp; 合作者&lt;wangzhancheng.com@qq.com&gt;&nbsp;</strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+   
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+
+
+
+<div class="bdsharebuttonbox tracking-ad" style="float: right;" data-mod="popu_172">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+   
+
+<!--172.16.140.14-->
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+
+ 
+
+
+        <div id="digg" ArticleId="54616543" >
+            <dl id="btnDigg" class="digg digg_disable"  onclick="btndigga();">
+               
+                 <dt>顶</dt>
+                <dd>2</dd>
+            </dl>
+           
+              
+            <dl id="btnBury" class="digg digg_disable"  onclick="btnburya();">
+              
+                  <dt>踩</dt>
+                <dd>0</dd>               
+            </dl>
+            
+        </div>
+     <div class="tracking-ad" data-mod="popu_222"><a href="javascript:void(0);" >&nbsp;</a>   </div>
+    <div class="tracking-ad" data-mod="popu_223"> <a href="javascript:void(0);" >&nbsp;</a></div>
+    <script type="text/javascript">
+        function btndigga() {
+            $(".tracking-ad[data-mod='popu_222'] a").click();
+        }
+        function btnburya() {
+            $(".tracking-ad[data-mod='popu_223'] a").click();
+        }
+            </script>
+
+   <ul class="article_next_prev">
+                <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='http://blog.csdn.net/w329636271/article/details/54288334';">上一篇</span><a href="http://blog.csdn.net/w329636271/article/details/54288334" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">cas 循环数组</a></li>
+                <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='http://blog.csdn.net/w329636271/article/details/54616607';">下一篇</span><a href="http://blog.csdn.net/w329636271/article/details/54616607" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">mysql备忘录</a></li>
+    </ul>
+
+    <div style="clear:both; height:10px;"></div>
+
+
+            <div class="similar_article"   >
+                    <h4></h4>
+                    <div class="similar_c"style="margin:20px 0px 0px 0px">
+                        <div class="similar_c_t">
+                          &nbsp;&nbsp;相关文章推荐
+                        </div>
+                   
+                        <div class="similar_wrap tracking-ad" data-mod="popu_36"  style="max-height:250px">                       
+                            <ul class="similar_list fl">    
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/feier7501/article/details/20001083" title="java之用volatile和不用volatile的区别" strategy="BlogCommendFromBaidu_0" target="_blank">java之用volatile和不用volatile的区别</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/huiyiCourse/series_detail/73?utm_source=blog7" title="腾讯云容器服务架构实现介绍--董晓杰" strategy="undefined" target="_blank">腾讯云容器服务架构实现介绍--董晓杰</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/jingxuewang110/article/details/6759044" title="volatile" strategy="BlogCommendFromBaidu_1" target="_blank">volatile</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/huiyiCourse/series_detail/74?utm_source=home7" title="微博热点事件背后的数据库运维心得--张冬洪" strategy="undefined" target="_blank">微博热点事件背后的数据库运维心得--张冬洪</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/tigerjb/article/details/7427366" title="C语言中volatile关键字的作用" strategy="BlogCommendFromBaidu_2" target="_blank">C语言中volatile关键字的作用</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/course/detail/6134?utm_source=blog7" title="JDK9新特性--Array" strategy="undefined" target="_blank">JDK9新特性--Array</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/jinfeiteng2008/article/details/53423858" title="volatile深入分析( 什么时候使用volatile）" strategy="BlogCommendFromBaidu_3" target="_blank">volatile深入分析( 什么时候使用volatile）</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/huiyiCourse/series_detail/73?utm_source=blog7" title="Kubernetes容器云平台实践--李志伟" strategy="undefined" target="_blank">Kubernetes容器云平台实践--李志伟</a>
+                                   </li>
+                            </ul>
+                              <ul class="similar_list fr">      
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/BorntoX/article/details/51871480" title="Linux系统自带spi驱动加载及应用程序编写方法详解" strategy="BlogCommendFromBaidu_4" target="_blank">Linux系统自带spi驱动加载及应用程序编写方法详解</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/course/detail/5226?utm_source=blog7" title="用Word2Vec处理自然语言" strategy="undefined" target="_blank">用Word2Vec处理自然语言</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/qq_33642117/article/details/51924653" title="Spring IOC -bean对象的生命周期详解" strategy="BlogCommendFromBaidu_5" target="_blank">Spring IOC -bean对象的生命周期详解</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://edu.csdn.net/course/detail/5116?utm_source=blog7" title="Java之优雅编程之道 " strategy="undefined" target="_blank">Java之优雅编程之道 </a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/jinzhilong580231/article/details/8016891" title="volatile" strategy="BlogCommendFromBaidu_6" target="_blank">volatile</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/u013761206/article/details/62036686" title="你真的了解volatile吗，关于volatile的那些事" strategy="BlogCommendFromBaidu_7" target="_blank">你真的了解volatile吗，关于volatile的那些事</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/qq_29350001/article/details/54024070" title="C语言再学习 -- 关键字volatile" strategy="BlogCommendFromBaidu_8" target="_blank">C语言再学习 -- 关键字volatile</a>
+                                   </li>
+                                   <li>
+                                       <em>•</em>
+                                       <a href="http://blog.csdn.net/wxwzy738/article/details/43238089" title="不得不提的volatile及指令重排序(happen-before)" strategy="BlogCommendFromBaidu_9" target="_blank">不得不提的volatile及指令重排序(happen-before)</a>
+                                   </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>   
+      
+</div>
+
+     <div>
+           
+
+       
+                           
+            <!-- 广告位：PC端-博客内容页-banner1-960*90 --> 
+           
+         <!-- 广告位：PC端-博客详情页底部banner-960*90 -->
+            <script>
+                (function() {
+                    var s = "_" + Math.random().toString(36).slice(2);
+                    document.write('<div id="' + s + '"></div>');
+                    (window.slotbydup=window.slotbydup || []).push({
+                        id: '4770928',
+                        container: s,
+                        size: '960,90',
+                        display: 'inlay-fix'
+                    });
+                })();
+            </script>
+    </div>
+
+<div id="suggest"></div>
+         <script  language="javascript" type='text/javascript'>     
+             $(function(){
+                 $.get("/w329636271/svc/GetSuggestContent/54616543",function(data){
+                     $("#suggest").html(data);
+                 });     
+             });             
+         </script>  
+
+
+
+            
+                                    
+            
+                                    
+
+        <!-- 广告位开始 -->
+        <!-- 广告位结束 -->
+
+
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '54616543';
+    var commentscount = 0;
+    var islock = false
+</script>
+
+    <div id="ad_bot">
+    </div>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);    
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+
+
+
+
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){        
+        
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });         
+
+        },200);  
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },5000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },10000);
+
+        setTimeout(function(){
+            $(".math").each(function(index,value){$(this).find("span").last().css("color","#fff"); })
+        },15000);
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }   
+
+    var articletitle='Volatile从入门到放弃';
+
+</script>
+
+
+
+
+
+
+
+
+
+
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+                   
+           <div id="side">
+               
+    <div class="side">
+<div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/w329636271" target="_blank">
+    <img src="http://avatar.csdn.net/0/7/4/1_w329636271.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/w329636271" class="user_name" target="_blank">w329636271</a></span>
+</div>
+<div class="interact">
+
+    <a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=w329636271','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://c.csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="3" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>99181次</span></li>
+    <li>积分：<span>322</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://c.csdnimg.cn/jifen/images/xunzhang/jianzhang/blog2.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：322 </div>
+        </span>  </li>
+    <li>排名：<span>千里之外</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>89篇</span></li>
+    <li>转载：<span>12篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>9条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">    
+                 <li>
+                    <a href="/w329636271/article/category/1278592" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">mysql</a><span>(5)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1278605" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">linux command</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1278609" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">os</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1278976" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">linux 编程</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1280582" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">自省</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1284967" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">acm</a><span>(3)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1296694" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">zhu</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1296695" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">转载</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1376624" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">编译</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1386099" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">stl</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/1409843" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">java</a><span>(42)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/5611835" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">java ehcache</a><span>(1)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/5713435" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">JavaScript</a><span>(4)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/5817939" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">设计模式</a><span>(16)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/6034441" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">mongodb</a><span>(0)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/6529292" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">spring boot</a><span>(2)</span>
+                </li>
+                 <li>
+                    <a href="/w329636271/article/category/7202443" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">bat</a><span>(1)</span>
+                </li>
+</ul>
+</div><div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body" class="form_search">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search csdn-tracking-statistics" target="_blank"  data-mod="popu_306">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+
+   
+    $(function () {
+        $("#btnSubmit").unbind("click");
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {           
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            if ($("#inputSearch").val() == "") {               
+                alert("请录入搜索关键词！");                         
+                return false;
+            }
+            //var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";           
+            var url = "https://www.baidu.com/s?wd=" + encodeURIComponent($("#inputSearch").val()) + "%20site%3Ablog.csdn.net"
+            window.location.href = url;
+        }   
+    });
+</script><div id="hotarticls" class="panel tracking-ad" data-mod="popu_340">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/w329636271/article/details/49679361" title="mysql 通过data文件下来恢复数据">mysql 通过data文件下来恢复数据</a><span>(8601)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/46664063" title="ehcache jgroups 集群配置">ehcache jgroups 集群配置</a><span>(7009)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/40655175" title="如何将一个数据库中的表，转化为一个javabean对象">如何将一个数据库中的表，转化为一个javabean对象</a><span>(6553)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/46698695" title="java 并行框架 并行编程">java 并行框架 并行编程</a><span>(6171)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/56488848" title="socket IO java的使用">socket IO java的使用</a><span>(6100)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/8740918" title="mfc 发送邮件外加附件">mfc 发送邮件外加附件</a><span>(3526)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/46665239" title="jna 解决乱码 GBK">jna 解决乱码 GBK</a><span>(2960)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/50696121" title="拖拽改变div的大小">拖拽改变div的大小</a><span>(2736)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/50856956" title="jdbc 打印执行sql日志包括参数">jdbc 打印执行sql日志包括参数</a><span>(2712)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/50378146" title="Jedis 实现发布订阅">Jedis 实现发布订阅</a><span>(2348)</span>
+</li>
+</ul>
+</div>
+<div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="/w329636271/article/month/2017/11">2017年11月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2017/09">2017年09月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2017/07">2017年07月</a><span>(3)</span></li><li><a href="/w329636271/article/month/2017/03">2017年03月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2017/02">2017年02月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2017/01">2017年01月</a><span>(3)</span></li><li><a href="/w329636271/article/month/2016/11">2016年11月</a><span>(5)</span></li><li><a href="/w329636271/article/month/2016/08">2016年08月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2016/07">2016年07月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2016/06">2016年06月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2016/04">2016年04月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2016/03">2016年03月</a><span>(4)</span></li><li><a href="/w329636271/article/month/2016/02">2016年02月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2016/01">2016年01月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2015/12">2015年12月</a><span>(5)</span></li><li><a href="/w329636271/article/month/2015/11">2015年11月</a><span>(7)</span></li><li><a href="/w329636271/article/month/2015/09">2015年09月</a><span>(17)</span></li><li><a href="/w329636271/article/month/2015/08">2015年08月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2015/07">2015年07月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2015/06">2015年06月</a><span>(6)</span></li><li><a href="/w329636271/article/month/2015/05">2015年05月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2015/03">2015年03月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2014/11">2014年11月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2014/10">2014年10月</a><span>(3)</span></li><li><a href="/w329636271/article/month/2014/09">2014年09月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2014/03">2014年03月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2013/11">2013年11月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2013/10">2013年10月</a><span>(1)</span></li><li><a href="/w329636271/article/month/2013/05">2013年05月</a><span>(5)</span></li><li><a href="/w329636271/article/month/2013/04">2013年04月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2013/03">2013年03月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2013/02">2013年02月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2012/12">2012年12月</a><span>(2)</span></li><li><a href="/w329636271/article/month/2012/11">2012年11月</a><span>(11)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls2" class="panel tracking-ad" data-mod="popu_341">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/w329636271/article/details/8740918" title="mfc 发送邮件外加附件">mfc 发送邮件外加附件</a><span>(2)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/40113861" title="java反射 beaninfo的应用">java反射 beaninfo的应用</a><span>(2)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/8904476" title="python 登陆天津理工教务处 选课">python 登陆天津理工教务处 选课</a><span>(1)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/56488848" title="socket IO java的使用">socket IO java的使用</a><span>(1)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/49784489" title="获取方法中泛型的具体类型">获取方法中泛型的具体类型</a><span>(1)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/47039799" title="jna 如何卸载加载的dll?">jna 如何卸载加载的dll?</a><span>(1)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/46664063" title="ehcache jgroups 集群配置">ehcache jgroups 集群配置</a><span>(1)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/8194758" title="迷惑不解～">迷惑不解～</a><span>(0)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/8192816" title="map 自定义结构 存储 STL">map 自定义结构 存储 STL</a><span>(0)</span>
+</li>
+<li>
+<a href="/w329636271/article/details/8170924" title="grub4dos&#160;引导PE&#160;UBUNTU&#160;修复引导丢失问题">grub4dos&#160;引导PE&#160;UBUNTU&#160;修复引导丢失问题</a><span>(0)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend">
+<ul>
+<li>
+<a href="http://blog.csdn.net/csdnproduct/article/details/78647961"
+target="_blank">* 【2017年11月27日】CSDN博客更新周报</a></li>
+<br>
+<li>
+<a href="http://blog.csdn.net/blogdevteam/article/details/78287539" 
+target="_blank">* 【CSDN】邀请您来GitChat赚钱啦！</a></li>
+<br>
+<li>
+<a href="http://blog.csdn.net/blogdevteam/article/details/78625380"
+target="_blank">* 【GitChat】精选——JavaScript进阶指南</a></li>
+<br>
+
+<li>
+<a href="http://blog.csdn.net/gitchat/article/details/78546894"
+target="_blank">* 改做人工智能之前，90%的人都没能给自己定位</a></li>
+<br>
+<li>
+<a href="http://blog.csdn.net/gitchat/article/details/78546894"
+target="_blank">*  TensorFlow 人脸识别网络与对抗网络搭建</a></li>
+<br>
+<li>
+<a href="http://blog.csdn.net/gitchat/article/details/78557241"
+target="_blank">*  Vue 移动端项目生产环境优化</a></li>
+<br>
+<li>
+<a href="http://blog.csdn.net/gitchat/article/details/78546898"
+target="_blank">* 面试必考的计算机网络知识点梳理</a></li>
+
+</ul></ul>
+</div>
+
+
+<div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/w329636271/article/details/56488848#comments">socket IO java的使用</a>
+    <p style="margin:0px;"><a href="/u010802461" class="user_name">u010802461</a>:
+Emitter这个类是在哪个包下
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/49784489#comments">获取方法中泛型的具体类型</a>
+    <p style="margin:0px;"><a href="/u012466304" class="user_name">u012466304</a>:
+parameterizedType这个独享还是经常用到呢
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/40113861#comments">java反射 beaninfo的应用</a>
+    <p style="margin:0px;"><a href="/w329636271" class="user_name">w329636271</a>:
+@huangpingcai:都行吧,反正就是生成插入sql
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/40113861#comments">java反射 beaninfo的应用</a>
+    <p style="margin:0px;"><a href="/huangpingcai" class="user_name">huangpingcai</a>:
+这是内省 （Introspector）的内容
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/46664063#comments">ehcache jgroups 集群配置</a>
+    <p style="margin:0px;"><a href="/niurouguotie" class="user_name">niurouguotie</a>:
+环境是同一份代码发布到不同的server服务器上，比如我现在有10台服务器做的集群，那bind_ad...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/47039799#comments">jna 如何卸载加载的dll?</a>
+    <p style="margin:0px;"><a href="/shufeiyan" class="user_name">shufeiyan</a>:
+终于找到卸载JNA加载的dll方法啦，利用反射机制调用dispose成功，感谢。
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/8740918#comments">mfc 发送邮件外加附件</a>
+    <p style="margin:0px;"><a href="/kulasimu" class="user_name">kulasimu</a>:
+呵呵
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/8740918#comments">mfc 发送邮件外加附件</a>
+    <p style="margin:0px;"><a href="/u013685499" class="user_name">u013685499</a>:
+没看到发附件的步骤啊
+    </p>
+    </li>
+    <li>
+   
+         <a href="/w329636271/article/details/8904476#comments">python 登陆天津理工教务处 选课</a>
+    <p style="margin:0px;"><a href="/sys101" class="user_name">sys101</a>:
+太厉害了虽然没看懂
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+
+                   <div class="tracking-ad" data-view="true" data-mod="ad_popu_189" data-mtp="63" data-order="40" data-con="ad_content_1259" style="width: 250px; height: 500px;">
+                        <div id="nav_show_top_stop" style="width: 250px;height: 500px;z-index:1000"><div id="cpro_u2734133">
+                             <!-- 投放代码 -->
+                             
+                            <!-- 请置于所有广告位代码之前 -->
+                            <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+                            <!-- 广告位：PC端-博客详情页-左侧button1-250*250 -->
+                                    <script>
+                                        (function () {
+                                            var s = "_" + Math.random().toString(36).slice(2);
+                                            document.write('<div id="' + s + '"></div>');
+                                            (window.slotbydup = window.slotbydup || []).push({
+                                                id: '4740887',
+                                                container: s,
+                                                size: '250,250',
+                                                display: 'inlay-fix'
+                                            });
+                                        })();
+                                    </script>
+
+                                                                                                    </div>
+                            <div id="cpro_u3031286">
+                                 <!-- 投放代码 -->
+                               
+                                <!-- 请置于所有广告位代码之前 -->
+                                <script src="http://dup.baidustatic.com/js/ds.js"></script>
+
+                                <!-- 广告位：PC端-博客详情页-左侧Button2-250*250 -->
+                                <script>
+                                    (function () {
+                                        var s = "_" + Math.random().toString(36).slice(2);
+                                        document.write('<div id="' + s + '"></div>');
+                                        (window.slotbydup = window.slotbydup || []).push({
+                                            id: '4740890',
+                                            container: s,
+                                            size: '250,250',
+                                            display: 'inlay-fix'
+                                        });
+                                    })();
+                                </script>
+
+
+
+                            </div></div>
+                   </div>
+                    <script>
+
+                        setTimeout(function () {
+                            var naviga_offsetTop = 0; function naviga_stay_top() {
+                                var scrollTop = jQuery(document).scrollTop();
+                                if (scrollTop > naviga_offsetTop) {
+                                    jQuery("#nav_show_top_stop").css({ "position": "fixed" });
+                                    jQuery("#nav_show_top_stop").css({ "top": "0px" });
+                                } else { jQuery("#nav_show_top_stop").css({ "position": "fixed" }); jQuery("#nav_show_top_stop").css({ "top": naviga_offsetTop - scrollTop + "px" }); }
+                            }
+                            function onload_function() {
+                                naviga_offsetTop = jQuery("#nav_show_top_stop").position().top;
+                                jQuery(window).bind("scroll", naviga_stay_top); jQuery(window).bind("mousewheel", naviga_stay_top);
+                                jQuery(document).bind("scroll", naviga_stay_top); jQuery(document).bind("mousewheel", naviga_stay_top);
+                            } jQuery(document).ready(onload_function);
+                        }, 200);
+
+                    </script>
+
+           </div>   
+            <div class="clear">
+            </div>
+        </div>
+
+        
+
+
+
+
+
+
+
+
+    <script type="text/javascript" src="http://passport.csdn.net/content/loginbox/login.js"></script>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<span class='tracking-ad' data-mod='popu_167'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a></span>"
+                    + "<span class='tracking-ad' data-mod='popu_170'><a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a></span>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+
+        $(".bar").show();
+    });
+</script>
+
+
+
+
+
+    </div>
+     
+
+
+       <script type="text/javascript" src="http://static.blog.csdn.net/public/res/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>   
+    
+    <script src="http://static.blog.csdn.net/scripts/csdn_blog_detail.min.js?v2017.041" type="text/javascript"></script>
+        
+    <script type="text/javascript" src="http://c.csdnimg.cn/blog/csdn_public_blog_detail.min.js?20170719001"></script>
+
+    <script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=1280986"></script>
+
+
+  <div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+                    <script id="adJs52b5334"></script>
+                    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+   </div>
+          
+    <div class="pop_CA_cover"  style="display:none"></div>
+    <div class="pop pop_CA"  style="display:none">
+          <div class="CA_header">
+            收藏助手
+            <span class="cancel_icon"  id="fapancle"  onclick="$('.pop_CA').hide();$('.pop_CA_cover').hide();"></span>
+          </div>
+          <iframe src="" id="fa" frameborder="0" width="100%" height="360"  scrolling="no" ></iframe>
+    </div>
+
+
+        <script type="text/javascript">
+
+            $(function () {
+                var fromjs = $("#fromjs");
+                if (fromjs.length > 0) {
+                    $("#fromjs .markdown_views pre").addClass("prettyprint");
+                    prettyPrint();
+
+                    $('pre.prettyprint code').each(function () {
+                        var lines = $(this).text().split('\n').length;
+                        var $numbering = $('<ul/>').addClass('pre-numbering').hide();
+                        $(this).addClass('has-numbering').parent().append($numbering);
+                        for (i = 1; i <= lines; i++) {
+                            $numbering.append($('<li/>').text(i));
+                        };
+                        $numbering.fadeIn(1700);
+                    });
+
+                    $('.pre-numbering li').css("color", "#999");
+                }
+            });
+
+            $(".markdown_views a[target!='_blank']").attr("target", "_blank");
+
+            //$(".toc a[target='_blank']").attr("target", "");
+
+            setTimeout(function () {
+                $(".toc a[target='_blank']").attr("target", "");
+            }, 500);
+
+        </script>
+
+</body>
+</html>   

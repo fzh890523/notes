@@ -221,6 +221,35 @@ The CPU reordering is different from compiler optimisations - although the artef
 
 
 
+
+> from [who-ordered-memory-fences-on-an-x86/](https://bartoszmilewski.com/2008/11/05/who-ordered-memory-fences-on-an-x86/)
+
+The x86 seems to be an oasis in the perilous landscape of relaxed memory multicores. The Intel x86 memory model, detailed in [Intel 64 Architecture Memory Ordering White Paper](http://www.intel.com/products/processor/manuals/318147.pdf) and the AMD spec, [AMD64 Architecture Programmer’s Manual](http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/24593.pdf), list a lot of memory ordering guarantees, among them:
+
+- Loads are *not* reordered with other loads.
+- Stores are *not* reordered with other stores.
+- Stores are *not* reordered with older loads.
+- In a multiprocessor system, memory ordering *obeys causality* (memory ordering respects transitive visibility).
+- In a multiprocessor system, stores to the same location have a *total order*.
+- In a multiprocessor system, locked instructions have a *total order*.
+- Loads and stores are *not* reordered with locked instructions.
+
+The x86 also has (expensive–on the order of 100 cycles) memory fence instructions, mfence, lfence, and sfence; but, considering all those guarantees, why would anyone use them? The famous [double-checked locking pattern](https://bartoszmilewski.wordpress.com/2008/08/04/multicores-and-publication-safety/), on the x86, works just fine without any fences.
+
+
+
+
+
+### lock prefix VS mfence
+
+
+
+
+
+
+
+
+
 ## itanium
 
 ```

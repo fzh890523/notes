@@ -1,0 +1,2220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!-- saved from url=(0029)http://hedengcheng.com/?p=725 -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head profile="http://gmpg.org/xfn/11"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+
+	<title>何登成的技术博客 » C/C++ Volatile关键词深度剖析</title>
+	<link rel="alternate" type="application/rss+xml" title="RSS 2.0 - 所有文章" href="http://hedengcheng.com/?feed=rss2">
+	<link rel="alternate" type="application/rss+xml" title="RSS 2.0 - 所有评论" href="http://hedengcheng.com/?feed=comments-rss2">
+	<link rel="pingback" href="http://hedengcheng.com/xmlrpc.php">
+
+	<!-- style START -->
+	<style type="text/css" media="screen">@import url( http://hedengcheng.com/wp-content/themes/blocks2/style.css );</style>
+			<link rel="stylesheet" href="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/chinese.css" type="text/css" media="screen">
+		<!--[if IE]>
+		<link rel="stylesheet" href="http://hedengcheng.com/wp-content/themes/blocks2/ie.css" type="text/css" media="screen" />
+	<![endif]-->
+	<!-- style END -->
+
+	<!-- script START -->
+	<script async="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/analytics.js"></script><script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/base.js"></script>
+	<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/menu.js"></script>
+	<!-- script END -->
+
+		<link rel="dns-prefetch" href="http://s.w.org/">
+<link rel="alternate" type="application/rss+xml" title="何登成的技术博客 » C/C++ Volatile关键词深度剖析评论Feed" href="http://hedengcheng.com/?feed=rss2&amp;p=725">
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.2.1\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/2.2.1\/svg\/","svgExt":".svg","source":{"concatemoji":"http:\/\/hedengcheng.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.7.8"}};
+			!function(a,b,c){function d(a){var b,c,d,e,f=String.fromCharCode;if(!k||!k.fillText)return!1;switch(k.clearRect(0,0,j.width,j.height),k.textBaseline="top",k.font="600 32px Arial",a){case"flag":return k.fillText(f(55356,56826,55356,56819),0,0),!(j.toDataURL().length<3e3)&&(k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57331,65039,8205,55356,57096),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57331,55356,57096),0,0),c=j.toDataURL(),b!==c);case"emoji4":return k.fillText(f(55357,56425,55356,57341,8205,55357,56507),0,0),d=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55357,56425,55356,57341,55357,56507),0,0),e=j.toDataURL(),d!==e}return!1}function e(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i,j=b.createElement("canvas"),k=j.getContext&&j.getContext("2d");for(i=Array("flag","emoji4"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<!-- This site uses the Google Analytics by MonsterInsights plugin v6.0.16 - Using Analytics tracking - https://www.monsterinsights.com/ -->
+<script type="text/javascript" data-cfasync="false">
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','__gaTracker');
+
+	__gaTracker('create', 'UA-46730929-1', 'auto');
+	__gaTracker('set', 'forceSSL', true);
+	__gaTracker('send','pageview');
+</script>
+<!-- / Google Analytics by MonsterInsights -->
+<link rel="https://api.w.org/" href="http://hedengcheng.com/?rest_route=/">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://hedengcheng.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://hedengcheng.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="排队论及其应用浅析" href="http://hedengcheng.com/?p=687">
+<link rel="next" title="MySQL 加锁处理分析" href="http://hedengcheng.com/?p=771">
+<meta name="generator" content="WordPress 4.7.8">
+<link rel="canonical" href="http://hedengcheng.com/?p=725">
+<link rel="shortlink" href="http://hedengcheng.com/?p=725">
+<link rel="alternate" type="application/json+oembed" href="http://hedengcheng.com/?rest_route=%2Foembed%2F1.0%2Fembed&amp;url=http%3A%2F%2Fhedengcheng.com%2F%3Fp%3D725">
+<link rel="alternate" type="text/xml+oembed" href="http://hedengcheng.com/?rest_route=%2Foembed%2F1.0%2Fembed&amp;url=http%3A%2F%2Fhedengcheng.com%2F%3Fp%3D725&amp;format=xml">
+		<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+		</head>
+
+
+<body>
+	<div id="wrap">
+		<div id="container">
+
+<!-- header START -->
+<div id="header">
+	<div id="title">
+		<h1><a href="http://hedengcheng.com/">何登成的技术博客</a></h1>
+		<div id="tagline">追求技术的道路上，10年如一日</div>
+	</div>
+
+	<!-- WordPress searchbox -->
+	<div class="searchbox">
+		<form action="http://hedengcheng.com/" method="get">
+			<div class="content">
+				<input type="text" class="textfield" name="s" size="24" value="">
+				<input type="submit" class="button" value="搜索">
+			</div>
+		</form>
+	</div>
+
+	<div class="fixed"></div>
+</div>
+<!-- header END -->
+
+<!-- content START -->
+<div id="content">
+
+	<!-- menubar START -->
+	<div id="navigation">
+		<ul id="menubar">
+			<li class="page_item"><a title="首页" href="http://hedengcheng.com/">首页</a></li>
+			<li class="page_item page-item-2"><a href="http://hedengcheng.com/?page_id=2">关于我</a></li>
+		</ul>
+		<div id="subscribe" class="feed"><a title="订阅这个博客的文章" class="feedlink" href="http://hedengcheng.com/?feed=rss2"><abbr title="Really Simple Syndication">RSS</abbr> 订阅</a><ul style="visibility: hidden; display: block;"><li><a rel="external nofollow" title="订阅到鲜果" href="http://www.xianguo.com/subscribe.php?url=http://hedengcheng.com/?feed=rss2">					鲜果	</a></li><li><a rel="external nofollow" title="订阅到抓虾" href="http://www.zhuaxia.com/add_channel.php?url=http://hedengcheng.com/?feed=rss2">					抓虾	</a></li><li><a rel="external nofollow" title="订阅到有道" href="http://reader.yodao.com/#url=http://hedengcheng.com/?feed=rss2">								有道	</a></li><li><a rel="external nofollow" title="订阅到 Google" href="http://fusion.google.com/add?feedurl=http://hedengcheng.com/?feed=rss2">						 Google	</a></li><li><a rel="external nofollow" title="订阅到 netvibes" href="http://www.netvibes.com/subscribe.php?url=http://hedengcheng.com/?feed=rss2">					 netvibes	</a></li><li><a rel="external nofollow" title="订阅到 newsgator" href="http://www.newsgator.com/ngs/subscriber/subfext.aspx?url=http://hedengcheng.com/?feed=rss2">	 newsgator</a></li><li><a rel="external nofollow" title="订阅到 Bloglines" href="http://www.bloglines.com/sub/http://hedengcheng.com/?feed=rss2">								 Bloglines</a></li><li><a rel="external nofollow" title="订阅到哪吒" href="http://inezha.com/add?url=http://hedengcheng.com/?feed=rss2" class=" last">									哪吒	</a></li></ul></div>
+				
+		<span id="copyright">
+			© 2012-2017 何登成的技术博客		</span>
+		<div class="fixed"></div>
+	</div>
+	<!-- menubar END -->
+
+	<!-- main START -->
+	<div id="main">
+
+<div class="post" id="post-725">
+	<h2 class="title">C/C++ Volatile关键词深度剖析</h2>
+	<div class="meta">
+		<div class="info">
+			12月 2nd, 2013								</div>
+		<div class="comments">
+			<a href="http://hedengcheng.com/?p=725#respond">发表评论</a>
+						 | <a href="http://hedengcheng.com/wp-trackback.php?p=725" rel="trackback">Trackback</a>
+								</div>
+		<div class="fixed"></div>
+	</div>
+
+	<div class="content">
+		<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765719"><span style="font-size: 10pt;">1&nbsp;&nbsp;&nbsp;&nbsp;背景&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+</span></a></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765720"><span style="font-size: 10pt;">2&nbsp;&nbsp;&nbsp;&nbsp;Volatile：易变的&nbsp;&nbsp;&nbsp;&nbsp;1</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify; margin-left: 22pt;"><a href="http://hedengcheng.com/?p=725#_Toc373765721"><span style="font-size: 10pt;">2.1&nbsp;&nbsp;&nbsp;&nbsp;小结&nbsp;&nbsp;&nbsp;&nbsp;2</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765722"><span style="font-size: 10pt;">3&nbsp;&nbsp;&nbsp;&nbsp;Volatile：不可优化的&nbsp;&nbsp;&nbsp;&nbsp;3</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify; margin-left: 22pt;"><a href="http://hedengcheng.com/?p=725#_Toc373765723"><span style="font-size: 10pt;">3.1&nbsp;&nbsp;&nbsp;&nbsp;小结&nbsp;&nbsp;&nbsp;&nbsp;4</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765724"><span style="font-size: 10pt;">4&nbsp;&nbsp;&nbsp;&nbsp;Volatile：顺序性&nbsp;&nbsp;&nbsp;&nbsp;4</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify; margin-left: 22pt;"><a href="http://hedengcheng.com/?p=725#_Toc373765725"><span style="font-size: 10pt;">4.1&nbsp;&nbsp;&nbsp;&nbsp;happens-before&nbsp;&nbsp;&nbsp;&nbsp;6</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify; margin-left: 22pt;"><a href="http://hedengcheng.com/?p=725#_Toc373765726"><span style="font-size: 10pt;">4.2&nbsp;&nbsp;&nbsp;&nbsp;小结&nbsp;&nbsp;&nbsp;&nbsp;7</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765727"><span style="font-size: 10pt;">5&nbsp;&nbsp;&nbsp;&nbsp;Volatile：Java增强&nbsp;&nbsp;&nbsp;&nbsp;8</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765728"><span style="font-size: 10pt;">6&nbsp;&nbsp;&nbsp;&nbsp;Volatile的起源&nbsp;&nbsp;&nbsp;&nbsp;9</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><a href="http://hedengcheng.com/?p=725#_Toc373765729"><span style="font-size: 10pt;">7&nbsp;&nbsp;&nbsp;&nbsp;参考资料&nbsp;&nbsp;&nbsp;&nbsp;9</span></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>背景</strong></h1>
+</div>
+</li>
+</ol>
+<p>前几天，发了一条如下的微博 (关于C/C++ Volatile关键词的使用建议)：</p>
+<p><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile1.jpg" alt=""><span style="font-family: 宋体; font-size: 12pt;"><br>
+</span></p>
+<p>&nbsp;</p>
+<p>此微博，引发了朋友们的大量讨论：赞同者有之；批评者有之；当然，更多的朋友，是希望我能更详细的解读C/C++ Volatile关键词，来佐证我的微博观点。而这，正是我写这篇博文的初衷：本文，将详细分析C/C++ Volatile关键词的功能 (有多种功能)、Volatile关键词在多线程编程中存在的问题、Volatile关键词与编译器/CPU的关系、C/C++ Volatile与Java Volatile的区别，以及Volatile关键词的起源，希望对大家更好的理解、使用C/C++ Volatile，有所帮助。</p>
+<p>&nbsp;</p>
+<p>Volatile，词典上的解释为：易失的；易变的；易挥发的。那么用这个关键词修饰的C/C++变量，应该也能够体现出”易变”的特征。大部分人认识Volatile，也是从这个特征出发，而这也是本文揭秘的C/C++ Volatile的第一个特征。</p>
+<p>&nbsp;</p>
+<p><span id="more-725"></span></p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>Volatile：易变的</strong></h1>
+</div>
+</li>
+</ol>
+<p>在介绍C/C++ Volatile关键词的”易变”性前，先让我们看看以下的两个代码片段，以及他们对应的汇编指令 (以下用例的汇编代码，均为VS 2008编译出来的Release版本)：</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例一：非Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945332/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945332/&#39;, &#39;&#39;);" title="volatile1"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish.jpg" alt="volatile1" width="540" height="320" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">b = a + 1;这条语句，对应的汇编指令是：lea ecx, [eax + 1]。由于变量a，在前一条语句a = fn(c)执行时，被缓存在了寄存器eax中，因此b = a + 1；语句，可以直接使用仍旧在寄存器eax中的a，来进行计算，对应的也就是汇编：[eax + 1]。<br>
+</span></p>
+<p style="text-align: justify;">
+</p></li>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例二：Volatile变量</strong><br>
+</span></div>
+</li>
+</ul>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945333/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945333/&#39;, &#39;&#39;);" title="volatile2"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(1).jpg" alt="volatile2" width="540" height="360" border="0"></a></p>
+<p style="margin-left: 21pt;">与测试用例一唯一的不同之处，是变量a被设置为volatile属性，一个小小的变化，带来的是汇编代码上很大的变化。a = fn(c)执行后，寄存器ecx中的a，被写回内存：mov dword ptr [esp+0Ch], ecx。然后，在执行b = a + 1；语句时，变量a有重新被从内存中读取出来：mov eax, dword ptr [esp + 0Ch]，而不再直接使用寄存器ecx中的内容。</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h2><strong>小结</strong></h2>
+<div></div>
+</div>
+</li>
+</ol>
+<p>从以上的两个用例，就可以看出C/C++ Volatile关键词的第一个特性：<span style="color: red;">易变性。所谓的易变性，在汇编层面反映出来，就是两条语句，下一条语句不会直接使用上一条语句对应的volatile变量的寄存器内容，而是重新从内存中读取</span>。volatile的这个特性，相信也是大部分朋友所了解的特性。</p>
+<p>&nbsp;</p>
+<p>在了解了C/C++ Volatile关键词的”易变”特性之后，再让我们接着继续来剖析Volatile的下一个特性：”不可优化”特性。</p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>Volatile：不可优化的</strong></h1>
+<div></div>
+</div>
+</li>
+</ol>
+<p>与前面介绍的”易变”性类似，关于C/C++ Volatile关键词的第二个特性：”不可优化”性，也通过两个对比的代码片段来说明：</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例三：非Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945335/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945335/&#39;, &#39;&#39;);" title="volatile4"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(2).jpg" alt="volatile4" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">在这个用例中，非volatile变量a，b，c全部被编译器优化掉了 (optimize out)，因为编译器通过分析，发觉a，b，c三个变量是无用的，可以进行常量替换。最后的汇编代码相当简介，高效率。<br>
+</span></p>
+<p style="text-align: justify;">
+</p></li>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例四：Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945334/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945334/&#39;, &#39;&#39;);" title="volatile3"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(3).jpg" alt="volatile3" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">测试用例四，与测试用例三类似，不同之处在于，a，b，c三个变量，都是volatile变量。这个区别，反映到汇编语言中，就是三个变量仍旧存在，需要将三个变量从内存读入到寄存器之中，然后再调用printf()函数。<br>
+</span></p>
+</li>
+</ul>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h2><strong>小结</strong></h2>
+<div></div>
+</div>
+</li>
+</ol>
+<p>从测试用例三、四，可以总结出C/C++ Volatile关键词的第二个特性：<span style="color: red;">“不可优化”特性。volatile告诉编译器，不要对我这个变量进行各种激进的优化，甚至将变量直接消除，保证程序员写在代码中的指令，一定会被执行</span>。相对于前面提到的第一个特性：”易变”性，”不可优化”特性可能知晓的人会相对少一些。但是，相对于下面提到的C/C++ Volatile的第三个特性，无论是”易变”性，还是”不可优化”性，都是Volatile关键词非常流行的概念。</p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>Volatile：顺序性</strong></h1>
+</div>
+</li>
+</ol>
+<p>&nbsp;</p>
+<p>C/C++ Volatile关键词前面提到的两个特性，让Volatile经常被解读为一个为多线程而生的关键词：一个全局变量，会被多线程同时访问/修改，那么线程内部，就不能假设此变量的不变性，并且基于此假设，来做一些程序设计。当然，这样的假设，本身并没有什么问题，多线程编程，并发访问/修改的全局变量，通常都会建议加上Volatile关键词修饰，来防止C/C++编译器进行不必要的优化。但是，很多时候，C/C++ Volatile关键词，在多线程环境下，会被赋予更多的功能，从而导致问题的出现。</p>
+<p>&nbsp;</p>
+<p>回到本文背景部分我的那篇微博，我的这位朋友，正好犯了一个这样的问题。其对C/C++ Volatile关键词的使用，可以抽象为下面的伪代码：</p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945325/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945325/&#39;, &#39;&#39;);" title="v5"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(4).jpg" alt="v5" width="540" height="270" border="0"></a></p>
+<p>这段伪代码，声明另一个Volatile的flag变量。一个线程(Thread1)在完成一些操作后，会修改这个变量。而另外一个线程(Thread2)，则不断读取这个flag变量，由于flag变量被声明了volatile属性，因此编译器在编译时，并不会每次都从寄存器中读取此变量，同时也不会通过各种激进的优化，直接将if (flag == true)改写为if (false == true)。只要flag变量在Thread1中被修改，Thread2中就会读取到这个变化，进入if条件判断，然后进入if内部进行处理。在if条件的内部，<span style="color: red;"><a name="OLE_LINK1"></a>由于flag == true，那么假设Thread1中的something操作一定已经完成了</span>，在基于这个假设的基础上，继续进行下面的other things操作。</p>
+<p>&nbsp;</p>
+<p>通过将flag变量声明为volatile属性，很好的利用了本文前面提到的C/C++ Volatile的两个特性：”易变”性；”不可优化”性。按理说，这是一个对于volatile关键词的很好应用，而且看到这里的朋友，也可以去检查检查自己的代码，我相信肯定会有这样的使用存在。</p>
+<p>&nbsp;</p>
+<p>但是，这个多线程下看似对于C/C++ Volatile关键词完美的应用，实际上却是有大问题的。问题的关键，就在于前面标红的文字：<span style="color: red;">由于flag = true，那么假设Thread1中的something操作一定已经完成了</span>。flag == true，为什么能够推断出Thread1中的something一定完成了？其实既然我把这作为一个错误的用例，答案是一目了然的：<span style="color: red;">这个推断不能成立，你不能假设看到flag == true后，flag = true;这条语句前面的something一定已经执行完成了</span>。这就引出了C/C++ Volatile关键词的第三个特性：顺序性。</p>
+<p>&nbsp;</p>
+<p>同样，为了说明C/C++ Volatile关键词的”顺序性”特征，下面给出三个简单的用例 (注：与上面的测试用例不同，下面的三个用例，基于的是Linux系统，使用的是”GCC: (Debian 4.3.2-1.1) 4.3.2″)：</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例五：非Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945329/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945329/&#39;, &#39;&#39;);" title="v9"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(5).jpg" alt="v9" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">一个简单的示例，全局变量A，B均为非volatile变量。通过gcc O2优化进行编译，你可以惊奇的发现，A，B两个变量的赋值顺序被调换了！！！在对应的汇编代码中，B = 0语句先被执行，然后才是A = B + 1语句被执行。<br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">在这里，我先简单的介绍一下C/C++编译器最基本优化原理：<span style="color: red;">保证一段程序的输出，在优化前后无变化</span>。将此原理应用到上面，可以发现，虽然gcc优化了A，B变量的赋值顺序，但是foo()函数的执行结果，优化前后没有发生任何变化，仍旧是A = 1；B = 0。因此这么做是可行的。<br>
+</span></p>
+<p style="text-align: justify;">
+</p></li>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例六：一个Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945330/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945330/&#39;, &#39;&#39;);" title="v10"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(6).jpg" alt="v10" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">此测试，相对于测试用例五，最大的区别在于，变量B被声明为volatile变量。通过查看对应的汇编代码，B仍旧被提前到A之前赋值，Volatile变量B，并未阻止编译器优化的发生，编译后仍旧发生了乱序现象。<br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">如此看来，<span style="color: red;">C/C++ Volatile变量，与非Volatile变量之间的操作，是可能被编译器交换顺序的</span>。<br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">通过此用例，已经能够很好的说明，本章节前面，通过flag == true，来假设something一定完成是不成立的。在多线程下，如此使用volatile，会产生很严重的问题。但是，这不是终点，请继续看下面的测试用例七。<br>
+</span></p>
+</li>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例七：两个Volatile变量</strong><br>
+</span></div>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945331/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945331/&#39;, &#39;&#39;);" title="v11"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(7).jpg" alt="v11" width="540" height="170" border="0"></a><span style="font-size: 10pt;"><br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">同时将A，B两个变量都声明为volatile变量，再来看看对应的汇编。奇迹发生了，A，B赋值乱序的现象消失。此时的汇编代码，与用户代码顺序高度一直，先赋值变量A，然后赋值变量B。<br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;">如此看来，<span style="color: red;">C/C++ Volatile变量间的操作，是不会被编译器交换顺序的</span>。<br>
+</span></p>
+<p style="text-align: justify;"><span style="font-size: 10pt;"><br>
+</span></p>
+</li>
+</ul>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h2><strong>happens-before</strong></h2>
+</div>
+</li>
+</ol>
+<p>&nbsp;</p>
+<p>通过测试用例六，可以总结出：C/C++ Volatile变量与非Volatile变量间的操作顺序，有可能被编译器交换。因此，上面多线程操作的伪代码，在实际运行的过程中，就有可能变成下面的顺序：</p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945326/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945326/&#39;, &#39;&#39;);" title="v6"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(8).jpg" alt="v6" width="540" height="270" border="0"></a></p>
+<p>由于Thread1中的代码执行顺序发生变化，flag = true被提前到something之前进行，那么整个Thread2的假设全部失效。由于something未执行，但是Thread2进入了if代码段，整个多线程代码逻辑出现问题，导致多线程完全错误。</p>
+<p>&nbsp;</p>
+<p>细心的读者看到这里，可能要提问，根据测试用例七，C/C++ Volatile变量间，编译器是能够保证不交换顺序的，那么能不能将something中所有的变量全部设置为volatile呢？这样就阻止了编译器的乱序优化，从而也就保证了这个多线程程序的正确性。</p>
+<p>&nbsp;</p>
+<p>针对此问题，很不幸，仍旧不行。将所有的变量都设置为volatile，首先能够阻止编译器的乱序优化，这一点是可以肯定的。但是，别忘了，编译器编译出来的代码，最终是要通过CPU来执行的。目前，市场上有各种不同体系架构的CPU产品，CPU本身为了提高代码运行的效率，也会对代码的执行顺序进行调整，这就是所谓的CPU Memory Model (CPU内存模型)。关于CPU的内存模型，可以参考这些资料：<a href="http://en.wikipedia.org/wiki/Memory_ordering">Memory Ordering From Wiki</a>；<a href="http://preshing.com/20120710/memory-barriers-are-like-source-control-operations/">Memory Barriers Are Like Source Control Operations From Jeff Preshing</a>；<a href="http://hedengcheng.com/?p=648">CPU Cache and Memory Ordering From 何登成</a>。下面，是截取自Wiki上的一幅图，列举了不同CPU架构，可能存在的指令乱序。</p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945425/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945425/&#39;, &#39;&#39;);" title="mo"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(9).jpg" alt="mo" width="540" height="120" border="0"></a><span style="font-family: 宋体; font-size: 12pt;"><br>
+</span></p>
+<p>&nbsp;</p>
+<p>从图中可以看到，X86体系(X86，AMD64)，也就是我们目前使用最广的CPU，也会存在指令乱序执行的行为：StoreLoad乱序，读操作可以提前到写操作之前进行。</p>
+<p>&nbsp;</p>
+<p style="text-align: justify;">因此，回到上面的例子，哪怕将所有的变量全部都声明为volatile，哪怕杜绝了编译器的乱序优化，但是针对生成的汇编代码，CPU有可能仍旧会乱序执行指令，导致程序依赖的逻辑出错，volatile对此无能为力。</p>
+<p>&nbsp;</p>
+<p>其实，针对这个多线程的应用，真正正确的做法，是构建一个happens-before语义。关于happens-before语义的定义，可参考文章：<a href="http://preshing.com/20130702/the-happens-before-relation/">The Happens-Before Relation</a>。下面，用图的形式，来展示happens-before语义：</p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945327/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945327/&#39;, &#39;&#39;);" title="v7"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(10).jpg" alt="v7" width="540" height="280" border="0"></a></p>
+<p>&nbsp;</p>
+<p>如图所示，所谓的happens-before语义，就是保证Thread1代码块中的所有代码，一定在Thread2代码块的第一条代码之前完成。当然，构建这样的语义有很多方法，我们常用的Mutex、Spinlock、RWLock，都能保证这个语义 (关于happens-before语义的构建，以及为什么锁能保证happens-before语义，以后专门写一篇文章进行讨论)。但是，C/C++ Volatile关键词不能保证这个语义，也就意味着C/C++ Volatile关键词，在多线程环境下，如果使用的不够细心，就会产生如同我这里提到的错误。</p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h2><strong>小结</strong></h2>
+</div>
+</li>
+</ol>
+<p>&nbsp;</p>
+<p>C/C++ Volatile关键词的第三个特性：”<span style="color: red;">顺序性”，能够保证Volatile变量间的顺序性，编译器不会进行乱序优化</span>。Volatile变量与非Volatile变量的顺序，编译器不保证顺序，可能会进行乱序优化。同时，C/C++ Volatile关键词，并不能用于构建happens-before语义，因此在进行多线程程序设计时，要小心使用volatile，不要掉入volatile变量的使用陷阱之中。</p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>Volatile：Java增强</strong></h1>
+</div>
+</li>
+</ol>
+<p>&nbsp;</p>
+<p>在介绍了C/C++ Volatile关键词之后，再简单介绍一下Java的Volatile。与C/C++的Volatile关键词类似，Java的Volatile也有这三个特性，但最大的不同在于：第三个特性，”顺序性”，Java的Volatile有很极大的增强，Java Volatile变量的操作，附带了Acquire与Release语义。所谓的Acquire与Release语义，可参考文章：<a href="http://preshing.com/20120913/acquire-and-release-semantics/">Acquire and Release Semantics</a>。(这一点，后续有必要的话，可以写一篇文章专门讨论)。Java Volatile所支持的Acquire、Release语义，如下：</p>
+<p>&nbsp;</p>
+<ul>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;">对于Java Volatile变量的写操作，带有Release语义，所有Volatile变量写操作之前的针对其他任何变量的读写操作，都不会被编译器、CPU优化后，乱序到Volatile变量的写操作之后执行。<br>
+</span></div>
+<p style="text-align: justify;">
+</p></li>
+<li>
+<div style="text-align: justify;"><span style="font-size: 10pt;">对于Java Volatile变量的读操作，带有Acquire语义，所有Volatile变量读操作之后的针对其他任何变量的读写操作，都不会被编译器、CPU优化后，乱序到Volatile变量的读操作之前进行。<br>
+</span></div>
+</li>
+</ul>
+<p>&nbsp;</p>
+<p>通过Java Volatile的Acquire、Release语义，对比C/C++ Volatile，可以看出，Java Volatile对于编译器、CPU的乱序优化，限制的更加严格了。Java Volatile变量与非Volatile变量的一些乱序操作，也同样被禁止。</p>
+<p>&nbsp;</p>
+<p>由于Java Volatile支持Acquire、Release语义，因此Java Volatile，能够用来构建happens-before语义。也就是说，前面提到的C/C++ Volatile在多线程下错误的使用场景，在Java语言下，恰好就是正确的。如下图所示：</p>
+<p>&nbsp;</p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89949162/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89949162/&#39;, &#39;&#39;);" title="v8_new"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(11).jpg" alt="v8_new" width="540" height="280" border="0"></a></p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>Volatile的起源</strong></h1>
+</div>
+</li>
+</ol>
+<p>&nbsp;</p>
+<p>C/C++的Volatile关键词，有三个特性：易变性；不可优化性；顺序性。那么，为什么Volatile被设计成这样呢？要回答这个问题，就需要从Volatile关键词的产生说起。(注：这一小节的内容，参考自<a href="http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf">C++ and the Perils of Double-Checked Locking</a>论文的第10章节：volatile：A Brief History。这是一篇顶顶好的论文，值得多次阅读，强烈推荐！)</p>
+<p>&nbsp;</p>
+<p>Volatile关键词，最早出现于19世纪70年代，被用于处理memory-mapeed I/O (MMIO)带来的问题。在引入MMIO之后，一块内存地址，既有可能是真正的内存，也有可能被映射到一个I/O端口。相对的，读写一个内存地址，既有可能操作内存，也有可能读写的是一个I/O设备。MMIO为什么需要引入Volatile关键词？考虑如下的一个代码片段：</p>
+<p style="text-align: center;"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile14.png" alt=""></p>
+<p>在此代码片段中，指针p既有可能指向一个内存地址，也有可能指向一个I/O设备。如果指针p指向的是I/O设备，那么(1)，(2)中的a，b，就会接收到I/O设备的连续两个字节。但是，p也有可能指向内存，此时，编译器的优化策略，就可能会判断出a，b同时从同一内存地址读取数据，在做完(1)之后，直接将a赋值给b。对于I/O设备，需要防止编译器做这个优化，不能假设指针b指向的内容不变——易变性。</p>
+<p>&nbsp;</p>
+<p>同样，代码(3)，(4)也有类似的问题，编译器发现将a，b同时赋值给指针p是无意义的，因此可能会优化代码(3)中的赋值操作，仅仅保留代码(4)。对于I/O设备，需要防止编译器将写操作给彻底优化消失了——”不可优化”性。</p>
+<p>&nbsp;</p>
+<p>对于I/O设备，编译器不能随意交互指令的顺序，因为顺序一变，写入I/O设备的内容也就发生变化了——”顺序性”。</p>
+<p>&nbsp;</p>
+<p>基于MMIO的这三个需求，设计出来的C/C++ Volatile关键词，所含有的特性，也就是本文前面分析的三个特性：易变性；不可优化性；顺序性。</p>
+<p>&nbsp;</p>
+<ol>
+<li>
+<div style="text-align: justify;">
+<h1><strong>参考资料</strong></h1>
+</div>
+</li>
+</ol>
+<p>[1] Wiki. <a href="http://en.wikipedia.org/wiki/Volatile_variable">Volatile variable</a>.</p>
+<p>[2] Wiki. <a href="http://en.wikipedia.org/wiki/Memory_ordering">Memory ordering</a>.</p>
+<p>[3] Scott Meyers; Andrei Alexandrescu. <a href="http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf">C++ and the Perils of Double-Checked Locking</a>.</p>
+<p>[4] Jeff Preshing. <a href="http://preshing.com/20120710/memory-barriers-are-like-source-control-operations/">Memory Barriers Are Like Source Control Operations</a>.</p>
+<p>[5] Jeff Preshing. <a href="http://preshing.com/20130702/the-happens-before-relation/">The Happens-Before Relation</a>.</p>
+<p>[6] Jeff Preshing. <a href="http://preshing.com/20120913/acquire-and-release-semantics/">Acquire and Release Semantics</a>.</p>
+<p>[7] 何登成. <a href="http://hedengcheng.com/?p=648">CPU Cache and Memory Ordering——并发程序设计入门</a>.</p>
+<p>[8] Bartosz Milewski. <a href="http://bartoszmilewski.com/2008/11/11/who-ordered-sequential-consistency/">Who ordered sequential consistency?</a></p>
+<p>[9] Andrew Haley. <a href="http://www.complang.tuwien.ac.at/anton/euroforth/ef11/papers/haley.pdf">What are we going to do about volatile?</a></p>
+<p>[10] Java Glossary. <a href="http://mindprod.com/jgloss/volatile.html">volatile</a>.</p>
+<p>[11] stackoverflow. <a href="http://stackoverflow.com/questions/2484980/why-is-volatile-not-considered-useful-in-multithreaded-c-or-c-programming"><span style="font-size: 10pt;">Why is volatile not considered useful in multithreaded C or C++ programming?</span></a></p>
+<p>[12] msdn. <a href="http://msdn.microsoft.com/en-us/library/aa645755(v=vs.71).aspx">Volatile fields.</a></p>
+<p>[13] msdn. <a href="http://msdn.microsoft.com/en-us/library/12a04hfd.aspx">volatile (C++).</a></p>
+<p>[14]&nbsp;刘未鹏.&nbsp;<a href="http://blog.csdn.net/pongba/article/details/1659952" target="_blank">《C++0x漫谈》系列之：多线程内存模型</a>.</p>
+		<div class="fixed"></div>
+					<div class="tags">标签: <a href="http://hedengcheng.com/?tag=cc" rel="tag">C/C++</a>, <a href="http://hedengcheng.com/?tag=java" rel="tag">Java</a>, <a href="http://hedengcheng.com/?tag=volatile" rel="tag">volatile</a></div>
+			</div>
+</div>
+
+<!-- related posts -->
+
+<div id="postnavi">
+	<span class="alignleft floatleft"><a href="http://hedengcheng.com/?p=771" rel="next">MySQL 加锁处理分析</a></span>
+	<span class="alignright floatright"><a href="http://hedengcheng.com/?p=687" rel="prev">排队论及其应用浅析</a></span>
+	<div class="fixed"></div>
+</div>
+
+<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/comment.js"></script>
+
+
+
+	<ol class="commentlist">
+			<li id="comment-5290" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/2efdf488b80290b5a5c1f92354da3ac9" srcset="http://2.gravatar.com/avatar/2efdf488b80290b5a5c1f92354da3ac9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5290">
+				
+				hailong
+									</span>
+								<div class="date">12月 2nd, 201318:18</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5290#respond" onclick="return addComment.moveForm( &quot;comment-5290&quot;, &quot;5290&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hailong">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5290&#39;, &#39;comment-5290&#39;, &#39;commentbody-5290&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5290">#1</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5290">
+					<p>Volatile 变量和non- Volatile变量 会被编译器优化掉，之前还真不知道！长见识了。如果这样，禁止掉优化嘛，也可以</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5291" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5291">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 2nd, 201318:40</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5291#respond" onclick="return addComment.moveForm( &quot;comment-5291&quot;, &quot;5291&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5291&#39;, &#39;comment-5291&#39;, &#39;commentbody-5291&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5291">#2</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5291">
+					<p>禁掉优化，你可以试试。debug与release版本的性能差距有多大，很多就是编译器优化的功劳。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5294" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5294">
+				
+				eagle.dai
+									</span>
+								<div class="date">12月 2nd, 201322:01</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5294#respond" onclick="return addComment.moveForm( &quot;comment-5294&quot;, &quot;5294&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给eagle.dai">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5294&#39;, &#39;comment-5294&#39;, &#39;commentbody-5294&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5294">#3</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5294">
+					<p>#pragma optimize(“”, off)</p>
+<p>…</p>
+<p>#pragma optimize(“”, on)</p>
+<p>VC下面可以禁止一块代码优化，GCC下面也应该有类似的方法</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5295" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5295">
+				
+				eagle.dai
+									</span>
+								<div class="date">12月 2nd, 201322:03</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5295#respond" onclick="return addComment.moveForm( &quot;comment-5295&quot;, &quot;5295&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给eagle.dai">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5295&#39;, &#39;comment-5295&#39;, &#39;commentbody-5295&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5295">#4</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5295">
+					<p>当然，这个只能解决编译器的reordering带了的问题，CPU也会做这种事情</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5298" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5298">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 2nd, 201322:40</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5298#respond" onclick="return addComment.moveForm( &quot;comment-5298&quot;, &quot;5298&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5298&#39;, &#39;comment-5298&#39;, &#39;commentbody-5298&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5298">#5</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5298">
+					<p>禁用编译器的优化，并不是一个好方法，毕竟，对于代码性能来说，编译器的优化，提升太明显了。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5292" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/3eed90a1680e52b106982e82226c2e58" srcset="http://0.gravatar.com/avatar/3eed90a1680e52b106982e82226c2e58?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5292">
+				
+				jiayy
+									</span>
+								<div class="date">12月 2nd, 201319:12</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5292#respond" onclick="return addComment.moveForm( &quot;comment-5292&quot;, &quot;5292&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给jiayy">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5292&#39;, &#39;comment-5292&#39;, &#39;commentbody-5292&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5292">#6</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5292">
+					<p>如果是gcc编译器，在取flag的地方加上 BARRIER 指令是否就可以保证顺序性了 ？</p>
+<p>#define BARRIER() do{ asm volatile(“” ::: “memory”);}while(0)</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5297" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5297">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 2nd, 201322:38</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5297#respond" onclick="return addComment.moveForm( &quot;comment-5297&quot;, &quot;5297&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5297&#39;, &#39;comment-5297&#39;, &#39;commentbody-5297&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5297">#7</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5297">
+					<p>barrier是可以的。不过，你的这个是compiler barrier，更强一点的话，应该同时加上CPU barrier，例如mfence指令。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5300" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/5feb1277ca8f1c6554f64f69a40a3173" srcset="http://2.gravatar.com/avatar/5feb1277ca8f1c6554f64f69a40a3173?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5300">
+				
+				Yatao Li
+									</span>
+								<div class="date">12月 3rd, 201300:57</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5300#respond" onclick="return addComment.moveForm( &quot;comment-5300&quot;, &quot;5300&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Yatao Li">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5300&#39;, &#39;comment-5300&#39;, &#39;commentbody-5300&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5300">#8</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5300">
+					<p>lock xor eax, eax比mfence快</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5293" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/1afa36e68a7f8ccea98d30961e0274f1" srcset="http://1.gravatar.com/avatar/1afa36e68a7f8ccea98d30961e0274f1?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5293">
+				
+				zz
+									</span>
+								<div class="date">12月 2nd, 201321:09</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5293#respond" onclick="return addComment.moveForm( &quot;comment-5293&quot;, &quot;5293&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给zz">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5293&#39;, &#39;comment-5293&#39;, &#39;commentbody-5293&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5293">#9</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5293">
+					<p>赞一下！～不过最后Java volatile 图片中左右两边acquire和release是不是弄反了啊～左边写flag应该是release，右边读flag应该是acquire吧～ 🙂</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5296" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5296">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 2nd, 201322:37</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5296#respond" onclick="return addComment.moveForm( &quot;comment-5296&quot;, &quot;5296&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5296&#39;, &#39;comment-5296&#39;, &#39;commentbody-5296&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5296">#10</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5296">
+					<p>错了，谢谢指正！</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5299" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d70539e666787042a2f19e2f01116a9b" srcset="http://1.gravatar.com/avatar/d70539e666787042a2f19e2f01116a9b?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5299">
+				
+				Thomson
+									</span>
+								<div class="date">12月 2nd, 201323:23</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5299#respond" onclick="return addComment.moveForm( &quot;comment-5299&quot;, &quot;5299&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Thomson">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5299&#39;, &#39;comment-5299&#39;, &#39;commentbody-5299&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5299">#11</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5299">
+					<p>同赞！非常全面的总结。使用mfence来实现happen-before比使用lock的性能要好吧？中间提到foo函数里面的memory write reordering, foo执行完后 A=1, B=0, 但是因为进入foo之前A,B的值可能已经不是初值，第一次看到这里还想了一下为什么一定会是1和0. 这里的reordering主要也就是把读和写隔开，消除相邻指令的data dependence, 选gcc是因为VC++不会做这个优化吗？</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5304" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5304">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 3rd, 201308:26</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5304#respond" onclick="return addComment.moveForm( &quot;comment-5304&quot;, &quot;5304&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5304&#39;, &#39;comment-5304&#39;, &#39;commentbody-5304&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5304">#12</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5304">
+					<p>vc，我没做这个测试，因为原来这个用例已经有了，我就直接在gcc下做了钱。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-330828" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/4e4a9119dba9ccd6f18d2c4010f35b1e" srcset="http://1.gravatar.com/avatar/4e4a9119dba9ccd6f18d2c4010f35b1e?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-330828" href="http://ietrsyahnrc.com/" rel="external nofollow">
+				
+				Janine
+									</a>
+								<div class="date">4月 21st, 201607:35</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=330828#respond" onclick="return addComment.moveForm( &quot;comment-330828&quot;, &quot;330828&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Janine">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-330828&#39;, &#39;comment-330828&#39;, &#39;commentbody-330828&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-330828">#13</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-330828">
+					<p>Wow! Talk about a posting kncikong my socks off!</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5301" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/2f5e21ce3608bf370c4ce6125f8fd313" srcset="http://2.gravatar.com/avatar/2f5e21ce3608bf370c4ce6125f8fd313?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5301">
+				
+				hiproz
+									</span>
+								<div class="date">12月 3rd, 201301:06</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5301#respond" onclick="return addComment.moveForm( &quot;comment-5301&quot;, &quot;5301&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hiproz">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5301&#39;, &#39;comment-5301&#39;, &#39;commentbody-5301&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5301">#14</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5301">
+					<p>清晰 明了，一气呵成。特支持一下，期待更多精良大作。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5303" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/dc1186fcfb36dc491a41741aad66d00a" srcset="http://1.gravatar.com/avatar/dc1186fcfb36dc491a41741aad66d00a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5303">
+				
+				xiaoyang
+									</span>
+								<div class="date">12月 3rd, 201308:10</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5303#respond" onclick="return addComment.moveForm( &quot;comment-5303&quot;, &quot;5303&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给xiaoyang">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5303&#39;, &#39;comment-5303&#39;, &#39;commentbody-5303&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5303">#15</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5303">
+					<p>好文章，支持，以前觉得自己入门了，现在发现还很远，最起码的几个名词都没听说过。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5305" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d62c48a2699e6b08cd6651083465cf70" srcset="http://1.gravatar.com/avatar/d62c48a2699e6b08cd6651083465cf70?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5305">
+				
+				东青
+									</span>
+								<div class="date">12月 3rd, 201309:46</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5305#respond" onclick="return addComment.moveForm( &quot;comment-5305&quot;, &quot;5305&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给东青">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5305&#39;, &#39;comment-5305&#39;, &#39;commentbody-5305&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5305">#16</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5305">
+					<p>很不错，尤其是最后一段从volatile关键字的起源说起，让我们知道了他的来龙去脉，更好的加深了理解。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5306" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/c5331e4a568e55b6d9489b941c1555a2" srcset="http://0.gravatar.com/avatar/c5331e4a568e55b6d9489b941c1555a2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5306">
+				
+				victor
+									</span>
+								<div class="date">12月 3rd, 201309:53</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5306#respond" onclick="return addComment.moveForm( &quot;comment-5306&quot;, &quot;5306&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给victor">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5306&#39;, &#39;comment-5306&#39;, &#39;commentbody-5306&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5306">#17</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5306">
+					<p>lz你好，第一个例子我用gcc -S t.c  编译为什么观察不到你提到的那种变化，这个与你的那个fn（）函数没关系吧，想知道为什么</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5307" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5307">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 3rd, 201311:09</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5307#respond" onclick="return addComment.moveForm( &quot;comment-5307&quot;, &quot;5307&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5307&#39;, &#39;comment-5307&#39;, &#39;commentbody-5307&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5307">#18</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5307">
+					<p>第一个例子，我用的是vc编译器，gcc没试过，因此尚不知道原因。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5328" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/13ecd6539a19205ac5a220d19519851f" srcset="http://1.gravatar.com/avatar/13ecd6539a19205ac5a220d19519851f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5328">
+				
+				Adam
+									</span>
+								<div class="date">12月 9th, 201317:44</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5328#respond" onclick="return addComment.moveForm( &quot;comment-5328&quot;, &quot;5328&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Adam">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5328&#39;, &#39;comment-5328&#39;, &#39;commentbody-5328&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5328">#19</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5328">
+					<p>是不是用-S只是进行了汇编，没有经过优化阶段，应该对编译完生成的.o文件，再反汇编看。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5308" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5308">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 3rd, 201311:10</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5308#respond" onclick="return addComment.moveForm( &quot;comment-5308&quot;, &quot;5308&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5308&#39;, &#39;comment-5308&#39;, &#39;commentbody-5308&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5308">#20</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5308">
+					<p>跟fn函数是有关的，我可以把这个test完整代码贴出来。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5309" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/aa6907818dcc5af31bec2cab2df6e148" srcset="http://1.gravatar.com/avatar/aa6907818dcc5af31bec2cab2df6e148?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-5309" href="http://tengfei.info/" rel="external nofollow">
+				
+				tengfei
+									</a>
+								<div class="date">12月 3rd, 201312:46</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5309#respond" onclick="return addComment.moveForm( &quot;comment-5309&quot;, &quot;5309&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给tengfei">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5309&#39;, &#39;comment-5309&#39;, &#39;commentbody-5309&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5309">#21</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5309">
+					<p>好文章啊，受益了。赞。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5310" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/095f70e48952367b7c561b797a479601" srcset="http://0.gravatar.com/avatar/095f70e48952367b7c561b797a479601?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5310">
+				
+				catmonkeyxu
+									</span>
+								<div class="date">12月 3rd, 201314:01</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5310#respond" onclick="return addComment.moveForm( &quot;comment-5310&quot;, &quot;5310&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给catmonkeyxu">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5310&#39;, &#39;comment-5310&#39;, &#39;commentbody-5310&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5310">#22</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5310">
+					<p>受教了。那么能够实现happens-before语义性能最快的方式是什么呢？似乎就是lock指令？</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5312" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5312">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 3rd, 201318:41</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5312#respond" onclick="return addComment.moveForm( &quot;comment-5312&quot;, &quot;5312&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5312&#39;, &#39;comment-5312&#39;, &#39;commentbody-5312&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5312">#23</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5312">
+					<p>嗯，其实个人感觉性能真没有那么明显的差别，更大的差别，还是在于对和错。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5313" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/64518311aab4ddd80dff346f5cf7a847" srcset="http://0.gravatar.com/avatar/64518311aab4ddd80dff346f5cf7a847?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5313">
+				
+				shunruo
+									</span>
+								<div class="date">12月 3rd, 201321:56</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5313#respond" onclick="return addComment.moveForm( &quot;comment-5313&quot;, &quot;5313&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给shunruo">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5313&#39;, &#39;comment-5313&#39;, &#39;commentbody-5313&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5313">#24</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5313">
+					<p>VC中，volatile 是带Acquire 和 release 语义的。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5319" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5319">
+				
+				colin陶
+									</span>
+								<div class="date">12月 5th, 201313:26</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5319#respond" onclick="return addComment.moveForm( &quot;comment-5319&quot;, &quot;5319&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给colin陶">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5319&#39;, &#39;comment-5319&#39;, &#39;commentbody-5319&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5319">#25</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5319">
+					<p>太赞了…菜鸟路过…^.^学习学习,转走了哈,大牛</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5320" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5320">
+				
+				colin陶
+									</span>
+								<div class="date">12月 5th, 201313:27</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5320#respond" onclick="return addComment.moveForm( &quot;comment-5320&quot;, &quot;5320&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给colin陶">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5320&#39;, &#39;comment-5320&#39;, &#39;commentbody-5320&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5320">#26</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5320">
+					<p><a href="http://blog.csdn.net/lin_credible/article/details/17128057" rel="nofollow">http://blog.csdn.net/lin_credible/article/details/17128057</a></p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5338" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/251ce2ba596a57c8c8cdff8374cc0b0a" srcset="http://2.gravatar.com/avatar/251ce2ba596a57c8c8cdff8374cc0b0a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5338">
+				
+				zym
+									</span>
+								<div class="date">12月 13th, 201321:50</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5338#respond" onclick="return addComment.moveForm( &quot;comment-5338&quot;, &quot;5338&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给zym">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5338&#39;, &#39;comment-5338&#39;, &#39;commentbody-5338&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5338">#27</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5338">
+					<p>对于测试用例五，测试了一下gcc 4.7.2也是如此。准确的说应该是下面这个顺序：<br>
+1. A=B<br>
+2.B=0<br>
+3.A=A+1<br>
+可见B为0时A还没有加1！但我个人认为这里面的gcc的优化是有严重问题的，甚至可以当作是bug了。</p>
+<p>同时测试了clang 3.3，即使在-O2下也绝对不会把B=0优化到A=B+1前面。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5354" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5354">
+				
+				hedengcheng
+									</span>
+								<div class="date">12月 15th, 201317:17</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5354#respond" onclick="return addComment.moveForm( &quot;comment-5354&quot;, &quot;5354&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5354&#39;, &#39;comment-5354&#39;, &#39;commentbody-5354&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5354">#28</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5354">
+					<p>这个不算bug。编译器只要保证你程序达到的效果不变，中间的执行过程，是可以任意优化的。你可以试试，一段简单的代码，分别用debug，o1-3 release编译。debug，o1可能还跟代码基本一致，但是，o2-3跟代码的顺序，差异就会很大了。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5790" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/36c3da5db491a299163393cecdfeed16" srcset="http://0.gravatar.com/avatar/36c3da5db491a299163393cecdfeed16?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-5790" href="http://wizmann.tk/" rel="external nofollow">
+				
+				Wizmann
+									</a>
+								<div class="date">4月 24th, 201409:17</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5790#respond" onclick="return addComment.moveForm( &quot;comment-5790&quot;, &quot;5790&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Wizmann">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5790&#39;, &#39;comment-5790&#39;, &#39;commentbody-5790&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5790">#29</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5790">
+					<p>c++不知道有多线程这个东西，所以只保证单线程下运行的正确。（这个问题应该在C++11得到了改变</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-330790" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d053ed0213fa8ed195d5ecaad87046e2" srcset="http://1.gravatar.com/avatar/d053ed0213fa8ed195d5ecaad87046e2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-330790" href="http://tceklebumvs.com/" rel="external nofollow">
+				
+				Caro
+									</a>
+								<div class="date">4月 21st, 201605:03</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=330790#respond" onclick="return addComment.moveForm( &quot;comment-330790&quot;, &quot;330790&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Caro">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-330790&#39;, &#39;comment-330790&#39;, &#39;commentbody-330790&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-330790">#30</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-330790">
+					<p>Weeeee, what a quick and easy soinulot.</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5368" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/dded52899e702568b912fc8efdd51efd" srcset="http://1.gravatar.com/avatar/dded52899e702568b912fc8efdd51efd?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5368">
+				
+				邓波
+									</span>
+								<div class="date">12月 18th, 201316:29</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5368#respond" onclick="return addComment.moveForm( &quot;comment-5368&quot;, &quot;5368&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给邓波">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5368&#39;, &#39;comment-5368&#39;, &#39;commentbody-5368&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5368">#31</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5368">
+					<p>多线程访问共享数据如果涉及写操作当然要加锁。这不是明摆着么？呵呵。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5388" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/94b471ef07b1b10cdeee4890af14a901" srcset="http://0.gravatar.com/avatar/94b471ef07b1b10cdeee4890af14a901?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5388">
+				
+				fusijie
+									</span>
+								<div class="date">12月 21st, 201308:32</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5388#respond" onclick="return addComment.moveForm( &quot;comment-5388&quot;, &quot;5388&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给fusijie">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5388&#39;, &#39;comment-5388&#39;, &#39;commentbody-5388&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5388">#32</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5388">
+					<p>赞，令人十分享受的文章。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5419" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-5419" href="http://hedengcheng.com/?p=803" rel="external nofollow">
+				
+				并发编程系列之一：锁的意义 | 何登成的技术博客
+									</a>
+								<div class="date">12月 24th, 201317:21</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-5419">#33</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5446" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-5446" href="http://hedengcheng.com/?p=828" rel="external nofollow">
+				
+				2013年个人微博推荐技术资料汇总 | 何登成的技术博客
+									</a>
+								<div class="date">12月 25th, 201322:08</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-5446">#34</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5631" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0703305e15ddaddba834593325cd0334" srcset="http://0.gravatar.com/avatar/0703305e15ddaddba834593325cd0334?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5631">
+				
+				leo
+									</span>
+								<div class="date">2月 13th, 201406:41</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5631#respond" onclick="return addComment.moveForm( &quot;comment-5631&quot;, &quot;5631&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给leo">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5631&#39;, &#39;comment-5631&#39;, &#39;commentbody-5631&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5631">#35</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5631">
+					<p>对x86而言，貌似那个volatile例子不太适合，几乎不太可能出现你说的问题。<br>
+x86下，store之间不会有乱序出现，所以不会出现 flag＝true then something＝1。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-5637" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5637">
+				
+				hedengcheng
+									</span>
+								<div class="date">2月 13th, 201412:47</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5637#respond" onclick="return addComment.moveForm( &quot;comment-5637&quot;, &quot;5637&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5637&#39;, &#39;comment-5637&#39;, &#39;commentbody-5637&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5637">#36</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5637">
+					<p>嗯，x86不会出现storestore乱序</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-210779" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-210779">
+				
+				阳凌
+									</span>
+								<div class="date">4月 2nd, 201512:00</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=210779#respond" onclick="return addComment.moveForm( &quot;comment-210779&quot;, &quot;210779&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给阳凌">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-210779&#39;, &#39;comment-210779&#39;, &#39;commentbody-210779&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-210779">#37</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-210779">
+					<p>大侠，我想问一下，x86 不是还有 oostore架构吗？ 那如果是x86 oostore架构会不会出现，flag=true then something = 1;的情况呢？　google 了x86 oostore的资料，几乎没有，能介绍一下吗》</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-210846" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-210846">
+				
+				hedengcheng
+									</span>
+								<div class="date">4月 2nd, 201515:17</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=210846#respond" onclick="return addComment.moveForm( &quot;comment-210846&quot;, &quot;210846&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-210846&#39;, &#39;comment-210846&#39;, &#39;commentbody-210846&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-210846">#38</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-210846">
+					<p>这个我不清楚，oostore能给点参考资料吗？</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-210872" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-210872">
+				
+				阳凌
+									</span>
+								<div class="date">4月 2nd, 201517:16</div>
+			</div>
+			<div class="count">
+																									<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-210872&#39;, &#39;comment-210872&#39;, &#39;commentbody-210872&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-210872">#39</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-210872">
+					<p>我也看你给的下面，是截取自Wiki上的一幅图，列举了不同CPU架构，可能存在的指令乱序。wiki上的一个图。<br>
+里面提到了 x86 oostore 和X86 还有IA64单独分开的。，应该是不同的架构，从wiki给的资料来看，似乎IA64和oostore的乱法是一样的乱法。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-5716" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/ee138cbd0c45f2eec300e2fad7b2e62f" srcset="http://2.gravatar.com/avatar/ee138cbd0c45f2eec300e2fad7b2e62f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5716">
+				
+				clr
+									</span>
+								<div class="date">3月 15th, 201422:24</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5716#respond" onclick="return addComment.moveForm( &quot;comment-5716&quot;, &quot;5716&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给clr">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5716&#39;, &#39;comment-5716&#39;, &#39;commentbody-5716&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5716">#40</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5716">
+					<p>关于顺序性，我不确定你说的“CPU乱序执行”会影响volatile 变量之间的执行顺序。正如你后面所说的，volatile一开始是由MMIO引入，所以，不管是CPU还是编译器都应该能够确保volatile变量间执行的顺序性，否则，往某一个端口的输出或者读取就会仍然无法得到保证。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-5750" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/727818b6ecfc958d31c45e0c06bdad5c" srcset="http://1.gravatar.com/avatar/727818b6ecfc958d31c45e0c06bdad5c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-5750">
+				
+				莫铭
+									</span>
+								<div class="date">3月 22nd, 201413:17</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=5750#respond" onclick="return addComment.moveForm( &quot;comment-5750&quot;, &quot;5750&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给莫铭">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-5750&#39;, &#39;comment-5750&#39;, &#39;commentbody-5750&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-5750">#41</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-5750">
+					<p>接触到很多东西，以前模糊不明的也稍清晰点了，非常感谢，期待更多的好文章。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-11075" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/7cafe6eae7f098b20a998ced5cf6b97c" srcset="http://1.gravatar.com/avatar/7cafe6eae7f098b20a998ced5cf6b97c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-11075">
+				
+				aCayF
+									</span>
+								<div class="date">5月 18th, 201420:11</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=11075#respond" onclick="return addComment.moveForm( &quot;comment-11075&quot;, &quot;11075&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给aCayF">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-11075&#39;, &#39;comment-11075&#39;, &#39;commentbody-11075&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-11075">#42</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-11075">
+					<p>提一个疑惑，还望前辈能帮忙解答一下，前面所说的volatile关键字会强制将数据写到内存中去，这里强制的意思是就算cache用了write-back的方式，在这次操作中也会保证被强制写到内存而不只写到cache为止吗？</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+<ul class="children">
+	<li id="comment-12188" class="comment admincomment">
+
+		<div class="info admininfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-12188">
+				
+				hedengcheng
+									</span>
+								<div class="date">5月 21st, 201418:41</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=12188#respond" onclick="return addComment.moveForm( &quot;comment-12188&quot;, &quot;12188&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给hedengcheng">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-12188&#39;, &#39;comment-12188&#39;, &#39;commentbody-12188&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-12188">#43</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-12188">
+					<p>如果你将cache当作内存的一部分，就可以理解了。所谓的强制写内存，读内存，是相对于register而言的。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	<li id="comment-12000" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/9146fb0dcb07d6113798972147afd2f2" srcset="http://0.gravatar.com/avatar/9146fb0dcb07d6113798972147afd2f2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-12000" href="http://apprentice89.com/" rel="external nofollow">
+				
+				apprentice89
+									</a>
+								<div class="date">5月 21st, 201410:03</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=12000#respond" onclick="return addComment.moveForm( &quot;comment-12000&quot;, &quot;12000&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给apprentice89">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-12000&#39;, &#39;comment-12000&#39;, &#39;commentbody-12000&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-12000">#44</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-12000">
+					<p>清晰易懂，非常感谢！</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-28726" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/de2355d70b38fefa9596cf8739c302a7" srcset="http://1.gravatar.com/avatar/de2355d70b38fefa9596cf8739c302a7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-28726">
+				
+				OWR
+									</span>
+								<div class="date">7月 1st, 201411:55</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=28726#respond" onclick="return addComment.moveForm( &quot;comment-28726&quot;, &quot;28726&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给OWR">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-28726&#39;, &#39;comment-28726&#39;, &#39;commentbody-28726&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-28726">#45</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-28726">
+					<p>Very Good!<br>
+Thank you</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-67288" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-67288" href="http://www.chawenti.com/articles/25816.html" rel="external nofollow">
+				
+				设计模式系列之单例模式 – coderkian | 查问题
+									</a>
+								<div class="date">9月 16th, 201400:11</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-67288">#46</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-67302" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-67302" href="http://www.ym910.com/wp/?p=16370" rel="external nofollow">
+				
+				设计模式系列之单例模式 | 易鸣
+									</a>
+								<div class="date">9月 16th, 201400:28</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-67302">#47</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-115472" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/a0d5896dcb946f6681f17edc486e51e7" srcset="http://1.gravatar.com/avatar/a0d5896dcb946f6681f17edc486e51e7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-115472">
+				
+				jery
+									</span>
+								<div class="date">11月 11th, 201417:07</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=115472#respond" onclick="return addComment.moveForm( &quot;comment-115472&quot;, &quot;115472&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给jery">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-115472&#39;, &#39;comment-115472&#39;, &#39;commentbody-115472&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-115472">#48</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-115472">
+					<p>非常感谢，阅读本文之后让我对volatile有了清晰、完整的理解。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-159694" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/9ca4123c2a595d7a2b0fc99b6e74bb68" srcset="http://0.gravatar.com/avatar/9ca4123c2a595d7a2b0fc99b6e74bb68?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-159694">
+				
+				周大侠
+									</span>
+								<div class="date">12月 25th, 201410:11</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=159694#respond" onclick="return addComment.moveForm( &quot;comment-159694&quot;, &quot;159694&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给周大侠">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-159694&#39;, &#39;comment-159694&#39;, &#39;commentbody-159694&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-159694">#49</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-159694">
+					<p>=。= 我之前连volatile都不加的、、、、看来会出大问题啊、</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-275464" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/bdf5f7276731cac38776d9ca46292b41" srcset="http://2.gravatar.com/avatar/bdf5f7276731cac38776d9ca46292b41?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-275464">
+				
+				yyy
+									</span>
+								<div class="date">10月 22nd, 201500:44</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=275464#respond" onclick="return addComment.moveForm( &quot;comment-275464&quot;, &quot;275464&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给yyy">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-275464&#39;, &#39;comment-275464&#39;, &#39;commentbody-275464&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-275464">#50</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-275464">
+					<p>1，“指令乱序执行的行为：StoreLoad”这个说法我认为是错误的</p>
+<p>cpu指令乱序和StoreLoad是两个概念，linux内核文档memeory barrier有很清晰的描述。我曾经在wiki上也看到过把两者混为一谈的说法。</p>
+<p>2，你举得例子something,otherthing是个典型的内存屏障的例子，assert（something == 1）是不能保证的。这个例子和volatile没有必然关系。</p>
+<p>3，我认为在某些场景下volatile是可用的，在多线程下不涉及互相之间有前后关系的多个内存信息的访问，那么volatile是可以用来做为线程间共享标识的。</p>
+<p>4,微软msdn中有提到c++ 11 ISO Standard 之后是不要用volatile做线程间通信的，之前是可以得。而且对于使用了 /volatile:ms 编译开关，volatile的代码也是可以使用在多线程环境下的。</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-290859" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/1f113c79e5210f692368ed9b3aef3040" srcset="http://1.gravatar.com/avatar/1f113c79e5210f692368ed9b3aef3040?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-290859" href="http://www.tapaso.com/" rel="external nofollow">
+				
+				increase app store ranking
+									</a>
+								<div class="date">12月 11th, 201514:16</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=290859#respond" onclick="return addComment.moveForm( &quot;comment-290859&quot;, &quot;290859&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给increase app store ranking">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-290859&#39;, &#39;comment-290859&#39;, &#39;commentbody-290859&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-290859">#51</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-290859">
+					<p>Want to Boost your Visibility on the App Store? It should be noted  <a href="http://www.tapaso.com/" rel="nofollow">ios app store optimization</a> that keyword changes, name, screeshots, video, ratings and reviews. If you are looking for the top aso services to improve your app ranking and boost app downloads, then you just have found the perfect site,ios app store optimization</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-303407" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0ca2371a13ed8c3bf9369ece351ccc2d" srcset="http://0.gravatar.com/avatar/0ca2371a13ed8c3bf9369ece351ccc2d?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-303407">
+				
+				Max
+									</span>
+								<div class="date">2月 16th, 201619:49</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=303407#respond" onclick="return addComment.moveForm( &quot;comment-303407&quot;, &quot;303407&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Max">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-303407&#39;, &#39;comment-303407&#39;, &#39;commentbody-303407&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-303407">#52</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-303407">
+					<p>cool!花了很多心思！</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-330782" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d14336937cae2275485e0fc8ffdbf14a" srcset="http://1.gravatar.com/avatar/d14336937cae2275485e0fc8ffdbf14a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<a class="authorname" id="commentauthor-330782" href="http://ceovqifyhyv.com/" rel="external nofollow">
+				
+				Joan
+									</a>
+								<div class="date">4月 21st, 201605:00</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=330782#respond" onclick="return addComment.moveForm( &quot;comment-330782&quot;, &quot;330782&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给Joan">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-330782&#39;, &#39;comment-330782&#39;, &#39;commentbody-330782&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-330782">#53</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-330782">
+					<p>This “free sharing” of inotimaorfn seems too good to be true. Like communism.</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-332361" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-332361" href="http://www.aliog.com/106266.html" rel="external nofollow">
+				
+				java/android 设计模式学习笔记（一）—单例模式 – 移动开发 – 阿里欧歌
+									</a>
+								<div class="date">4月 25th, 201602:48</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-332361">#54</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-335996" class="comment pingcomment">
+
+		<div class="info pinginfo">
+						<div class="author">
+									<a class="authorname" id="commentauthor-335996" href="http://www.aliog.com/113298.html" rel="external nofollow">
+				
+				进程概述和内存分配 – 编程语言 – 阿里欧歌
+									</a>
+								<div class="date">5月 16th, 201612:08</div>
+			</div>
+			<div class="count">
+												<a href="http://hedengcheng.com/?p=725#comment-335996">#55</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	<li id="comment-346641" class="comment regularcomment">
+
+		<div class="info regularinfo">
+			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/df17d042d1916ee74aa2944d82ade437" srcset="http://1.gravatar.com/avatar/df17d042d1916ee74aa2944d82ade437?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+									<span class="authorname" id="commentauthor-346641">
+				
+				咕咕叫
+									</span>
+								<div class="date">6月 14th, 201610:50</div>
+			</div>
+			<div class="count">
+															<a rel="nofollow" class="comment-reply-link" href="http://hedengcheng.com/?p=725&amp;replytocom=346641#respond" onclick="return addComment.moveForm( &quot;comment-346641&quot;, &quot;346641&quot;, &quot;respond&quot;, &quot;725&quot; )" aria-label="回复给咕咕叫">回复</a> | 										<a href="javascript:void(0);" onclick="MGJS_CMT.quote(&#39;commentauthor-346641&#39;, &#39;comment-346641&#39;, &#39;commentbody-346641&#39;, &#39;comment&#39;);">引用</a> | 
+												<a href="http://hedengcheng.com/?p=725#comment-346641">#56</a>
+			</div>
+			<div class="fixed"></div>
+		</div>
+
+					<div class="content">
+				
+				<div id="commentbody-346641">
+					<blockquote cite="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/saved_resource"><p>
+<strong><a href="http://hedengcheng.com/?p=725#comment-5790" rel="nofollow">Wizmann</a> :</strong><br>
+c++不知道有多线程这个东西，所以只保证单线程下运行的正确。（这个问题应该在C++11得到了改变
+</p></blockquote>
+<p>我也想知道博主对于不同线程的资源对象的访问，是如何保证顺序性的。。。</p>
+<p>Volatile：顺序性<br>
+此处的例子，多线程的资源访问难道靠自己的逻辑或者肉眼去看么？<br>
+是我孤陋寡闻还是</p>
+				</div>
+			</div>
+		
+		<div class="fixed"></div>
+
+</li><!-- #comment-## -->
+	</ol>
+
+
+
+	<div id="respond">
+	<form id="commentform" action="http://hedengcheng.com/wp-comments-post.php" method="post">
+
+					<a rel="nofollow" id="cancel-comment-reply-link" href="http://hedengcheng.com/?p=725#respond" style="display:none;">Cancel reply</a>		
+		<!-- comment info -->
+					
+			<div id="author_info">
+				<div class="row">
+					<input type="text" name="author" id="author" class="textfield" value="" size="24" tabindex="1">
+					<label for="author" class="small">昵称 (必填)</label>
+				</div>
+				<div class="row">
+					<input type="text" name="email" id="email" class="textfield" value="" size="24" tabindex="2">
+					<label for="email" class="small">电子邮箱 (我们会为您保密) (必填)</label>
+				</div>
+				<div class="row">
+					<input type="text" name="url" id="url" class="textfield" value="" size="24" tabindex="3">
+					<label for="url" class="small">网址</label>
+				</div>
+			</div>
+
+			
+		
+	<!-- comment input -->
+	<div class="row">
+		<textarea name="comment" id="comment" tabindex="4" rows="8" cols="50"></textarea>
+	</div>
+
+	<!-- comment submit and rss -->
+	<div id="submitbox">
+		<a class="feed" href="feed:http://hedengcheng.com/?feed=comments-rss2">订阅评论</a>
+		<input name="submit" type="submit" id="submit" class="button" tabindex="5" value="提交评论">
+				<input type="hidden" name="comment_post_ID" value="725">
+		<div class="fixed"></div>
+	</div>
+
+			<input type="hidden" name="comment_post_ID" value="725" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+	
+	<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c00b3a6b92"></p><p style="display: none;"></p>
+	<input type="hidden" id="ak_js" name="ak_js" value="1512958112043"></form>
+	</div>
+
+	
+
+	</div>
+	<!-- main END -->
+
+		
+<!-- sidebar START -->
+<div id="sidebar">
+
+	<!-- showcase -->
+	
+
+	<!-- recent posts -->
+	<div class="widget widget_pages">
+		<h3>Recent Posts</h3>
+		<ul>
+						<li><a href="http://hedengcheng.com/?p=1005" id="post-1005">2017阿里巴巴云栖大会数据库内核专场，内容概要</a></li>
+						<li><a href="http://hedengcheng.com/?p=985" id="post-985">阿里巴巴数据库内核团队简介&amp;纳新</a></li>
+						<li><a href="http://hedengcheng.com/?p=970" id="post-970">生活中的Paxos，原来你我都在使用——对Paxos生活化的解读</a></li>
+						<li><a href="http://hedengcheng.com/?p=892" id="post-892">数据一致性-分区可用性-性能——多副本强同步数据库系统实现之我见</a></li>
+						<li><a href="http://hedengcheng.com/?p=844" id="post-844">一个最不可思议的MySQL死锁分析</a></li>
+					</ul>
+	</div>
+
+	<!-- recent comments -->
+	
+	<!-- tag cloud -->
+	<div class="widget widget_tag_cloud">
+		<h3>Tag Cloud</h3>
+		<a href="http://hedengcheng.com/?tag=2pc" class="tag-link-27 tag-link-position-1" title="1个话题" style="font-size: 8pt;">2PC</a>
+<a href="http://hedengcheng.com/?tag=5-6" class="tag-link-121 tag-link-position-2" title="2个话题" style="font-size: 9.2521739130435pt;">5.6</a>
+<a href="http://hedengcheng.com/?tag=add-index" class="tag-link-81 tag-link-position-3" title="2个话题" style="font-size: 9.2521739130435pt;">add index</a>
+<a href="http://hedengcheng.com/?tag=aio" class="tag-link-17 tag-link-position-4" title="2个话题" style="font-size: 9.2521739130435pt;">AIO</a>
+<a href="http://hedengcheng.com/?tag=b-tree" class="tag-link-89 tag-link-position-5" title="2个话题" style="font-size: 9.2521739130435pt;">B+-Tree</a>
+<a href="http://hedengcheng.com/?tag=block" class="tag-link-25 tag-link-position-6" title="1个话题" style="font-size: 8pt;">Block</a>
+<a href="http://hedengcheng.com/?tag=buffer-pool" class="tag-link-68 tag-link-position-7" title="3个话题" style="font-size: 10.086956521739pt;">Buffer Pool</a>
+<a href="http://hedengcheng.com/?tag=checkpoint" class="tag-link-13 tag-link-position-8" title="2个话题" style="font-size: 9.2521739130435pt;">Checkpoint</a>
+<a href="http://hedengcheng.com/?tag=cpu" class="tag-link-96 tag-link-position-9" title="2个话题" style="font-size: 9.2521739130435pt;">CPU</a>
+<a href="http://hedengcheng.com/?tag=crash-recovery" class="tag-link-34 tag-link-position-10" title="4个话题" style="font-size: 10.782608695652pt;">Crash Recovery</a>
+<a href="http://hedengcheng.com/?tag=database" class="tag-link-161 tag-link-position-11" title="4个话题" style="font-size: 10.782608695652pt;">Database</a>
+<a href="http://hedengcheng.com/?tag=data-cache" class="tag-link-69 tag-link-position-12" title="2个话题" style="font-size: 9.2521739130435pt;">Data Cache</a>
+<a href="http://hedengcheng.com/?tag=deadlock" class="tag-link-141 tag-link-position-13" title="2个话题" style="font-size: 9.2521739130435pt;">Deadlock</a>
+<a href="http://hedengcheng.com/?tag=group-commit" class="tag-link-22 tag-link-position-14" title="3个话题" style="font-size: 10.086956521739pt;">Group Commit</a>
+<a href="http://hedengcheng.com/?tag=2-2" class="tag-link-10 tag-link-position-15" title="27个话题" style="font-size: 16pt;">InnoDB</a>
+<a href="http://hedengcheng.com/?tag=insert-buffer" class="tag-link-16 tag-link-position-16" title="2个话题" style="font-size: 9.2521739130435pt;">Insert Buffer</a>
+<a href="http://hedengcheng.com/?tag=join" class="tag-link-44 tag-link-position-17" title="2个话题" style="font-size: 9.2521739130435pt;">join</a>
+<a href="http://hedengcheng.com/?tag=linux" class="tag-link-18 tag-link-position-18" title="1个话题" style="font-size: 8pt;">Linux</a>
+<a href="http://hedengcheng.com/?tag=lock" class="tag-link-60 tag-link-position-19" title="3个话题" style="font-size: 10.086956521739pt;">Lock</a>
+<a href="http://hedengcheng.com/?tag=mariadb" class="tag-link-21 tag-link-position-20" title="1个话题" style="font-size: 8pt;">MariaDB</a>
+<a href="http://hedengcheng.com/?tag=mvcc" class="tag-link-30 tag-link-position-21" title="3个话题" style="font-size: 10.086956521739pt;">MVCC</a>
+<a href="http://hedengcheng.com/?tag=1-2" class="tag-link-9 tag-link-position-22" title="18个话题" style="font-size: 14.817391304348pt;">MySQL</a>
+<a href="http://hedengcheng.com/?tag=mysql-bug" class="tag-link-56 tag-link-position-23" title="3个话题" style="font-size: 10.086956521739pt;">MySQL BUG</a>
+<a href="http://hedengcheng.com/?tag=online" class="tag-link-84 tag-link-position-24" title="2个话题" style="font-size: 9.2521739130435pt;">online</a>
+<a href="http://hedengcheng.com/?tag=22" class="tag-link-155 tag-link-position-25" title="5个话题" style="font-size: 11.339130434783pt;">Oracle</a>
+<a href="http://hedengcheng.com/?tag=page" class="tag-link-23 tag-link-position-26" title="1个话题" style="font-size: 8pt;">Page</a>
+<a href="http://hedengcheng.com/?tag=percona" class="tag-link-14 tag-link-position-27" title="4个话题" style="font-size: 10.782608695652pt;">Percona</a>
+<a href="http://hedengcheng.com/?tag=range-query" class="tag-link-63 tag-link-position-28" title="2个话题" style="font-size: 9.2521739130435pt;">Range Query</a>
+<a href="http://hedengcheng.com/?tag=readview" class="tag-link-32 tag-link-position-29" title="1个话题" style="font-size: 8pt;">ReadView</a>
+<a href="http://hedengcheng.com/?tag=redo" class="tag-link-80 tag-link-position-30" title="2个话题" style="font-size: 9.2521739130435pt;">Redo</a>
+<a href="http://hedengcheng.com/?tag=rollback-segment" class="tag-link-39 tag-link-position-31" title="3个话题" style="font-size: 10.086956521739pt;">Rollback Segment</a>
+<a href="http://hedengcheng.com/?tag=row" class="tag-link-26 tag-link-position-32" title="2个话题" style="font-size: 9.2521739130435pt;">Row</a>
+<a href="http://hedengcheng.com/?tag=transaction" class="tag-link-50 tag-link-position-33" title="2个话题" style="font-size: 9.2521739130435pt;">transaction</a>
+<a href="http://hedengcheng.com/?tag=trasaction" class="tag-link-35 tag-link-position-34" title="3个话题" style="font-size: 10.086956521739pt;">Trasaction</a>
+<a href="http://hedengcheng.com/?tag=undo" class="tag-link-42 tag-link-position-35" title="3个话题" style="font-size: 10.086956521739pt;">Undo</a>
+<a href="http://hedengcheng.com/?tag=xa" class="tag-link-28 tag-link-position-36" title="2个话题" style="font-size: 9.2521739130435pt;">XA</a>
+<a href="http://hedengcheng.com/?tag=xtradb" class="tag-link-15 tag-link-position-37" title="3个话题" style="font-size: 10.086956521739pt;">XtraDB</a>
+<a href="http://hedengcheng.com/?tag=%e4%b8%ad%e6%96%ad" class="tag-link-19 tag-link-position-38" title="1个话题" style="font-size: 8pt;">中断</a>
+<a href="http://hedengcheng.com/?tag=%e5%88%86%e5%b8%83%e5%bc%8f" class="tag-link-150 tag-link-position-39" title="2个话题" style="font-size: 9.2521739130435pt;">分布式</a>
+<a href="http://hedengcheng.com/?tag=%e5%88%86%e5%b8%83%e5%bc%8f%e4%ba%8b%e5%8a%a1" class="tag-link-29 tag-link-position-40" title="2个话题" style="font-size: 9.2521739130435pt;">分布式事务</a>
+<a href="http://hedengcheng.com/?tag=%e5%a4%9a%e7%89%88%e6%9c%ac" class="tag-link-31 tag-link-position-41" title="2个话题" style="font-size: 9.2521739130435pt;">多版本</a>
+<a href="http://hedengcheng.com/?tag=3" class="tag-link-11 tag-link-position-42" title="3个话题" style="font-size: 10.086956521739pt;">数据库</a>
+<a href="http://hedengcheng.com/?tag=%e6%95%b0%e6%8d%ae%e5%ba%93%e5%86%85%e6%a0%b8%e5%88%86%e4%ba%ab" class="tag-link-160 tag-link-position-43" title="3个话题" style="font-size: 10.086956521739pt;">数据库内核分享</a>
+<a href="http://hedengcheng.com/?tag=%e6%97%a5%e5%bf%97" class="tag-link-24 tag-link-position-44" title="2个话题" style="font-size: 9.2521739130435pt;">日志</a>
+<a href="http://hedengcheng.com/?tag=%e8%bd%af%e4%b8%ad%e6%96%ad" class="tag-link-20 tag-link-position-45" title="1个话题" style="font-size: 8pt;">软中断</a>	</div>
+
+	<!-- categories -->
+	<div class="widget widget_categories">
+		<h3>Categories</h3>
+		<ul>
+				<li class="cat-item cat-item-148"><a href="http://hedengcheng.com/?cat=148">Architecture</a> (1)
+</li>
+	<li class="cat-item cat-item-138"><a href="http://hedengcheng.com/?cat=138">C/C++</a> (2)
+</li>
+	<li class="cat-item cat-item-149"><a href="http://hedengcheng.com/?cat=149">Distributed</a> (2)
+</li>
+	<li class="cat-item cat-item-53"><a href="http://hedengcheng.com/?cat=53">Falcon</a> (1)
+</li>
+	<li class="cat-item cat-item-95"><a href="http://hedengcheng.com/?cat=95">Hardware</a> (3)
+</li>
+	<li class="cat-item cat-item-62"><a href="http://hedengcheng.com/?cat=62">Optimizer</a> (2)
+</li>
+	<li class="cat-item cat-item-134"><a href="http://hedengcheng.com/?cat=134">Performance</a> (1)
+</li>
+	<li class="cat-item cat-item-117"><a href="http://hedengcheng.com/?cat=117">Programming</a> (7)
+</li>
+	<li class="cat-item cat-item-105"><a href="http://hedengcheng.com/?cat=105">Test</a> (1)
+</li>
+	<li class="cat-item cat-item-70"><a href="http://hedengcheng.com/?cat=70">TPCC</a> (1)
+</li>
+	<li class="cat-item cat-item-4"><a href="http://hedengcheng.com/?cat=4" title="包含所有的数据库技术文档">数据库</a> (45)
+<ul class="children">
+	<li class="cat-item cat-item-6"><a href="http://hedengcheng.com/?cat=6" title="InnoDB引擎文档">InnoDB</a> (34)
+</li>
+	<li class="cat-item cat-item-5"><a href="http://hedengcheng.com/?cat=5" title="MySQL Server文档">MySQL Server</a> (27)
+</li>
+	<li class="cat-item cat-item-7"><a href="http://hedengcheng.com/?cat=7" title="Oracle数据库文档">Oracle</a> (6)
+</li>
+	<li class="cat-item cat-item-8"><a href="http://hedengcheng.com/?cat=8" title="PostgreSQL数据库文档">PostgreSQL</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-73"><a href="http://hedengcheng.com/?cat=73">数据库内核分享</a> (14)
+</li>
+	<li class="cat-item cat-item-101"><a href="http://hedengcheng.com/?cat=101">数据库研发</a> (6)
+</li>
+	<li class="cat-item cat-item-3"><a href="http://hedengcheng.com/?cat=3" title="个人的一些随笔。">杂谈</a> (3)
+</li>
+		</ul>
+	</div>
+
+	<!-- archives -->
+	<div id="archives" class="widget widget_archive">
+		<h3>Archives</h3>
+		<ul>
+				<li><a href="http://hedengcheng.com/?m=201709">2017年九月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201703">2017年三月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201605">2016年五月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201503">2015年三月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201401">2014年一月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201312">2013年十二月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201311">2013年十一月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201307">2013年七月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201304">2013年四月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201303">2013年三月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201302">2013年二月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201301">2013年一月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201212">2012年十二月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201211">2012年十一月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201210">2012年十月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201209">2012年九月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201208">2012年八月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201207">2012年七月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201206">2012年六月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201205">2012年五月</a></li>
+	<li><a href="http://hedengcheng.com/?m=201204">2012年四月</a></li>
+		</ul>
+	</div>
+
+	<!-- blogroll -->
+	<div class="widget widget_links">
+		<h3>Blogroll</h3>
+		<ul>
+			<li><a href="http://queue.acm.org/blog/" title="Architecting Tomorrow’s Computing" target="_blank">ACM Queue</a></li>
+<li><a href="http://www.allthingsdistributed.com/" title="Werner Vogels’ weblog on building scalable and robust distributed systems." target="_blank">All Things Distributed</a></li>
+<li><a href="http://bartoszmilewski.com/" title="Concurrency, Multicore, C++, Haskell" target="_blank">Bartosz Milewski's Programming Cafe</a></li>
+<li><a href="http://dtrace.org/blogs/brendan/" title="Brendan Gregg’s professional blog" target="_blank">Brendan's blog</a></li>
+<li><a href="http://dimitrik.free.fr/blog/index.html" target="_blank">Dimitrik's Weblog</a></li>
+<li><a href="http://www.drdobbs.com/" title="The World of Software Development" target="_blank">Dr.Dobb's</a></li>
+<li><a href="http://duartes.org/gustavo/blog/" title="Software, computers, and business." target="_blank">Gustavo Duarte</a></li>
+<li><a href="http://highscalability.com/" target="_blank">High Scalability</a></li>
+<li><a href="http://blog.jcole.us/" target="_blank">Jeremy Cole's Blog</a></li>
+<li><a href="http://jonathanlewis.wordpress.com/" target="_blank">Jonathan Lewis's Oracle Scratchpad</a></li>
+<li><a href="http://engineering.linkedin.com/" target="_blank">LinkedIn Engineering</a></li>
+<li><a href="http://mysqlha.blogspot.com/" target="_blank">Mark Callaghan's High Availability MySQL</a></li>
+<li><a href="http://mechanical-sympathy.blogspot.com/" title="Hardware and software working together in harmony" target="_blank">Mechanical Sympathy</a></li>
+<li><a href="http://www.mysqlperformanceblog.com/" target="_blank">MySQL Performance Blog</a></li>
+<li><a href="http://paulmck.livejournal.com/" title="《Is Parallel Programming Hard, And, If So, What Can You Do About It?》一书作者" target="_blank">Paul E. McKenney's Journal</a></li>
+<li><a href="http://perspectives.mvdirona.com/" title="James Hamilton’s Blog" target="_blank">Perspectives</a></li>
+<li><a href="http://preshing.com/" title="Concurrent Programming, Lock &amp; Lock Free Programming" target="_blank">preshing on programming</a></li>
+<li><a href="http://herbsutter.com/" title="Herb Sutter on software, hardware, and concurrency" target="_blank">Sutter’s Mill</a></li>
+<li><a href="http://perfdynamics.blogspot.com/" title="Possibly pithy insights into computer performance analysis and capacity planning based on the Guerrilla series of books and training classes provided by Performance Dynamics Company." target="_blank">The Pith of Performance</a></li>
+<li><a href="https://blog.twitter.com/engineering" title="Information from Twitter’s engineering team about our technology, tools and events." target="_blank">The Twitter Engineering Blog</a></li>
+<li><a href="https://blogs.oracle.com/mysqlinnodb/" target="_blank">Transactions on InnoDB</a></li>
+<li><a href="http://www.wired.com/wiredenterprise/" title="最新技术新闻" target="_blank">Wired Enterprise – IT Happens</a></li>
+<li><a href="http://blog.codingnow.com/" target="_blank">云风的Blog</a></li>
+<li><a href="http://coolshell.cn/" target="_blank">左耳朵耗子的酷壳</a></li>
+<li><a href="http://www.dbthink.com/" target="_blank">旺旺的数据库思考者之家</a></li>
+<li><a href="http://blog.yufeng.info/" target="_blank">霸爷的系统技术非业余研究</a></li>
+<li><a href="http://www.valleytalk.org/" target="_blank">首席的弯曲评论</a></li>
+		</ul>
+	</div>
+
+
+<!-- showcase 2 -->
+
+</div>
+<!-- sidebar END -->
+
+	<div class="fixed"></div>
+
+	<!-- footer START -->
+	<div id="footer">
+		<div id="about">
+			Powered by <a href="http://wordpress.org/">WordPress</a>			 | Theme by <a href="http://www.neoease.com/">NeoEase</a>			 | Valid <a href="http://validator.w3.org/check?uri=referer">XHTML 1.1</a> and <a href="http://jigsaw.w3.org/css-validator/check/referer?profile=css3">CSS 3</a>		</div>
+		<ul id="admin">
+			<li><a href="http://hedengcheng.com/wp-login.php?action=register">注册</a></li>			<li><a href="http://hedengcheng.com/wp-login.php">登录</a></li>
+			<li id="gotop"><a href="http://hedengcheng.com/?p=725#" onclick="MGJS.goTop();return false;">置顶</a></li>
+		</ul>
+		<div class="fixed"></div>
+	</div>
+	<!-- footer END -->
+
+</div>
+<!-- content END -->
+
+		</div><!-- container -->
+	</div><!-- wrap -->
+
+<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/form.js"></script>
+<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/comment-reply.min.js"></script>
+<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/wp-embed.min.js"></script>
+
+
+
+</body></html>
