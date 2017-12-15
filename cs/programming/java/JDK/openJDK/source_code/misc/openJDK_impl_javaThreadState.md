@@ -84,7 +84,9 @@ inline void JavaThread::set_thread_state(JavaThreadState s) {
 
 * 对于membar情况：
   * volatile使得编译器不重排、并且写回mem而不是register（实际WB mem写不写回另说）
-  * ​
+  * 实际并没有保证（其他线程的）可见性
+* 对于serialize page的情况
+  * 普通读写
 
 
 
@@ -181,12 +183,23 @@ inline void JavaThread::set_thread_state(JavaThreadState s) {
       }
     }
 
+  if (SafepointSynchronize::do_call_back()) {
+    // If we are safepointing, then block the caller which may not be
+    // the same as the target thread (see above).
+    SafepointSynchronize::block(curJT);
+  }
+
 // thead.cpp
 // check_safepoint_and_suspend_for_native_trans
 //... 同上
 ```
 
 
+
+* 使用membar情况
+  * 前面提到，对于
+  * 这里加fence实际是保证： write threadState 和 read safepointState  （不同位置的SL）的顺序，根据下面的实现可知： 编译和CPU执行层面都有考虑
+* 使用serialize page情况
 
 
 
@@ -203,13 +216,7 @@ inline void OrderAccess::fence() {
 }
 ```
 
-> from [Volatile从入门到放弃](http://blog.csdn.net/w329636271/article/details/54616543)
->
-> `cc代表的是寄存器,memory代表是内存;这边同时用了”cc”和”memory”,来通知编译器内存或者寄存器内的内容已经发生了修改,要重新生成加载指令(不可以从缓存寄存器中取).`
->
-> `read/write请求不能越过lock指令进行重排,那么所有带有lock prefix指令(lock ,xchgl等)都会构成一个天然的x86 Mfence(读写屏障),这里用lock指令作为内存屏障,然后利用asm volatile("" ::: "cc,memory")作为编译器屏障`
 
-> \#yonka\# 即便如上，这里是怎么保证**状态同步**的？
 
 
 
