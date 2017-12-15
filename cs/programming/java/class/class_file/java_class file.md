@@ -18,6 +18,8 @@
 
 下了两个版本，在mac上，其中一个[oschina的版本](http://www.oschina.net/code/snippet_12_2154)对hex的定位不准，[sourceforge的版本](https://sourceforge.net/projects/javaclassviewer/)ok（ExecuableApp目录下这个）。
 
+> 实际测试，好像带lambda（jdk8）的class无法解析，啊啊啊啊啊，打开会窗口卡住
+
 
 
 #### 使用
@@ -945,7 +947,7 @@ bytes为： `00 0D`
 
 0. index `00 0D`
 
-   这里最后对应 utf8 `java/lang/Comparable`
+    这里最后对应 utf8 `java/lang/Comparable`
 
 
 

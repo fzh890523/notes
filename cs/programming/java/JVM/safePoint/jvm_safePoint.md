@@ -226,6 +226,60 @@ LeafInWind 写道
 
 #### into source
 
+
+
+```cpp
+  enum SynchronizeState {
+      _not_synchronized = 0,                   // Threads not synchronized at a safepoint
+                                               // Keep this value 0. See the coment in do_call_back()
+      _synchronizing    = 1,                   // Synchronizing in progress
+      _synchronized     = 2                    // All Java threads are stopped at a safepoint. Only VM thread is running
+  };
+
+  enum SafepointingThread {
+      _null_thread  = 0,
+      _vm_thread    = 1,
+      _other_thread = 2
+  };
+
+  enum SafepointTimeoutReason {
+    _spinning_timeout = 0,
+    _blocking_timeout = 1
+  };
+
+// State class for a thread suspended at a safepoint
+class ThreadSafepointState: public CHeapObj<mtInternal> {
+ public:
+  // These states are maintained by VM thread while threads are being brought
+  // to a safepoint.  After SafepointSynchronize::end(), they are reset to
+  // _running.
+  enum suspend_type {
+    _running                =  0, // Thread state not yet determined (i.e., not at a safepoint yet)
+    _at_safepoint           =  1, // Thread at a safepoint (f.ex., when blocked on a lock)
+    _call_back              =  2  // Keep executing and wait for callback (if thread is in interpreted or vm)
+  };
+ private:
+  volatile bool _at_poll_safepoint;  // At polling page safepoint (NOT a poll return safepoint)
+  // Thread has called back the safepoint code (for debugging)
+  bool                           _has_called_back;
+
+  JavaThread *                   _thread;
+  volatile suspend_type          _type;
+  JavaThreadState                _orig_thread_state;
+  
+  // ...
+  
+}
+```
+
+
+
+
+
+
+
+
+
 ##### 进入安全点、设置、退出
 
 

@@ -38,6 +38,19 @@
   o.getClass().isAssignableFrom(OClass.class) // from而不是to，所以是判断 OClass是否为o.getClass的子类/实现类等
   ```
 
+  ```
+  Determines if the class or interface represented by this Class object is either the same as, or is a superclass or superinterface of, the class or interface represented by the specified Class parameter. It returns true if so; otherwise it returns false. If this Class object represents a primitive type, this method returns true if the specified Class parameter is exactly this Class object; otherwise it returns false.
+  Specifically, this method tests whether the type represented by the specified Class parameter can be converted to the type represented by this Class object via an identity conversion or via a widening reference conversion. See The Java Language Specification, sections 5.1.1 and 5.1.4 , for details.
+  ```
+
+  但是：
+
+  ```java
+          System.out.println(int.class.isAssignableFrom(long.class));
+          System.out.println(long.class.isAssignableFrom(int.class));
+  // 都是false，囧
+  ```
+
   ​
 
 

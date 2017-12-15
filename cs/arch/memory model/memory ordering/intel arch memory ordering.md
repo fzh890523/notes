@@ -108,14 +108,18 @@ Ref: 《Intel 64 Architeture Memory Ordering White Paper_r1.0》
 ### 理解！
 
 * （同核）不乱序
+
   * LL
   * SS
   * LS
-  * <del>SL</del>
-    * 但同一位置的话能保证
+  * **仅限同一位置的** SL
   * [LS]🔐
   * 🔐[LS]
+
+  引申： 同一位置的各种指令（之间）都不会乱序
+
 * （多核）total order
+
   * 同一位置写
   * 锁指令
 

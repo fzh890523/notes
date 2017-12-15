@@ -298,7 +298,13 @@ inline void     OrderAccess::release_store_ptr_fence(volatile void*     p, void*
 
 
 
+> from [Volatile从入门到放弃](http://blog.csdn.net/w329636271/article/details/54616543)
+>
+> `cc代表的是寄存器,memory代表是内存;这边同时用了”cc”和”memory”,来通知编译器内存或者寄存器内的内容已经发生了修改,要重新生成加载指令(不可以从缓存寄存器中取).`
+>
+> `read/write请求不能越过lock指令进行重排,那么所有带有lock prefix指令(lock ,xchgl等)都会构成一个天然的x86 Mfence(读写屏障),这里用lock指令作为内存屏障,然后利用asm volatile("" ::: "cc,memory")作为编译器屏障`
 
+> \#yonka\# 即便如上，这里是怎么保证**状态同步**的？
 
 
 
