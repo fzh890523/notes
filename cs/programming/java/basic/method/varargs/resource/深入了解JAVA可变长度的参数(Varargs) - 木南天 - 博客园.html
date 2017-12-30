@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>深入了解JAVA可变长度的参数(Varargs) - 木南天 - 博客园</title>
+<link type="text/css" rel="stylesheet" href="/bundles/blog-common.css?v=H3IOkgdPffpmgIkls4TofKh6PlSWVifjfgEhZr2VHqo1"/>
+<link id="MainCss" type="text/css" rel="stylesheet" href="/skins/nature/bundle-nature.css?v=SMSmqROZamyrz003uRLsZZQqisVE_ymEDyPy07GKHPw1"/>
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="/skins/nature/bundle-nature-mobile.css?v=x_kvsPnyiEe2CIJoQglsCzfnmRiJRUWkXYKy9yqPylc1"/>
+<link title="RSS" type="application/rss+xml" rel="alternate" href="http://www.cnblogs.com/uptownBoy/rss"/>
+<link title="RSD" type="application/rsd+xml" rel="EditURI" href="http://www.cnblogs.com/uptownBoy/rsd.xml"/>
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="http://www.cnblogs.com/uptownBoy/wlwmanifest.xml"/>
+<script src="//common.cnblogs.com/script/jquery.js" type="text/javascript"></script>  
+<script type="text/javascript">var currentBlogApp = 'uptownBoy', cb_enable_mathjax=false;var isLogined=true;</script>
+<script src="/bundles/blog-common.js?v=Gjc-c4WOecxW2V4mwH9-EN2lPzwMWd4wyAzo535GvA01" type="text/javascript"></script>
+</head>
+<body>
+<a name="top"></a>
+
+<!--done-->
+<div id="banner"><div id="bnr_pic">
+<!--done-->
+<div class="header">
+	<div class="headerText">
+		<a id="Header1_HeaderTitle" class="headermaintitle" href="http://www.cnblogs.com/uptownBoy/">木南天</a><br>
+	</div><br>
+	<div class="headerDis"></div>
+</div>
+</div></div>
+<div id="main">
+	<!-- left starts -->
+	<div id="left">
+		<DIV id="mystats">
+			<br/>
+				<div id="blog_stats">
+<!--done-->
+<div class="blogStats">
+随笔 - 0&nbsp;
+文章 - 41&nbsp;
+评论 - 7&nbsp;
+
+</div></div>
+			
+		</DIV>
+		<div id="mylinks">
+<!--done-->
+<a id="blog_nav_sitehome" class="menu" href="http://www.cnblogs.com/">博客园</a>&nbsp;&nbsp;<a id="blog_nav_myhome" class="menu" href="http://www.cnblogs.com/uptownBoy/">首页</a>&nbsp;&nbsp;<a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a>&nbsp;&nbsp;<a id="blog_nav_contact" accesskey="9" class="menu" rel="nofollow" href="https://msg.cnblogs.com/send/%E6%9C%A8%E5%8D%97%E5%A4%A9">联系</a>&nbsp;&nbsp;<a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a>&nbsp;&nbsp;<a id="blog_nav_rss" class="menu" href="http://www.cnblogs.com/uptownBoy/rss">订阅</a>&nbsp;<a id="blog_nav_rss_image" href="http://www.cnblogs.com/uptownBoy/rss"><img src="//www.cnblogs.com/images/xml.gif" alt="订阅" /></a></div>
+		<div id="topics">
+			
+<div id="post_detail">
+<div class="post">
+	<div class="postTitle">
+		<h1><a id="cb_post_title_url" class="postTitle2" href="http://www.cnblogs.com/uptownBoy/articles/1698335.html">深入了解JAVA可变长度的参数(Varargs)</a></h1>
+	</div>
+	<div id="cnblogs_post_body" class="blogpost-body"><p>&nbsp;<span style="color: #ff0000">(本文转载自csdn)</span></p>
+<p>&nbsp;</p>
+<p>到J2SE 1.4为止，一直无法在Java程序里定义实参个数可变的方法&#8212;&#8212;因为Java要求实参（Arguments）和形参（Parameters）的数量和类型都必须逐一匹配，而形参的数目是在定义方法时就已经固定下来了。尽管可以通过重载机制，为同一个方法提供带有不同数量的形参的版本，但是这仍然不能达到让实参数量任意变化的目的。 </p>
+<p>然而，有些方法的语义要求它们必须能接受个数可变的实参&#8212;&#8212;例如著名的main方法，就需要能接受所有的命令行参数为实参，而命令行参数的数目，事先根本无法确定下来。</p>
+<p>&nbsp;</p>
+<p>对于这个问题，传统上一般是采用&#8220;利用一个数组来包裹要传递的实参&#8221;的做法来应付。</p>
+<p>&nbsp;</p>
+<h2 class="major">1. 用数组包裹实参</h2>
+<p>&#8220;用数组包裹实参&#8221;的做法可以分成三步：首先，为这个方法定义一个数组型的参数；然后在调用时，生成一个包含了所有要传递的实参的数组；最后，把这个数组作为一个实参传递过去。</p>
+<p>这种做法可以有效的达到&#8220;让方法可以接受个数可变的参数&#8221;的目的，只是调用时的形式不够简单。</p>
+<p>J2SE 1.5中提供了<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>机制，允许直接定义能和多个实参相匹配的形参。从而，可以用一种更简单的方式，来传递个数可变的实参。</p>
+<h3 class="label"><strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>的含义</h3>
+<p>大体说来，&#8220;<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>&#8221;是&#8220;variable number of arguments&#8221;的意思。有时候也被简单的称为&#8220;variable arguments&#8221;，不过因为这一种叫法没有说明是什么东西可变，所以意义稍微有点模糊。</p>
+<p>&nbsp;</p>
+<h2 class="major">2. 定义实参个数可变的方法</h2>
+<p>只要在一个形参的&#8220;类型&#8221;与&#8220;参数名&#8221;之间加上三个连续的&#8220;.&#8221;（即&#8220;...&#8221;，英文里的句中省略号），就可以让它和不确定个实参相匹配。而一个带有这样的形参的方法，就是一个实参个数可变的方法。</p>
+<h3 class="listing">清单1：一个实参个数可变的方法</h3>
+<p>private static int sumUp(<strong>int...</strong> values) {<br />}</p>
+<p>注意，只有最后一个形参才能被定义成&#8220;能和不确定个实参相匹配&#8221;的。因此，一个方法里只能有一个这样的形参。另外，如果这个方法还有其它的形参，要把它们放到前面的位置上。</p>
+<p>编译器会在背地里把这最后一个形参转化为一个数组形参，并在编译出的class文件里作上一个记号，表明这是个实参个数可变的方法。</p>
+<h3 class="listing">清单2：实参个数可变的方法的秘密形态</h3>
+<p>private static int sumUp(<strong>int[]</strong> values) {<br />}</p>
+<p>由于存在着这样的转化，所以不能再为这个类定义一个和转化后的方法签名一致的方法。</p>
+<h3 class="listing">清单3：会导致编译错误的组合</h3>
+<p>private static int sumUp(<strong>int...</strong> values) {<br />}<br />private static int sumUp(<strong>int[]</strong> values) {<br />}</p>
+<h2 class="major">3. 调用实参个数可变的方法</h2>
+<p>只要把要传递的实参逐一写到相应的位置上，就可以调用一个实参个数可变的方法。不需要其它的步骤。</p>
+<h3 class="listing">清单4：可以传递若干个实参</h3>
+<p>sumUp(<strong>1, 3, 5, 7</strong>); </p>
+<p>在背地里，编译器会把这种调用过程转化为用&#8220;数组包裹实参&#8221;的形式：</p>
+<h3 class="listing">清单5：偷偷出现的数组创建</h3>
+<p>sumUp(<strong>new int[]{1, 2, 3, 4}</strong>);</p>
+<p>另外，这里说的&#8220;不确定个&#8221;也包括零个，所以这样的调用也是合乎情理的：</p>
+<h3 class="listing">清单6：也可以传递零个实参</h3>
+<p>sumUp<strong>()</strong>;</p>
+<p>这种调用方法被编译器秘密转化之后的效果，则等同于这样：</p>
+<h3 class="listing">清单7：零实参对应空数组</h3>
+<p>sumUp(new int[]<strong>{}</strong>);</p>
+<p>注意这时传递过去的是一个空数组，而不是null。这样就可以采取统一的形式来处理，而不必检测到底属于哪种情况。</p>
+<h2 class="major">4. 处理个数可变的实参</h2>
+<p>处理个数可变的实参的办法，和处理数组实参的办法基本相同。所有的实参，都被保存到一个和形参同名的数组里。根据实际的需要，把这个数组里的元素读出之后，要蒸要煮，就可以随意了。</p>
+<p>&nbsp;</p>
+<h3 class="listing">清单8：处理收到的实参们</h3>
+<p>private static int sumUp(int... <strong>values</strong>) {<br />&nbsp;int sum = 0;<br />&nbsp;for (int i = 0; i &lt; <strong>values</strong>.length; i++) {<br />&nbsp; sum += <strong>values</strong>[i];<br />&nbsp;}<br />&nbsp;return sum;<br />}</p>
+<p>&nbsp;</p>
+<h2 class="major">5. 转发个数可变的实参</h2>
+<p>有时候，在接受了一组个数可变的实参之后，还要把它们传递给另一个实参个数可变的方法。因为编码时无法知道接受来的这一组实参的数目，所以&#8220;把它们逐一写到该出现的位置上去&#8221;的做法并不可行。不过，这并不意味着这是个不可完成的任务，因为还有另外一种办法，可以用来调用实参个数可变的方法。</p>
+<p>在J2SE 1.5的编译器的眼中，实参个数可变的方法是最后带了一个数组形参的方法的特例。因此，事先把整组要传递的实参放到一个数组里，然后把这个数组作为最后一个实参，传递给一个实参个数可变的方法，不会造成任何错误。借助这一特性，就可以顺利的完成转发了。</p>
+<h3 class="listing">清单9：转发收到的实参们</h3>
+<p>public class PrintfSample {<br />&nbsp; public static void main(String[] args) {<br />&nbsp;&nbsp;&nbsp; printOut("Pi:%f E:%f\n", Math.PI, Math.E);<br />&nbsp; }<br />&nbsp; private static void printOut(String format, <strong>Object... args</strong>) {<br />&nbsp;&nbsp;&nbsp; System.out.printf(format, <strong>args</strong>);<br />&nbsp;}<br />}</p>
+<h2 class="major">6. 是数组？不是数组？</h2>
+<p>尽管在背地里，编译器会把能匹配不确定个实参的形参，转化为数组形参；而且也可以用数组包了实参，再传递给实参个数可变的方法；但是，这并不表示&#8220;能匹配不确定个实参的形参&#8221;和&#8220;数组形参&#8221;完全没有差异。</p>
+<p>一个明显的差异是，如果按照调用实参个数可变的方法的形式，来调用一个最后一个形参是数组形参的方法，只会导致一个&#8220;cannot be applied to&#8221;的编译错误。</p>
+<h3 class="listing">清单10：一个&#8220;cannot be applied to&#8221;的编译错误</h3>
+<p>private static void testOverloading(<strong>int[]</strong> i) {<br />System.out.println("A");<br />}<br />public static void main(String[] args) {<br />testOverloading(<strong>1, 2, 3</strong>);//编译出错<br />}</p>
+<p>由于这一原因，不能在调用只支持用数组包裹实参的方法的时候（例如在不是专门为J2SE 1.5设计第三方类库中遗留的那些），直接采用这种简明的调用方式。</p>
+<p>如果不能修改原来的类，为要调用的方法增加参数个数可变的版本，而又想采用这种简明的调用方式，那么可以借助&#8220;引入外加函数（Introduce Foreign Method）&#8221;和&#8220;引入本地扩展（Intoduce Local Extension）&#8221;的重构手法来近似的达到目的。</p>
+<p>&nbsp;</p>
+<h2 class="major">7. 当个数可变的实参遇到泛型</h2>
+<p>J2SE 1.5中新增了&#8220;泛型&#8221;的机制，可以在一定条件下把一个类型参数化。例如，可以在编写一个类的时候，把一个方法的形参的类型用一个标识符（如T）来代表，至于这个标识符到底表示什么类型，则在生成这个类的实例的时候再行指定。这一机制可以用来提供更充分的代码重用和更严格的编译时类型检查。</p>
+<p>不过泛型机制却不能和个数可变的形参配合使用。如果把一个能和不确定个实参相匹配的形参的类型，用一个标识符来代表，那么编译器会给出一个&#8220;generic array creation&#8221;的错误。</p>
+<h3 class="listing">清单11：当<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>遇上泛型</h3>
+<p>private static <strong></strong>void testVarargs(<strong>T</strong>... args) {//编译出错<br />}</p>
+<p>造成这个现象的原因在于J2SE 1.5中的泛型机制的一个内在约束&#8212;&#8212;不能拿用标识符来代表的类型来创建这一类型的实例。在出现支持没有了这个约束的Java版本之前，对于这个问题，基本没有太好的解决办法。</p>
+<p>不过，传统的&#8220;用数组包裹&#8221;的做法，并不受这个约束的限制。</p>
+<h3 class="listing">清单12：可以编译的变通做法</h3>
+<p>private static <strong></strong>void testVarargs(<strong>T</strong>[] args) {<br />&nbsp;for (int i = 0; i &lt; args.length; i++) {<br />&nbsp; System.out.println(args[i]);<br />&nbsp;}<br />}</p>
+<p>&nbsp;</p>
+<h2 class="major">8. 重载中的选择问题</h2>
+<p>Java支持&#8220;重载&#8221;的机制，允许在同一个类拥有许多只有形参列表不同的方法。然后，由编译器根据调用时的实参来选择到底要执行哪一个方法。</p>
+<p>传统上的选择，基本是依照&#8220;特殊者优先&#8221;的原则来进行。一个方法的特殊程度，取决于为了让它顺利运行而需要满足的条件的数目，需要条件越多的越特殊。</p>
+<p>在引入<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>机制之后，这一原则仍然适用，只是要考虑的问题丰富了一些&#8212;&#8212;传统上，一个重载方法的各个版本之中，只有形参数量与实参数量正好一致的那些有被进一步考虑的资格。但是<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>机制引入之后，完全可以出现两个版本都能匹配，在其它方面也别无二致，只是一个实参个数固定，而一个实参个数可变的情况。</p>
+<p>遇到这种情况时，所用的判定规则是&#8220;实参个数固定的版本优先于实参个数可变的版本&#8221;。</p>
+<h3 class="listing">清单13：实参个数固定的版本优先</h3>
+<p>&nbsp;</p>
+<p>如果在编译器看来，同时有多个方法具有相同的优先权，它就会陷入无法就到底调用哪个方法作出一个选择的状态。在这样的时候，它就会产生一个&#8220;reference to 被调用的方法名 is ambiguous&#8221;的编译错误，并耐心的等候作了一些修改，足以免除它的迷惑的新源代码的到来。</p>
+<p>在引入了<strong style="color: black; background-color: #ffff66"><span class="hilite1">Varargs</span></strong>机制之后，这种可能导致迷惑的情况，又增加了一些。例如现在可能会有两个版本都能匹配，在其它方面也如出一辙，而且都是实参个数可变的冲突发生。</p>
+<p>&nbsp;</p>
+<p>public class OverloadingSampleA {<br />&nbsp;public static void main(String[] args) {<br />&nbsp;&nbsp;testOverloading(1);//打印出A<br />&nbsp;&nbsp;testOverloading(1, 2);//打印出B<br />&nbsp;&nbsp;testOverloading(1, 2, 3);//打印出C<br />&nbsp;}<br />&nbsp;private static void testOverloading(int i) {<br />&nbsp;&nbsp;System.out.println("A");<br />&nbsp;}<br />&nbsp;private static void testOverloading(int i, int j) {<br />&nbsp;&nbsp;System.out.println("B");<br />&nbsp;}<br />&nbsp;private static void testOverloading(int i, int... more) {<br />&nbsp;&nbsp;System.out.println("C");<br />&nbsp;}<br />}<br />如果在编译器看来，同时有多个方法具有相同的优先权，它就会陷入无法就到底调用哪个方法作出一个选择的状态。在这样的时候，它就会产生一个&#8220;reference to 被调用的方法名 is ambiguous&#8221;的编译错误，并耐心的等候作了一些修改，足以免除它的迷惑的新源代码的到来。</p>
+<p>在引入了<span class="hilite1">Varargs</span>机制之后，这种可能导致迷惑的情况，又增加了一些。例如现在可能会有两个版本都能匹配，在其它方面也如出一辙，而且都是实参个数可变的冲突发生。</p>
+<p>&nbsp;</p>
+<h3 class="listing">清单14：左右都不是，为难了编译器</h3>
+<p>public class OverloadingSampleB {<br />&nbsp;public static void main(String[] args) {<br />&nbsp; testOverloading(1, 2, 3);//编译出错<br />&nbsp;}<br />&nbsp;private static void testOverloading(<strong>Object... args</strong>) {<br />&nbsp;}<br />&nbsp;private static void testOverloading(<strong>Object o, Object... args</strong>) {<br />&nbsp;}<br />}</p>
+<p>另外，因为J2SE 1.5中有&#8220;Autoboxing/Auto-Unboxing&#8221;机制的存在，所以还可能发生两个版本都能匹配，而且都是实参个数可变，其它方面也一模一样，只是一个能接受的实参是基本类型，而另一个能接受的实参是包裹类的冲突发生。</p>
+<p>&nbsp;</p>
+<h3 class="listing">清单15：Autoboxing/Auto-Unboxing带来的新问题</h3>
+<p>public class OverloadingSampleC {<br />&nbsp;public static void main(String[] args) {<br />&nbsp;&nbsp;/* 编译出错 */<br />&nbsp;&nbsp;testOverloading(1, 2);<br />&nbsp;&nbsp;/* 还是编译出错 */<br />&nbsp;&nbsp;testOverloading(new Integer(1), new Integer(2));<br />&nbsp;}<br />&nbsp;private static void testOverloading(int... args) {<br />&nbsp;}<br />&nbsp;private static void testOverloading(Integer... args) {<br />&nbsp;}<br />}</p>
+<p>&nbsp;</p>
+<h2 class="major">9. 归纳总结</h2>
+<p>和&#8220;用数组包裹&#8221;的做法相比，真正的实参个数可变的方法，在调用时传递参数的操作更为简单，含义也更为清楚。不过，这一机制也有它自身的局限，并不是一个完美无缺的解决方案。</p></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory"></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info">
+</div>
+<div class="clear"></div>
+<div id="post_next_prev"></div>
+</div>
+
+
+	<div class="postDesc">posted on <span id="post-date">2010-03-27 14:26</span> <a href='http://www.cnblogs.com/uptownBoy/'>木南天</a> 阅读(<span id="post_view_count">...</span>) 评论(<span id="post_comment_count">...</span>) &nbsp;<a href="https://i.cnblogs.com/EditArticles.aspx?postid=1698335" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(1698335);return false;">收藏</a></div>
+</div>
+<script type="text/javascript">var allowComments=true,cb_blogId=54758,cb_entryId=1698335,cb_blogApp=currentBlogApp,cb_blogUserGuid='be59ae0f-3f1f-de11-9510-001cf0cd104b',cb_entryCreatedDate='2010/3/27 14:26:00';loadViewCount(cb_entryId);var cb_postType=2;</script>
+
+</div><a name="!comments"></a><div id="blog-comments-placeholder"></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id='comment_form' class='commentform'>
+<a name='commentform'></a>
+<div id='divCommentShow'></div>
+<div id='comment_nav'><span id='span_refresh_tips'></span><a href='javascript:void(0);' onclick='return RefreshCommentList();' id='lnk_RefreshComments' runat='server' clientidmode='Static'>刷新评论</a><a href='#' onclick='return RefreshPage();'>刷新页面</a><a href='#top'>返回顶部</a></div>
+<div id='comment_form_container'></div>
+<div class='ad_text_commentbox' id='ad_text_under_commentbox'></div>
+<div id='ad_t2'></div>
+<div id='opt_under_post'></div>
+<div id='cnblogs_c1' class='c_ad_block'></div>
+<div id='under_post_news'></div>
+<div id='cnblogs_c2' class='c_ad_block'></div>
+<div id='under_post_kb'></div>
+<div id='HistoryToday' class='c_ad_block'></div>
+<script type='text/javascript'>
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverAdT2();
+    deliverAdC1();
+    deliverAdC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);   
+</script>
+</div>
+
+
+		</div>
+	</div>
+	<!-- left ends -->
+	<!-- right starts -->
+	<div id="right">
+		<!-- 右侧工具部分 -->
+		<div id="right_content">
+	
+			
+<!--done-->
+<h2 class="listtitle">公告</h2>
+<div class="newsItem">
+	<div id="blog-news"></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+	
+			<div id="calendar"><div id="blog-calendar" style="display:none"></div><script type="text/javascript">loadBlogDefaultCalendar();</script></div>
+			
+				<DIV id="leftcontentcontainer">
+					<div id="blog-sidecolumn"></div><script type="text/javascript">loadBlogSideColumn();</script>
+				</DIV>
+			
+		</div>
+		<!-- //右侧工具部分 -->
+		<div id="footer">
+			
+<!--done-->
+Copyright &copy;2017 木南天
+		</div>
+	</div>
+	<!-- right ends -->
+	<div class="clear"></div>
+	
+</div>
+
+</body>
+</html>
