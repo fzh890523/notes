@@ -287,6 +287,22 @@ option+鼠标左键（或触摸板）
 
 
 
+## iterm
+
+
+
+### tab
+
+#### tab name
+
+
+
+`cmd + I` 然后修改session name，再esc推出。
+
+
+
+
+
 # 用户
 
 
