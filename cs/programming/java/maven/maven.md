@@ -52,6 +52,42 @@
 
 
 
+## test
+
+
+
+### how to skip tests
+
+[from stackoverflow](https://stackoverflow.com/questions/2593588/maven-skip-building-test-classes):
+
+According to the [documentation](http://maven.apache.org/plugins/maven-surefire-plugin/test-mojo.html#skip) on the Maven Surefire Plugin, `-Dmaven.test.skip` *should* skip both compilation and execution of the tests. By contrast, `-DskipTests` just skips the test *execution*: the tests are still compiled.
+
+
+
+## java doc
+
+
+
+### 命令行禁用maven-javadoc-plugin
+
+```Shell
+-Dmaven.javadoc.skip=true
+```
+
+
+
+## gpg
+
+
+
+### 命令行禁用gpg
+
+
+
+```shell
+-Dgpg.skip
+```
+
 
 
 

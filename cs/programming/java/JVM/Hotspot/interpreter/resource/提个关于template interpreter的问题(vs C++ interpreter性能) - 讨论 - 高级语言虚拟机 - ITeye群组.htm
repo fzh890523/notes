@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>提个关于template interpreter的问题 - 讨论 - 高级语言虚拟机 - ITeye群组</title>
+    <meta name="description" content="看撒加/icyfenix 的讨论里面提到，这个是目前默认的hotpot的interpreter. 去查了一下资料，似乎说是比c++ interpreter快一倍左右。 想了想原因，是否因为c++的已经编译好了，所以即使可对运行的平台上的指令集优化，也无法做了。 而template这个则可以在启动时候动态根据所在平台的指令集生成？ 否则的话，就算template这个是执行的都是机器码，但是c++的编译 ..." />
+    <meta name="keywords" content="提个关于template interpreter的问题 讨论 高级语言虚拟机" />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link href="/rss" rel="alternate" title="高级语言虚拟机" type="application/rss+xml" />
+    <link rel="search" type="application/opensearchdescription+xml" href="/open_search.xml" title="ITeye" />
+    <link href="http://www.iteye.com/stylesheets/group.css?1513147284" media="screen" rel="stylesheet" type="text/css" />
+<link href="http://www.iteye.com/stylesheets/themes/group/blue.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+
+    <script src="http://www.iteye.com/javascripts/application.js?1448702469" type="text/javascript"></script>
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e19a8b00cf63f716d774540875007664";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+
+
+        //自动推送工具代码
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+
+
+      <link href="http://www.iteye.com/javascripts/syntaxhighlighter/SyntaxHighlighter.css?1448702469" media="screen" rel="stylesheet" type="text/css" />
+  <script src="http://www.iteye.com/javascripts/syntaxhighlighter/shCoreCommon.js?1448702469" type="text/javascript"></script>
+<script src="http://www.iteye.com/javascripts/hotkey.js?1448702469" type="text/javascript"></script>
+  <script src="http://www.iteye.com/javascripts/code_favorites.js?1448702469" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="page">
+      <div id="header">
+        <div class="clearfix"><div id="user_nav">
+
+      <a href="/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="/login">登录</a>
+    <a href="/signup" class="nobg">注册</a>
+    <!--<a href="http://passport.csdn.net/account/mobileregister?from=http://www.iteye.com">注册</a>-->
+  </div>
+</div>
+        <div class="clearfix">
+          <div id="branding">
+            <a href="http://www.iteye.com"><img alt="ITeye3.0" src="http://www.iteye.com/images/logo.gif?1448702469" title="ITeye-最棒的软件开发交流社区" /></a>
+          </div>
+          <div id="gg"><IFRAME SRC="/iframe_ggbd/25" SCROLLING=no WIDTH=728 HEIGHT=90 FRAMEBORDER=0></IFRAME></div>
+        </div>
+      </div>
+
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+<div class="h-entry" style='display:none'>
+  <a href="http://nkhanxh.iteye.com" class="p-author" target="_blank">nkhanxh</a>
+</div>
+
+
+<div class="crumbs">
+  <a href="http://www.iteye.com/groups">群组首页</a>
+<span class="arrow">&rarr;</span>
+
+  <a href="/groups/category/language">编程语言</a>
+  <span class="arrow">&rarr;</span>
+
+<a href="/">高级语言虚拟机</a>
+ <span class="arrow">&rarr;</span> <a href="/group/forum">论坛</a>
+</div>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/29420/post/new">发表回复</a></div>
+  
+</div>
+
+<h3><a href="/group/forum?tag_id=690">[讨论]</a> <a href="/group/topic/29420">提个关于template interpreter的问题</a></h3>
+
+
+<table class="grid">
+  <tbody id="posts">
+    <tr id="post-213129">
+  <td class="post_author"><div class="logo"><a href='http://nkhanxh.iteye.com' target='_blank'><img alt="nkhanxh的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nkhanxh的博客: nkhanxh" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://nkhanxh.iteye.com' target='_blank' title='nkhanxh'>nkhanxh</a>
+      2012-03-19
+    </div>
+    <div class="post_body"> 
+      看撒加/icyfenix 的讨论里面提到，这个是目前默认的hotpot的interpreter.<br />去查了一下资料，似乎说是比c++ interpreter快一倍左右。<br /><br /><br />想了想原因，是否因为c++的已经编译好了，所以即使可对运行的平台上的指令集优化，也无法做了。<br /><br />而template这个则可以在启动时候动态根据所在平台的指令集生成？<br /><br />否则的话，就算template这个是执行的都是机器码，但是c++的编译后又能差多少呢？<br /><br /><br />
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213261">
+  <td class="post_author"><div class="logo"><a href='http://nkhanxh.iteye.com' target='_blank'><img alt="nkhanxh的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nkhanxh的博客: nkhanxh" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://nkhanxh.iteye.com' target='_blank' title='nkhanxh'>nkhanxh</a>
+      2012-03-21
+    </div>
+    <div class="post_body"> 
+      http://weblogs.java.net/blog/2007/11/16/template-vs-c-interpreter-shootout<br />"Moreover this technique allows a very tight adaption of the interpreter to the actual processor architecture so the same binary will still run on an old 80486 while it may well use the latest and greatest features of the newest processor generation if available."<br /><br />感觉是这个原因。能利用最新的硬件指令。也就是jit的一个优点，只不过还是个解释器。其实边界有点模糊。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213322">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-03-21
+    </div>
+    <div class="post_body"> 
+      我总觉得HotSpot VM里带的C++ Interpreter之所以比template interpreter慢最主要的原因是没投入足够开发力量。本来就是个Skunk Works性质的小项目。<br /><br />比较新的GCC在编译switch-dispatch形式的解释器循环的时候也有可能生成不错的代码。之前看到Ruby的俩开发还在说这事。<br /><br />再说，HotSpot VM的模板解释器还没JDK 1.1时代的那个快…当年那个也是手写汇编来的，不过不是动态生成的。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213326">
+  <td class="post_author"><div class="logo"><a href='http://nkhanxh.iteye.com' target='_blank'><img alt="nkhanxh的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nkhanxh的博客: nkhanxh" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://nkhanxh.iteye.com' target='_blank' title='nkhanxh'>nkhanxh</a>
+      2012-03-22
+    </div>
+    <div class="post_body"> 
+      哦！看来还是掌握实际数据的人明白啊。<br /><br />那很奇怪的是为什么手写汇编会比较快呢。c++编译器优化的结果已经很牛了啊。<br /><br />看来写interpreter的时候能用到一些先验知识，这是编译器没法知道的，可能也是快的 原因吧。<br /><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div">我总觉得HotSpot VM里带的C++ Interpreter之所以比template interpreter慢最主要的原因是没投入足够开发力量。本来就是个Skunk Works性质的小项目。<br /><br />比较新的GCC在编译switch-dispatch形式的解释器循环的时候也有可能生成不错的代码。之前看到Ruby的俩开发还在说这事。<br /><br />再说，HotSpot VM的模板解释器还没JDK 1.1时代的那个快…当年那个也是手写汇编来的，不过不是动态生成的。</div><br />
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213328">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-03-22
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">nkhanxh 写道</div><div class="quote_div">那很奇怪的是为什么手写汇编会比较快呢。c++编译器优化的结果已经很牛了啊。</div><br />最重要的点是寄存器分配上吧。手写汇编在这种很小范围很细节的地方能有效的、精确的控制寄存器的使用，保证不会浪费寄存器。<br /><br />而C++编译器不一定能完美的选择到最好的寄存器分配方式。在比较大规模的代码里编译器可能比手写做得好，因为人能在脑子管理好的复杂度也是有限的；但小规模代码的精确控制通常还是人做得好些。<br /><br />留意到HotSpot VM的C++ Interpreter也是有小部分手写汇编的。如果一点都没有，它就肯定无法直接用硬件的stack pointer（x86上的ESP，x64上的RSP之类）来实现操作数栈的栈顶指针。那也会浪费了寄存器，于是相应的就会让代码变多以及让速度变慢（因为栈顶指针得放内存里了）。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213336">
+  <td class="post_author"><div class="logo"><a href='http://nkhanxh.iteye.com' target='_blank'><img alt="nkhanxh的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nkhanxh的博客: nkhanxh" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://nkhanxh.iteye.com' target='_blank' title='nkhanxh'>nkhanxh</a>
+      2012-03-22
+    </div>
+    <div class="post_body"> 
+      嗯。有道理！解决我的一个大疑惑。<br /><br />编译器分配的时候可能先保证的是“安全”，不能让寄存器里面有用的值被override。没研究过分配算法。<br /><br />堆栈指针那个的确是太重要了。不然没法直接利用硬件堆栈，效率不知道下降多少啊。因为我感觉push，pop之类的肯定是有硬件支持的，不会向普通内存移动那样做的。具体的我就不懂喽，只是概念和理论上的推测。<br /><br /><div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><div class="quote_title">nkhanxh 写道</div><div class="quote_div">那很奇怪的是为什么手写汇编会比较快呢。c++编译器优化的结果已经很牛了啊。</div><br />最重要的点是寄存器分配上吧。手写汇编在这种很小范围很细节的地方能有效的、精确的控制寄存器的使用，保证不会浪费寄存器。<br /><br />而C++编译器不一定能完美的选择到最好的寄存器分配方式。在比较大规模的代码里编译器可能比手写做得好，因为人能在脑子管理好的复杂度也是有限的；但小规模代码的精确控制通常还是人做得好些。<br /><br />留意到HotSpot VM的C++ Interpreter也是有小部分手写汇编的。如果一点都没有，它就肯定无法直接用硬件的stack pointer（x86上的ESP，x64上的RSP之类）来实现操作数栈的栈顶指针。那也会浪费了寄存器，于是相应的就会让代码变多以及让速度变慢（因为栈顶指针得放内存里了）。</div><br />
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213339">
+  <td class="post_author"><div class="logo"><a href='http://rednaxelafx.iteye.com' target='_blank'><img alt="RednaxelaFX的博客" class="logo" src="http://www.iteye.com/upload/logo/user/179842/e7f2a3da-4ed0-3627-ba26-c63a7a4f5f13-thumb.jpg?1260702218" title="RednaxelaFX的博客: Script Ahead, Code Behind" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://rednaxelafx.iteye.com' target='_blank' title='RednaxelaFX'>RednaxelaFX</a>
+      2012-03-22
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">nkhanxh 写道</div><div class="quote_div">编译器分配的时候可能先保证的是“安全”，不能让寄存器里面有用的值被override。没研究过分配算法。</div><br />主要是当有很多局部变量的时候编译器会很难判断哪些是非常重要一定要在寄存器里的。register关键字这种时候也不能保证稳定的分配结果。<br /><br /><div class="quote_title">nkhanxh 写道</div><div class="quote_div">堆栈指针那个的确是太重要了。不然没法直接利用硬件堆栈，效率不知道下降多少啊。因为我感觉push，pop之类的肯定是有硬件支持的，不会向普通内存移动那样做的。具体的我就不懂喽，只是概念和理论上的推测。</div><br />push和pop本身并没啥特别。只不过不使用硬件stack pointer来实现JVM stack的operand stack pointer的话，就等于浪费了一个通用寄存器，那要么得用另外一个通用寄存器来实现operand stack pointer，要么得把stack pointer放内存里；这样无论怎么搞都比直接用硬件stack pointer要用更多指令以及有可能增加内存访问次数。
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+<tr id="post-213372">
+  <td class="post_author"><div class="logo"><a href='http://nkhanxh.iteye.com' target='_blank'><img alt="nkhanxh的博客" class="logo" src="http://www.iteye.com/images/user-logo-thumb.gif?1448702469" title="nkhanxh的博客: nkhanxh" width="48px" /></a></div></td>
+  <td>
+    <div>
+      <a href='http://nkhanxh.iteye.com' target='_blank' title='nkhanxh'>nkhanxh</a>
+      2012-03-22
+    </div>
+    <div class="post_body"> 
+      <div class="quote_title">RednaxelaFX 写道</div><div class="quote_div"><br />push和pop本身并没啥特别。只不过不使用硬件stack pointer来实现JVM stack的operand stack pointer的话，就等于浪费了一个通用寄存器，那要么得用另外一个通用寄存器来实现operand stack pointer，要么得把stack pointer放内存里；这样无论怎么搞都比直接用硬件stack pointer要用更多指令以及有可能增加内存访问次数。</div><br />应该是，凡是这种cpu能有更多先验知识的东西，理论上都可以硬件加速的。只不过看值不值了。这个等于进行一串操作，内存（寄存器）入栈，栈寄存器+/-。<br /><br /><br />
+    </div>
+    <div class="post_links">
+      
+      
+        
+        
+        
+        <img alt="Spinner" class="favorite_form_spinner" src="http://www.iteye.com/images/spinner.gif?1448702469" style="vertical-align:bottom;margin-left:7px;display:none;" />
+      
+    </div>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+<div class="forum_actions">
+  <div class="links"><img src="/images/icon_plus.gif"/> <a href="/group/topic/29420/post/new">发表回复</a></div>
+  
+</div>
+
+
+
+<script type="text/javascript">
+  function processPosts(){
+    fix_image_size($$('div.post_body img'), 600);
+
+    $$('#main #posts tr').each(function(tr){// comment
+      var post_id = tr.id;
+      $$("tr#"+post_id+" .post_body pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + post_id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "GroupPost");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', '提个关于template interpreter的问题');
+      });
+    });
+  }
+
+  function comment_favorites_init(css_rules){
+    $$(css_rules).each(function(link, index) {
+      link.observe('click', function(e) {
+        $$('.favorite_form_spinner')[0].show();
+        new Ajax.Request($(this).readAttribute('data-link'), {
+          method: 'get',
+          onSuccess: function(response){
+            $(document.getElementsByTagName('body')[0]).insert({bottom:response.responseText});
+            $$('.favorite_form_spinner')[0].hide();
+          }
+        })
+        e.stop();
+      });
+    });
+  }
+  
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+  code_favorites_init();
+  processPosts();
+  comment_favorites_init('.favorite');
+</script>
+
+
+
+
+
+        </div>
+
+        <div id="local">
+                      
+
+<div id="search_box">
+  <form action="/group/topic/search" method="get" id="search_form">
+    <input class="text" id="query" name="query" style="width: 182px;" type="text" value="" />
+    <input type="submit" value="搜索" class="submit" />
+  </form>
+</div>
+
+  <div id="back_to_home" class="clearfix">
+  <a href="/">&gt;&gt;返回群组首页</a>
+  <div class='logo'><a href='http://hllvm.group.iteye.com'><img src='/images/group-logo.gif' alt='高级语言虚拟机群组' title='高级语言虚拟机: 关注各种高级语言虚拟机（high-level language virtual machine，HLL VM）的设计与实现，泛化至各种高级语言的运行时的设计与实现。讨论范围包括JVM、CLI、Parrot等当前流行的VM平台，也包括Python、Ruby、JavaScript、Lua、Perl、Forth、Smalltalk等众多语言的引擎，还有历史上有影响的各种高级语言虚拟机，如SECD等。' height='48' width='48' /></a></div>
+</div>
+
+  <div>
+    <h3>相关讨论</h3>
+    
+      <ul>
+        
+          <li><a href="http://www.iteye.com/topic/492667" target="_blank">虚拟机随谈（一）：解释器，树遍历解释器，基于栈与基于寄存器，大杂烩</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/752755" target="_blank">深入理解JVM</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/263870" target="_blank">对java内存分配的个人理解和疑惑</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/857722" target="_blank">透过JVM看Exception本质</a></li>
+        
+          <li><a href="http://www.iteye.com/topic/4189" target="_blank">一个绝对害了不少人的Java技术问题！</a></li>
+        
+      </ul>
+    
+  </div>
+
+    <div>
+      <h3>相关资源推荐</h3>
+      
+      
+      
+        <ul>
+          
+              <li>
+                <a href="http://blog.csdn.net/ajiangro/article/details/10366811" target="_blank" title="关于AndEngine开发---虚拟机问题">关于AndEngine开发---虚拟机问题</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/ketonfly/article/details/12949823" target="_blank" title="关于虚拟机中cpu“cores&quot;个数的问题">关于虚拟机中cpu“cores"个数的问题</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/YDVampire/article/details/52442638" target="_blank" title="关于android studio虚拟机的问题解决">关于android studio虚拟机的问题解决</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/u014292052/article/details/27324919" target="_blank" title="关于C语言等高级语言能不能直接控制硬件的问题">关于C语言等高级语言能不能直接控制硬件的问题</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/zhouzhiwengang/article/details/46358591" target="_blank" title="Vijava 学习笔记之（Template 克隆虚拟机并指定自定义规范）">Vijava 学习笔记之（Template 克隆虚拟机并指定自定义规范）</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/weiyirong/article/details/7570936" target="_blank" title="编译器如何将高级语言转成汇编语言的？">编译器如何将高级语言转成汇编语言的？</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/Aozora_hrd/article/details/78816283" target="_blank" title="第一个高级语言：FORTRAN">第一个高级语言：FORTRAN</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/ol__lo/article/details/9626323" target="_blank" title="高级语言案例分析_文本编辑器">高级语言案例分析_文本编辑器</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/liukangshiwo/article/details/6798728" target="_blank" title="高级语言内的单指令多数据流计算(SIMD)">高级语言内的单指令多数据流计算(SIMD)</a>
+              </li>
+          
+              <li>
+                <a href="http://blog.csdn.net/MissLong/article/details/17218051" target="_blank" title="高级语言对应CPU执行流程">高级语言对应CPU执行流程</a>
+              </li>
+          
+        </ul>
+      
+    </div>
+
+  
+
+        </div>
+
+        <div id="nav">
+  <div class="wrapper">
+    <ul>
+            <li><a href="http://www.iteye.com/">首页</a></li>
+      <li><a href="http://www.iteye.com/news">资讯</a></li>
+      <li><a href="http://www.iteye.com/magazines">精华</a></li>
+      <li><a href="http://www.iteye.com/forums">论坛</a></li>
+      <li><a href="http://www.iteye.com/ask">问答</a></li>
+      <li><a href="http://www.iteye.com/blogs">博客</a></li>
+      <li><a href="http://www.iteye.com/blogs/subjects">专栏</a></li>
+      <li><a href="http://www.iteye.com/groups" class='selected'>群组</a></li>
+      <!-- <li><a target="_blank" href="http://job.iteye.com/iteye">招聘</a></li>-->
+      <li><a target="_blank" href="http://lib.csdn.net">知识库</a></li>
+      <li class="last"><a href="http://www.iteye.com/search">搜索</a></li>
+    </ul>
+  </div>
+</div>
+      </div>
+
+      <div id="footer">
+  <div id="site_nav">
+    <ul>
+      <li><a href="/index/service">广告服务</a></li>
+      <li><a href="http://webmaster.iteye.com">ITeye黑板报</a></li>
+      <li><a href="/index/contactus">联系我们</a></li>
+      <li class="last"><a href="/index/friend_links">友情链接</a></li>
+    </ul>
+  </div>
+  <div id="copyright">
+    &copy; 2003-2018 ITeye.com.    [ <a href="http://www.miibeian.gov.cn">京ICP证070598号</a>  京公网安备11010502027441 ]<br/>
+    北京创新乐知信息技术有限公司 版权所有<br />
+  </div>
+</div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script>
+
+
+
+    
+  </body>
+</html>

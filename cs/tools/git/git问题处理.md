@@ -47,6 +47,24 @@ git checkout --track origin/<BRANCH-NAME>
 
 
 
+### git difftool
+
+
+
+```shell
+# 一次性比较整个repo目录的差异(vs 某个commit)
+git difftool --dir-diff  f0ab990c
+```
+
+
+
+不过默认情况下对于 `own` 是创建symlink到实际文件，这样导致beyondcompare比较具体文件时会显示内容为空，处理办法：
+
+* git加上参数`--no-symlinks`
+* bc4开始在比较页面的  `rules-handling（处理）-follow symblic links（跟随符号链接）` 选中即可
+
+
+
 ### git diff tool 配置工具
 
 
@@ -349,7 +367,7 @@ git config --global merge.tool opendiff
 > * `REMOTE` 目前理解为 `<remote> <branch>`
 > * `MERGED` 目前理解为 `(git auto )merged result`（可能是冲突状态）
 >
-> 
+>
 
 
 
