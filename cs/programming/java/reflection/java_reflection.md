@@ -2,6 +2,60 @@
 
 
 
+## Method
+
+
+
+### 判断是否为static method
+
+```java
+int m = c.getModifiers();
+if (Modifier.isPublic(m))
+  System.out.println ("public");
+if (Modifier.isAbstract(m))
+ System.out.println ("abstract");
+if (Modifier.isFinal(m))
+   System.out.println ("final");
+if(Modifier.isStatic(m){
+   System.out.println("static");
+}
+```
+
+
+
+
+
+### 判断是否为public method
+
+见上。
+
+
+
+### 判断是否为abstract method
+
+见上。
+
+### 判断是否为final method
+
+见上。
+
+## Field
+
+
+
+### 判断是否为static field
+
+```java
+// Field field = ...;
+java.lang.reflect.Modifier.isStatic(field.getModifiers())
+```
+
+
+
+
+
+
+
 
 
 # 实现细节

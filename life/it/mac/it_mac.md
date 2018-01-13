@@ -1,5 +1,15 @@
 # 快捷键
 
+^ - ctrl
+
+类似 `-\_` - alt
+
+类似中国结 - cmd
+
+
+
+
+
 
 
 ## 截屏
@@ -277,13 +287,81 @@ option+鼠标左键（或触摸板）
 
 
 
+## PDF
+
+
+
+### 功用
+
+#### 书签编辑
+
+##### JPdfBookmarks
+
+
+
+* `Ctrl-alt-S` - add bookmark
+
+* `Ctrl-alt-F` - add child(bookmark)
+
+  好像跟默认的file menu快捷键冲突了 = =
+
+* `ctrl-F2` - rename bookmark
+
+* `ctrl-delete` - delete bookmark
+
+* `ctrl-C` - copy bookmark
+
+* `ctrl-X` - cut bookmark
+
+* `ctrl-V` - paste bookmark
+
+
+
+这个工具比较特色的功能还是在于： 书签的导出/导入。
+
+
+
+###### 问题
+
+
+
+对于一些格式错误（但能兼容阅读）的pdf，save时会报错 = =，然后会导致写坏文件。
+
+最好在副本里操作。
+
+```Java
+Exception in thread "main" java.lang.NullPointerException
+	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1251)
+	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
+	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
+	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
+	at com.lowagie.text.pdf.PdfStamperImp.deleteOutlines(PdfStamperImp.java:1267)
+	at com.lowagie.text.pdf.PdfStamperImp.setOutlines(PdfStamperImp.java:1329)
+	at com.lowagie.text.pdf.PdfStamperImp.close(PdfStamperImp.java:180)
+	at com.lowagie.text.pdf.PdfStamper.close(PdfStamper.java:191)
+	at it.flavianopetrocchi.jpdfbookmarks.itextbookmarksconverter.iTextBookmarksConverter.save(iTextBookmarksConverter.java:420)
+	at it.flavianopetrocchi.jpdfbookmarks.Applier.save(Unknown Source)
+	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.applySave(Unknown Source)
+	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.apply(Unknown Source)
+	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.start(Unknown Source)
+	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.main(Unknown Source)
+```
+
+
+
+后来发现好像是foxit把书签写坏了，用JPdfBookMarks dump下来书签然后在foxit里删掉全部书签，再用JPdfBookMarks打开 - load书签后save就好了，囧。
+
+
+
+
+
 ## sublime
 
 
 
-#### 文本
+### 文本
 
-### 列选择
+#### 列选择
 
 
 
