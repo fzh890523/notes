@@ -92,6 +92,28 @@ or through Cmd + Shift + A -> Registry in Intellij
 
 
 
+## project
+
+
+
+### recent projects
+
+
+
+显示的是`project name`，而该名字默认是目录名，表意性不好。
+
+如果只是修改`module name`的话是无法让`recent projects`中的显式也同步生效的，要修改`project name`。
+
+
+
+
+
+
+
+
+
+
+
 
 
 

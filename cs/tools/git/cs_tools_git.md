@@ -12,6 +12,28 @@
 
 
 
+# commit
+
+
+
+## date
+
+
+
+* `git commit --date="10 day ago" -m "Your commit message" `
+
+* ```shell
+  git commit --date="`stat -c %y myfile`" myfile
+  ```
+
+* `git commit --date="$(date -v-1d)"`
+
+
+
+
+
+
+
 # tag
 
 
@@ -74,7 +96,13 @@
 
 
 
+## delete
 
+
+
+* `git tag -d <tagname>`
+
+  `git tag -d 0.1.0.2`
 
 
 
