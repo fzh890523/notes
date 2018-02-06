@@ -21,6 +21,25 @@
 
 
 
+# manual
+
+
+
+## install
+
+
+
+### install file manually
+
+
+
+* `mvn install:install-file -Dfile=${filePath} -DgroupId=${groupId} -DartifactId=${artifactId} -Dversion=${version} -Dpackaging=${packagine}`
+* `mvn install:install-file -Dfile=${filePath} -DpomFile=${pomFilePath}`
+
+
+
+
+
 # 问题
 
 
@@ -87,6 +106,28 @@ According to the [documentation](http://maven.apache.org/plugins/maven-surefire-
 ```shell
 -Dgpg.skip
 ```
+
+
+
+## build
+
+
+
+### resolve failure cached
+
+
+
+```
+Could not resolve dependencies for project com.alipay.zprofiler:zprofiler-web:jar:1.0: Failure to find {...} in {...} was cached in the local repository, resolution will not be reattempted until the update interval of tbmirror has elapsed or updates are forced
+```
+
+
+
+加上`-U`参数。
+
+
+
+
 
 
 
