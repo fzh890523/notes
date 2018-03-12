@@ -337,6 +337,54 @@ https://post.smzdm.com/p/481709/
 
 
 
+### 报价
+
+
+
+* 归朴 
+
+  * 归朴成都欧式整体橱柜定制红樱桃木实木橱柜定做厨房厨柜装修组装 
+
+    https://item.taobao.com/item.htm?spm=a1z10.5-c.w4002-16502017822.19.6e831f5fKMl5l8&id=553397405208
+
+    `【美国红樱桃实木】【北欧风情意大利格调，让您的橱柜展现出高端意大利风情】【标配奥地利进口blum百隆铰链】【克诺斯邦E0级柜体】【超长五年质保】【成都免费六包服务】【五金质保终身】`
+
+    西班牙德赛斯岩板（标配）、凯撒金石、大明玉等台面可选。
+
+    7990 （3+3+1）
+
+    ![img](https://img.alicdn.com/imgextra/i1/3301238927/TB2dPH5r5C9MuFjSZFoXXbUzFXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i4/3301238927/TB2f7bbxt0opuFjSZFxXXaDNVXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i1/3301238927/TB237bbxt0opuFjSZFxXXaDNVXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i2/3301238927/TB23wl1d9vHfKJjSZFPXXbttpXa_!!3301238927.jpg)
+
+  * 归朴双色水曲柳整体橱柜定做多层实木橱柜整体定制简约风橱柜定做 
+
+    https://item.taobao.com/item.htm?spm=a1z10.5-c.w4002-16502017822.22.6e831f5fKMl5l8&id=551812131277
+
+    `【成都自有工厂10年专业生产】【15年行业经验，专注用心递造每一套家具】【简洁大方的简约风格橱柜】【耐脏而大气】【多色多彩橱柜】【长达五年质保】【奥地利进口blum百隆铰链】【同尺寸也可以定制】`
+
+    ![img](https://img.alicdn.com/imgextra/i3/3301238927/TB29VNVuctnpuFjSZFKXXalFFXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i3/3301238927/TB23l4vqYVkpuFjSspcXXbSMVXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i3/3301238927/TB2T5tkq3RkpuFjy1zeXXc.6FXa_!!3301238927.jpg)
+
+  *  归朴水曲柳整体橱柜定做欧式风格实木厨房厨柜整体定制石英石台面
+
+    https://item.taobao.com/item.htm?spm=a1z10.5-c.w4002-16502017822.25.5b4e1f5fdm2UID&id=551493948022
+
+    ![img](https://img.alicdn.com/imgextra/i2/3301238927/TB2iZEgqB0kpuFjy1zdXXXuUVXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i1/3301238927/TB2fH_0qChlpuFjSspkXXa1ApXa_!!3301238927.jpg)
+
+    ![img](https://img.alicdn.com/imgextra/i1/3301238927/TB2DQZSqB8lpuFjSspaXXXJKpXa_!!3301238927.jpg)
+
+    ​
+
 
 
 
