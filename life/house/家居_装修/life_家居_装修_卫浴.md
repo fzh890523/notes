@@ -54,6 +54,14 @@
 
 
 
+```
+285高度的搭配杜拉维特的斯达克系列台上盆和斯达克系列马桶，配合的不要太好，而且285在德亚也就200多欧 
+
+全挂墙配合同层排水，杜拉维特不用海淘 正规进口的国行价格就OK了，同理还有吉博力的大部分商品（亚洲区包括日本新加坡用的都是中国工厂产的），当然1w多一个的地漏除外。这几个牌子主要做商用领域没有过多品牌溢价，在汉斯家很多宣传材料里都出现了，我不敢说自己懂审美所以只能信官方的搭配了 
+
+
+```
+
 
 
 
@@ -273,6 +281,34 @@ PABLORENZO回复笑意盈盈
   7799cny                                                                                                                    
 
   德亚 https://www.amazon.de/hansgrohe-Raindance-Select-Duschsystem-Strahlarten/dp/B007DZXNBI/ref=sr_1_1?s=diy&ie=UTF8&qid=1519821064&sr=1-1&keywords=27112400 741欧 = 57xx 比较划得来
+
+  ### Product description
+
+  Hansgrohe Raindance Select E 360 1jet Showerpipe
+  Art. no.: 27112400
+  Product features:
+  \- overhead shower Raindance E 360 Air
+  \- shower head size: 360 x 190 mm
+  \- spray type: RainAir
+  \- flow rate RainAir spray (at 0.3 MPa): 17 l/min
+  \- operating pressure: min. 1,3 bar / max. 10 bar
+  \- fully chrome-plated spray disc
+  \- shower arm length: 380 mm
+  \- thermostat Ecostat Select
+  \- shelf finish: chrome or white
+  \- safety lock at 40° C
+  \- outlets controlled via turning handle
+  \- installation type: exposed installation
+  \- connection dimension DN15
+  \- connection thread G ½
+  \- centre distance 150 mm ± 12 mm
+  \- scope of supply: wall bar spacer (grey)
+  \- in case of installation on existing G ½ connections, adaptor no. 02026000 must be used
+  Consists of:
+  \- Porter'S shower holder (# 28331000)
+  \- Isiflex shower hose 1.60 m (# 28276000)
+  \- Wall bar spacer for Raindance Select (# 95960000)
+  \- Raindance Select E 120 3jet hand shower (# 26520000)
 
 - Hansgrohe 汉斯格雅 双飞雨240淋浴 配飞雨120select手持 恒温浴缸龙头27215000（与线下同型号，经典畅销款，顶喷直径240mm，比长方形顶喷的6777007  240*110面积要大，出水量也更大，性价比更高）(主要城市包入户,包安装,具体详情请咨询电话:010-85272758或者15311770763,企业QQ:800185278)     
 
@@ -673,6 +709,20 @@ toto感觉不如杜拉维特
 
 
 ## 马桶
+
+
+
+### （隐蔽式）水箱
+
+
+
+* [视频-如何用吉博力水箱对卫生间改造](https://v.qq.com/x/page/8ikhZBHauhn.html)
+* [吉博力隐藏式水箱与挂墙马桶安装视频](http://www.iqiyi.com/w_19rrw2o0e1.html)
+* [隐蔽式水箱 壁挂式马桶,你考虑接受它了吗?](http://www.360doc.com/content/15/1225/09/29495152_522953350.shtml)
+
+
+
+### 壁挂马桶
 
 
 
