@@ -1146,7 +1146,7 @@ https://www.mi.com/water2/
 
 
 
-* `410*205*260`
+* `410*205*260` `长*宽*深`
 * 水管线2m
 * 电源线1.2m
 * 1.0L/min
@@ -1328,6 +1328,10 @@ https://detail.tmall.com/item.htm?spm=a230r.1.14.4.55ca4418slVUPR&id=55496120796
 ```
 
 
+
+![](pics/电线管规格选择-1.jpg)
+
+![](pics/电线管规格选择-2.jpg)
 
 
 
