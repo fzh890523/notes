@@ -1181,6 +1181,9 @@ regineye   发表于: 2017-01-18 09:11 | 只看该作者
 
 #### 饮水机/管线机
 
+* bluePro BLB-GB-WJ04B
+
+  尺寸： `长（深）398 * 宽180 * 高280`
 
 
 * [BOSCH 博世 Filtrino THD 2023 速热饮水机 €59.99+€30.21直邮中国（约￥680）](https://www.smzdm.com/p/6587010/) or [ BOSCH 博世 Filtrino THD 2023 五段温控速热饮水机 €53.99+€30.85直邮中国（需用码，约￥630）](https://www.smzdm.com/p/6682450/)
@@ -1190,6 +1193,8 @@ regineye   发表于: 2017-01-18 09:11 | 只看该作者
   留意要不要倒水 = = 太麻烦了
 
 * [微信端： BOLEBAO 博乐宝 GB-WJ01A 即热管线 饮水机 939元包邮（1299-360）](https://www.smzdm.com/p/6393953/)
+
+  尺寸： `长（深）160 * 宽304 * 高400`
 
   ![BOLEBAO 博乐宝 GB-WJ01A  即热管线 饮水机](https://ym.zdmimg.com/201609/04/57cc2ea0adcbd.jpeg_d250.jpg)
 

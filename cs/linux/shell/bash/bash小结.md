@@ -54,6 +54,22 @@ check_permission()
 
 
 
+### 字符串
+
+
+
+#### contains
+
+
+
+```shell
+if [[ "$PATH" != *".local/bin"* ]]; then
+    export PATH=${PATH}:~/.local/bin/ipython
+fi
+```
+
+
+
 
 
 

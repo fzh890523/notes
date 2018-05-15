@@ -1,5 +1,9 @@
 
 
+ref： [李嘉鹏-JVM源码分析之javaagent原理完全解读](http://www.infoq.com/cn/articles/javaagent-illustrated/)
+
+
+
 # JVMTI agent
 
 JVMTIAgent其实就是一个动态库，利用JVMTI暴露出来的一些接口来干一些我们想做、但是正常情况下又做不到的事情，不过为了和普通的动态库进行区分，它一般会实现如下的一个或者多个函数：
@@ -38,6 +42,12 @@ Agent_OnUnload(JavaVM *vm);
   > 命名风格应该是per platform的
 
 ### javaagent： JVMTI agent 之 JPLISAgent
+
+
+
+JPLISAgent(Java Programming Language Instrumentation Services Agent)
+
+
 
 instrument agent实现了Agent_OnLoad和Agent_OnAttach两方法，也就是说在使用时，agent既可以在启动时加载，也可以在运行时动态加载。其中启动时加载还可以通过类似-javaagent:myagent.jar的方式来间接加载instrument agent，运行时动态加载依赖的是JVM的attach机制（[JVM Attach机制实现](http://lovestblog.cn/blog/2014/06/18/jvm-attach/)），通过发送load命令来加载agent。
 
@@ -570,6 +580,352 @@ ref：[java agent with jvmti load at runtime, unload from within](https://stacko
 2. I am not sure, similar to 1. you could run the Java `unload` method through Bytecode instrumentation. If `dlclose()` works I do not see a problem in doing that.
 
 As you see, you can pass data to the Java agent by using the options. Alternatively, if you want to pass data continuously between both instances you can open two sockets and write/read between them. I used [Protobuf](https://code.google.com/p/protobuf/)
+
+
+
+## 实现：how to load JVMTI agent
+
+
+
+### load
+
+```cpp
+jint JvmtiExport::load_agent_library(AttachOperation* op, outputStream* st) {
+  char ebuf[1024];
+  char buffer[JVM_MAXPATHLEN];
+  void* library = NULL;
+  jint result = JNI_ERR;
+  const char *on_attach_symbols[] = AGENT_ONATTACH_SYMBOLS;
+  size_t num_symbol_entries = ARRAY_SIZE(on_attach_symbols);
+
+  // get agent name and options
+  const char* agent = op->arg(0);
+  const char* absParam = op->arg(1);
+  const char* options = op->arg(2);
+
+  // The abs paramter should be "true" or "false"
+  bool is_absolute_path = (absParam != NULL) && (strcmp(absParam,"true")==0);
+
+  // Initially marked as invalid. It will be set to valid if we can find the agent
+  AgentLibrary *agent_lib = new AgentLibrary(agent, options, is_absolute_path, NULL);
+
+  // Check for statically linked in agent. If not found then if the path is
+  // absolute we attempt to load the library. Otherwise we try to load it
+  // from the standard dll directory.
+
+  if (!os::find_builtin_agent(agent_lib, on_attach_symbols, num_symbol_entries)) {
+    if (is_absolute_path) {
+      library = os::dll_load(agent, ebuf, sizeof ebuf);
+    } else {
+      // Try to load the agent from the standard dll directory
+      if (os::dll_build_name(buffer, sizeof(buffer), Arguments::get_dll_dir(),
+                             agent)) {
+        library = os::dll_load(buffer, ebuf, sizeof ebuf);
+      }
+      if (library == NULL) {
+        // not found - try local path
+        char ns[1] = {0};
+        if (os::dll_build_name(buffer, sizeof(buffer), ns, agent)) {
+          library = os::dll_load(buffer, ebuf, sizeof ebuf);
+        }
+      }
+    }
+    if (library != NULL) {
+      agent_lib->set_os_lib(library);
+      agent_lib->set_valid();
+    }
+  }
+  // If the library was loaded then we attempt to invoke the Agent_OnAttach
+  // function
+  if (agent_lib->valid()) {
+    // Lookup the Agent_OnAttach function
+    OnAttachEntry_t on_attach_entry = NULL;
+    on_attach_entry = CAST_TO_FN_PTR(OnAttachEntry_t,
+       os::find_agent_function(agent_lib, false, on_attach_symbols, num_symbol_entries));
+    if (on_attach_entry == NULL) {
+      // Agent_OnAttach missing - unload library
+      if (!agent_lib->is_static_lib()) {
+        os::dll_unload(library);
+      }
+      delete agent_lib;
+    } else {
+      // Invoke the Agent_OnAttach function
+      JavaThread* THREAD = JavaThread::current();
+      {
+        extern struct JavaVM_ main_vm;
+        JvmtiThreadEventMark jem(THREAD);
+        JvmtiJavaThreadEventTransition jet(THREAD);
+
+        result = (*on_attach_entry)(&main_vm, (char*)options, NULL);
+      }
+
+      // Agent_OnAttach may have used JNI
+      if (HAS_PENDING_EXCEPTION) {
+        CLEAR_PENDING_EXCEPTION;
+      }
+
+      // If OnAttach returns JNI_OK then we add it to the list of
+      // agent libraries so that we can call Agent_OnUnload later.
+      if (result == JNI_OK) {
+        Arguments::add_loaded_agent(agent_lib);
+      } else {
+        delete agent_lib;
+      }
+
+      // Agent_OnAttach executed so completion status is JNI_OK
+      st->print_cr("%d", result);
+      result = JNI_OK;
+    }
+  }
+  return result;
+}
+```
+
+
+
+
+
+### find entry
+
+```cpp
+#define AGENT_ONLOAD_SYMBOLS    {"Agent_OnLoad"}
+
+
+// Find the Agent_OnLoad entry point
+static OnLoadEntry_t lookup_agent_on_load(AgentLibrary* agent) {
+  const char *on_load_symbols[] = AGENT_ONLOAD_SYMBOLS;
+  return lookup_on_load(agent, on_load_symbols, sizeof(on_load_symbols) / sizeof(char*));
+}
+
+
+// Find a command line agent library and return its entry point for
+//         -agentlib:  -agentpath:   -Xrun
+// num_symbol_entries must be passed-in since only the caller knows the number of symbols in the array.
+static OnLoadEntry_t lookup_on_load(AgentLibrary* agent, const char *on_load_symbols[], size_t num_symbol_entries) {
+  OnLoadEntry_t on_load_entry = NULL;
+  void *library = NULL;
+
+  if (!agent->valid()) {
+    char buffer[JVM_MAXPATHLEN];
+    char ebuf[1024];
+    const char *name = agent->name();
+    const char *msg = "Could not find agent library ";
+
+    // First check to see if agent is statically linked into executable
+    if (os::find_builtin_agent(agent, on_load_symbols, num_symbol_entries)) {
+      library = agent->os_lib();
+    } else if (agent->is_absolute_path()) {
+      library = os::dll_load(name, ebuf, sizeof ebuf);
+      if (library == NULL) {
+        const char *sub_msg = " in absolute path, with error: ";
+        size_t len = strlen(msg) + strlen(name) + strlen(sub_msg) + strlen(ebuf) + 1;
+        char *buf = NEW_C_HEAP_ARRAY(char, len, mtThread);
+        jio_snprintf(buf, len, "%s%s%s%s", msg, name, sub_msg, ebuf);
+        // If we can't find the agent, exit.
+        vm_exit_during_initialization(buf, NULL);
+        FREE_C_HEAP_ARRAY(char, buf, mtThread);
+      }
+    } else {
+      // Try to load the agent from the standard dll directory
+      if (os::dll_build_name(buffer, sizeof(buffer), Arguments::get_dll_dir(),
+                             name)) {
+        library = os::dll_load(buffer, ebuf, sizeof ebuf);
+      }
+      if (library == NULL) { // Try the local directory
+        char ns[1] = {0};
+        if (os::dll_build_name(buffer, sizeof(buffer), ns, name)) {
+          library = os::dll_load(buffer, ebuf, sizeof ebuf);
+        }
+        if (library == NULL) {
+          const char *sub_msg = " on the library path, with error: ";
+          size_t len = strlen(msg) + strlen(name) + strlen(sub_msg) + strlen(ebuf) + 1;
+          char *buf = NEW_C_HEAP_ARRAY(char, len, mtThread);
+          jio_snprintf(buf, len, "%s%s%s%s", msg, name, sub_msg, ebuf);
+          // If we can't find the agent, exit.
+          vm_exit_during_initialization(buf, NULL);
+          FREE_C_HEAP_ARRAY(char, buf, mtThread);
+        }
+      }
+    }
+    agent->set_os_lib(library);
+    agent->set_valid();
+  }
+
+  // Find the OnLoad function.
+  on_load_entry =
+    CAST_TO_FN_PTR(OnLoadEntry_t, os::find_agent_function(agent,
+                                                          false,
+                                                          on_load_symbols,
+                                                          num_symbol_entries));
+  return on_load_entry;
+}
+
+
+/*
+ * Support for finding Agent_On(Un)Load/Attach<_lib_name> if it exists.
+ * If check_lib == true then we are looking for an
+ * Agent_OnLoad_lib_name or Agent_OnAttach_lib_name function to determine if
+ * this library is statically linked into the image.
+ * If check_lib == false then we will look for the appropriate symbol in the
+ * executable if agent_lib->is_static_lib() == true or in the shared library
+ * referenced by 'handle'.
+ */
+void* os::find_agent_function(AgentLibrary *agent_lib, bool check_lib,
+                              const char *syms[], size_t syms_len) {
+  assert(agent_lib != NULL, "sanity check");
+  const char *lib_name;
+  void *handle = agent_lib->os_lib();
+  void *entryName = NULL;
+  char *agent_function_name;
+  size_t i;
+
+  // If checking then use the agent name otherwise test is_static_lib() to
+  // see how to process this lookup
+  lib_name = ((check_lib || agent_lib->is_static_lib()) ? agent_lib->name() : NULL);
+  for (i = 0; i < syms_len; i++) {
+    agent_function_name = build_agent_function_name(syms[i], lib_name, agent_lib->is_absolute_path());
+    if (agent_function_name == NULL) {
+      break;
+    }
+    entryName = dll_lookup(handle, agent_function_name);
+    FREE_C_HEAP_ARRAY(char, agent_function_name, mtThread);
+    if (entryName != NULL) {
+      break;
+    }
+  }
+  return entryName;
+}
+
+
+/*
+ * glibc-2.0 libdl is not MT safe.  If you are building with any glibc,
+ * chances are you might want to run the generated bits against glibc-2.0
+ * libdl.so, so always use locking for any version of glibc.
+ */
+void* os::dll_lookup(void* handle, const char* name) {
+  pthread_mutex_lock(&dl_mutex);
+  void* res = dlsym(handle, name);
+  pthread_mutex_unlock(&dl_mutex);
+  return res;
+}
+```
+
+
+
+
+
+
+
+
+
+# VM实现
+
+
+
+
+
+## 产生JVMTI事件
+
+```cpp
+
+#ifdef VM_JVMTI
+      _jvmti_interp_events = JvmtiExport::can_post_interpreter_events();
+#endif
+
+
+#define JVMTI_SUPPORT_FLAG(key)                                           \
+  private:                                                                \
+  static bool  _##key;                                                    \
+  public:                                                                 \
+  inline static void set_##key(bool on) {                                 \
+    JVMTI_ONLY(_##key = (on != 0));                                       \
+    NOT_JVMTI(report_unsupported(on));                                    \
+  }                                                                       \
+  inline static bool key() {                                              \
+    JVMTI_ONLY(return _##key);                                            \
+    NOT_JVMTI(return false);                                              \
+  }
+
+
+  bool interp_events =
+    avail.can_generate_field_access_events ||
+    avail.can_generate_field_modification_events ||
+    avail.can_generate_single_step_events ||
+    avail.can_generate_frame_pop_events ||
+    avail.can_generate_method_entry_events ||
+    avail.can_generate_method_exit_events;
+
+JvmtiExport::set_can_post_interpreter_events(interp_events);
+```
+
+
+
+
+
+```cpp
+
+      // Notify jvmti
+#ifdef VM_JVMTI
+      if (_jvmti_interp_events) {
+        // Whenever JVMTI puts a thread in interp_only_mode, method
+        // entry/exit events are sent for that thread to track stack depth.
+        if (THREAD->is_interp_only_mode()) {
+          CALL_VM(InterpreterRuntime::post_method_entry(THREAD),
+                  handle_exception);
+        }
+      }
+#endif /* VM_JVMTI */
+```
+
+
+
+```cpp
+void JvmtiExport::post_method_entry(JavaThread *thread, Method* method, frame current_frame) {
+  HandleMark hm(thread);
+  methodHandle mh(thread, method);
+
+  EVT_TRIG_TRACE(JVMTI_EVENT_METHOD_ENTRY, ("JVMTI [%s] Trg Method Entry triggered %s.%s",
+                     JvmtiTrace::safe_get_thread_name(thread),
+                     (mh() == NULL) ? "NULL" : mh()->klass_name()->as_C_string(),
+                     (mh() == NULL) ? "NULL" : mh()->name()->as_C_string() ));
+
+  JvmtiThreadState* state = thread->jvmti_thread_state();
+  if (state == NULL || !state->is_interp_only_mode()) {
+    // for any thread that actually wants method entry, interp_only_mode is set
+    return;
+  }
+
+  state->incr_cur_stack_depth();
+
+  if (state->is_enabled(JVMTI_EVENT_METHOD_ENTRY)) {
+    JvmtiEnvThreadStateIterator it(state);
+    for (JvmtiEnvThreadState* ets = it.first(); ets != NULL; ets = it.next(ets)) {
+      if (ets->is_enabled(JVMTI_EVENT_METHOD_ENTRY)) {
+        EVT_TRACE(JVMTI_EVENT_METHOD_ENTRY, ("JVMTI [%s] Evt Method Entry sent %s.%s",
+                                             JvmtiTrace::safe_get_thread_name(thread),
+                                             (mh() == NULL) ? "NULL" : mh()->klass_name()->as_C_string(),
+                                             (mh() == NULL) ? "NULL" : mh()->name()->as_C_string() ));
+
+        JvmtiEnv *env = ets->get_env();
+        JvmtiMethodEventMark jem(thread, mh);
+        JvmtiJavaThreadEventTransition jet(thread);
+        jvmtiEventMethodEntry callback = env->callbacks()->MethodEntry;
+        if (callback != NULL) {
+          (*callback)(env->jvmti_external(), jem.jni_env(), jem.jni_thread(), jem.jni_methodID());
+        }
+      }
+    }
+  }
+}
+```
+
+
+
+
+
+
+
+
 
 
 
