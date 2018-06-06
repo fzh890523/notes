@@ -882,7 +882,62 @@ toto感觉不如杜拉维特
 
 
 
+## 五金
 
+
+
+* 国外
+
+  * 高仪
+
+    [中亚海外购-家居装修 : 五金 : 浴室五金 :"grohe"](https://www.amazon.cn/gp/search/ref=sr_pg_1?fst=as%3Aoff&rh=n%3A1952920051%2Cn%3A1952923051%2Cn%3A1952995051%2Ck%3Agrohe&sort=price-asc-rank&keywords=grohe&unfiltered=1&ie=UTF8&qid=1528049173)
+
+    [中亚海外购-家居装修 : 五金 : 浴室五金 : 毛巾架、毛巾杆](https://www.amazon.cn/gp/search/ref=sr_nr_n_9?fst=as%3Aoff&rh=n%3A1953120051%2Ck%3Agrohe&sort=price-asc-rank&keywords=grohe&unfiltered=1&ie=UTF8&qid=1528048950&rnid=124355071)
+
+    [中亚海外购-家居装修 : 五金 : 浴室五金 : 毛巾环](https://www.amazon.cn/gp/search/ref=sr_nr_n_10?fst=as%3Aoff&rh=n%3A219330071%2Ck%3Agrohe&sort=price-asc-rank&keywords=grohe&unfiltered=1&ie=UTF8&qid=1528048950&rnid=124355071)
+
+    [中亚海外购-家居装修 : 家居](https://www.amazon.cn/gp/search/ref=sr_pg_1?fst=as%3Aoff&rh=n%3A831780051%2Ck%3Agrohe&sort=price-asc-rank&keywords=grohe&unfiltered=1&ie=UTF8&qid=1528049883)
+
+  * kludi
+
+    据说只德产，价格略高接近10-20%
+
+  * emco
+
+    好像比高仪的好看点
+
+    [中亚海外购搜索链接](https://www.amazon.cn/gp/search/ref=sr_pg_1?rh=n%3A1952920051%2Ck%3Aemco&keywords=emco&ie=UTF8&qid=1528048238)
+
+    也贵一些（部分产品甚至贵不少） = =
+
+  * kenco - 中亚海外购没搜到
+
+
+* 国内
+
+  * 铜镀铬
+
+    * 汉派
+
+      现代风，有点味道
+
+      大约高仪6+成
+
+    * 雅鼎
+
+      风格普通，跟主流（grohe等）差不多
+
+      [799一套](https://detail.tmall.com/item.htm?spm=a1z10.5-b-s.w4011-16275432331.61.5c4e2cf2wK8fFG&id=520468393235&rn=3a8e799df8262c6f2474dddaadbc4ee4&abbucket=20)，大约高仪的五成
+
+  * 不锈钢
+
+    * 普乐美
+
+      价格跟viborg接近
+
+    * 域堡（viborg） - 香港
+
+      便宜，接近高仪两成
 
 
 

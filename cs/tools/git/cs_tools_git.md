@@ -109,6 +109,21 @@
 
 
 
+# merge
+
+
+
+## cherry-pick
+
+
+
+```shell
+# develop上有个hotfix commit（commit号为abcd...），但develop本身还来不及merge到master(比如commit太多)
+
+git checkout master
+git cherry-pick -x abcd  # -x的话生成标准commit message，减少重复merge
+```
+
 
 
 

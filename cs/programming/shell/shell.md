@@ -66,7 +66,30 @@ if [ ! -e /tmp/111 -a -z "$a" ]; then ll ;fi   ## 不存在111文件 且a变量�
 
 
 
+#### 包含子串判断
 
+
+
+```shell
+string='My long string'
+if [[ $string = *"My long"* ]]; then
+  echo "It's there!"
+fi
+```
+
+
+
+Example:
+
+```shell
+# go path
+home_go_path=${HOME}/.go
+if [[ -z "$GOPATH" ]]; then
+    export GOPATH=$home_go_path
+elif [[ "$GOPATH" != *"$home_go_path":* && "$GOPATH" != *"$home_go_path" ]]; then
+    export GOPATH=$GOPATH:$home_go_path
+fi
+```
 
 
 
