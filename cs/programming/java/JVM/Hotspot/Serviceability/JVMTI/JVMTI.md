@@ -4,6 +4,10 @@ ref： [李嘉鹏-JVM源码分析之javaagent原理完全解读](http://www.info
 
 
 
+`JVM(TM) Tool Interface`
+
+
+
 # JVMTI agent
 
 JVMTIAgent其实就是一个动态库，利用JVMTI暴露出来的一些接口来干一些我们想做、但是正常情况下又做不到的事情，不过为了和普通的动态库进行区分，它一般会实现如下的一个或者多个函数：

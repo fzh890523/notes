@@ -1,0 +1,3387 @@
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+  <link rel="dns-prefetch" href="https://assets-cdn.github.com">
+  <link rel="dns-prefetch" href="https://avatars0.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://avatars1.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://avatars2.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://avatars3.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://github-cloud.s3.amazonaws.com">
+  <link rel="dns-prefetch" href="https://user-images.githubusercontent.com/">
+
+
+
+  <link crossorigin="anonymous" media="all" integrity="sha512-hqbuBb0QOOmiWgl8a1V1N5q6TI/G0A2hVt/lCFYafR+fYsuXeRUcsdcb/yUyVEHYXktmUXl0Mx9s/BOUNZVq4w==" rel="stylesheet" href="https://assets-cdn.github.com/assets/frameworks-23c9e7262eee71bc6f67f6950190a162.css" />
+  <link crossorigin="anonymous" media="all" integrity="sha512-yyxVxRSLA09nqsQStybRLTYDNa8fPwhs0Ab4qpnnsYQ2nB1/b4BKLHubreA7oKb1EPSOu6q9ZRDA9jwQ/eRkCg==" rel="stylesheet" href="https://assets-cdn.github.com/assets/github-9d83d413dcb7d4f632e8097ed1e86712.css" />
+  
+  
+  
+  
+
+  <meta name="viewport" content="width=device-width">
+  
+  <title>An Serviceability-Agent based tool to see stats of NIO direct memory, as an alternative on JDK6 without JMX support for direct memory monitoring. Only works on JDK6; to work on JDK7 will need some tweaking because static variables are moved to Java mirror</title>
+    <meta name="description" content="GitHub is where people build software. More than 27 million people use GitHub to discover, fork, and contribute to over 80 million projects.">
+    <link rel="search" type="application/opensearchdescription+xml" href="/opensearch-gist.xml" title="Gist">
+  <link rel="fluid-icon" href="https://gist.github.com/fluidicon.png" title="GitHub">
+  <meta property="fb:app_id" content="1401488693436528">
+
+    
+    <meta property="og:image" content="https://avatars2.githubusercontent.com/u/107834?s=400&amp;v=4" /><meta property="og:site_name" content="Gist" /><meta property="og:type" content="object" /><meta property="og:title" content="An Serviceability-Agent based tool to see stats of NIO direct memory, as an alternative on JDK6 without JMX support for direct memory monitoring. Only works on JDK6; to work on JDK7 will need some tweaking because static variables are moved to Java mirror" /><meta property="og:url" content="https://gist.github.com/rednaxelafx/1593521" /><meta property="og:description" content="An Serviceability-Agent based tool to see stats of NIO direct memory, as an alternative on JDK6 without JMX support for direct memory monitoring. Only works on JDK6; to work on JDK7 will need some ..." />
+
+  <link rel="assets" href="https://assets-cdn.github.com/">
+  <link rel="web-socket" href="wss://live.github.com/_sockets/VjI6MjY5OTU0MjU2OmJjZjZmODM5ZWEzZjNkZGZmMGU1OTZmOTZkOGY3ODM3Y2I1OTE5N2IwNDFmZTdjODlkOWU4ZDk1N2FkNWMxMWQ=--5df42278d37dea8b63f2407656685d38d98a04fc">
+  <meta name="pjax-timeout" content="1000">
+  <link rel="sudo-modal" href="/sessions/sudo_modal">
+  <meta name="request-id" content="E7E8:02AA:36A1267:69E6372:5B0FE8CB" data-pjax-transient>
+
+
+  
+
+  <meta name="selected-link" value="gist_code" data-pjax-transient>
+
+    <meta name="google-site-verification" content="KT5gs8h0wvaagLKAVWq8bbeNwnZZK1r1XQysX3xurLU">
+  <meta name="google-site-verification" content="ZzhVyEFwb7w3e0-uOTltm8Jsck2F5StVihD0exw2fsA">
+  <meta name="google-site-verification" content="GXs5KoUUkNCoaAZn7wPN-t01Pywp9M3sEjnt_3_ZWPc">
+    <meta name="google-analytics" content="UA-3769691-4">
+
+<meta name="octolytics-host" content="collector.githubapp.com" /><meta name="octolytics-app-id" content="gist" /><meta name="octolytics-event-url" content="https://collector.githubapp.com/github-external/browser_event" /><meta name="octolytics-dimension-request_id" content="E7E8:02AA:36A1267:69E6372:5B0FE8CB" /><meta name="octolytics-dimension-region_edge" content="iad" /><meta name="octolytics-dimension-region_render" content="iad" /><meta name="octolytics-actor-id" content="3354862" /><meta name="octolytics-actor-login" content="fzh890523" /><meta name="octolytics-actor-hash" content="0269ee39dc74607177bcda847c7cc6aedfc35a9f2e04d253e4073a3437ff2936" />
+<meta name="analytics-location" content="/&lt;user-name&gt;/&lt;gist-id&gt;" data-pjax-transient="true" />
+
+
+
+
+  <meta class="js-ga-set" name="dimension1" content="Logged In">
+
+
+
+    <meta name="octolytics-dimension-public" content="true" /><meta name="octolytics-dimension-gist_id" content="1593521" /><meta name="octolytics-dimension-gist_name" content="1593521" /><meta name="octolytics-dimension-anonymous" content="false" /><meta name="octolytics-dimension-owner_id" content="107834" /><meta name="octolytics-dimension-owner_login" content="rednaxelafx" /><meta name="octolytics-dimension-forked" content="false" />
+
+  <meta class="js-ga-set" name="dimension5" content="public">
+  <meta class="js-ga-set" name="dimension6" content="owned">
+  <meta class="js-ga-set" name="dimension7" content="java markdown unknown">
+
+
+      <meta name="hostname" content="gist.github.com">
+    <meta name="user-login" content="fzh890523">
+
+      <meta name="expected-hostname" content="gist.github.com">
+    <meta name="js-proxy-site-detection-payload" content="ZWJjNDAyODBiZWM2YzQ1Y2Q5ODFmZjNkNGNiZDAwNzY3YzhkY2RmYTY0NWIzN2NmOTVhNjY2Y2JjMGZlNDhhY3x7InJlbW90ZV9hZGRyZXNzIjoiNDUuNzYuMTU3LjI5IiwicmVxdWVzdF9pZCI6IkU3RTg6MDJBQTozNkExMjY3OjY5RTYzNzI6NUIwRkU4Q0IiLCJ0aW1lc3RhbXAiOjE1Mjc3NjkyOTIsImhvc3QiOiJnaXRodWIuY29tIn0=">
+
+    <meta name="enabled-features" content="UNIVERSE_BANNER,FREE_TRIALS,MARKETPLACE_INSIGHTS,MARKETPLACE_INSIGHTS_CONVERSION_PERCENTAGES,JUMP_TO,DIFF_EDIT_HISTORY">
+
+  <meta name="html-safe-nonce" content="75ffca01a6642adc84eac8c4a504bdd9054b4744">
+
+  <meta http-equiv="x-pjax-version" content="8ee473cc1fe614bfde1b600bbf43175f">
+  
+
+      <link href="/rednaxelafx.atom" rel="alternate" title="atom" type="application/atom+xml">
+
+  <link crossorigin="anonymous" media="all" integrity="sha512-eFR1fulp4CiR+DCi2NrQ82y1NYBBQCu56UCH9M4VyL3zPPdYBM2Pkk3rZG+Do+B0//khmwMwWPzEC0IikQQgUg==" rel="stylesheet" href="https://assets-cdn.github.com/assets/gist-582a71001ff2c000f9830cbee13ef091.css" />
+
+
+
+
+  <meta name="browser-stats-url" content="https://api.github.com/_private/browser/stats">
+
+  <meta name="browser-errors-url" content="https://api.github.com/_private/browser/errors">
+
+  <link rel="mask-icon" href="https://assets-cdn.github.com/pinned-octocat.svg" color="#000000">
+  <link rel="icon" type="image/x-icon" class="js-site-favicon" href="https://assets-cdn.github.com/favicon.ico">
+
+<meta name="theme-color" content="#1e2327">
+
+
+
+<link rel="manifest" href="/manifest.json" crossOrigin="use-credentials">
+
+  </head>
+
+  <body class="logged-in env-production emoji-size-boost">
+    
+
+  <div class="position-relative js-header-wrapper ">
+    <a href="#start-of-content" tabindex="1" class="p-3 bg-blue text-white show-on-focus js-skip-to-content">Skip to content</a>
+    <div id="js-pjax-loader-bar" class="pjax-loader-bar"><div class="progress"></div></div>
+
+    
+    
+    
+
+
+
+        <div class="Header gist-header header-logged-in" role="banner">
+  <div class="container-lg px-3 clearfix">
+    <div class="d-flex flex-justify-between">
+      <div class="d-flex">
+        <a class="header-logo-wordmark" data-hotkey="g d" aria-label="Gist Homepage" href="/">
+          <svg width="78" height="28" class="octicon octicon-logo-github" viewBox="0 0 45 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M18.53 12.03h-.02c.009 0 .015.01.024.011h.006l-.01-.01zm.004.011c-.093.001-.327.05-.574.05-.78 0-1.05-.36-1.05-.83V8.13h1.59c.09 0 .16-.08.16-.19v-1.7c0-.09-.08-.17-.16-.17h-1.59V3.96c0-.08-.05-.13-.14-.13h-2.16c-.09 0-.14.05-.14.13v2.17s-1.09.27-1.16.28c-.08.02-.13.09-.13.17v1.36c0 .11.08.19.17.19h1.11v3.28c0 2.44 1.7 2.69 2.86 2.69.53 0 1.17-.17 1.27-.22.06-.02.09-.09.09-.16v-1.5a.177.177 0 0 0-.146-.18zm23.696-2.2c0-1.81-.73-2.05-1.5-1.97-.6.04-1.08.34-1.08.34v3.52s.49.34 1.22.36c1.03.03 1.36-.34 1.36-2.25zm2.43-.16c0 3.43-1.11 4.41-3.05 4.41-1.64 0-2.52-.83-2.52-.83s-.04.46-.09.52c-.03.06-.08.08-.14.08h-1.48c-.1 0-.19-.08-.19-.17l.02-11.11c0-.09.08-.17.17-.17h2.13c.09 0 .17.08.17.17v3.77s.82-.53 2.02-.53l-.01-.02c1.2 0 2.97.45 2.97 3.88zm-8.72-3.61h-2.1c-.11 0-.17.08-.17.19v5.44s-.55.39-1.3.39-.97-.34-.97-1.09V6.25c0-.09-.08-.17-.17-.17h-2.14c-.09 0-.17.08-.17.17v5.11c0 2.2 1.23 2.75 2.92 2.75 1.39 0 2.52-.77 2.52-.77s.05.39.08.45c.02.05.09.09.16.09h1.34c.11 0 .17-.08.17-.17l.02-7.47c0-.09-.08-.17-.19-.17zm-23.7-.01h-2.13c-.09 0-.17.09-.17.2v7.34c0 .2.13.27.3.27h1.92c.2 0 .25-.09.25-.27V6.23c0-.09-.08-.17-.17-.17zm-1.05-3.38c-.77 0-1.38.61-1.38 1.38 0 .77.61 1.38 1.38 1.38.75 0 1.36-.61 1.36-1.38 0-.77-.61-1.38-1.36-1.38zm16.49-.25h-2.11c-.09 0-.17.08-.17.17v4.09h-3.31V2.6c0-.09-.08-.17-.17-.17h-2.13c-.09 0-.17.08-.17.17v11.11c0 .09.09.17.17.17h2.13c.09 0 .17-.08.17-.17V8.96h3.31l-.02 4.75c0 .09.08.17.17.17h2.13c.09 0 .17-.08.17-.17V2.6c0-.09-.08-.17-.17-.17zM8.81 7.35v5.74c0 .04-.01.11-.06.13 0 0-1.25.89-3.31.89-2.49 0-5.44-.78-5.44-5.92S2.58 1.99 5.1 2c2.18 0 3.06.49 3.2.58.04.05.06.09.06.14L7.94 4.5c0 .09-.09.2-.2.17-.36-.11-.9-.33-2.17-.33-1.47 0-3.05.42-3.05 3.73s1.5 3.7 2.58 3.7c.92 0 1.25-.11 1.25-.11v-2.3H4.88c-.11 0-.19-.08-.19-.17V7.35c0-.09.08-.17.19-.17h3.74c.11 0 .19.08.19.17z"/></svg>
+          <svg width="40" height="28" class="octicon octicon-logo-gist" viewBox="0 0 25 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M4.7 8.73h2.45v4.02c-.55.27-1.64.34-2.53.34-2.56 0-3.47-2.2-3.47-5.05 0-2.85.91-5.06 3.48-5.06 1.28 0 2.06.23 3.28.73V2.66C7.27 2.33 6.25 2 4.63 2 1.13 2 0 4.69 0 8.03c0 3.34 1.11 6.03 4.63 6.03 1.64 0 2.81-.27 3.59-.64V7.73H4.7v1zm6.39 3.72V6.06h-1.05v6.28c0 1.25.58 1.72 1.72 1.72v-.89c-.48 0-.67-.16-.67-.7v-.02zm.25-8.72c0-.44-.33-.78-.78-.78s-.77.34-.77.78.33.78.77.78.78-.34.78-.78zm4.34 5.69c-1.5-.13-1.78-.48-1.78-1.17 0-.77.33-1.34 1.88-1.34 1.05 0 1.66.16 2.27.36v-.94c-.69-.3-1.52-.39-2.25-.39-2.2 0-2.92 1.2-2.92 2.31 0 1.08.47 1.88 2.73 2.08 1.55.13 1.77.63 1.77 1.34 0 .73-.44 1.42-2.06 1.42-1.11 0-1.86-.19-2.33-.36v.94c.5.2 1.58.39 2.33.39 2.38 0 3.14-1.2 3.14-2.41 0-1.28-.53-2.03-2.75-2.23h-.03zm8.58-2.47v-.86h-2.42v-2.5l-1.08.31v2.11l-1.56.44v.48h1.56v5c0 1.53 1.19 2.13 2.5 2.13.19 0 .52-.02.69-.05v-.89c-.19.03-.41.03-.61.03-.97 0-1.5-.39-1.5-1.34V6.94h2.42v.02-.01z"/></svg>
+</a>
+        <div class="site-search js-site-search" role="search">
+            <div class="header-search" role="search">
+
+<!-- '"` --><!-- </textarea></xmp> --></option></form><form class="position-relative js-quicksearch-form" action="/search" accept-charset="UTF-8" method="get"><input name="utf8" type="hidden" value="&#x2713;" />
+  <label class="header-search-wrapper form-control js-chromeless-input-container">
+    <input type="text"
+      class="form-control js-site-search-focus header-search-input js-navigation-enable js-quicksearch-field"
+      data-hotkey="s,/"
+      name="q"
+      placeholder="Search…"
+      tabindex="1"
+      autocorrect="off"
+      autocomplete="off"
+      autocapitalize="off">
+  </label>
+
+    <div class="gist-quicksearch-results js-quicksearch-results js-navigation-container" data-quicksearch-url="/search/quick"></div>
+</form></div>
+
+        </div>
+
+        <ul class="list-style-none d-flex flex-items-center text-bold pl-2" role="navigation">
+          <li><a class="HeaderNavlink px-2" data-ga-click="Header, go to all gists, text:all gists" href="/discover">All gists</a></li>
+          <li><a class="HeaderNavlink px-2" data-ga-click="Header, go to GitHub, text:GitHub" href="https://github.com">GitHub</a></li>
+        </ul>
+      </div>
+
+        <ul class="user-nav d-flex flex-items-center list-style-none" id="user-links">
+          <li><a class="HeaderNavlink text-bold pr-3" data-ga-click="Header, go to new gist, text:new gist" href="/">New gist</a></li>
+          <li class="dropdown">
+            <details class="details-expanded details-reset js-dropdown-details pl-2">
+              <summary class="HeaderNavlink name mt-1"
+                aria-label="View profile and more"
+                data-ga-click="Header, show menu, icon:avatar">
+                <img class="avatar" src="https://avatars0.githubusercontent.com/u/3354862?s=40&amp;v=4" width="20" height="20" alt="@fzh890523" />
+                <span class="dropdown-caret"></span>
+              </summary>
+
+              <ul class="dropdown-menu dropdown-menu-sw">
+                <li class="dropdown-header header-nav-current-user css-truncate">
+                  Signed in as <strong class="css-truncate-target">fzh890523</strong>
+                </li>
+
+                <li class="dropdown-divider"></li>
+
+                <li><a class="dropdown-item" href="/fzh890523" data-ga-click="Header, go to your gists, text:your gists">
+                  Your gists
+                </a></li>
+
+                <li><a class="dropdown-item" href="/fzh890523/starred" data-ga-click="Header, go to starred gists, text:starred gists">
+                  Starred gists
+                </a></li>
+
+                <li><a class="dropdown-item" href="https://help.github.com" data-ga-click="Header, go to help, text:help">
+                  Help
+                </a></li>
+
+                <li class="dropdown-divider"></li>
+
+                <li><a class="dropdown-item" href="https://github.com/fzh890523" data-ga-click="Header, go to profile, text:your profile">
+                  Your GitHub profile
+                </a></li>
+
+                <li>
+                  <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="logout-form" action="https://gist.github.com/auth/github/logout" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="g4KLmds2ApZlxWAuo7W3fEZPBsccriFxHDgUO4bcYSZKo0R2mBOfmnKzhbY/FyjooB/gvnl10cGbkNWWFBQACw==" />
+                    <button type="submit" class="dropdown-item dropdown-signout" data-ga-click="Header, sign out, icon:logout">
+                      Sign out
+                    </button>
+</form>                </li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+    </div>
+  </div>
+</div>
+
+
+
+      
+
+  </div>
+
+  <div id="start-of-content" class="show-on-focus"></div>
+
+    <div id="js-flash-container">
+</div>
+
+
+
+  <div role="main" class="application-main ">
+        <div itemscope itemtype="http://schema.org/Code">
+    <div id="gist-pjax-container" class="gist-content-wrapper" data-pjax-container>
+      
+
+
+
+
+<div class="gisthead pagehead repohead instapaper_ignore readability-menu experiment-repo-nav mb-4">
+  <div class="container">
+    
+  
+<div class="container repohead-details-container">
+
+  <ul class="pagehead-actions">
+
+
+    <li>
+        
+  <div class="js-toggler-container js-social-container starring-container ">
+    <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="starred js-social-form" action="/rednaxelafx/1593521/unstar" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="RhOA8GyYRWJ68e/U95NG2LQqCcioNWDkzc+vUQc05JQMctjFfBAgwCh94mCjgF39eo6mXCsGWm8zKXWVZcqP7g==" />
+      <input type="hidden" name="context" value="gist"></input>
+      <button
+        type="submit"
+        class="btn btn-sm btn-with-count js-toggler-target"
+        aria-label="Unstar this gist" title="Unstar rednaxelafx/1593521"
+        data-ga-click="Repository, click unstar button, action:gists/gists#show; text:Unstar">
+        <svg class="octicon octicon-star" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"/></svg>
+        Unstar
+      </button>
+        <a class="social-count js-social-count" href="/rednaxelafx/1593521/stargazers"
+           aria-label="72 users starred this repository">
+          72
+        </a>
+</form>
+    <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="unstarred js-social-form" action="/rednaxelafx/1593521/star" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="65r9qK/Mcr7BuxreWjYVMmvfiSRpYoOlPMeVAkrNIVXUWTjOj7mH8y8AzchriMO407u5hHSeriINOWtCsk/2Xw==" />
+      <input type="hidden" name="context" value="gist"></input>
+      <button
+        type="submit"
+        class="btn btn-sm btn-with-count js-toggler-target"
+        aria-label="Star this gist" title="Star rednaxelafx/1593521"
+        data-ga-click="Repository, click star button, action:gists/gists#show; text:Star">
+        <svg class="octicon octicon-star" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"/></svg>
+        Star
+      </button>
+        <a class="social-count js-social-count" href="/rednaxelafx/1593521/stargazers"
+           aria-label="72 users starred this repository">
+          72
+        </a>
+</form>  </div>
+
+
+    </li>
+
+      <li>
+          <!-- '"` --><!-- </textarea></xmp> --></option></form><form action="/rednaxelafx/1593521/fork" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="czJkgw/EnJpfGiKLdTg01fhi3wJmuhITuUWSA14ucJjSkUiS0FfDEvUDKTcXHFobPWCZigKTNRSZHfJR761Z3g==" />
+    <button class="btn btn-sm btn-with-count" type="submit">
+      <svg class="octicon octicon-repo-forked" viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M8 1a1.993 1.993 0 0 0-1 3.72V6L5 8 3 6V4.72A1.993 1.993 0 0 0 2 1a1.993 1.993 0 0 0-1 3.72V6.5l3 3v1.78A1.993 1.993 0 0 0 5 15a1.993 1.993 0 0 0 1-3.72V9.5l3-3V4.72A1.993 1.993 0 0 0 8 1zM2 4.2C1.34 4.2.8 3.65.8 3c0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3 10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3-10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2z"/></svg>
+      Fork
+    </button>
+      <a class="social-count js-social-count"
+        href="/rednaxelafx/1593521/forks"
+        aria-label="40 users forked this gist">
+        40
+      </a>
+</form>
+      </li>
+  </ul>
+
+  <h1 class="public css-truncate">
+    <img class="avatar gist-avatar" src="https://avatars3.githubusercontent.com/u/107834?s=52&amp;v=4" width="26" height="26" alt="@rednaxelafx" />
+    <span class="author"><a rel="author" class="url fn" href="/rednaxelafx"><span itemprop="author">rednaxelafx</span></a></span><!--
+        --><span class="path-divider">/</span><!--
+        --><strong itemprop="name" class="gist-header-title css-truncate-target"><a href="/rednaxelafx/1593521">DirectMemorySize.java</a></strong>
+
+    <div class="d-block text-small text-gray">
+      Created <time-ago datetime="2012-01-11T07:18:34Z">Jan 11, 2012</time-ago>
+        &bull;
+        <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="inline-form" method="post" action="/rednaxelafx/1593521/report"><input class="btn-link text-red" aria-label="Report gist as abuse" data-confirm="Do you want to report the contents of this gist as abuse?" type="submit" value="Report gist" /><input type="hidden" name="authenticity_token" value="KREFhFJ3gFJ77WiYIlJ2XYrQjayHct6wniE5Zbvo0PufExF8S5ZKn2LvygYbZYxE4S0GTnSGmOmfTh4MUgbuWg==" /></form>
+    </div>
+  </h1>
+</div>
+
+<div class="container gist-file-navigation">
+  <div class="float-right file-navigation-options" data-multiple>
+
+    <div class="file-navigation-option">
+  <input type="hidden" name="protocol_type" value="clone">
+
+  <div class="select-menu js-menu-container js-select-menu">
+    <div class="input-group js-select-button">
+      <div class="input-group-button">
+  <button type="button" class="btn btn-sm select-menu-button js-menu-target" data-ga-click="Repository, clone Embed, location:repo overview" aria-expanded="false" aria-haspopup="true">
+    Embed
+  </button>
+</div>
+<input type="text" class="form-control input-monospace input-sm js-url-field" value="&lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" aria-label="Clone this repository at &lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" readonly>
+<div class="input-group-button">
+  <clipboard-copy value="&lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" aria-label="Copy to clipboard" class="btn btn-sm zeroclipboard-button">
+    <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"/></svg>
+  </clipboard-copy>
+</div>
+
+    </div>
+
+    <div class="select-menu-modal-holder">
+      <div class="select-menu-modal js-menu-content">
+        <div class="select-menu-header">
+          <svg class="octicon octicon-x js-menu-close" role="img" aria-label="Close" viewBox="0 0 12 16" version="1.1" width="12" height="16"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/></svg>
+          <span class="select-menu-title">What would you like to do?</span>
+        </div>
+
+        <div class="select-menu-list js-navigation-container" role="menu">
+            <div class="select-menu-item js-navigation-item selected" role="menuitem" tabindex="0">
+              <svg class="octicon octicon-check select-menu-item-icon" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/></svg>
+              <div class="select-menu-item-text">
+                <input type="radio" name="protocol_selector" value="embed" checked>
+                <span class="select-menu-item-heading">
+                  
+                  Embed
+                </span>
+                  <span class="description">
+                    Embed this gist in your website.
+                  </span>
+                <span class="js-select-button-text hidden-select-button-text">
+                  <div class="input-group-button">
+  <button type="button" class="btn btn-sm select-menu-button js-menu-target" data-ga-click="Repository, clone Embed, location:repo overview" aria-expanded="false" aria-haspopup="true">
+    Embed
+  </button>
+</div>
+<input type="text" class="form-control input-monospace input-sm js-url-field" value="&lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" aria-label="Clone this repository at &lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" readonly>
+<div class="input-group-button">
+  <clipboard-copy value="&lt;script src=&quot;https://gist.github.com/rednaxelafx/1593521.js&quot;&gt;&lt;/script&gt;" aria-label="Copy to clipboard" class="btn btn-sm zeroclipboard-button">
+    <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"/></svg>
+  </clipboard-copy>
+</div>
+
+                </span>
+              </div>
+            </div>
+            <div class="select-menu-item js-navigation-item " role="menuitem" tabindex="0">
+              <svg class="octicon octicon-check select-menu-item-icon" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/></svg>
+              <div class="select-menu-item-text">
+                <input type="radio" name="protocol_selector" value="share" >
+                <span class="select-menu-item-heading">
+                  
+                  Share
+                </span>
+                  <span class="description">
+                    Copy sharable URL for this gist.
+                  </span>
+                <span class="js-select-button-text hidden-select-button-text">
+                  <div class="input-group-button">
+  <button type="button" class="btn btn-sm select-menu-button js-menu-target" data-ga-click="Repository, clone Share, location:repo overview" aria-expanded="false" aria-haspopup="true">
+    Share
+  </button>
+</div>
+<input type="text" class="form-control input-monospace input-sm js-url-field" value="https://gist.github.com/rednaxelafx/1593521" aria-label="Clone this repository at https://gist.github.com/rednaxelafx/1593521" readonly>
+<div class="input-group-button">
+  <clipboard-copy value="https://gist.github.com/rednaxelafx/1593521" aria-label="Copy to clipboard" class="btn btn-sm zeroclipboard-button">
+    <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"/></svg>
+  </clipboard-copy>
+</div>
+
+                </span>
+              </div>
+            </div>
+            <div class="select-menu-item js-navigation-item " role="menuitem" tabindex="0">
+              <svg class="octicon octicon-check select-menu-item-icon" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/></svg>
+              <div class="select-menu-item-text">
+                <input type="radio" name="protocol_selector" value="http" >
+                <span class="select-menu-item-heading">
+                  Clone via
+                  HTTPS
+                </span>
+                  <span class="description">
+                    Clone with Git or checkout with SVN using the repository’s web address.
+                  </span>
+                <span class="js-select-button-text hidden-select-button-text">
+                  <div class="input-group-button">
+  <button type="button" class="btn btn-sm select-menu-button js-menu-target" data-ga-click="Repository, clone HTTPS, location:repo overview" aria-expanded="false" aria-haspopup="true">
+    HTTPS
+  </button>
+</div>
+<input type="text" class="form-control input-monospace input-sm js-url-field" value="https://gist.github.com/1593521.git" aria-label="Clone this repository at https://gist.github.com/1593521.git" readonly>
+<div class="input-group-button">
+  <clipboard-copy value="https://gist.github.com/1593521.git" aria-label="Copy to clipboard" class="btn btn-sm zeroclipboard-button">
+    <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"/></svg>
+  </clipboard-copy>
+</div>
+
+                </span>
+              </div>
+            </div>
+            <div class="select-menu-item js-navigation-item " role="menuitem" tabindex="0">
+              <svg class="octicon octicon-check select-menu-item-icon" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M12 5l-8 8-4-4 1.5-1.5L4 10l6.5-6.5L12 5z"/></svg>
+              <div class="select-menu-item-text">
+                <input type="radio" name="protocol_selector" value="ssh" >
+                <span class="select-menu-item-heading">
+                  Clone via
+                  SSH
+                </span>
+                  <span class="description">
+                    Clone with an SSH key and passphrase from your GitHub settings.
+                  </span>
+                <span class="js-select-button-text hidden-select-button-text">
+                  <div class="input-group-button">
+  <button type="button" class="btn btn-sm select-menu-button js-menu-target" data-ga-click="Repository, clone SSH, location:repo overview" aria-expanded="false" aria-haspopup="true">
+    SSH
+  </button>
+</div>
+<input type="text" class="form-control input-monospace input-sm js-url-field" value="git@gist.github.com:1593521.git" aria-label="Clone this repository at git@gist.github.com:1593521.git" readonly>
+<div class="input-group-button">
+  <clipboard-copy value="git@gist.github.com:1593521.git" aria-label="Copy to clipboard" class="btn btn-sm zeroclipboard-button">
+    <svg class="octicon octicon-clippy" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z"/></svg>
+  </clipboard-copy>
+</div>
+
+                </span>
+              </div>
+            </div>
+        </div>
+        <div class="select-menu-list" role="menu">
+          <a class="select-menu-item select-menu-action" href="https://help.github.com/articles/which-remote-url-should-i-use" target="_blank">
+            <svg class="octicon octicon-question select-menu-item-icon" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M6 10h2v2H6v-2zm4-3.5C10 8.64 8 9 8 9H6c0-.55.45-1 1-1h.5c.28 0 .5-.22.5-.5v-1c0-.28-.22-.5-.5-.5h-1c-.28 0-.5.22-.5.5V7H4c0-1.5 1.5-3 3-3s3 1 3 2.5zM7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7z"/></svg>
+            <div class="select-menu-item-text">
+              Learn more about clone URLs
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="file-navigation-option">
+    <a href="https://desktop.github.com" class="btn btn-sm tooltipped tooltipped-s tooltipped-multiline" aria-label="Save rednaxelafx/1593521 to your computer and use it in GitHub Desktop.">
+      <svg class="octicon octicon-desktop-download" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 6h3V0h2v6h3l-4 4-4-4zm11-4h-4v1h4v8H1V3h4V2H1c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h5.34c-.25.61-.86 1.39-2.34 2h8c-1.48-.61-2.09-1.39-2.34-2H15c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1z"/></svg>
+    </a>
+</div>
+
+
+    <div class="file-navigation-option">
+      <a href="/rednaxelafx/1593521/archive/18ba53383098c695f6baa09c0f3a98e11be7a8f0.zip"
+          class="btn btn-sm"
+          rel="nofollow"
+          data-ga-click="Gist, download zip, location:gist overview">
+        Download ZIP
+      </a>
+    </div>
+  </div>
+
+  <div class="float-left">
+    <nav class="reponav js-repo-nav js-sidenav-container-pjax"
+     role="navigation"
+     data-pjax="#gist-pjax-container">
+
+  <a class="js-selected-navigation-item selected reponav-item" aria-label="Code" data-pjax="true" data-hotkey="g c" data-selected-links="gist_code /rednaxelafx/1593521" href="/rednaxelafx/1593521">
+    <svg class="octicon octicon-code" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M9.5 3L8 4.5 11.5 8 8 11.5 9.5 13 14 8 9.5 3zm-5 0L0 8l4.5 5L6 11.5 2.5 8 6 4.5 4.5 3z"/></svg>
+    Code
+</a>
+    <a class="js-selected-navigation-item reponav-item" aria-label="Revisions" data-pjax="true" data-hotkey="g r" data-selected-links="gist_revisions /rednaxelafx/1593521/revisions" href="/rednaxelafx/1593521/revisions">
+      <svg class="octicon octicon-git-commit" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M10.86 7c-.45-1.72-2-3-3.86-3-1.86 0-3.41 1.28-3.86 3H0v2h3.14c.45 1.72 2 3 3.86 3 1.86 0 3.41-1.28 3.86-3H14V7h-3.14zM7 10.2c-1.22 0-2.2-.98-2.2-2.2 0-1.22.98-2.2 2.2-2.2 1.22 0 2.2.98 2.2 2.2 0 1.22-.98 2.2-2.2 2.2z"/></svg>
+      Revisions
+      <span class="Counter">7</span>
+</a>
+    <a class="js-selected-navigation-item reponav-item" aria-label="Stars" data-pjax="true" data-hotkey="g s" data-selected-links="gist_stars /rednaxelafx/1593521/stargazers" href="/rednaxelafx/1593521/stargazers">
+      <svg class="octicon octicon-star" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"/></svg>
+      Stars
+      <span class="Counter">72</span>
+</a>
+    <a class="js-selected-navigation-item reponav-item" aria-label="Forks" data-pjax="true" data-hotkey="g f" data-selected-links="gist_forks /rednaxelafx/1593521/forks" href="/rednaxelafx/1593521/forks">
+      <svg class="octicon octicon-git-branch" viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M10 5c0-1.11-.89-2-2-2a1.993 1.993 0 0 0-1 3.72v.3c-.02.52-.23.98-.63 1.38-.4.4-.86.61-1.38.63-.83.02-1.48.16-2 .45V4.72a1.993 1.993 0 0 0-1-3.72C.88 1 0 1.89 0 3a2 2 0 0 0 1 1.72v6.56c-.59.35-1 .99-1 1.72 0 1.11.89 2 2 2 1.11 0 2-.89 2-2 0-.53-.2-1-.53-1.36.09-.06.48-.41.59-.47.25-.11.56-.17.94-.17 1.05-.05 1.95-.45 2.75-1.25S8.95 7.77 9 6.73h-.02C9.59 6.37 10 5.73 10 5zM2 1.8c.66 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2C1.35 4.2.8 3.65.8 3c0-.65.55-1.2 1.2-1.2zm0 12.41c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm6-8c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2z"/></svg>
+      Forks
+      <span class="Counter">40</span>
+</a></nav>
+
+  </div>
+</div>
+
+
+  </div>
+</div>
+
+<div class="container new-discussion-timeline experiment-repo-nav">
+  <div class="repository-content gist-content">
+    
+  <div>
+    <div class="repository-meta js-details-container Details">
+  <div class="repository-meta-content" itemprop="about">
+    An Serviceability-Agent based tool to see stats of NIO direct memory, as an alternative on JDK6 without JMX support for direct memory monitoring. Only works on JDK6; to work on JDK7 will need some tweaking because static variables are moved to Java mirror
+  </div>
+</div>
+
+
+        <div class="js-gist-file-update-container js-task-list-container file-box">
+  <div id="file-command_prompt" class="file">
+      <div class="file-header">
+        <div class="file-actions">
+
+          <a class="btn btn-sm " href="/rednaxelafx/1593521/raw/18ba53383098c695f6baa09c0f3a98e11be7a8f0/command_prompt">Raw</a>
+        </div>
+        <div class="file-info">
+          <span class="icon">
+            <svg class="octicon octicon-gist" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 5L10 7.5 7.5 10l-.75-.75L8.5 7.5 6.75 5.75 7.5 5zm-3 0L2 7.5 4.5 10l.75-.75L3.5 7.5l1.75-1.75L4.5 5zM0 13V2c0-.55.45-1 1-1h10c.55 0 1 .45 1 1v11c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1zm1 0h10V2H1v11z"/></svg>
+          </span>
+          <a class="tooltipped tooltipped-s css-truncate" aria-label="Permalink" href="#file-command_prompt">
+            <strong class="user-select-contain gist-blob-name css-truncate-target">
+              command_prompt
+            </strong>
+          </a>
+        </div>
+      </div>
+    
+
+  <div itemprop="text" class="blob-wrapper data type-text">
+      <table class="highlight tab-size js-file-line-container" data-tab-size="8">
+      <tr>
+        <td id="file-command_prompt-L1" class="blob-num js-line-number" data-line-number="1"></td>
+        <td id="file-command_prompt-LC1" class="blob-code blob-code-inner js-file-line">$ java -version</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L2" class="blob-num js-line-number" data-line-number="2"></td>
+        <td id="file-command_prompt-LC2" class="blob-code blob-code-inner js-file-line">java version &quot;1.6.0_30&quot;</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L3" class="blob-num js-line-number" data-line-number="3"></td>
+        <td id="file-command_prompt-LC3" class="blob-code blob-code-inner js-file-line">Java(TM) SE Runtime Environment (build 1.6.0_30-b12)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L4" class="blob-num js-line-number" data-line-number="4"></td>
+        <td id="file-command_prompt-LC4" class="blob-code blob-code-inner js-file-line">Java HotSpot(TM) 64-Bit Server VM (build 20.5-b03, mixed mode)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L5" class="blob-num js-line-number" data-line-number="5"></td>
+        <td id="file-command_prompt-LC5" class="blob-code blob-code-inner js-file-line">$ javac -classpath $JAVA_HOME/lib/sa-jdi.jar DirectMemorySize.java </td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L6" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="file-command_prompt-LC6" class="blob-code blob-code-inner js-file-line">$ jps</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L7" class="blob-num js-line-number" data-line-number="7"></td>
+        <td id="file-command_prompt-LC7" class="blob-code blob-code-inner js-file-line">18486 GroovyStarter</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L8" class="blob-num js-line-number" data-line-number="8"></td>
+        <td id="file-command_prompt-LC8" class="blob-code blob-code-inner js-file-line">23135 Jps</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L9" class="blob-num js-line-number" data-line-number="9"></td>
+        <td id="file-command_prompt-LC9" class="blob-code blob-code-inner js-file-line">$ java -classpath .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize `pgrep java`</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L10" class="blob-num js-line-number" data-line-number="10"></td>
+        <td id="file-command_prompt-LC10" class="blob-code blob-code-inner js-file-line">Attaching to process ID 18486, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L11" class="blob-num js-line-number" data-line-number="11"></td>
+        <td id="file-command_prompt-LC11" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L12" class="blob-num js-line-number" data-line-number="12"></td>
+        <td id="file-command_prompt-LC12" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L13" class="blob-num js-line-number" data-line-number="13"></td>
+        <td id="file-command_prompt-LC13" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L14" class="blob-num js-line-number" data-line-number="14"></td>
+        <td id="file-command_prompt-LC14" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L15" class="blob-num js-line-number" data-line-number="15"></td>
+        <td id="file-command_prompt-LC15" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000000 MB (0 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt-L16" class="blob-num js-line-number" data-line-number="16"></td>
+        <td id="file-command_prompt-LC16" class="blob-code blob-code-inner js-file-line">  max size      = 4069.000000 MB (4266655744 bytes)</td>
+      </tr>
+</table>
+
+
+  </div>
+
+  </div>
+</div>
+
+        <div class="js-gist-file-update-container js-task-list-container file-box">
+  <div id="file-command_prompt2" class="file">
+      <div class="file-header">
+        <div class="file-actions">
+
+          <a class="btn btn-sm " href="/rednaxelafx/1593521/raw/18ba53383098c695f6baa09c0f3a98e11be7a8f0/command_prompt2">Raw</a>
+        </div>
+        <div class="file-info">
+          <span class="icon">
+            <svg class="octicon octicon-gist" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 5L10 7.5 7.5 10l-.75-.75L8.5 7.5 6.75 5.75 7.5 5zm-3 0L2 7.5 4.5 10l.75-.75L3.5 7.5l1.75-1.75L4.5 5zM0 13V2c0-.55.45-1 1-1h10c.55 0 1 .45 1 1v11c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1zm1 0h10V2H1v11z"/></svg>
+          </span>
+          <a class="tooltipped tooltipped-s css-truncate" aria-label="Permalink" href="#file-command_prompt2">
+            <strong class="user-select-contain gist-blob-name css-truncate-target">
+              command_prompt2
+            </strong>
+          </a>
+        </div>
+      </div>
+    
+
+  <div itemprop="text" class="blob-wrapper data type-text">
+      <table class="highlight tab-size js-file-line-container" data-tab-size="8">
+      <tr>
+        <td id="file-command_prompt2-L1" class="blob-num js-line-number" data-line-number="1"></td>
+        <td id="file-command_prompt2-LC1" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize     </td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L2" class="blob-num js-line-number" data-line-number="2"></td>
+        <td id="file-command_prompt2-LC2" class="blob-code blob-code-inner js-file-line">Usage: java directMemorySize [option] &lt;pid&gt;</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L3" class="blob-num js-line-number" data-line-number="3"></td>
+        <td id="file-command_prompt2-LC3" class="blob-code blob-code-inner js-file-line">                (to connect to a live java process)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L4" class="blob-num js-line-number" data-line-number="4"></td>
+        <td id="file-command_prompt2-LC4" class="blob-code blob-code-inner js-file-line">   or java directMemorySize [option] &lt;executable&gt; &lt;core&gt;</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L5" class="blob-num js-line-number" data-line-number="5"></td>
+        <td id="file-command_prompt2-LC5" class="blob-code blob-code-inner js-file-line">                (to connect to a core file)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L6" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="file-command_prompt2-LC6" class="blob-code blob-code-inner js-file-line">   or java directMemorySize [option] [server_id@]&lt;remote server IP or hostname&gt;</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L7" class="blob-num js-line-number" data-line-number="7"></td>
+        <td id="file-command_prompt2-LC7" class="blob-code blob-code-inner js-file-line">                (to connect to a remote debug server)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L8" class="blob-num js-line-number" data-line-number="8"></td>
+        <td id="file-command_prompt2-LC8" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L9" class="blob-num js-line-number" data-line-number="9"></td>
+        <td id="file-command_prompt2-LC9" class="blob-code blob-code-inner js-file-line">where option must be one of:</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L10" class="blob-num js-line-number" data-line-number="10"></td>
+        <td id="file-command_prompt2-LC10" class="blob-code blob-code-inner js-file-line">    -e  to print the actual size malloc&#39;d</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L11" class="blob-num js-line-number" data-line-number="11"></td>
+        <td id="file-command_prompt2-LC11" class="blob-code blob-code-inner js-file-line">    -v  to print verbose info of every live DirectByteBuffer allocated from Java</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L12" class="blob-num js-line-number" data-line-number="12"></td>
+        <td id="file-command_prompt2-LC12" class="blob-code blob-code-inner js-file-line">    -h | -help  to print this help message</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L13" class="blob-num js-line-number" data-line-number="13"></td>
+        <td id="file-command_prompt2-LC13" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize `pgrep -u sajia java`</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L14" class="blob-num js-line-number" data-line-number="14"></td>
+        <td id="file-command_prompt2-LC14" class="blob-code blob-code-inner js-file-line">Attaching to process ID 7381, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L15" class="blob-num js-line-number" data-line-number="15"></td>
+        <td id="file-command_prompt2-LC15" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L16" class="blob-num js-line-number" data-line-number="16"></td>
+        <td id="file-command_prompt2-LC16" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L17" class="blob-num js-line-number" data-line-number="17"></td>
+        <td id="file-command_prompt2-LC17" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L18" class="blob-num js-line-number" data-line-number="18"></td>
+        <td id="file-command_prompt2-LC18" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L19" class="blob-num js-line-number" data-line-number="19"></td>
+        <td id="file-command_prompt2-LC19" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000003 MB (3 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L20" class="blob-num js-line-number" data-line-number="20"></td>
+        <td id="file-command_prompt2-LC20" class="blob-code blob-code-inner js-file-line">  max size      = 7152.000000 MB (7499415552 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L21" class="blob-num js-line-number" data-line-number="21"></td>
+        <td id="file-command_prompt2-LC21" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize -e `pgrep -u sajia java`</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L22" class="blob-num js-line-number" data-line-number="22"></td>
+        <td id="file-command_prompt2-LC22" class="blob-code blob-code-inner js-file-line">Attaching to process ID 7381, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L23" class="blob-num js-line-number" data-line-number="23"></td>
+        <td id="file-command_prompt2-LC23" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L24" class="blob-num js-line-number" data-line-number="24"></td>
+        <td id="file-command_prompt2-LC24" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L25" class="blob-num js-line-number" data-line-number="25"></td>
+        <td id="file-command_prompt2-LC25" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L26" class="blob-num js-line-number" data-line-number="26"></td>
+        <td id="file-command_prompt2-LC26" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L27" class="blob-num js-line-number" data-line-number="27"></td>
+        <td id="file-command_prompt2-LC27" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000003 MB (3 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L28" class="blob-num js-line-number" data-line-number="28"></td>
+        <td id="file-command_prompt2-LC28" class="blob-code blob-code-inner js-file-line">  max size      = 7152.000000 MB (7499415552 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L29" class="blob-num js-line-number" data-line-number="29"></td>
+        <td id="file-command_prompt2-LC29" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L30" class="blob-num js-line-number" data-line-number="30"></td>
+        <td id="file-command_prompt2-LC30" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L31" class="blob-num js-line-number" data-line-number="31"></td>
+        <td id="file-command_prompt2-LC31" class="blob-code blob-code-inner js-file-line">NIO direct memory malloc&#39;d size: 0.007815 MB (8195 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L32" class="blob-num js-line-number" data-line-number="32"></td>
+        <td id="file-command_prompt2-LC32" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ time java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize `pgrep -u sajia java`      </td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L33" class="blob-num js-line-number" data-line-number="33"></td>
+        <td id="file-command_prompt2-LC33" class="blob-code blob-code-inner js-file-line">Attaching to process ID 7381, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L34" class="blob-num js-line-number" data-line-number="34"></td>
+        <td id="file-command_prompt2-LC34" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L35" class="blob-num js-line-number" data-line-number="35"></td>
+        <td id="file-command_prompt2-LC35" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L36" class="blob-num js-line-number" data-line-number="36"></td>
+        <td id="file-command_prompt2-LC36" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L37" class="blob-num js-line-number" data-line-number="37"></td>
+        <td id="file-command_prompt2-LC37" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L38" class="blob-num js-line-number" data-line-number="38"></td>
+        <td id="file-command_prompt2-LC38" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000003 MB (3 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L39" class="blob-num js-line-number" data-line-number="39"></td>
+        <td id="file-command_prompt2-LC39" class="blob-code blob-code-inner js-file-line">  max size      = 7152.000000 MB (7499415552 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L40" class="blob-num js-line-number" data-line-number="40"></td>
+        <td id="file-command_prompt2-LC40" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L41" class="blob-num js-line-number" data-line-number="41"></td>
+        <td id="file-command_prompt2-LC41" class="blob-code blob-code-inner js-file-line">real    0m0.401s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L42" class="blob-num js-line-number" data-line-number="42"></td>
+        <td id="file-command_prompt2-LC42" class="blob-code blob-code-inner js-file-line">user    0m0.503s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L43" class="blob-num js-line-number" data-line-number="43"></td>
+        <td id="file-command_prompt2-LC43" class="blob-code blob-code-inner js-file-line">sys     0m0.057s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L44" class="blob-num js-line-number" data-line-number="44"></td>
+        <td id="file-command_prompt2-LC44" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ time java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize -e `pgrep -u sajia java`</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L45" class="blob-num js-line-number" data-line-number="45"></td>
+        <td id="file-command_prompt2-LC45" class="blob-code blob-code-inner js-file-line">Attaching to process ID 7381, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L46" class="blob-num js-line-number" data-line-number="46"></td>
+        <td id="file-command_prompt2-LC46" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L47" class="blob-num js-line-number" data-line-number="47"></td>
+        <td id="file-command_prompt2-LC47" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L48" class="blob-num js-line-number" data-line-number="48"></td>
+        <td id="file-command_prompt2-LC48" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L49" class="blob-num js-line-number" data-line-number="49"></td>
+        <td id="file-command_prompt2-LC49" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L50" class="blob-num js-line-number" data-line-number="50"></td>
+        <td id="file-command_prompt2-LC50" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000003 MB (3 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L51" class="blob-num js-line-number" data-line-number="51"></td>
+        <td id="file-command_prompt2-LC51" class="blob-code blob-code-inner js-file-line">  max size      = 7152.000000 MB (7499415552 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L52" class="blob-num js-line-number" data-line-number="52"></td>
+        <td id="file-command_prompt2-LC52" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L53" class="blob-num js-line-number" data-line-number="53"></td>
+        <td id="file-command_prompt2-LC53" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L54" class="blob-num js-line-number" data-line-number="54"></td>
+        <td id="file-command_prompt2-LC54" class="blob-code blob-code-inner js-file-line">NIO direct memory malloc&#39;d size: 0.007815 MB (8195 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L55" class="blob-num js-line-number" data-line-number="55"></td>
+        <td id="file-command_prompt2-LC55" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L56" class="blob-num js-line-number" data-line-number="56"></td>
+        <td id="file-command_prompt2-LC56" class="blob-code blob-code-inner js-file-line">real    0m4.822s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L57" class="blob-num js-line-number" data-line-number="57"></td>
+        <td id="file-command_prompt2-LC57" class="blob-code blob-code-inner js-file-line">user    0m2.095s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L58" class="blob-num js-line-number" data-line-number="58"></td>
+        <td id="file-command_prompt2-LC58" class="blob-code blob-code-inner js-file-line">sys     0m3.216s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L59" class="blob-num js-line-number" data-line-number="59"></td>
+        <td id="file-command_prompt2-LC59" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ time java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize -e -v `pgrep -u sajia java`</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L60" class="blob-num js-line-number" data-line-number="60"></td>
+        <td id="file-command_prompt2-LC60" class="blob-code blob-code-inner js-file-line">Attaching to process ID 7381, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L61" class="blob-num js-line-number" data-line-number="61"></td>
+        <td id="file-command_prompt2-LC61" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L62" class="blob-num js-line-number" data-line-number="62"></td>
+        <td id="file-command_prompt2-LC62" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L63" class="blob-num js-line-number" data-line-number="63"></td>
+        <td id="file-command_prompt2-LC63" class="blob-code blob-code-inner js-file-line">JVM version is 20.5-b03</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L64" class="blob-num js-line-number" data-line-number="64"></td>
+        <td id="file-command_prompt2-LC64" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L65" class="blob-num js-line-number" data-line-number="65"></td>
+        <td id="file-command_prompt2-LC65" class="blob-code blob-code-inner js-file-line">  reserved size = 0.000003 MB (3 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L66" class="blob-num js-line-number" data-line-number="66"></td>
+        <td id="file-command_prompt2-LC66" class="blob-code blob-code-inner js-file-line">  max size      = 7152.000000 MB (7499415552 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L67" class="blob-num js-line-number" data-line-number="67"></td>
+        <td id="file-command_prompt2-LC67" class="blob-code blob-code-inner js-file-line">Currently allocated direct buffers:</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L68" class="blob-num js-line-number" data-line-number="68"></td>
+        <td id="file-command_prompt2-LC68" class="blob-code blob-code-inner js-file-line">  0x00002aaab021df10: capacity = 0.000001 MB (1 bytes), mallocSize = 0.003907 MB (4097 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L69" class="blob-num js-line-number" data-line-number="69"></td>
+        <td id="file-command_prompt2-LC69" class="blob-code blob-code-inner js-file-line">  0x00002aaab0843310: capacity = 0.000002 MB (2 bytes), mallocSize = 0.003908 MB (4098 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L70" class="blob-num js-line-number" data-line-number="70"></td>
+        <td id="file-command_prompt2-LC70" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L71" class="blob-num js-line-number" data-line-number="71"></td>
+        <td id="file-command_prompt2-LC71" class="blob-code blob-code-inner js-file-line">Finding object size using Printezis bits and skipping over...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L72" class="blob-num js-line-number" data-line-number="72"></td>
+        <td id="file-command_prompt2-LC72" class="blob-code blob-code-inner js-file-line">NIO direct memory malloc&#39;d size: 0.007815 MB (8195 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L73" class="blob-num js-line-number" data-line-number="73"></td>
+        <td id="file-command_prompt2-LC73" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L74" class="blob-num js-line-number" data-line-number="74"></td>
+        <td id="file-command_prompt2-LC74" class="blob-code blob-code-inner js-file-line">real    0m5.097s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L75" class="blob-num js-line-number" data-line-number="75"></td>
+        <td id="file-command_prompt2-LC75" class="blob-code blob-code-inner js-file-line">user    0m2.164s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L76" class="blob-num js-line-number" data-line-number="76"></td>
+        <td id="file-command_prompt2-LC76" class="blob-code blob-code-inner js-file-line">sys     0m3.426s</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt2-L77" class="blob-num js-line-number" data-line-number="77"></td>
+        <td id="file-command_prompt2-LC77" class="blob-code blob-code-inner js-file-line">[sajia@211 temp]$ </td>
+      </tr>
+</table>
+
+
+  </div>
+
+  </div>
+</div>
+
+        <div class="js-gist-file-update-container js-task-list-container file-box">
+  <div id="file-command_prompt3" class="file">
+      <div class="file-header">
+        <div class="file-actions">
+
+          <a class="btn btn-sm " href="/rednaxelafx/1593521/raw/18ba53383098c695f6baa09c0f3a98e11be7a8f0/command_prompt3">Raw</a>
+        </div>
+        <div class="file-info">
+          <span class="icon">
+            <svg class="octicon octicon-gist" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 5L10 7.5 7.5 10l-.75-.75L8.5 7.5 6.75 5.75 7.5 5zm-3 0L2 7.5 4.5 10l.75-.75L3.5 7.5l1.75-1.75L4.5 5zM0 13V2c0-.55.45-1 1-1h10c.55 0 1 .45 1 1v11c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1zm1 0h10V2H1v11z"/></svg>
+          </span>
+          <a class="tooltipped tooltipped-s css-truncate" aria-label="Permalink" href="#file-command_prompt3">
+            <strong class="user-select-contain gist-blob-name css-truncate-target">
+              command_prompt3
+            </strong>
+          </a>
+        </div>
+      </div>
+    
+
+  <div itemprop="text" class="blob-wrapper data type-text">
+      <table class="highlight tab-size js-file-line-container" data-tab-size="8">
+      <tr>
+        <td id="file-command_prompt3-L1" class="blob-num js-line-number" data-line-number="1"></td>
+        <td id="file-command_prompt3-LC1" class="blob-code blob-code-inner js-file-line">[sajia@xxx164 gist]$ sudo -u admin java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize -e `pgrep -u admin java` | grep -v &#39;Finding object&#39;</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L2" class="blob-num js-line-number" data-line-number="2"></td>
+        <td id="file-command_prompt3-LC2" class="blob-code blob-code-inner js-file-line">Attaching to process ID 2499, please wait...</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L3" class="blob-num js-line-number" data-line-number="3"></td>
+        <td id="file-command_prompt3-LC3" class="blob-code blob-code-inner js-file-line">Debugger attached successfully.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L4" class="blob-num js-line-number" data-line-number="4"></td>
+        <td id="file-command_prompt3-LC4" class="blob-code blob-code-inner js-file-line">Server compiler detected.</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L5" class="blob-num js-line-number" data-line-number="5"></td>
+        <td id="file-command_prompt3-LC5" class="blob-code blob-code-inner js-file-line">JVM version is 20.0-b12-internal</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L6" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="file-command_prompt3-LC6" class="blob-code blob-code-inner js-file-line">NIO direct memory: (in bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L7" class="blob-num js-line-number" data-line-number="7"></td>
+        <td id="file-command_prompt3-LC7" class="blob-code blob-code-inner js-file-line">  reserved size = 907.541405 MB (951626136 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L8" class="blob-num js-line-number" data-line-number="8"></td>
+        <td id="file-command_prompt3-LC8" class="blob-code blob-code-inner js-file-line">  max size      = 3925.375000 MB (4116054016 bytes)</td>
+      </tr>
+      <tr>
+        <td id="file-command_prompt3-L9" class="blob-num js-line-number" data-line-number="9"></td>
+        <td id="file-command_prompt3-LC9" class="blob-code blob-code-inner js-file-line">NIO direct memory malloc&#39;d size: 910.697655 MB (954935704 bytes)</td>
+      </tr>
+</table>
+
+
+  </div>
+
+  </div>
+</div>
+
+        <div class="js-gist-file-update-container js-task-list-container file-box">
+  <div id="file-directmemorysize-java" class="file">
+      <div class="file-header">
+        <div class="file-actions">
+
+          <a class="btn btn-sm " href="/rednaxelafx/1593521/raw/18ba53383098c695f6baa09c0f3a98e11be7a8f0/DirectMemorySize.java">Raw</a>
+        </div>
+        <div class="file-info">
+          <span class="icon">
+            <svg class="octicon octicon-gist" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 5L10 7.5 7.5 10l-.75-.75L8.5 7.5 6.75 5.75 7.5 5zm-3 0L2 7.5 4.5 10l.75-.75L3.5 7.5l1.75-1.75L4.5 5zM0 13V2c0-.55.45-1 1-1h10c.55 0 1 .45 1 1v11c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1zm1 0h10V2H1v11z"/></svg>
+          </span>
+          <a class="tooltipped tooltipped-s css-truncate" aria-label="Permalink" href="#file-directmemorysize-java">
+            <strong class="user-select-contain gist-blob-name css-truncate-target">
+              DirectMemorySize.java
+            </strong>
+          </a>
+        </div>
+      </div>
+    
+
+  <div itemprop="text" class="blob-wrapper data type-java">
+      <table class="highlight tab-size js-file-line-container" data-tab-size="8">
+      <tr>
+        <td id="file-directmemorysize-java-L1" class="blob-num js-line-number" data-line-number="1"></td>
+        <td id="file-directmemorysize-java-LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">java.io.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L2" class="blob-num js-line-number" data-line-number="2"></td>
+        <td id="file-directmemorysize-java-LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">java.util.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L3" class="blob-num js-line-number" data-line-number="3"></td>
+        <td id="file-directmemorysize-java-LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.memory.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L4" class="blob-num js-line-number" data-line-number="4"></td>
+        <td id="file-directmemorysize-java-LC4" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.oops.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L5" class="blob-num js-line-number" data-line-number="5"></td>
+        <td id="file-directmemorysize-java-LC5" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.debugger.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L6" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="file-directmemorysize-java-LC6" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.runtime.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L7" class="blob-num js-line-number" data-line-number="7"></td>
+        <td id="file-directmemorysize-java-LC7" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.tools.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L8" class="blob-num js-line-number" data-line-number="8"></td>
+        <td id="file-directmemorysize-java-LC8" class="blob-code blob-code-inner js-file-line"><span class="pl-k">import</span> <span class="pl-smi">sun.jvm.hotspot.utilities.*</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L9" class="blob-num js-line-number" data-line-number="9"></td>
+        <td id="file-directmemorysize-java-LC9" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L10" class="blob-num js-line-number" data-line-number="10"></td>
+        <td id="file-directmemorysize-java-LC10" class="blob-code blob-code-inner js-file-line"><span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">DirectMemorySize</span> <span class="pl-k">extends</span> <span class="pl-e">Tool</span> {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L11" class="blob-num js-line-number" data-line-number="11"></td>
+        <td id="file-directmemorysize-java-LC11" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">private</span> <span class="pl-k">boolean</span> exactMallocMode;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L12" class="blob-num js-line-number" data-line-number="12"></td>
+        <td id="file-directmemorysize-java-LC12" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">private</span> <span class="pl-k">boolean</span> verbose;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L13" class="blob-num js-line-number" data-line-number="13"></td>
+        <td id="file-directmemorysize-java-LC13" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L14" class="blob-num js-line-number" data-line-number="14"></td>
+        <td id="file-directmemorysize-java-LC14" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-en">DirectMemorySize</span>(<span class="pl-k">boolean</span> <span class="pl-v">exactMallocMode</span>, <span class="pl-k">boolean</span> <span class="pl-v">verbose</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L15" class="blob-num js-line-number" data-line-number="15"></td>
+        <td id="file-directmemorysize-java-LC15" class="blob-code blob-code-inner js-file-line">        <span class="pl-c1">this</span><span class="pl-k">.</span>exactMallocMode <span class="pl-k">=</span> exactMallocMode;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L16" class="blob-num js-line-number" data-line-number="16"></td>
+        <td id="file-directmemorysize-java-LC16" class="blob-code blob-code-inner js-file-line">        <span class="pl-c1">this</span><span class="pl-k">.</span>verbose <span class="pl-k">=</span> verbose;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L17" class="blob-num js-line-number" data-line-number="17"></td>
+        <td id="file-directmemorysize-java-LC17" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L18" class="blob-num js-line-number" data-line-number="18"></td>
+        <td id="file-directmemorysize-java-LC18" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L19" class="blob-num js-line-number" data-line-number="19"></td>
+        <td id="file-directmemorysize-java-LC19" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">run</span>() {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L20" class="blob-num js-line-number" data-line-number="20"></td>
+        <td id="file-directmemorysize-java-LC20" class="blob-code blob-code-inner js-file-line">        <span class="pl-c"><span class="pl-c">//</span> Ready to go with the database...</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L21" class="blob-num js-line-number" data-line-number="21"></td>
+        <td id="file-directmemorysize-java-LC21" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">try</span> {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L22" class="blob-num js-line-number" data-line-number="22"></td>
+        <td id="file-directmemorysize-java-LC22" class="blob-code blob-code-inner js-file-line">            <span class="pl-k">long</span> reservedMemory <span class="pl-k">=</span> getStaticLongFieldValue(<span class="pl-s"><span class="pl-pds">&quot;</span>java.nio.Bits<span class="pl-pds">&quot;</span></span>, <span class="pl-s"><span class="pl-pds">&quot;</span>reservedMemory<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L23" class="blob-num js-line-number" data-line-number="23"></td>
+        <td id="file-directmemorysize-java-LC23" class="blob-code blob-code-inner js-file-line">            <span class="pl-k">long</span> directMemory <span class="pl-k">=</span> getStaticLongFieldValue(<span class="pl-s"><span class="pl-pds">&quot;</span>sun.misc.VM<span class="pl-pds">&quot;</span></span>, <span class="pl-s"><span class="pl-pds">&quot;</span>directMemory<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L24" class="blob-num js-line-number" data-line-number="24"></td>
+        <td id="file-directmemorysize-java-LC24" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L25" class="blob-num js-line-number" data-line-number="25"></td>
+        <td id="file-directmemorysize-java-LC25" class="blob-code blob-code-inner js-file-line">            <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>println(<span class="pl-s"><span class="pl-pds">&quot;</span>NIO direct memory: (in bytes)<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L26" class="blob-num js-line-number" data-line-number="26"></td>
+        <td id="file-directmemorysize-java-LC26" class="blob-code blob-code-inner js-file-line">            <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>printf(<span class="pl-s"><span class="pl-pds">&quot;</span>  reserved size = %f MB (%d bytes)<span class="pl-cce">\n</span><span class="pl-pds">&quot;</span></span>, toM(reservedMemory), reservedMemory);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L27" class="blob-num js-line-number" data-line-number="27"></td>
+        <td id="file-directmemorysize-java-LC27" class="blob-code blob-code-inner js-file-line">            <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>printf(<span class="pl-s"><span class="pl-pds">&quot;</span>  max size      = %f MB (%d bytes)<span class="pl-cce">\n</span><span class="pl-pds">&quot;</span></span>, toM(directMemory), directMemory);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L28" class="blob-num js-line-number" data-line-number="28"></td>
+        <td id="file-directmemorysize-java-LC28" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L29" class="blob-num js-line-number" data-line-number="29"></td>
+        <td id="file-directmemorysize-java-LC29" class="blob-code blob-code-inner js-file-line">            <span class="pl-k">if</span> (verbose) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L30" class="blob-num js-line-number" data-line-number="30"></td>
+        <td id="file-directmemorysize-java-LC30" class="blob-code blob-code-inner js-file-line">                <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>println(<span class="pl-s"><span class="pl-pds">&quot;</span>Currently allocated direct buffers:<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L31" class="blob-num js-line-number" data-line-number="31"></td>
+        <td id="file-directmemorysize-java-LC31" class="blob-code blob-code-inner js-file-line">            }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L32" class="blob-num js-line-number" data-line-number="32"></td>
+        <td id="file-directmemorysize-java-LC32" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L33" class="blob-num js-line-number" data-line-number="33"></td>
+        <td id="file-directmemorysize-java-LC33" class="blob-code blob-code-inner js-file-line">            <span class="pl-k">if</span> (exactMallocMode <span class="pl-k">||</span> verbose) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L34" class="blob-num js-line-number" data-line-number="34"></td>
+        <td id="file-directmemorysize-java-LC34" class="blob-code blob-code-inner js-file-line">               <span class="pl-k">final</span> <span class="pl-k">long</span> pageSize <span class="pl-k">=</span> getStaticIntFieldValue(<span class="pl-s"><span class="pl-pds">&quot;</span>java.nio.Bits<span class="pl-pds">&quot;</span></span>, <span class="pl-s"><span class="pl-pds">&quot;</span>pageSize<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L35" class="blob-num js-line-number" data-line-number="35"></td>
+        <td id="file-directmemorysize-java-LC35" class="blob-code blob-code-inner js-file-line">               <span class="pl-smi">ObjectHeap</span> heap <span class="pl-k">=</span> <span class="pl-c1">VM</span><span class="pl-k">.</span>getVM()<span class="pl-k">.</span>getObjectHeap();</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L36" class="blob-num js-line-number" data-line-number="36"></td>
+        <td id="file-directmemorysize-java-LC36" class="blob-code blob-code-inner js-file-line">               <span class="pl-smi">InstanceKlass</span> deallocatorKlass <span class="pl-k">=</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L37" class="blob-num js-line-number" data-line-number="37"></td>
+        <td id="file-directmemorysize-java-LC37" class="blob-code blob-code-inner js-file-line">                   <span class="pl-smi">SystemDictionaryHelper</span><span class="pl-k">.</span>findInstanceKlass(<span class="pl-s"><span class="pl-pds">&quot;</span>java.nio.DirectByteBuffer$Deallocator<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L38" class="blob-num js-line-number" data-line-number="38"></td>
+        <td id="file-directmemorysize-java-LC38" class="blob-code blob-code-inner js-file-line">               <span class="pl-k">final</span> <span class="pl-smi">LongField</span> addressField <span class="pl-k">=</span> (<span class="pl-smi">LongField</span>) deallocatorKlass<span class="pl-k">.</span>findField(<span class="pl-s"><span class="pl-pds">&quot;</span>address<span class="pl-pds">&quot;</span></span>, <span class="pl-s"><span class="pl-pds">&quot;</span>J<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L39" class="blob-num js-line-number" data-line-number="39"></td>
+        <td id="file-directmemorysize-java-LC39" class="blob-code blob-code-inner js-file-line">               <span class="pl-k">final</span> <span class="pl-smi">IntField</span> capacityField <span class="pl-k">=</span> (<span class="pl-smi">IntField</span>) deallocatorKlass<span class="pl-k">.</span>findField(<span class="pl-s"><span class="pl-pds">&quot;</span>capacity<span class="pl-pds">&quot;</span></span>, <span class="pl-s"><span class="pl-pds">&quot;</span>I<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L40" class="blob-num js-line-number" data-line-number="40"></td>
+        <td id="file-directmemorysize-java-LC40" class="blob-code blob-code-inner js-file-line">               <span class="pl-k">final</span> <span class="pl-k">int</span>[] countHolder <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">int</span>[<span class="pl-c1">1</span>];</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L41" class="blob-num js-line-number" data-line-number="41"></td>
+        <td id="file-directmemorysize-java-LC41" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L42" class="blob-num js-line-number" data-line-number="42"></td>
+        <td id="file-directmemorysize-java-LC42" class="blob-code blob-code-inner js-file-line">               heap<span class="pl-k">.</span>iterateObjectsOfKlass(<span class="pl-k">new</span> <span class="pl-smi">DefaultHeapVisitor</span>() {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L43" class="blob-num js-line-number" data-line-number="43"></td>
+        <td id="file-directmemorysize-java-LC43" class="blob-code blob-code-inner js-file-line">                   <span class="pl-k">public</span> <span class="pl-k">boolean</span> <span class="pl-en">doObj</span>(<span class="pl-smi">Oop</span> <span class="pl-v">oop</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L44" class="blob-num js-line-number" data-line-number="44"></td>
+        <td id="file-directmemorysize-java-LC44" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">long</span> address <span class="pl-k">=</span> addressField<span class="pl-k">.</span>getValue(oop);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L45" class="blob-num js-line-number" data-line-number="45"></td>
+        <td id="file-directmemorysize-java-LC45" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">if</span> (address <span class="pl-k">==</span> <span class="pl-c1">0</span>) <span class="pl-k">return</span> <span class="pl-c1">false</span>; <span class="pl-c"><span class="pl-c">//</span> this deallocator has already been run</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L46" class="blob-num js-line-number" data-line-number="46"></td>
+        <td id="file-directmemorysize-java-LC46" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L47" class="blob-num js-line-number" data-line-number="47"></td>
+        <td id="file-directmemorysize-java-LC47" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">long</span> capacity <span class="pl-k">=</span> capacityField<span class="pl-k">.</span>getValue(oop);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L48" class="blob-num js-line-number" data-line-number="48"></td>
+        <td id="file-directmemorysize-java-LC48" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">long</span> mallocSize <span class="pl-k">=</span> capacity <span class="pl-k">+</span> pageSize;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L49" class="blob-num js-line-number" data-line-number="49"></td>
+        <td id="file-directmemorysize-java-LC49" class="blob-code blob-code-inner js-file-line">                       countHolder[<span class="pl-c1">0</span>]<span class="pl-k">++</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L50" class="blob-num js-line-number" data-line-number="50"></td>
+        <td id="file-directmemorysize-java-LC50" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L51" class="blob-num js-line-number" data-line-number="51"></td>
+        <td id="file-directmemorysize-java-LC51" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">if</span> (verbose) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L52" class="blob-num js-line-number" data-line-number="52"></td>
+        <td id="file-directmemorysize-java-LC52" class="blob-code blob-code-inner js-file-line">                           <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>printf(<span class="pl-s"><span class="pl-pds">&quot;</span>  0x%016x: capacity = %f MB (%d bytes),<span class="pl-pds">&quot;</span></span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L53" class="blob-num js-line-number" data-line-number="53"></td>
+        <td id="file-directmemorysize-java-LC53" class="blob-code blob-code-inner js-file-line">                                                     <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">&quot;</span> mallocSize = %f MB (%d bytes)<span class="pl-cce">\n</span><span class="pl-pds">&quot;</span></span>,</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L54" class="blob-num js-line-number" data-line-number="54"></td>
+        <td id="file-directmemorysize-java-LC54" class="blob-code blob-code-inner js-file-line">                                             address, toM(capacity), capacity,</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L55" class="blob-num js-line-number" data-line-number="55"></td>
+        <td id="file-directmemorysize-java-LC55" class="blob-code blob-code-inner js-file-line">                                                      toM(mallocSize), mallocSize);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L56" class="blob-num js-line-number" data-line-number="56"></td>
+        <td id="file-directmemorysize-java-LC56" class="blob-code blob-code-inner js-file-line">                       }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L57" class="blob-num js-line-number" data-line-number="57"></td>
+        <td id="file-directmemorysize-java-LC57" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L58" class="blob-num js-line-number" data-line-number="58"></td>
+        <td id="file-directmemorysize-java-LC58" class="blob-code blob-code-inner js-file-line">                       <span class="pl-k">return</span> <span class="pl-c1">false</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L59" class="blob-num js-line-number" data-line-number="59"></td>
+        <td id="file-directmemorysize-java-LC59" class="blob-code blob-code-inner js-file-line">                   }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L60" class="blob-num js-line-number" data-line-number="60"></td>
+        <td id="file-directmemorysize-java-LC60" class="blob-code blob-code-inner js-file-line">               }, deallocatorKlass, <span class="pl-c1">false</span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L61" class="blob-num js-line-number" data-line-number="61"></td>
+        <td id="file-directmemorysize-java-LC61" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L62" class="blob-num js-line-number" data-line-number="62"></td>
+        <td id="file-directmemorysize-java-LC62" class="blob-code blob-code-inner js-file-line">               <span class="pl-k">if</span> (exactMallocMode) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L63" class="blob-num js-line-number" data-line-number="63"></td>
+        <td id="file-directmemorysize-java-LC63" class="blob-code blob-code-inner js-file-line">                   <span class="pl-k">long</span> totalMallocSize <span class="pl-k">=</span> reservedMemory <span class="pl-k">+</span> pageSize <span class="pl-k">*</span> countHolder[<span class="pl-c1">0</span>];</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L64" class="blob-num js-line-number" data-line-number="64"></td>
+        <td id="file-directmemorysize-java-LC64" class="blob-code blob-code-inner js-file-line">                   <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>printf(<span class="pl-s"><span class="pl-pds">&quot;</span>NIO direct memory malloc&#39;d size: %f MB (%d bytes)<span class="pl-cce">\n</span><span class="pl-pds">&quot;</span></span>,</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L65" class="blob-num js-line-number" data-line-number="65"></td>
+        <td id="file-directmemorysize-java-LC65" class="blob-code blob-code-inner js-file-line">                                     toM(totalMallocSize), totalMallocSize);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L66" class="blob-num js-line-number" data-line-number="66"></td>
+        <td id="file-directmemorysize-java-LC66" class="blob-code blob-code-inner js-file-line">               }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L67" class="blob-num js-line-number" data-line-number="67"></td>
+        <td id="file-directmemorysize-java-LC67" class="blob-code blob-code-inner js-file-line">            }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L68" class="blob-num js-line-number" data-line-number="68"></td>
+        <td id="file-directmemorysize-java-LC68" class="blob-code blob-code-inner js-file-line">        } <span class="pl-k">catch</span> (<span class="pl-smi">AddressException</span> e) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L69" class="blob-num js-line-number" data-line-number="69"></td>
+        <td id="file-directmemorysize-java-LC69" class="blob-code blob-code-inner js-file-line">            <span class="pl-smi">System</span><span class="pl-k">.</span>err<span class="pl-k">.</span>println(<span class="pl-s"><span class="pl-pds">&quot;</span>Error accessing address 0x<span class="pl-pds">&quot;</span></span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L70" class="blob-num js-line-number" data-line-number="70"></td>
+        <td id="file-directmemorysize-java-LC70" class="blob-code blob-code-inner js-file-line">                               <span class="pl-k">+</span> <span class="pl-smi">Long</span><span class="pl-k">.</span>toHexString(e<span class="pl-k">.</span>getAddress()));</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L71" class="blob-num js-line-number" data-line-number="71"></td>
+        <td id="file-directmemorysize-java-LC71" class="blob-code blob-code-inner js-file-line">            e<span class="pl-k">.</span>printStackTrace();</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L72" class="blob-num js-line-number" data-line-number="72"></td>
+        <td id="file-directmemorysize-java-LC72" class="blob-code blob-code-inner js-file-line">        }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L73" class="blob-num js-line-number" data-line-number="73"></td>
+        <td id="file-directmemorysize-java-LC73" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L74" class="blob-num js-line-number" data-line-number="74"></td>
+        <td id="file-directmemorysize-java-LC74" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L75" class="blob-num js-line-number" data-line-number="75"></td>
+        <td id="file-directmemorysize-java-LC75" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">long</span> <span class="pl-en">getStaticLongFieldValue</span>(<span class="pl-smi">String</span> <span class="pl-v">className</span>, <span class="pl-smi">String</span> <span class="pl-v">fieldName</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L76" class="blob-num js-line-number" data-line-number="76"></td>
+        <td id="file-directmemorysize-java-LC76" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">InstanceKlass</span> klass <span class="pl-k">=</span> <span class="pl-smi">SystemDictionaryHelper</span><span class="pl-k">.</span>findInstanceKlass(className);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L77" class="blob-num js-line-number" data-line-number="77"></td>
+        <td id="file-directmemorysize-java-LC77" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">LongField</span> field <span class="pl-k">=</span> (<span class="pl-smi">LongField</span>) klass<span class="pl-k">.</span>findField(fieldName, <span class="pl-s"><span class="pl-pds">&quot;</span>J<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L78" class="blob-num js-line-number" data-line-number="78"></td>
+        <td id="file-directmemorysize-java-LC78" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">return</span> field<span class="pl-k">.</span>getValue(klass); <span class="pl-c"><span class="pl-c">//</span> on JDK7 use: field.getValue(klass.getJavaMirror());</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L79" class="blob-num js-line-number" data-line-number="79"></td>
+        <td id="file-directmemorysize-java-LC79" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L80" class="blob-num js-line-number" data-line-number="80"></td>
+        <td id="file-directmemorysize-java-LC80" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L81" class="blob-num js-line-number" data-line-number="81"></td>
+        <td id="file-directmemorysize-java-LC81" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">int</span> <span class="pl-en">getStaticIntFieldValue</span>(<span class="pl-smi">String</span> <span class="pl-v">className</span>, <span class="pl-smi">String</span> <span class="pl-v">fieldName</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L82" class="blob-num js-line-number" data-line-number="82"></td>
+        <td id="file-directmemorysize-java-LC82" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">InstanceKlass</span> klass <span class="pl-k">=</span> <span class="pl-smi">SystemDictionaryHelper</span><span class="pl-k">.</span>findInstanceKlass(className);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L83" class="blob-num js-line-number" data-line-number="83"></td>
+        <td id="file-directmemorysize-java-LC83" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">IntField</span> field <span class="pl-k">=</span> (<span class="pl-smi">IntField</span>) klass<span class="pl-k">.</span>findField(fieldName, <span class="pl-s"><span class="pl-pds">&quot;</span>I<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L84" class="blob-num js-line-number" data-line-number="84"></td>
+        <td id="file-directmemorysize-java-LC84" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">return</span> field<span class="pl-k">.</span>getValue(klass); <span class="pl-c"><span class="pl-c">//</span> on JDK7 use: field.getValue(klass.getJavaMirror());</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L85" class="blob-num js-line-number" data-line-number="85"></td>
+        <td id="file-directmemorysize-java-LC85" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L86" class="blob-num js-line-number" data-line-number="86"></td>
+        <td id="file-directmemorysize-java-LC86" class="blob-code blob-code-inner js-file-line">    </td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L87" class="blob-num js-line-number" data-line-number="87"></td>
+        <td id="file-directmemorysize-java-LC87" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">double</span> <span class="pl-en">toM</span>(<span class="pl-k">long</span> <span class="pl-v">value</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L88" class="blob-num js-line-number" data-line-number="88"></td>
+        <td id="file-directmemorysize-java-LC88" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">return</span> value <span class="pl-k">/</span> (<span class="pl-c1">1024</span> <span class="pl-k">*</span> <span class="pl-c1">1024.0</span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L89" class="blob-num js-line-number" data-line-number="89"></td>
+        <td id="file-directmemorysize-java-LC89" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L90" class="blob-num js-line-number" data-line-number="90"></td>
+        <td id="file-directmemorysize-java-LC90" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L91" class="blob-num js-line-number" data-line-number="91"></td>
+        <td id="file-directmemorysize-java-LC91" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-smi">String</span> <span class="pl-en">getName</span>() {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L92" class="blob-num js-line-number" data-line-number="92"></td>
+        <td id="file-directmemorysize-java-LC92" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">&quot;</span>directMemorySize<span class="pl-pds">&quot;</span></span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L93" class="blob-num js-line-number" data-line-number="93"></td>
+        <td id="file-directmemorysize-java-LC93" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L94" class="blob-num js-line-number" data-line-number="94"></td>
+        <td id="file-directmemorysize-java-LC94" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L95" class="blob-num js-line-number" data-line-number="95"></td>
+        <td id="file-directmemorysize-java-LC95" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">protected</span> <span class="pl-k">void</span> <span class="pl-en">printFlagsUsage</span>() {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L96" class="blob-num js-line-number" data-line-number="96"></td>
+        <td id="file-directmemorysize-java-LC96" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>println(<span class="pl-s"><span class="pl-pds">&quot;</span>    -e<span class="pl-cce">\t</span>to print the actual size malloc&#39;d<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L97" class="blob-num js-line-number" data-line-number="97"></td>
+        <td id="file-directmemorysize-java-LC97" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">System</span><span class="pl-k">.</span>out<span class="pl-k">.</span>println(<span class="pl-s"><span class="pl-pds">&quot;</span>    -v<span class="pl-cce">\t</span>to print verbose info of every live DirectByteBuffer allocated from Java<span class="pl-pds">&quot;</span></span>);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L98" class="blob-num js-line-number" data-line-number="98"></td>
+        <td id="file-directmemorysize-java-LC98" class="blob-code blob-code-inner js-file-line">        <span class="pl-c1">super</span><span class="pl-k">.</span>printFlagsUsage();</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L99" class="blob-num js-line-number" data-line-number="99"></td>
+        <td id="file-directmemorysize-java-LC99" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L100" class="blob-num js-line-number" data-line-number="100"></td>
+        <td id="file-directmemorysize-java-LC100" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L101" class="blob-num js-line-number" data-line-number="101"></td>
+        <td id="file-directmemorysize-java-LC101" class="blob-code blob-code-inner js-file-line">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">void</span> <span class="pl-en">main</span>(<span class="pl-k">String</span>[] <span class="pl-v">args</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L102" class="blob-num js-line-number" data-line-number="102"></td>
+        <td id="file-directmemorysize-java-LC102" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">boolean</span> exactMallocMode <span class="pl-k">=</span> <span class="pl-c1">false</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L103" class="blob-num js-line-number" data-line-number="103"></td>
+        <td id="file-directmemorysize-java-LC103" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">boolean</span> verbose <span class="pl-k">=</span> <span class="pl-c1">false</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L104" class="blob-num js-line-number" data-line-number="104"></td>
+        <td id="file-directmemorysize-java-LC104" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L105" class="blob-num js-line-number" data-line-number="105"></td>
+        <td id="file-directmemorysize-java-LC105" class="blob-code blob-code-inner js-file-line">        <span class="pl-c"><span class="pl-c">//</span> argument processing logic copied from sun.jvm.hotspot.tools.JStack</span></td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L106" class="blob-num js-line-number" data-line-number="106"></td>
+        <td id="file-directmemorysize-java-LC106" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">int</span> used <span class="pl-k">=</span> <span class="pl-c1">0</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L107" class="blob-num js-line-number" data-line-number="107"></td>
+        <td id="file-directmemorysize-java-LC107" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">for</span> (<span class="pl-smi">String</span> arg <span class="pl-k">:</span> args) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L108" class="blob-num js-line-number" data-line-number="108"></td>
+        <td id="file-directmemorysize-java-LC108" class="blob-code blob-code-inner js-file-line">            <span class="pl-k">if</span> (<span class="pl-s"><span class="pl-pds">&quot;</span>-e<span class="pl-pds">&quot;</span></span><span class="pl-k">.</span>equals(arg)) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L109" class="blob-num js-line-number" data-line-number="109"></td>
+        <td id="file-directmemorysize-java-LC109" class="blob-code blob-code-inner js-file-line">                exactMallocMode <span class="pl-k">=</span> <span class="pl-c1">true</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L110" class="blob-num js-line-number" data-line-number="110"></td>
+        <td id="file-directmemorysize-java-LC110" class="blob-code blob-code-inner js-file-line">                used<span class="pl-k">++</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L111" class="blob-num js-line-number" data-line-number="111"></td>
+        <td id="file-directmemorysize-java-LC111" class="blob-code blob-code-inner js-file-line">            } <span class="pl-k">else</span> <span class="pl-k">if</span> (<span class="pl-s"><span class="pl-pds">&quot;</span>-v<span class="pl-pds">&quot;</span></span><span class="pl-k">.</span>equals(arg)) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L112" class="blob-num js-line-number" data-line-number="112"></td>
+        <td id="file-directmemorysize-java-LC112" class="blob-code blob-code-inner js-file-line">                verbose <span class="pl-k">=</span> <span class="pl-c1">true</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L113" class="blob-num js-line-number" data-line-number="113"></td>
+        <td id="file-directmemorysize-java-LC113" class="blob-code blob-code-inner js-file-line">                used<span class="pl-k">++</span>;</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L114" class="blob-num js-line-number" data-line-number="114"></td>
+        <td id="file-directmemorysize-java-LC114" class="blob-code blob-code-inner js-file-line">            }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L115" class="blob-num js-line-number" data-line-number="115"></td>
+        <td id="file-directmemorysize-java-LC115" class="blob-code blob-code-inner js-file-line">        }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L116" class="blob-num js-line-number" data-line-number="116"></td>
+        <td id="file-directmemorysize-java-LC116" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L117" class="blob-num js-line-number" data-line-number="117"></td>
+        <td id="file-directmemorysize-java-LC117" class="blob-code blob-code-inner js-file-line">        <span class="pl-k">if</span> (used <span class="pl-k">!=</span> <span class="pl-c1">0</span>) {</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L118" class="blob-num js-line-number" data-line-number="118"></td>
+        <td id="file-directmemorysize-java-LC118" class="blob-code blob-code-inner js-file-line">            args <span class="pl-k">=</span> <span class="pl-smi">Arrays</span><span class="pl-k">.</span>copyOfRange(args, used, args<span class="pl-k">.</span>length);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L119" class="blob-num js-line-number" data-line-number="119"></td>
+        <td id="file-directmemorysize-java-LC119" class="blob-code blob-code-inner js-file-line">        }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L120" class="blob-num js-line-number" data-line-number="120"></td>
+        <td id="file-directmemorysize-java-LC120" class="blob-code blob-code-inner js-file-line">
+</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L121" class="blob-num js-line-number" data-line-number="121"></td>
+        <td id="file-directmemorysize-java-LC121" class="blob-code blob-code-inner js-file-line">        <span class="pl-smi">DirectMemorySize</span> tool <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">DirectMemorySize</span>(exactMallocMode, verbose);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L122" class="blob-num js-line-number" data-line-number="122"></td>
+        <td id="file-directmemorysize-java-LC122" class="blob-code blob-code-inner js-file-line">        tool<span class="pl-k">.</span>start(args);</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L123" class="blob-num js-line-number" data-line-number="123"></td>
+        <td id="file-directmemorysize-java-LC123" class="blob-code blob-code-inner js-file-line">        tool<span class="pl-k">.</span>stop();</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L124" class="blob-num js-line-number" data-line-number="124"></td>
+        <td id="file-directmemorysize-java-LC124" class="blob-code blob-code-inner js-file-line">    }</td>
+      </tr>
+      <tr>
+        <td id="file-directmemorysize-java-L125" class="blob-num js-line-number" data-line-number="125"></td>
+        <td id="file-directmemorysize-java-LC125" class="blob-code blob-code-inner js-file-line">}</td>
+      </tr>
+</table>
+
+
+  </div>
+
+  </div>
+</div>
+
+        <div class="js-gist-file-update-container js-task-list-container file-box">
+  <div id="file-notes-md" class="file">
+      <div class="file-header">
+        <div class="file-actions">
+
+          <a class="btn btn-sm " href="/rednaxelafx/1593521/raw/18ba53383098c695f6baa09c0f3a98e11be7a8f0/Notes.md">Raw</a>
+        </div>
+        <div class="file-info">
+          <span class="icon">
+            <svg class="octicon octicon-gist" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 5L10 7.5 7.5 10l-.75-.75L8.5 7.5 6.75 5.75 7.5 5zm-3 0L2 7.5 4.5 10l.75-.75L3.5 7.5l1.75-1.75L4.5 5zM0 13V2c0-.55.45-1 1-1h10c.55 0 1 .45 1 1v11c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1zm1 0h10V2H1v11z"/></svg>
+          </span>
+          <a class="tooltipped tooltipped-s css-truncate" aria-label="Permalink" href="#file-notes-md">
+            <strong class="user-select-contain gist-blob-name css-truncate-target">
+              Notes.md
+            </strong>
+          </a>
+        </div>
+      </div>
+    
+  <div id="readme" class="readme blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="text"><p>Also works on core dumps, in the form of:</p>
+<pre><code>java -cp .:$JAVA_HOME/lib/sa-jdi.jar DirectMemorySize $JAVA_HOME/bin/java core.xxx
+</code></pre>
+</article>
+  </div>
+
+  </div>
+</div>
+
+
+    <a name="comments"></a>
+    <div class="discussion-timeline gist-discussion-timeline js-quote-selection-container ">
+      <div class="js-discussion js-socket-channel" data-channel="marked-as-read:gist:1593521">
+        
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/asafm"><img class="avatar rounded-1" height="44" width="44" alt="@asafm" src="https://avatars2.githubusercontent.com/u/989425?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="a1288cb238e7c778e0af4d5e207c39ed">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/asafm"><img class="avatar" height="28" width="28" alt="@asafm" src="https://avatars3.githubusercontent.com/u/989425?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/asafm">asafm</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2013-08-01T16:24:07Z">Aug 1, 2013</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>irectMemorySize.java:3: package sun.jvm.hotspot.memory does not exist<br>
+import sun.jvm.hotspot.memory.*;<br>
+^</p>
+<p>Couldn't find this package from some reason. Running on Mac OSX</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-878357"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="a1288cb238e7c778e0af4d5e207c39ed">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/asafm">asafm</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-878357" class="timestamp"><relative-time datetime="2013-08-01T16:24:07Z">Aug 1, 2013</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>irectMemorySize.java:3: package sun.jvm.hotspot.memory does not exist<br>
+import sun.jvm.hotspot.memory.*;<br>
+^</p>
+<p>Couldn't find this package from some reason. Running on Mac OSX</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="953492" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/caoxudong"><img class="avatar rounded-1" height="44" width="44" alt="@caoxudong" src="https://avatars2.githubusercontent.com/u/953492?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="d57ca8455ec024a5cf161df969ed2fc3">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="953492" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/caoxudong"><img class="avatar" height="28" width="28" alt="@caoxudong" src="https://avatars3.githubusercontent.com/u/953492?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="953492" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/caoxudong">caoxudong</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2013-08-07T07:26:14Z">Aug 7, 2013</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p><a class="user-mention" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/asafm">@asafm</a></p>
+<p>Package "sun.jvm.hotspot.memory.*" is in the $JAVA_HOME/lib/sa-jdi.jar. Did you add this jar to CLASSPATH?</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-881791"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="d57ca8455ec024a5cf161df969ed2fc3">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="953492" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/caoxudong">caoxudong</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-881791" class="timestamp"><relative-time datetime="2013-08-07T07:26:14Z">Aug 7, 2013</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p><a class="user-mention" data-hovercard-user-id="989425" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/asafm">@asafm</a></p>
+<p>Package "sun.jvm.hotspot.memory.*" is in the $JAVA_HOME/lib/sa-jdi.jar. Did you add this jar to CLASSPATH?</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="685537" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/fuyou001"><img class="avatar rounded-1" height="44" width="44" alt="@fuyou001" src="https://avatars2.githubusercontent.com/u/685537?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="9c69ae14dcdc216ddee6f3839145a6b7">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="685537" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/fuyou001"><img class="avatar" height="28" width="28" alt="@fuyou001" src="https://avatars3.githubusercontent.com/u/685537?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="685537" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/fuyou001">fuyou001</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2014-05-23T00:16:16Z">May 23, 2014</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>收藏了</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-1233837"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="9c69ae14dcdc216ddee6f3839145a6b7">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="685537" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/fuyou001">fuyou001</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-1233837" class="timestamp"><relative-time datetime="2014-05-23T00:16:16Z">May 23, 2014</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>收藏了</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="5753889" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/JinhouLiu"><img class="avatar rounded-1" height="44" width="44" alt="@JinhouLiu" src="https://avatars0.githubusercontent.com/u/5753889?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="cc28a488102c19ee5555f9bc2797abb5">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="5753889" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/JinhouLiu"><img class="avatar" height="28" width="28" alt="@JinhouLiu" src="https://avatars1.githubusercontent.com/u/5753889?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="5753889" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/JinhouLiu">JinhouLiu</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2014-10-25T06:14:01Z">Oct 25, 2014</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>学习</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-1324831"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="cc28a488102c19ee5555f9bc2797abb5">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="5753889" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/JinhouLiu">JinhouLiu</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-1324831" class="timestamp"><relative-time datetime="2014-10-25T06:14:01Z">Oct 25, 2014</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>学习</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="5651367" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/allwmh"><img class="avatar rounded-1" height="44" width="44" alt="@allwmh" src="https://avatars0.githubusercontent.com/u/5651367?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="daa28768e0a499e15fc6bb7b843d03fa">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="5651367" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/allwmh"><img class="avatar" height="28" width="28" alt="@allwmh" src="https://avatars1.githubusercontent.com/u/5651367?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="5651367" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/allwmh">allwmh</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2014-10-28T05:18:25Z">Oct 28, 2014</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>HI   我执行完一次之后。kill -9 DirectMemorySize 的运行进城后，想再次使用就一直连接不上去 。这是为什么呢？</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-1326250"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="daa28768e0a499e15fc6bb7b843d03fa">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="5651367" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/allwmh">allwmh</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-1326250" class="timestamp"><relative-time datetime="2014-10-28T05:18:25Z">Oct 28, 2014</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>HI   我执行完一次之后。kill -9 DirectMemorySize 的运行进城后，想再次使用就一直连接不上去 。这是为什么呢？</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="2130097" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/yikebocai"><img class="avatar rounded-1" height="44" width="44" alt="@yikebocai" src="https://avatars2.githubusercontent.com/u/2130097?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="4b7bbff6d858718266b163d5f108c7ff">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="2130097" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/yikebocai"><img class="avatar" height="28" width="28" alt="@yikebocai" src="https://avatars3.githubusercontent.com/u/2130097?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="2130097" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/yikebocai">yikebocai</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2014-11-14T05:44:53Z">Nov 14, 2014</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>使用<code>-e</code>或<code>-v</code>参数时只显示和不加参数时同样的信息，上面例子上给出的额外信息一直长时间无法显示，是什么原因？</p>
+<pre><code>[root@cass047202 ~]# java -classpath .:/usr/install/java/lib/sa-jdi.jar DirectMemorySize -e 2904
+Attaching to process ID 2904, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 24.51-b03
+NIO direct memory: (in bytes)
+  reserved size = 32686.010643 MB (34273766296 bytes)
+  max size      = 27566.686493 MB (28905765856 bytes)
+</code></pre>
+<p>使用环境  CentOS 6.5 64bit，物理内存32G，Jdk7，Xmx8G</p>
+<p>还有一个问题，按你这篇文章<a href="http://hllvm.group.iteye.com/group/topic/27945" rel="nofollow">http://hllvm.group.iteye.com/group/topic/27945</a> 提到的，如果参数 <code>-XX:MaxDirectMemorySize</code>没有设置，默认应该是约等了<code>-Xmx8g</code>这个值，为何这里显示是将近27G？</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-1337316"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="4b7bbff6d858718266b163d5f108c7ff">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="2130097" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/yikebocai">yikebocai</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-1337316" class="timestamp"><relative-time datetime="2014-11-14T05:44:53Z">Nov 14, 2014</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>使用<code>-e</code>或<code>-v</code>参数时只显示和不加参数时同样的信息，上面例子上给出的额外信息一直长时间无法显示，是什么原因？</p>
+<pre><code>[root@cass047202 ~]# java -classpath .:/usr/install/java/lib/sa-jdi.jar DirectMemorySize -e 2904
+Attaching to process ID 2904, please wait...
+Debugger attached successfully.
+Server compiler detected.
+JVM version is 24.51-b03
+NIO direct memory: (in bytes)
+  reserved size = 32686.010643 MB (34273766296 bytes)
+  max size      = 27566.686493 MB (28905765856 bytes)
+</code></pre>
+<p>使用环境  CentOS 6.5 64bit，物理内存32G，Jdk7，Xmx8G</p>
+<p>还有一个问题，按你这篇文章<a href="http://hllvm.group.iteye.com/group/topic/27945" rel="nofollow">http://hllvm.group.iteye.com/group/topic/27945</a> 提到的，如果参数 <code>-XX:MaxDirectMemorySize</code>没有设置，默认应该是约等了<code>-Xmx8g</code>这个值，为何这里显示是将近27G？</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="191100" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/simmel"><img class="avatar rounded-1" height="44" width="44" alt="@simmel" src="https://avatars3.githubusercontent.com/u/191100?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="3a068d4ca7e832f067e9fb13603f9996">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="191100" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/simmel"><img class="avatar" height="28" width="28" alt="@simmel" src="https://avatars2.githubusercontent.com/u/191100?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="191100" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/simmel">simmel</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2015-01-15T08:56:26Z">Jan 15, 2015</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>Any love to port this to JDK8?</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-1373067"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="3a068d4ca7e832f067e9fb13603f9996">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="191100" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/simmel">simmel</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-1373067" class="timestamp"><relative-time datetime="2015-01-15T08:56:26Z">Jan 15, 2015</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>Any love to port this to JDK8?</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987"><img class="avatar rounded-1" height="44" width="44" alt="@reza987" src="https://avatars0.githubusercontent.com/u/34692831?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="5b2cad1866ce9d22251eae0c79f85d79">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987"><img class="avatar" height="28" width="28" alt="@reza987" src="https://avatars1.githubusercontent.com/u/34692831?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987">reza987</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2017-12-19T20:28:51Z">Dec 19, 2017</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p><a target="_blank" href="https://user-images.githubusercontent.com/34692831/34177339-27dd651e-e4b8-11e7-8307-cb3a9ba4eecb.jpg"><img src="https://user-images.githubusercontent.com/34692831/34177339-27dd651e-e4b8-11e7-8307-cb3a9ba4eecb.jpg" alt="21124143_1044357149040746_2070796490_n" style="max-width:100%;"></a><br>
+<a target="_blank" href="https://user-images.githubusercontent.com/34692831/34177319-14f758ce-e4b8-11e7-9aaa-07c3eb39d202.jpg"><img src="https://user-images.githubusercontent.com/34692831/34177319-14f758ce-e4b8-11e7-9aaa-07c3eb39d202.jpg" alt="55666" style="max-width:100%;"></a></p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-2298851"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="5b2cad1866ce9d22251eae0c79f85d79">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987">reza987</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-2298851" class="timestamp"><relative-time datetime="2017-12-19T20:28:51Z">Dec 19, 2017</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p><a target="_blank" href="https://user-images.githubusercontent.com/34692831/34177339-27dd651e-e4b8-11e7-8307-cb3a9ba4eecb.jpg"><img src="https://user-images.githubusercontent.com/34692831/34177339-27dd651e-e4b8-11e7-8307-cb3a9ba4eecb.jpg" alt="21124143_1044357149040746_2070796490_n" style="max-width:100%;"></a><br>
+<a target="_blank" href="https://user-images.githubusercontent.com/34692831/34177319-14f758ce-e4b8-11e7-9aaa-07c3eb39d202.jpg"><img src="https://user-images.githubusercontent.com/34692831/34177319-14f758ce-e4b8-11e7-9aaa-07c3eb39d202.jpg" alt="55666" style="max-width:100%;"></a></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987"><img class="avatar rounded-1" height="44" width="44" alt="@reza987" src="https://avatars0.githubusercontent.com/u/34692831?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="53a25706445d9c0a6b02b5b5a3e52e94">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987"><img class="avatar" height="28" width="28" alt="@reza987" src="https://avatars1.githubusercontent.com/u/34692831?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987">reza987</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2017-12-19T21:00:11Z">Dec 19, 2017</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>he is addicted for yaba for long time he always motivated new one comer.</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-2298878"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="53a25706445d9c0a6b02b5b5a3e52e94">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="34692831" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/reza987">reza987</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-2298878" class="timestamp"><relative-time datetime="2017-12-19T21:00:11Z">Dec 19, 2017</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>he is addicted for yaba for long time he always motivated new one comer.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="18061601" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/ydx2008"><img class="avatar rounded-1" height="44" width="44" alt="@ydx2008" src="https://avatars2.githubusercontent.com/u/18061601?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="704179c542df1b39065c9c9393906907">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="18061601" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/ydx2008"><img class="avatar" height="28" width="28" alt="@ydx2008" src="https://avatars3.githubusercontent.com/u/18061601?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="18061601" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/ydx2008">ydx2008</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2018-03-05T11:52:29Z">Mar 5, 2018</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>can it works on java8?</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-2370086"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="704179c542df1b39065c9c9393906907">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="18061601" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/ydx2008">ydx2008</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-2370086" class="timestamp"><relative-time datetime="2018-03-05T11:52:29Z">Mar 5, 2018</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>can it works on java8?</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+  <div class="timeline-comment-wrapper js-comment-container">
+      
+
+<div class="avatar-parent-child timeline-comment-avatar">
+    <a class="d-inline-block" data-hovercard-user-id="6468420" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/Rayn-liuwei"><img class="avatar rounded-1" height="44" width="44" alt="@Rayn-liuwei" src="https://avatars0.githubusercontent.com/u/6468420?s=88&amp;v=4" /></a>
+
+</div>
+
+
+    
+<div class="js-minimizable-comment-group">
+    <div class="minimized-comment d-none ">
+      
+
+  <details class="Details-element details-reset border rounded-1 bg-white"
+       data-body-version="7f9f142276e70abd7387d78a5c58be9b">
+    <summary class="bg-gray border-bottom-0 py-0 px-2">
+      <div class="d-flex flex-justify-between flex-items-center">
+        <h3 class="timeline-comment-header-text f5 text-gray text-normal text-italic">
+              This comment has been minimized.
+
+        </h3>
+        <span class="Details-content--closed text-gray f6"><svg class="octicon octicon-unfold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M11.5 7.5L14 10c0 .55-.45 1-1 1H9v-1h3.5l-2-2h-7l-2 2H5v1H1c-.55 0-1-.45-1-1l2.5-2.5L0 5c0-.55.45-1 1-1h4v1H1.5l2 2h7l2-2H9V4h4c.55 0 1 .45 1 1l-2.5 2.5zM6 6h2V3h2L7 0 4 3h2v3zm2 3H6v3H4l3 3 3-3H8V9z"/></svg>Show comment</span>
+        <span class="Details-content--open text-gray f6"><svg class="octicon octicon-fold position-relative mr-1" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7 9l3 3H8v3H6v-3H4l3-3zm3-6H8V0H6v3H4l3 3 3-3zm4 2c0-.55-.45-1-1-1h-2.5l-1 1h3l-2 2h-7l-2-2h3l-1-1H1c-.55 0-1 .45-1 1l2.5 2.5L0 10c0 .55.45 1 1 1h2.5l1-1h-3l2-2h7l2 2h-3l1 1H13c.55 0 1-.45 1-1l-2.5-2.5L14 5z"/></svg>Hide comment</span>
+      </div>
+    </summary>
+    <div class="border-top">
+      <div class="review-comment previewable-edit  js-task-list-container reorderable-task-lists">
+        <div class="edit-comment-hide">
+          <div class="timeline-comment-actions">
+            
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+          </div>
+            <a class="float-left mt-1" data-hovercard-user-id="6468420" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/Rayn-liuwei"><img class="avatar" height="28" width="28" alt="@Rayn-liuwei" src="https://avatars1.githubusercontent.com/u/6468420?s=60&amp;v=4" /></a>
+          <div class="review-comment-contents">
+            <h4 class="f5 text-normal d-inline text-gray-dark">
+              <strong class="text-gray">
+                
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="6468420" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/Rayn-liuwei">Rayn-liuwei</a>
+  
+
+              </strong>
+              <span class="text-gray">
+                  <relative-time datetime="2018-03-08T08:05:22Z">Mar 8, 2018</relative-time>
+              </span>
+            </h4>
+            
+
+            <task-lists disabled sortable>
+              <div class="comment-body markdown-body p-0 pt-1 js-comment-body">
+                  <p>tool.run(args)    modify   to   tool.execute(args);</p>
+              </div>
+            </task-lists>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+    </div>
+  <div id="gistcomment-2373724"
+       class="unminimized-comment comment previewable-edit js-comment js-task-list-container timeline-comment reorderable-task-lists "
+       data-body-version="7f9f142276e70abd7387d78a5c58be9b">
+
+    
+<div class="timeline-comment-header clearfix">
+  <div class="timeline-comment-actions">
+    
+
+
+
+
+
+
+
+<!-- Closes div if we are showing the kebab menu -->
+
+  </div>
+
+    
+
+
+
+  <h3 class="timeline-comment-header-text f5 text-normal">
+
+    <strong class="css-truncate">
+      
+
+  <a class="author text-inherit css-truncate-target" data-hovercard-user-id="6468420" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/Rayn-liuwei">Rayn-liuwei</a>
+  
+
+    </strong>
+
+    commented
+
+    <a href="#gistcomment-2373724" class="timestamp"><relative-time datetime="2018-03-08T08:05:22Z">Mar 8, 2018</relative-time></a>
+
+
+    <span class="js-comment-fragment">
+      <include-fragment class="js-comment-edit-history d-inline">
+      </include-fragment>
+    </span>
+  </h3>
+</div>
+
+
+    <div class="edit-comment-hide">
+
+      
+<task-lists disabled sortable>
+<table class="d-block">
+  <tbody class="d-block">
+    <tr class="d-block">
+      <td class="d-block comment-body markdown-body  js-comment-body">
+
+          <p>tool.run(args)    modify   to   tool.execute(args);</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</task-lists>
+
+
+    </div>
+
+  </div>
+</div>
+
+  </div>
+
+<!-- Rendered timeline since 2018-04-27 05:52:10 -->
+<div id="partial-timeline-marker"
+      class="js-timeline-marker js-updatable-content"
+      data-url="/rednaxelafx/1593521/show_partial?partial=gist%2Ftimeline_marker&amp;since=1524833530"
+      data-last-modified="Fri, 27 Apr 2018 12:52:10 GMT"
+      >
+</div>
+
+
+        <div class="discussion-timeline-actions">
+            <div class="timeline-comment-wrapper timeline-new-comment js-comment-container">
+  <span class="timeline-comment-avatar"><a class="d-inline-block" data-hovercard-user-id="3354862" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="/fzh890523"><img class="avatar" src="https://avatars2.githubusercontent.com/u/3354862?s=88&amp;v=4" width="44" height="44" alt="@fzh890523" /></a></span>
+
+  <!-- '"` --><!-- </textarea></xmp> --></option></form><form class="js-new-comment-form js-needs-timeline-marker-header" action="/rednaxelafx/1593521/comments" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="authenticity_token" value="Yr+4jzvZqaqbga0+FvfGeotAEs7b2KUmbPNnmbUG2KPKXr+1jV73bK8DPZPROiApy8i9Z0gCwxEkfkyt6RO9yA==" />
+    <div class="timeline-comment">
+      <div class="js-suggester-container  js-previewable-comment-form previewable-comment-form write-selected" data-preview-url="/preview?markdown_unsupported=false&amp;subject=1593521&amp;subject_type=Gist" data-preview-authenticity-token="83qM5AZy4aurw1UWl1MO+c/NkvP2JvjPqU0AsC241rrlTpXj9eKmU7jO8UbLaVFRMR61f+zowvPmTfCuJeRqBg==">
+  <div class="comment-form-head tabnav">
+      <markdown-toolbar for="new_comment_field" data-saved-reply-contents-url="/settings/replies?context=none"><svg class="octicon octicon-text-size d-none" viewBox="0 0 18 16" version="1.1" width="18" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M13.62 9.08L12.1 3.66h-.06l-1.5 5.42h3.08zM5.7 10.13S4.68 6.52 4.53 6.02h-.08l-1.13 4.11H5.7zM17.31 14h-2.25l-.95-3.25h-4.07L9.09 14H6.84l-.69-2.33H2.87L2.17 14H0l3.3-9.59h2.5l2.17 6.34L10.86 2h2.52l3.94 12h-.01z"/></svg><svg class="octicon octicon-bold d-none" viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M1 2h3.83c2.48 0 4.3.75 4.3 2.95 0 1.14-.63 2.23-1.67 2.61v.06c1.33.3 2.3 1.23 2.3 2.86 0 2.39-1.97 3.52-4.61 3.52H1V2zm3.66 4.95c1.67 0 2.38-.66 2.38-1.69 0-1.17-.78-1.61-2.34-1.61H3.13v3.3h1.53zm.27 5.39c1.77 0 2.75-.64 2.75-1.98 0-1.27-.95-1.81-2.75-1.81h-1.8v3.8h1.8v-.01z"/></svg><svg class="octicon octicon-italic d-none" viewBox="0 0 6 16" version="1.1" width="6" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2.81 5h1.98L3 14H1l1.81-9zm.36-2.7c0-.7.58-1.3 1.33-1.3.56 0 1.13.38 1.13 1.03 0 .75-.59 1.3-1.33 1.3-.58 0-1.13-.38-1.13-1.03z"/></svg><svg class="octicon octicon-quote d-none" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M6.16 3.5C3.73 5.06 2.55 6.67 2.55 9.36c.16-.05.3-.05.44-.05 1.27 0 2.5.86 2.5 2.41 0 1.61-1.03 2.61-2.5 2.61-1.9 0-2.99-1.52-2.99-4.25 0-3.8 1.75-6.53 5.02-8.42L6.16 3.5zm7 0c-2.43 1.56-3.61 3.17-3.61 5.86.16-.05.3-.05.44-.05 1.27 0 2.5.86 2.5 2.41 0 1.61-1.03 2.61-2.5 2.61-1.89 0-2.98-1.52-2.98-4.25 0-3.8 1.75-6.53 5.02-8.42l1.14 1.84h-.01z"/></svg><svg class="octicon octicon-code d-none" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M9.5 3L8 4.5 11.5 8 8 11.5 9.5 13 14 8 9.5 3zm-5 0L0 8l4.5 5L6 11.5 2.5 8 6 4.5 4.5 3z"/></svg><svg class="octicon octicon-link d-none" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"/></svg><svg class="octicon octicon-list-unordered d-none" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M2 13c0 .59 0 1-.59 1H.59C0 14 0 13.59 0 13c0-.59 0-1 .59-1h.81c.59 0 .59.41.59 1H2zm2.59-9h6.81c.59 0 .59-.41.59-1 0-.59 0-1-.59-1H4.59C4 2 4 2.41 4 3c0 .59 0 1 .59 1zM1.41 7H.59C0 7 0 7.41 0 8c0 .59 0 1 .59 1h.81c.59 0 .59-.41.59-1 0-.59 0-1-.59-1h.01zm0-5H.59C0 2 0 2.41 0 3c0 .59 0 1 .59 1h.81c.59 0 .59-.41.59-1 0-.59 0-1-.59-1h.01zm10 5H4.59C4 7 4 7.41 4 8c0 .59 0 1 .59 1h6.81c.59 0 .59-.41.59-1 0-.59 0-1-.59-1h.01zm0 5H4.59C4 12 4 12.41 4 13c0 .59 0 1 .59 1h6.81c.59 0 .59-.41.59-1 0-.59 0-1-.59-1h.01z"/></svg><svg class="octicon octicon-list-ordered d-none" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M12 12.99c0 .589 0 .998-.59.998H4.596c-.59 0-.59-.41-.59-.999 0-.59 0-.999.59-.999H11.4c.59 0 .59.41.59 1H12zM4.596 3.996H11.4c.59 0 .59-.41.59-1 0-.589 0-.999-.59-.999H4.596c-.59 0-.59.41-.59 1 0 .589 0 .999.59.999zM11.4 6.994H4.596c-.59 0-.59.41-.59 1 0 .589 0 .999.59.999H11.4c.59 0 .59-.41.59-1 0-.59 0-.999-.59-.999zM2.008 1h-.72C.99 1.19.71 1.25.26 1.34V2h.75v2.138H.17v.859h2.837v-.86h-.999V1zm.25 8.123c-.17 0-.45.03-.66.06.53-.56 1.14-1.249 1.14-1.888-.02-.78-.56-1.299-1.36-1.299-.589 0-.968.2-1.378.64l.58.579c.19-.19.38-.38.639-.38.28 0 .48.16.48.52 0 .53-.77 1.199-1.699 2.058v.58h2.998l-.09-.88h-.66l.01.01zm-.08 3.777v-.03c.44-.19.64-.47.64-.859 0-.7-.56-1.11-1.44-1.11-.479 0-.888.19-1.278.52l.55.64c.25-.2.44-.31.689-.31.27 0 .42.13.42.36 0 .27-.2.44-.86.44v.749c.83 0 .98.17.98.47 0 .25-.23.38-.58.38-.28 0-.56-.14-.81-.38l-.479.659c.3.36.77.56 1.409.56.83 0 1.529-.41 1.529-1.16 0-.5-.31-.809-.77-.939v.01z"/></svg><svg class="octicon octicon-tasklist d-none" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M15.41 9H7.59C7 9 7 8.59 7 8c0-.59 0-1 .59-1h7.81c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zM9.59 4C9 4 9 3.59 9 3c0-.59 0-1 .59-1h5.81c.59 0 .59.41.59 1 0 .59 0 1-.59 1H9.59zM0 3.91l1.41-1.3L3 4.2 7.09 0 8.5 1.41 3 6.91l-3-3zM7.59 12h7.81c.59 0 .59.41.59 1 0 .59 0 1-.59 1H7.59C7 14 7 13.59 7 13c0-.59 0-1 .59-1z"/></svg><svg class="octicon octicon-reply d-none" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M6 3.5c3.92.44 8 3.125 8 10-2.312-5.062-4.75-6-8-6V11L.5 5.5 6 0v3.5z"/></svg><svg class="octicon octicon-x js-menu-close d-none" role="img" aria-label="Close" viewBox="0 0 12 16" version="1.1" width="12" height="16"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/></svg><svg class="octicon octicon-octoface d-none" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M14.7 5.34c.13-.32.55-1.59-.13-3.31 0 0-1.05-.33-3.44 1.3-1-.28-2.07-.32-3.13-.32s-2.13.04-3.13.32c-2.39-1.64-3.44-1.3-3.44-1.3-.68 1.72-.26 2.99-.13 3.31C.49 6.21 0 7.33 0 8.69 0 13.84 3.33 15 7.98 15S16 13.84 16 8.69c0-1.36-.49-2.48-1.3-3.35zM8 14.02c-3.3 0-5.98-.15-5.98-3.35 0-.76.38-1.48 1.02-2.07 1.07-.98 2.9-.46 4.96-.46 2.07 0 3.88-.52 4.96.46.65.59 1.02 1.3 1.02 2.07 0 3.19-2.68 3.35-5.98 3.35zM5.49 9.01c-.66 0-1.2.8-1.2 1.78s.54 1.79 1.2 1.79c.66 0 1.2-.8 1.2-1.79s-.54-1.78-1.2-1.78zm5.02 0c-.66 0-1.2.79-1.2 1.78s.54 1.79 1.2 1.79c.66 0 1.2-.8 1.2-1.79s-.53-1.78-1.2-1.78z"/></svg><svg class="octicon octicon-mention d-none" viewBox="0 0 14 16" version="1.1" width="14" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M6.58 15c1.25 0 2.52-.31 3.56-.94l-.42-.94c-.84.52-1.89.83-3.03.83-3.23 0-5.64-2.08-5.64-5.72 0-4.37 3.23-7.18 6.58-7.18 3.45 0 5.22 2.19 5.22 5.2 0 2.39-1.34 3.86-2.5 3.86-1.05 0-1.36-.73-1.05-2.19l.73-3.75H8.98l-.11.72c-.41-.63-.94-.83-1.56-.83-2.19 0-3.66 2.39-3.66 4.38 0 1.67.94 2.61 2.3 2.61.84 0 1.67-.53 2.3-1.25.11.94.94 1.45 1.98 1.45 1.67 0 3.77-1.67 3.77-5C14 2.61 11.59 0 7.83 0 3.66 0 0 3.33 0 8.33 0 12.71 2.92 15 6.58 15zm-.31-5c-.73 0-1.36-.52-1.36-1.67 0-1.45.94-3.22 2.41-3.22.52 0 .84.2 1.25.83l-.52 3.02c-.63.73-1.25 1.05-1.78 1.05V10z"/></svg><svg class="octicon octicon-bookmark d-none" viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M9 0H1C.27 0 0 .27 0 1v15l5-3.09L10 16V1c0-.73-.27-1-1-1zm-.78 4.25L6.36 5.61l.72 2.16c.06.22-.02.28-.2.17L5 6.6 3.12 7.94c-.19.11-.25.05-.2-.17l.72-2.16-1.86-1.36c-.17-.16-.14-.23.09-.23l2.3-.03.7-2.16h.25l.7 2.16 2.3.03c.23 0 .27.08.09.23h.01z"/></svg></markdown-toolbar>
+      <nav class="tabnav-tabs" role="tablist">
+        <button type="button" class="btn-link tabnav-tab write-tab js-write-tab selected " role="tab" aria-selected="true">Write</button>
+        <button type="button" class="btn-link tabnav-tab preview-tab js-preview-tab " role="tab">Preview</button>
+      </nav>
+  </div>
+
+
+  <div class="comment-form-error js-comment-form-error" style="display:none">    There was an error creating your Gist.
+</div>
+  <div class="write-content js-write-bucket js-uploadable-container js-upload-markdown-image is-default upload-enabled"
+      data-upload-policy-url="/upload/policies/assets" data-upload-policy-authenticity-token="v6gjv95Xnqv9uyS8EqFohzjOeUaKAS0hw+TYs2ONQeSBIaHMd4LdkdodAimQ9Gy1WrYlAfPdpCtoyRVfy8AJ6g=="
+      >
+
+    <input type="hidden" name="saved_reply_id" class="js-saved-reply-id js-resettable-field" value="" data-reset-value="">
+
+    <textarea name="comment[body]"
+              id="new_comment_field"
+              
+              placeholder="Leave a comment"
+              aria-label="Comment body"
+              class="form-control input-contrast comment-form-textarea js-comment-field js-task-list-field js-quick-submit js-size-to-fit js-suggester-field js-quote-selection-target js-session-resumable js-saved-reply-shortcut-comment-field"
+              ></textarea>
+
+        <p class="drag-and-drop position-relative">
+    <input accept=".gif,.jpeg,.jpg,.png" type="file" multiple="multiple" class="manual-file-chooser top-0 right-0 bottom-0 left-0 width-full ml-0 js-manual-file-chooser" aria-label="Attach files to your comment">
+    <span class="default">
+        Attach files by dragging &amp; dropping,
+        <span class="btn-link manual-file-chooser-text">selecting them</span>, or pasting
+        from the clipboard.
+    </span>
+    <span class="loading">
+      <img alt="" width="16" height="16" src="https://assets-cdn.github.com/images/spinners/octocat-spinner-32.gif" /> Uploading your files…
+    </span>
+    <span class="error bad-file">
+      We don’t support that file type.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with a
+        GIF, JPEG, JPG or PNG.
+      </span>
+    </span>
+    <span class="error bad-permissions">
+      Attaching documents requires write permission to this repository.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with a GIF, JPEG, JPG or PNG.
+      </span>
+    </span>
+    <span class="error repository-required">
+      We don’t support that file type.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with a GIF, JPEG, JPG or PNG.
+      </span>
+    </span>
+    <span class="error too-big">
+      Yowza, that’s a big file
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with a file smaller than 10MB.
+      </span>
+    </span>
+    <span class="error empty">
+      This file is empty.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with a file that’s not empty.
+      </span>
+    </span>
+    <span class="error hidden-file">
+      This file is hidden.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again</button> with another file.
+      </span>
+    </span>
+    <span class="error failed-request">
+      Something went really wrong, and we can’t process that file.
+      <span class="drag-and-drop-error-info">
+        <button type="button" class="btn-link manual-file-chooser-text">Try again.</button>
+      </span>
+    </span>
+  </p>
+
+
+    <div class="suggester-container">
+      <div class="suggester js-suggester js-navigation-container"
+           data-url="/rednaxelafx/1593521/suggestions"
+>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-content">
+    <div class="comment">
+  <div class="comment-body markdown-body js-preview-body">
+    <p>Nothing to preview</p>
+  </div>
+</div>
+
+  </div>
+
+  <div class="float-left">
+      <a class="tabnav-extra" href="https://guides.github.com/features/mastering-markdown/" target="_blank" data-ga-click="Markdown Toolbar, click, help">
+        <svg class="octicon octicon-markdown v-align-bottom" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.69C0 12.48.52 13 1.15 13h13.69c.64 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11H7V8L5.5 9.92 4 8v3H2V5h2l1.5 2L7 5h2v6zm2.99.5L9.5 8H11V5h2v3h1.5l-2.51 3.5z"/></svg>
+        Styling with Markdown is supported
+      </a>
+  </div>
+
+
+  <div class="comment-form-error comment-form-bottom js-comment-update-error"></div>
+</div>
+
+
+      <div class="form-actions">
+        <div id="partial-new-comment-form-actions">
+  <button type="submit" class="btn btn-primary" data-disable-with data-disable-invalid>
+    Comment
+  </button>
+</div>
+
+      </div>
+    </div>
+</form></div>
+
+        </div>
+      </div>
+    </div>
+</div>
+  </div>
+
+  <div class="modal-backdrop js-touch-events"></div>
+</div><!-- /.container -->
+
+    </div>
+  </div>
+
+  </div>
+
+      
+<div class="footer container-lg px-3" role="contentinfo">
+  <div class="position-relative d-flex flex-justify-between pt-6 pb-2 mt-6 f6 text-gray border-top border-gray-light ">
+    <ul class="list-style-none d-flex flex-wrap ">
+      <li class="mr-3">&copy; 2018 <span title="0.39826s from unicorn-199835914-ng0qn">GitHub</span>, Inc.</li>
+        <li class="mr-3"><a data-ga-click="Footer, go to terms, text:terms" href="https://github.com/site/terms">Terms</a></li>
+        <li class="mr-3"><a data-ga-click="Footer, go to privacy, text:privacy" href="https://github.com/site/privacy">Privacy</a></li>
+        <li class="mr-3"><a href="https://help.github.com/articles/github-security/" data-ga-click="Footer, go to security, text:security">Security</a></li>
+        <li class="mr-3"><a href="https://status.github.com/" data-ga-click="Footer, go to status, text:status">Status</a></li>
+        <li><a data-ga-click="Footer, go to help, text:help" href="https://help.github.com">Help</a></li>
+    </ul>
+
+    <a aria-label="Homepage" title="GitHub" class="footer-octicon" href="https://github.com">
+      <svg height="24" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="24" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+</a>
+   <ul class="list-style-none d-flex flex-wrap ">
+        <li class="mr-3"><a data-ga-click="Footer, go to contact, text:contact" href="https://github.com/contact">Contact GitHub</a></li>
+      <li class="mr-3"><a href="https://developer.github.com" data-ga-click="Footer, go to api, text:api">API</a></li>
+      <li class="mr-3"><a href="https://training.github.com" data-ga-click="Footer, go to training, text:training">Training</a></li>
+      <li class="mr-3"><a href="https://shop.github.com" data-ga-click="Footer, go to shop, text:shop">Shop</a></li>
+        <li class="mr-3"><a href="https://blog.github.com" data-ga-click="Footer, go to blog, text:blog">Blog</a></li>
+        <li><a data-ga-click="Footer, go to about, text:about" href="https://github.com/about">About</a></li>
+
+    </ul>
+  </div>
+  <div class="d-flex flex-justify-center pb-6">
+    <span class="f6 text-gray-light"></span>
+  </div>
+</div>
+
+
+
+  <div id="ajax-error-message" class="ajax-error-message flash flash-error">
+    <svg class="octicon octicon-alert" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg>
+    <button type="button" class="flash-close js-ajax-error-dismiss" aria-label="Dismiss error">
+      <svg class="octicon octicon-x" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/></svg>
+    </button>
+    You can’t perform that action at this time.
+  </div>
+
+
+    <script crossorigin="anonymous" integrity="sha512-MWhu3P7Ss2c8wk/fvHCiNZ3LNVjHP4kaHYeO7xXrYQ1lt3MODm9jla1+FhjKVzoXk64jc05569Ia9K3Zq0Fd9Q==" type="application/javascript" src="https://assets-cdn.github.com/assets/compat-1c66c88316e8e9eacfac51af6ff01eac.js"></script>
+    <script crossorigin="anonymous" integrity="sha512-AXB5uvqVLMu/B20TeXymJJqRy2a2tBXzS3zftf+O07G2q23cFfuBp4SEKwsTXi8ANNYvsfiCzboRJ0gGi2YmZg==" type="application/javascript" src="https://assets-cdn.github.com/assets/frameworks-a2e17e1bb4b33f83985c8bddfee72bc7.js"></script>
+    
+    <script crossorigin="anonymous" async="async" integrity="sha512-N5+05+o8Rhy4WHLQc9sfLRThE8A+n8DuPsp7R6e4xkxK12oKipOvpfC7TfQYssEEjNi89pJ4g5ma8Eq78eqzWQ==" type="application/javascript" src="https://assets-cdn.github.com/assets/github-70b8da32c9a0ba2d9eddaaa0005e3131.js"></script>
+    
+    
+    
+  <div class="js-stale-session-flash stale-session-flash flash flash-warn flash-banner d-none">
+    <svg class="octicon octicon-alert" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg>
+    <span class="signed-in-tab-flash">You signed in with another tab or window. <a href="">Reload</a> to refresh your session.</span>
+    <span class="signed-out-tab-flash">You signed out in another tab or window. <a href="">Reload</a> to refresh your session.</span>
+  </div>
+  <div class="facebox" id="facebox" style="display:none;">
+  <div class="facebox-popup">
+    <div class="facebox-content" role="dialog" aria-labelledby="facebox-header" aria-describedby="facebox-description">
+    </div>
+    <button type="button" class="facebox-close js-facebox-close" aria-label="Close modal">
+      <svg class="octicon octicon-x" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z"/></svg>
+    </button>
+  </div>
+</div>
+
+  <div class="Popover js-hovercard-content position-absolute" style="display: none; outline: none;" tabindex="0">
+  <div class="Popover-message Popover-message--bottom-left Popover-message--large Box box-shadow-large" style="width:360px;">
+  </div>
+</div>
+
+<div id="hovercard-aria-description" class="sr-only">
+  Press h to open a hovercard with more details.
+</div>
+
+
+  </body>
+</html>
+
