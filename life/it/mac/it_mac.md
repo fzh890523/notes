@@ -119,7 +119,7 @@ BSD风格的netstat相比GNU的太难用了，要实现`netstat -alnp`的效果�
 
 ## sz rz
 
-Ref: [[mac iterm2 安装 lrzsz  rz sz命令](http://blog.csdn.net/jack85986370/article/details/51382077)
+Ref: [mac iterm2 安装 lrzsz  rz sz命令](http://blog.csdn.net/jack85986370/article/details/51382077)
 
 
 
@@ -161,6 +161,8 @@ Regular expression: \*\*B00000000000000
 ![这里写图片描述](http://img.blog.csdn.net/20160512103326982)
 
 > add、按照上面的内容在GUI里填入...
+>
+> 注意要勾选instant
 
 4. 重启iterm2，链接远程[Linux](http://lib.csdn.net/base/linux)，输入rz命令试一下吧（注意上传文件路径不能包含中文）。
 
@@ -283,7 +285,39 @@ option+鼠标左键（或触摸板）
 
 
 
+
+
 # 软件
+
+
+
+## 包管理 - brew
+
+
+
+### install brew
+
+
+
+```shell
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+
+
+## network
+
+### telnet
+
+
+
+```shell
+brew install telnet
+```
+
+
+
+
 
 
 

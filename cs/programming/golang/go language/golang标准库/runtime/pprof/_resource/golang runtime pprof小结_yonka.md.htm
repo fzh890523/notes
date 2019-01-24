@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profiling Go programs with pprof - Julia Evans</title>
+<meta name="author" content="Julia Evans">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="description" content="Profiling Go programs with pprof">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="/cdn-cgi/apps/head/oapzv4Qy0hieZShO2HklPk9FrHI.js"></script><link rel="canonical" href="https://jvns.ca/blog/2017/09/24/profiling-go-with-pprof/">
+<link href="/favicon.ico" rel="icon">
+<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+<link href="/atom.xml" rel="alternate" title="Julia Evans" type="application/atom+xml">
+</head>
+<body>
+<div id="wrap">
+<header role="banner">
+<hgroup>
+<h1><a href="/">Julia Evans</a></h1>
+</hgroup>
+<ul class="header-links">
+<span><li><a href="/about">About</a></li>
+<li><a href="/talks">Talks</a></li>
+<li><a href="/projects/">Projects</a></li></span>
+<span><li><a href="https://twitter.com/b0rk">Twitter</a></li>
+<li><a href="https://github.com/jvns">Github</a></li></span>
+</ul>
+</header>
+<nav role="navigation" class="header-nav"><ul class="main-navigation">
+<li><a href="/categories/favorite/">Favorites</a></li>
+<li><a href="/zines">Zines</a></li>
+<li class="subscription" data-subscription="rss"><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+</ul>
+</nav>
+<div id="main">
+<div id="content">
+<div>
+<article class="hentry" role="article">
+<header>
+<h1 class="entry-title">Profiling Go programs with pprof</h1>
+<div class="post-tags">
+</div>
+<p class="meta">
+<time datetime="2017-09-24T09:43:36" pubdate data-updated="true"></time>
+</p>
+</header>
+<div class="entry-content">
+<p>Last week me and my cool coworker Josh were debugging some memory problems in a Go program using <a href="https://golang.org/pkg/runtime/pprof/">pprof</a>.</p>
+<p>There&rsquo;s a bunch of pprof documentation on the internet but I found a few things confusing so here
+are some notes so I can find them easily.</p>
+<p>First &ndash; when working with pprof it&rsquo;s good to be running a recent version of Go! For example Go 1.8
+adds <a href="https://rakyll.org/mutexprofile/">mutex profiles</a> so you can see mutex contention.</p>
+<p>in this post I&rsquo;ll</p>
+<ul>
+<li>link to the useful pprof resource I found</li>
+<li>explain what a pprof profile is</li>
+<li>give an example of how to look at a heap profile of a Go program</li>
+<li>explain a few things about the heap profiler works (what do the stack traces mean? how are they collected?)</li>
+<li>most importantly (to me), deconstruct an example pprof protobuf file so we understand what a pprof profile
+actually is</li>
+</ul>
+<p>This post won&rsquo;t really explain in detail how to to use pprof to diagnose performance issues in Go
+programs, but I think these fundamentals (&ldquo;what even is a pprof file&rdquo;) will help me do that more
+easily.</p>
+<h3 id="pprof-basics">pprof basics</h3>
+<p>pprof lets you collect CPU profiles, traces, and heap profiles for your Go programs. The normal way
+to use pprof seems to be:</p>
+<ol>
+<li>Set up a webserver for getting Go profiles (with <code>import _ &quot;net/http/pprof&quot;</code>)</li>
+<li>Run <code>curl localhost:$PORT/debug/pprof/$PROFILE_TYPE</code> to save a profile</li>
+<li>Use <code>go tool pprof</code> to analyze said profile</li>
+</ol>
+<p>You can also generate pprof profiles in your code using the <a href="https://golang.org/pkg/runtime/pprof/"><code>pprof</code> package</a> but I haven&rsquo;t done that.</p>
+<h3 id="useful-pprof-reading">Useful pprof reading</h3>
+<p>Here is every useful link I&rsquo;ve found so far about pprof on the internet. Basically the material on
+the internet about pprof seems to be the official documentation + rakyll&rsquo;s amazing blog.</p>
+<ul>
+<li>Setting up a pprof webserver: <a href="https://golang.org/pkg/net/http/pprof/">https://golang.org/pkg/net/http/pprof/</a></li>
+<li>Generating pprof profiles in code: <a href="https://golang.org/pkg/runtime/pprof/">https://golang.org/pkg/runtime/pprof/</a></li>
+<li><a href="https://github.com/google/pprof">https://github.com/google/pprof</a> (from which I found out that <code>pprof</code> can read perf files!!)</li>
+<li>The developer docs: <a href="https://github.com/google/pprof/blob/master/doc/pprof.md">https://github.com/google/pprof/blob/master/doc/pprof.md</a></li>
+<li>The output of <code>go tool pprof --help</code> (I pasted the output on my system <a href="https://gist.github.com/jvns/6deaa10500f375a8581a06da8d8a967b">here</a>)</li>
+<li><a href="https://twitter.com/rakyll">@rakyll</a>&rsquo;s blog, which has a huge number of great posts about pprof: <a href="https://rakyll.org/archive/">https://rakyll.org/archive/</a>. In particular <a href="https://rakyll.org/custom-profiles/">this post on custom pprof profile types</a> and <a href="https://rakyll.org/mutexprofile/">this on the newish profile type for seeing contended mutexes</a> are great.</li>
+</ul>
+<p>(there are probably also talks about pprof but I am too impatient to watch talks, that&rsquo;s part of why
+I write lots of blog posts and give few talks)</p>
+<h3 id="what-s-a-profile-what-kinds-of-profiles-can-i-get">What&rsquo;s a profile? What kinds of profiles can I get?</h3>
+<p>When understanding how things work I like to start at the beginning. What is a &ldquo;profile&rdquo; exactly?</p>
+<p>Well, let&rsquo;s read the documentation! The 7th time I looked at <a href="https://golang.org/pkg/runtime/pprof/">the runtime/pprof docs</a>, I read this very useful sentence:</p>
+<blockquote>
+<p>A Profile is a collection of stack traces showing the call sequences that led to instances of a
+particular event, such as allocation. Packages can create and maintain their own profiles; the most
+common use is for tracking resources that must be explicitly closed, such as files or network
+connections.</p>
+<p>Each Profile has a unique name. A few profiles are predefined:</p>
+</blockquote>
+<pre><code>goroutine    - stack traces of all current goroutines
+heap         - a sampling of all heap allocations
+threadcreate - stack traces that led to the creation of new OS threads
+block        - stack traces that led to blocking on synchronization primitives
+mutex        - stack traces of holders of contended mutexes
+</code></pre>
+<p>There are 7 places you can get profiles in the default webserver: the ones mentioned above</p>
+<ul>
+<li><a href="http://localhost:6060/debug/pprof/goroutine">http://localhost:6060/debug/pprof/goroutine</a></li>
+<li><a href="http://localhost:6060/debug/pprof/heap">http://localhost:6060/debug/pprof/heap</a></li>
+<li><a href="http://localhost:6060/debug/pprof/threadcreate">http://localhost:6060/debug/pprof/threadcreate</a></li>
+<li><a href="http://localhost:6060/debug/pprof/block">http://localhost:6060/debug/pprof/block</a></li>
+<li><a href="http://localhost:6060/debug/pprof/mutex">http://localhost:6060/debug/pprof/mutex</a></li>
+</ul>
+<p>and also 2 more: the CPU profile and the CPU trace.</p>
+<ul>
+<li><a href="http://localhost:6060/debug/pprof/profile">http://localhost:6060/debug/pprof/profile</a></li>
+<li><a href="http://localhost:6060/debug/pprof/trace?seconds=5">http://localhost:6060/debug/pprof/trace?seconds=5</a></li>
+</ul>
+<p>To analyze these profiles (lists of stack traces), the tool to use is <code>go tool pprof</code>, which is a bunch of
+tools for visualizing stack traces.</p>
+<p><strong>super confusing note</strong>: the trace endpoint (<code>/debug/pprof/trace?seconds=5</code>), unlike all the rest, outputs a file that is <strong>not</strong> a
+pprof profile. Instead it&rsquo;s a <strong>trace</strong> and you can view it using <code>go tool trace</code> (not <code>go tool pprof</code>).</p>
+<p>You can see the available profiles with <a href="http://localhost:6060/debug/pprof/">http://localhost:6060/debug/pprof/</a> in your browser. Except
+it doesn&rsquo;t tell you about <code>/debug/pprof/profile</code> or <code>/debug/pprof/trace</code> for some reason.</p>
+<p>All of these kinds of profiles (goroutine, heap allocations, etc) are just collections of
+stacktraces, maybe with some metadata attached. If we look at the <a href="https://github.com/google/pprof/blob/master/proto/profile.proto">pprof protobuf definition</a>, you see that a profile is mostly a bunch of <code>Sample</code>s.</p>
+<p>A sample is basically a stack trace. That stack trace might have some extra information attached to
+it! For example in a heap profile, the stack trace has a number of bytes of memory attached to it. I
+think the Samples are the most important part of the profile.</p>
+<p>We&rsquo;re going to deconstruct what <strong>exactly</strong> is inside a pprof file later, but for now let&rsquo;s start by
+doing a quick example of what analyzing a heap profile looks like!</p>
+<h3 id="getting-a-heap-profile-with-pprof">Getting a heap profile with pprof</h3>
+<p>I&rsquo;m mostly interested in debugging memory problems right now. So I decided to write a program that
+allocates a bunch of memory to profile with pprof.</p>
+<pre><code>func main() {
+    // we need a webserver to get the pprof webserver
+    go func() {
+        log.Println(http.ListenAndServe(&quot;localhost:6060&quot;, nil))
+    }()
+    fmt.Println(&quot;hello world&quot;)
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go leakyFunction(wg)
+    wg.Wait()
+}
+
+func leakyFunction(wg sync.WaitGroup) {
+    defer wg.Done()
+    s := make([]string, 3)
+    for i:= 0; i &lt; 10000000; i++{
+        s = append(s, &quot;magical pandas&quot;)
+        if (i % 100000) == 0 {
+            time.Sleep(500 * time.Millisecond)
+        }
+    }
+}
+</code></pre>
+<p>Basically this just starts a goroutine <code>leakyFunction</code> that allocates a bunch of memory and then
+exits eventually.</p>
+<p>Getting a heap profile of this program is really easy &ndash; we just need to run <code>go tool pprof
+http://localhost:6060/debug/pprof/heap</code>. This puts us into an interactive mode where we run <code>top</code></p>
+<pre><code>$ go tool pprof  http://localhost:6060/debug/pprof/heap
+    Fetching profile from http://localhost:6060/debug/pprof/heap
+    Saved profile in /home/bork/pprof/pprof.localhost:6060.inuse_objects.inuse_space.004.pb.gz
+    Entering interactive mode (type &quot;help&quot; for commands)
+(pprof) top
+    34416.04kB of 34416.04kB total (  100%)
+    Showing top 10 nodes out of 16 (cum &gt;= 512.04kB)
+          flat  flat%   sum%        cum   cum%
+       33904kB 98.51% 98.51%    33904kB 98.51%  main.leakyFunction
+</code></pre>
+<p>I can also do the same thing outside interactive mode with <code>go tool pprof -top http://localhost:6060/debug/pprof/heap</code>.</p>
+<p>This basically tells us that <code>main.leakyFunction</code> is using 339MB of memory. Neat!</p>
+<p>We can also generate a PNG profile like this: <code>go tool pprof -png http://localhost:6060/debug/pprof/heap &gt; out.png</code>.</p>
+<p>Here&rsquo;s what that looks like (I ran it at a different time so it&rsquo;s only using 100MBish of memory).</p>
+<div align="center">
+<img src="/images/pprof.png">
+</div>
+<h3 id="what-do-the-stack-traces-in-a-heap-profile-mean">what do the stack traces in a heap profile mean?</h3>
+<p>This is not complicated but also was not 100% obvious to me. The stack traces in the heap profile
+are the stack trace at time of allocation.</p>
+<p>So the stack traces in the heap profile might be for code that is not running anymore &ndash; like maybe
+a function allocated a bunch of memory, returned, and a different function that should be freeing
+that memory is misbehaving. So the function to blame for the memory leak might be totally different
+than the function listed in the heap profile.</p>
+<h3 id="alloc-space-vs-inuse-space">alloc_space vs inuse_space</h3>
+<p>go tool pprof has the option to show you either <strong>allocation counts</strong> or <strong>in use memory</strong>. If
+you&rsquo;re concerned with the amount of memory being <strong>used</strong>, you probably want the inuse metrics, but
+if you&rsquo;re worried about time spent in garbage collection, look at allocations!</p>
+<pre><code>  -inuse_space      Display in-use memory size
+  -inuse_objects    Display in-use object counts
+  -alloc_space      Display allocated memory size
+  -alloc_objects    Display allocated object counts
+</code></pre>
+<p>I was originally confused about this works &ndash; the profiles have already be collected! How can I make
+this choice after the fact? I think how the heap profiles work is &ndash; allocations are recorded at
+some sample rate. Then every time one of those allocation is <strong>freed</strong>, that&rsquo;s also recorded. So you
+get a history of both allocations and frees for some sample of memory activity. Then when it comes
+time to analyze your memory usage, you can decide where you want inuse memory or total allocation counts!</p>
+<p>You can read the source for the memory profiler here: <a href="https://golang.org/src/runtime/mprof.go">https://golang.org/src/runtime/mprof.go</a>. It
+has a lot of useful comments! For example here are the comments about setting the sample rate:</p>
+<pre><code>// MemProfileRate controls the fraction of memory allocations
+// that are recorded and reported in the memory profile.
+// The profiler aims to sample an average of
+// one allocation per MemProfileRate bytes allocated.
+
+// To include every allocated block in the profile, set MemProfileRate to 1.
+// To turn off profiling entirely, set MemProfileRate to 0.
+
+// The tools that process the memory profiles assume that the
+// profile rate is constant across the lifetime of the program
+// and equal to the current value. Programs that change the
+// memory profiling rate should do so just once, as early as
+// possible in the execution of the program (for example,
+// at the beginning of main).
+</code></pre>
+<h3 id="pprof-fundamentals-deconstructing-a-pprof-file">pprof fundamentals: deconstructing a pprof file</h3>
+<p>When I started working with pprof I was confused about what was actually happening. It was
+generating these heap profiles named like <code>pprof.localhost:6060.inuse_objects.inuse_space.004.pb.gz</code>
+&ndash; what is that? How can I see the contents?</p>
+<p>Well, let&rsquo;s take a look!! I wrote an even simpler Go program to get the simplest possible heap
+profile.</p>
+<pre><code>package main
+
+import &quot;runtime&quot;
+import &quot;runtime/pprof&quot;
+import &quot;os&quot;
+import &quot;time&quot;
+
+func main() {
+    go leakyFunction()
+    time.Sleep(500 * time.Millisecond)
+    f, _ := os.Create(&quot;/tmp/profile.pb.gz&quot;)
+    defer f.Close()
+    runtime.GC()
+    pprof.WriteHeapProfile(f);
+}
+
+func leakyFunction() {
+    s := make([]string, 3)
+    for i:= 0; i &lt; 10000000; i++{
+        s = append(s, &quot;magical pprof time&quot;)
+    }
+}
+</code></pre>
+<p>This program just allocates some memory, writes a heap profile, and exits. Pretty simple. Let&rsquo;s look
+at this file <code>/tmp/profile.pb.gz</code>! You can download a gunzipped version <code>profile.pb</code>
+<a href="https://gist.github.com/jvns/828b5b99d3d7c875175c1e8a1d832161/raw/fc90af99da22bd7b4d444aa516c3d495f289d94b/profile.pb">here: profile.pb</a>. I installed protoc using <a href="https://gist.github.com/sofyanhadia/37787e5ed098c97919b8c593f0ec44d8">these directions</a>.</p>
+<p><code>profile.pb</code> is a protobuf file, and it turns out you can view protobuf files with <code>protoc</code>, the
+protobuf compiler.</p>
+<pre><code>go get github.com/google/pprof/proto
+protoc --decode=perftools.profiles.Profile  $GOPATH/src/github.com/google/pprof/proto/profile.proto --proto_path $GOPATH/src/github.com/google/pprof/proto/
+</code></pre>
+<p>The output of this is a bit long, you can view it all here: <a href="https://gist.githubusercontent.com/jvns/828b5b99d3d7c875175c1e8a1d832161/raw/4effe4f58a0f250093695c6f1675181b93c772c2/profile.pb.txt">output</a>.</p>
+<p>Here&rsquo;s a summary though of what&rsquo;s in this heap profile file! This contains 1 sample. A sample is a
+stack trace, and this stack trace has 2 locations: 1 and 2. What are locations 1 and 2? Well they
+correspond to mappings 1 and 2, which in turn correspond to filenames 7 and 8.</p>
+<p>If we look at the string table, we see that filenames 7 and 8 are these two:</p>
+<pre><code>string_table: &quot;/home/bork/work/experiments/golang-pprof/leak_simplest&quot;
+string_table: &quot;[vdso]&quot;
+</code></pre>
+<pre><code>sample {
+  location_id: 1
+  location_id: 2
+  value: 1
+  value: 34717696
+  value: 1
+  value: 34717696
+}
+mapping {
+  id: 1
+  memory_start: 4194304
+  memory_limit: 5066752
+  filename: 7
+}
+mapping {
+  id: 2
+  memory_start: 140720922800128
+  memory_limit: 140720922808320
+  filename: 8
+}
+location {
+  id: 1
+  mapping_id: 1
+  address: 5065747
+}
+location {
+  id: 2
+  mapping_id: 1
+  address: 4519969
+}
+string_table: &quot;&quot;
+string_table: &quot;alloc_objects&quot;
+string_table: &quot;count&quot;
+string_table: &quot;alloc_space&quot;
+string_table: &quot;bytes&quot;
+string_table: &quot;inuse_objects&quot;
+string_table: &quot;inuse_space&quot;
+string_table: &quot;/home/bork/work/experiments/golang-pprof/leak_simplest&quot;
+string_table: &quot;[vdso]&quot;
+string_table: &quot;[vsyscall]&quot;
+string_table: &quot;space&quot;
+time_nanos: 1506268926947477256
+period_type {
+  type: 10
+  unit: 4
+}
+period: 524288
+</code></pre>
+<h3 id="pprof-files-don-t-always-contain-function-names">pprof files don&rsquo;t always contain function names</h3>
+<p>One interesting thing about this pprof file <code>profile.pb</code> is that it doesn&rsquo;t contain the names of the
+functions we&rsquo;re running! But If I run <code>go tool pprof</code> on it, it prints out the name of the leaky
+function. How did you do that, <code>go tool pprof</code>?!</p>
+<pre><code>go tool pprof -top  profile.pb 
+59.59MB of 59.59MB total (  100%)
+      flat  flat%   sum%        cum   cum%
+   59.59MB   100%   100%    59.59MB   100%  main.leakyFunction
+         0     0%   100%    59.59MB   100%  runtime.goexit
+</code></pre>
+<p>I answered this with strace, obviously &ndash; I straced <code>go tool pprof</code> and this is what I saw:</p>
+<pre><code>5015  openat(AT_FDCWD, &quot;/home/bork/pprof/binaries/leak_simplest&quot;, O_RDONLY|O_CLOEXEC &lt;unfinished ...&gt;
+5015  openat(AT_FDCWD, &quot;/home/bork/work/experiments/golang-pprof/leak_simplest&quot;, O_RDONLY|O_CLOEXEC) = 3
+</code></pre>
+<p>So it seems that <code>go tool pprof</code> noticed that the filename in <code>profile.pb</code> was /home/bork/work/experiments/golang-pprof/leak_simplest, and then it just opened up that file on my computer and used that to get the function names. Neat!</p>
+<p>You can also pass the binary to <code>go tool pprof</code> like <code>go tool pprof -out $BINARY_FILE myprofile.pb.gz</code>. Sometimes pprof files contain function names and
+sometimes they don&rsquo;t, I haven&rsquo;t figured out what determines that yet.</p>
+<h3 id="pprof-keeps-improving">pprof keeps improving!</h3>
+<p>also I found out that thanks to the great work of people like rakyll, pprof keeps getting better!! For example There&rsquo;s
+this pull request <a href="https://github.com/google/pprof/pull/188">https://github.com/google/pprof/pull/188</a> which is being worked on RIGHT NOW which
+adds flamegraph support to the pprof web interface. Flamegraphs are the best thing in the universe
+so I&rsquo;m very excited for that to be available.</p>
+<p>If I got someting wrong (I probably did) let me know!!</p>
+</div>
+<footer>
+<style type="text/css">
+  #mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; display: inline;}
+  #mc_embed_signup  {
+    display: inline;
+  }
+  #mc_embed_signup input.button {
+    background: #ff5e00;
+    display: inline;
+    color: white;
+    padding: 6px 12px;
+  }
+   
+</style>
+<div class="sharing">
+<div id="mc_embed_signup">
+<form action="//jvns.us7.list-manage.com/subscribe/post?u=67757ca4ed0f508d954bcb2af&amp;id=67cdf15008" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+<div id="mc_embed_signup_scroll">
+Want a weekly digest of these blog posts? <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
+<div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_67757ca4ed0f508d954bcb2af_67cdf15008" tabindex="-1" value=""></div>
+<input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button">
+</div>
+</form>
+</div>
+<a href="https://twitter.com/share" class="twitter-share-button" data-url="https://jvns.ca/blog/2017/09/24/profiling-go-with-pprof/" data-via="b0rk" data-counturl="https://jvns.ca/blog/2017/09/24/profiling-go-with-pprof/">Tweet</a>
+</div>
+<p class="meta">
+<a class="basic-alignment left" href="https://jvns.ca/blog/answer-questions-well/" title="Previous Post: How to answer questions in a helpful way">How to answer questions in a helpful way</a>
+<a class="basic-alignment right" href="https://jvns.ca/teach-tech-with-cartoons/" title="Next Post: How to teach technical concepts with cartoons">How to teach technical concepts with cartoons</a>
+</p>
+</footer>
+</article>
+</div>
+</div>
+</div>
+<nav role="navigation" class="footer-nav"> <a href="/">Archives</a>
+</nav>
+<footer role="contentinfo"><span class="credit">&copy; Julia Evans. </span>
+<span>If you like this, you may like <a href="http://www.uliaea.ca">Ulia Ea</a>. <br>
+<p class="rc-scout__text"><i class="rc-scout__logo"></i>
+You might also like the <a class="rc-scout__link" href="https://www.recurse.com/scout/click?t=546ea46360584b522270b8c3e5d830f8">Recurse Center</a>, my very favorite programming community <a href="/categories/hackerschool/">(my posts about it)</a></p>
+</span>
+<style class="rc-scout__style" type="text/css">.rc-scout{display:block;padding:0;border:0;margin:0;}.rc-scout__text{display:block;padding:0;border:0;margin:0;height:100%;font-size:100%;}.rc-scout__logo{display:inline-block;padding:0;border:0;margin:0;width:0.85em;height:0.85em;background:no-repeat center url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2012%2015%22%3E%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2212%22%20height%3D%2210%22%20fill%3D%22%23000%22%3E%3C%2Frect%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2210%22%20height%3D%228%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%228%22%20height%3D%226%22%20fill%3D%22%23000%22%3E%3C%2Frect%3E%3Crect%20x%3D%222%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2361ae24%22%3E%3C%2Frect%3E%3Crect%20x%3D%224%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2361ae24%22%3E%3C%2Frect%3E%3Crect%20x%3D%226%22%20y%3D%223%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%2361ae24%22%3E%3C%2Frect%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%222%22%20height%3D%221%22%20fill%3D%22%2361ae24%22%3E%3C%2Frect%3E%3Crect%20x%3D%226%22%20y%3D%225%22%20width%3D%222%22%20height%3D%221%22%20fill%3D%22%2361ae24%22%3E%3C%2Frect%3E%3Crect%20x%3D%224%22%20y%3D%229%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23000%22%3E%3C%2Frect%3E%3Crect%20x%3D%221%22%20y%3D%2211%22%20width%3D%2210%22%20height%3D%224%22%20fill%3D%22%23000%22%3E%3C%2Frect%3E%3Crect%20x%3D%220%22%20y%3D%2212%22%20width%3D%2212%22%20height%3D%223%22%20fill%3D%22%23000%22%3E%3C%2Frect%3E%3Crect%20x%3D%222%22%20y%3D%2213%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%223%22%20y%3D%2212%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%224%22%20y%3D%2213%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%225%22%20y%3D%2212%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%226%22%20y%3D%2213%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%227%22%20y%3D%2212%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%228%22%20y%3D%2213%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3Crect%20x%3D%229%22%20y%3D%2212%22%20width%3D%221%22%20height%3D%221%22%20fill%3D%22%23fff%22%3E%3C%2Frect%3E%3C%2Fsvg%3E');}.rc-scout__link:link,.rc-scout__link:visited{color:#61ae24;text-decoration:underline;}.rc-scout__link:hover,.rc-scout__link:active{color:#4e8b1d;}</style>
+</footer>
+<script type="text/rocketscript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+</div>
+</body>
+</html>

@@ -187,6 +187,8 @@ ref：
 
     但**profilers_are_lying_hobbitses** ppt里提到，其实只会对被信号打断的线程做sample，而对于pthread线程实现，处理信号的线程的选取是`by a single, **arbitrarily** selected thread within the process.`，那么只能从统计角度来认为采样是（在各线程间）均匀的，同时还依赖内核的该选取算法实现。 = =
 
+    > TODO 这一块不是很清楚。 如果其他线程都屏蔽某信号的话，那该信号是不是每次都发送给特定线程（signal handler）？
+
     ​
 
     [open-source-jvm-sampling-profiler](http://insightfullogic.com/2014/Mar/02/open-source-jvm-sampling-profiler/) 里对jeremy的该方案的评价：

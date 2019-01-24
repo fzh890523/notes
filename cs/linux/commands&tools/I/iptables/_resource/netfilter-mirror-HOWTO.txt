@@ -1,0 +1,225 @@
+  netfilter.org mirror setup HOWTO
+  Harald Welte laforge@netfilter.org
+  $Revision: 4399 $
+
+  This document describes how to set up a FTP and/or WWW mirror of the
+  netfilter.org project.
+  ______________________________________________________________________
+
+  Table of Contents
+
+
+  1. Introduction
+  2. Mirror of the www.netfilter.org homepage
+     2.1 Step zero: Do we need a mirror for your country?
+     2.2 Step one: Prerequirements
+        2.2.1 rsync
+        2.2.2 Webserver
+        2.2.3 Diskspace Requirements
+        2.2.4 Traffic Requirements
+     2.3 Step two: Getting the netfilter homepage
+     2.4 Step three: Configuring the name based virtual host
+     2.5 Step four: Telling us about your new mirror
+
+  3. Mirror of the ftp.netfilter.org
+     3.1 Which type of mirror? Setting up a mirror of the ftp server can
+         be done in two ways.
+        3.1.1 Mirror as ftp.ccTLD.netfilter.org
+        3.1.2 Mirror as ftp.something.do.main/pub/netfilter
+     3.2 Step zero: Do we need a mirror for your country?
+     3.3 Step one: Prerequirements
+        3.3.1 rsync
+        3.3.2 Diskspace Requirements
+        3.3.3 Traffic Requirements
+     3.4 Step two: Getting the netfilter FTP tree
+     3.5 Step three: Telling us about your new mirror
+
+  4. The netfilter-mirrors mailinglist
+  5. Mirror of other netfilter.org services
+
+
+  ______________________________________________________________________
+
+  1.  Introduction
+
+  So you are interested in hosting a mirror of the netfilter.org
+  project.  This is good news, thank you for considering it. Please note
+  that the netfilter/iptables project is quite popular, and the traffic
+  to your website can be quite high. The netfilter.org main server
+  kashyyyk.netfilter.org always has 100GB to 150GB per month, but that
+  includes CVS and the mailinglists.
+
+  2.  Mirror of the www.netfilter.org homepage
+
+  2.1.  Step zero: Do we need a mirror for your country?
+
+  The netfilter/iptables project issues names for mirror sites depending
+  on the country you are located. Usually a mirror would have a name
+  like www.ccTLD.netfilter.org, where ccTLD is to be replaced with your
+  country code top level domain (e.g. www.de.netfilter.org for germany).
+
+  Please make sure that we don't already have a mirror for your country.
+  At the moment we can only accept one mirror per country.
+
+  2.2.  Step one: Prerequirements
+
+  2.2.1.  rsync
+
+  The netfilter.org project offers the whole homepage directory via the
+  rsync protocol. If you don't know what rsync is, or don't have rsync
+  on your machine(s), we will not be able to use your mirror. Sorry.
+
+  More information about rsync can be found at the rsync homepage
+  <http://samba.org/rsync/>.
+
+  2.2.2.  Webserver
+
+  Apart from rsync, you will need a webserver that can server HTTP 1.1
+  name based virtual hosts.
+
+  2.2.3.  Diskspace Requirements
+
+  The netfilter homepage is currently 50MB in size. I expect it to grow
+  to 100, maybe 150MB in the future. Considering the size of today's
+  hard drives, I don't think that anybody has problems with the size.
+
+  2.2.4.  Traffic Requirements
+
+  Hard to tell. As we will not use any kind of load sharing, the
+  distribution of the traffic happens 'manually'. This means, that the
+  amount of traffic depends on the number of users that explicitly use
+  www.ccTLD.netfilter.org instead of www.netfilter.org.
+
+  The total traffic of www.netfilter.org before we had any official
+  mirrors was about 50GB per month.
+
+  2.3.  Step two: Getting the netfilter homepage
+
+  You can download the netfilter homepage by using the following
+  command:
+
+
+       rsync -av --delete rsync.netfilter.org::www/ target_directory/
+
+
+
+  2.4.  Step three: Configuring the name based virtual host
+
+  You will need to configure a name based virtual host for the following
+  hostnames:
+
+
+
+       www.ccTLD.netfilter.org
+       www.ccTLD.iptables.org
+       ccTLD.netfilter.org
+       ccTLD.iptables.org
+       mirror.netfilter.org
+       mirror.iptables.org
+
+
+
+  2.5.  Step four: Telling us about your new mirror
+
+  Send a short email with the IP address of your new homepage mirror to
+  mirrormaster@netfilter.org <mailto:mirrormaster@netfilter.org>. We
+  will then inform you once the DNS record has been entered into the
+  netfilter.org and iptables.org zone file.
+
+  3.  Mirror of the ftp.netfilter.org
+
+  3.1.  Which type of mirror? Setting up a mirror of the ftp server can
+  be done in two ways.
+
+  3.1.1.  Mirror as ftp.ccTLD.netfilter.org
+
+  Since FTP doesn't have a concept of name based virtual hosts, you
+  would need to allocate an extra IP address for this ftp server.
+
+  3.1.2.  Mirror as ftp.something.do.main/pub/netfilter
+
+  This is the common case, where you mirror our FTP directory into a
+  subdirectory of your FTP server.
+
+  If you can put the mirror in the path given above (/pub/netfilter), we
+  can also provide you with a ftp.ccTLD.netfilter.org hostname. If the
+  directory appears somewhere else in your directory tree, we will not
+  give you this kind of hostname for consistency reasons. Sorry.
+
+  3.2.  Step zero: Do we need a mirror for your country?
+
+  The netfilter/iptables project issues names for mirror sites depending
+  on the country you are located. Usually a mirror would have a name
+  like ftp.ccTLD.netfilter.org, where ccTLD is to be replaced with your
+  country code top level domain (e.g. ftp.de.netfilter.org for germany).
+
+  Please make sure that we don't already have a mirror for your country.
+  At the moment we can only accept one mirror per country.
+
+  3.3.  Step one: Prerequirements
+
+  3.3.1.  rsync
+
+  The netfilter.org project offers the whole homepage directory via the
+  rsync protocol. If you don't know what rsync is, or don't have rsync
+  on your machine(s), we will not be able to use your mirror. Sorry.
+
+  More information about rsync can be found at the rsync homepage
+  <http://samba.org/rsync/>.
+
+  3.3.2.  Diskspace Requirements
+
+  The netfilter FTP site is currently about 50MB in size. I expect it to
+  grow to 150, maybe max. 250MB in the future. Considering the size of
+  today's hard drives, I don't think that anybody has problems with the
+  size.
+
+  3.3.3.  Traffic Requirements
+
+  Hard to tell. As we will not use any kind of load sharing, the
+  distribution of the traffic happens 'manually'. This means, that the
+  amount of traffic depends on the number of users that explicitly use
+  ftp.ccTLD.netfilter.org instead of ftp.netfilter.org.
+
+  The total traffic of ftp.netfilter.org before we had any official
+  mirrors was about 50GB per month.
+
+  3.4.  Step two: Getting the netfilter FTP tree
+
+  You can download the netfilter homepage by using the following
+  command:
+
+
+       rsync -av --delete rsync.netfilter.org::ftp/ target_directory/
+
+
+
+  3.5.  Step three: Telling us about your new mirror
+
+  Send a short email with the IP address of your new FTP mirror to
+  mirrormaster@netfilter.org <mailto:mirrormaster@netfilter.org>. We
+  will then inform you once the DNS record has been entered into the
+  netfilter.org and iptables.org zone file.
+
+  4.  The netfilter-mirrors mailinglist
+
+  We have set up a mailinglist for
+  discussion/announcements/questions/comments among the netfilter.org
+  mirror administrators. If you want to host a mirror site, subscription
+  to that list is mandatory. As soon as we put your IP address into our
+  zone file, your email address will be subscribed to that mailinglist.
+  Please note that posting to this list is restricted to members, so
+  please don't send mails with a 'From' address different from the one
+  subscribed. You can manage your list subscription at the netfilter-
+  mirrors@lists.netfilter.org admin interface
+  <http://lists.netfilter.org/mailman/listinfo/netfilter-mirrors>.
+
+  5.  Mirror of other netfilter.org services
+
+  The netfilter/iptables project provides a number of other services,
+  such as anonymous CVS, mailing list archives, bugzilla, CVSweb.
+
+  At this time we are not looking for mirrors for any of those services.
+
+
+

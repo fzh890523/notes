@@ -1,5 +1,19 @@
 # 设置
 
+
+
+## 显示
+
+
+
+### 行号 `set number`
+
+
+
+
+
+
+
 ## 特殊设置
 
 ### [Vim中显示不可见字符](http://blog.csdn.net/wusecaiyun/article/details/50435416)                     
@@ -18,6 +32,67 @@ set list
 
 最后，:set nolist可以回到正常的模式。
 ```
+
+
+
+# cmd
+
+
+
+## 打开文件： `:e`
+
+
+
+
+
+# text操作
+
+
+
+## 复制粘贴
+
+
+
+### 复制到系统剪贴板/从系统剪切板粘贴
+
+
+
+亲试可用
+
+1. 命令模式选中
+2. 输入 `"*y`即可，会提示已经copy到 `"*`
+3. 在需要粘贴的地方输入`"*p`即可
+
+
+
+其他方式：
+
+On Mac **OSX**
+
+- copy selected part: visually select text(type `v` or `V` in normal mode) and type `:w !pbcopy`
+
+  试了下，好像全部copy了而不是选中 = =
+
+- copy the whole file `:%w !pbcopy`
+
+- paste from the clipboard `:r !pbpaste`
+
+On *most* **Linux** Distros, you can substitute:
+
+- `pbcopy` above with `xclip -i -sel c` or `xsel -i -b`
+- `pbpaste` using `xclip -o -sel -c` or `xsel -o -b`
+  -- **Note:** *In case neither of these tools (xsel and xclip) are preinstalled on your distro, you can probably find them in the repos*
+
+
+
+
+## 查找
+
+
+
+### 不区分大小写 /\c${pattern}
+
+
 
 
 

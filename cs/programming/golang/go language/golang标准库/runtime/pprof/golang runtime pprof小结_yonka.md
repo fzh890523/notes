@@ -168,3 +168,34 @@
 >
 >  
 
+
+
+# turotial
+
+
+
+```sh
+curl http://127.0.0.1:9093/debug/pprof/heap > heap
+curl http://127.0.0.1:9093/debug/pprof/profile?seconds=30 > profile.30s
+```
+
+
+
+```sh
+go tool pprof profile.30s
+web  # or other ...
+# web需要设置好svg默认打开程序
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

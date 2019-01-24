@@ -77,6 +77,18 @@ top -d ${cpu_period} -n 2 -b -H | awk 'BEGIN{count=0}{if($1=="top"){count+=1;} i
 
 
 
+## 小点
+
+
+
+### 查看指定进程 `top -p ${pid}`
+
+* `top -p ${pid}` 实时变化
+
+* `top | grep ${pid}` 累计变化
+
+
+
 
 
 

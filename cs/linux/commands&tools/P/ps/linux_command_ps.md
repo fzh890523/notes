@@ -30,6 +30,26 @@
 
 
 
+### ruid, ruser: real
+
+
+
+real uid...
+
+
+
+### euid, euser: effective
+
+
+
+### uid, user == effective
+
+
+
+Alias for euid, euser
+
+
+
 ### pcpu / %cpu
 
 cpu占比，但注意是根据 `cputime / uptime` 计算而来，所以得出的是某进程启动以来的cpu消耗情况，而不能反应该进程当前的cpu消耗情况。
@@ -203,6 +223,14 @@ Process was using the CPU 38% of the time during this period.
 
 1. 计算的数值最小单位是秒，而如果想获取“最近1s”的cpu消耗占比就略尴尬了
 2. 这里的TIME、ELAPSED考虑到多核了吗？ 是不是 `delta(TIME) / cores / delta(ELAPSED)` ？
+
+
+
+## 场景
+
+
+
+### 查看线程 `-T -p ${pid}`
 
 
 
