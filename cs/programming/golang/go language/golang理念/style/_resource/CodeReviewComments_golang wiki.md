@@ -126,11 +126,17 @@ See <http://golang.org/doc/effective_go.html#errors>. Do not discard errors usin
 
 Imports are organized in groups, with blank lines between them. The standard library packages are in the first group.
 
-```
+```go
 package main
 
 import (
-    "fmt""hash/adler32""os""appengine/foo""appengine/user""code.google.com/p/x/y""github.com/foo/bar"
+    "fmt"
+    "hash/adler32"
+    "os"
+    "appengine/foo"
+    "appengine/user"
+    "code.google.com/p/x/y"
+    "github.com/foo/bar"
 )
 ```
 

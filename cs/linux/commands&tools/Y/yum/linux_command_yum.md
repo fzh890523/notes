@@ -81,9 +81,21 @@ yum -y remove httpd php php-gd mysql
 
 
 
+## search 
 
 
 
+### search provider
+
+未安装（不存在的）文件
+
+```shell
+yum whatprovides "/etc/sudoers"
+# 如
+yum whatproviders nslookup
+```
+
+​
 
 
 

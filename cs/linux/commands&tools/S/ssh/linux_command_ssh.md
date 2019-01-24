@@ -60,3 +60,56 @@ Apr 24 13:42:58 ${host} sshd[12123]: pam_unix(sshd:session): session closed for 
 
 
 
+# tutorial
+
+
+
+## exec command
+
+
+
+## 执行多个命令
+
+
+
+```sh
+ssh aliyunzixun@xxx.com "pwd; cat hello.txt"
+```
+
+
+
+```sh
+ssh aliyunzixun@xxx.com "pwd
+> cat hello.txt
+> ls
+> pwd
+> " 
+
+# or
+
+export name=nick
+ssh aliyunzixun@xxx.com "
+> echo $name
+> " 
+```
+
+
+
+```sh
+ssh aliyunzixun@xxx.com > /dev/null 2>&1 << eeooff
+cd /home
+tar xvf trove_rpm_code.tar
+cd /home/trove_rpm_code/rpm
+rpm -U *.rpm
+exit
+eeooff 
+```
+
+
+
+```sh
+ssh user@host 'bash -s' < /path/script.sh
+```
+
+
+

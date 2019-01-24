@@ -1183,7 +1183,11 @@ regineye   发表于: 2017-01-18 09:11 | 只看该作者
 
 * bluePro BLB-GB-WJ04B
 
+  也即 h4
+
   尺寸： `长（深）398 * 宽180 * 高280`
+
+  错了，应该是 高、宽、深
 
 
 * [BOSCH 博世 Filtrino THD 2023 速热饮水机 €59.99+€30.21直邮中国（约￥680）](https://www.smzdm.com/p/6587010/) or [ BOSCH 博世 Filtrino THD 2023 五段温控速热饮水机 €53.99+€30.85直邮中国（需用码，约￥630）](https://www.smzdm.com/p/6682450/)

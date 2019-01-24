@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="micro-service,istio," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本篇总结pilot的xDS常用接口，顺便浏览了部分pilot实现，下篇总结下istio的流量管理和服务发现的实现。简单来说istio做为管理面，集合了配置中心和服务中心两个功能，并把配置发现和服务发现以一组统一的xDS接口提供出来，数据面的envoy通过xDS获取需要的信息来做服务间通信和服务治理。 api v1 referenceistio中部署后pilot的启动方式是pilot-discove">
+<meta name="keywords" content="micro-service,istio">
+<meta property="og:type" content="article">
+<meta property="og:title" content="服务网格istio之pilot-xDS接口笔记">
+<meta property="og:url" content="http://yoursite.com/2018/06/19/pilot-xDS/index.html">
+<meta property="og:site_name" content="nino&#39;s blog">
+<meta property="og:description" content="本篇总结pilot的xDS常用接口，顺便浏览了部分pilot实现，下篇总结下istio的流量管理和服务发现的实现。简单来说istio做为管理面，集合了配置中心和服务中心两个功能，并把配置发现和服务发现以一组统一的xDS接口提供出来，数据面的envoy通过xDS获取需要的信息来做服务间通信和服务治理。 api v1 referenceistio中部署后pilot的启动方式是pilot-discove">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-06-22T01:20:12.225Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="服务网格istio之pilot-xDS接口笔记">
+<meta name="twitter:description" content="本篇总结pilot的xDS常用接口，顺便浏览了部分pilot实现，下篇总结下istio的流量管理和服务发现的实现。简单来说istio做为管理面，集合了配置中心和服务中心两个功能，并把配置发现和服务发现以一组统一的xDS接口提供出来，数据面的envoy通过xDS获取需要的信息来做服务间通信和服务治理。 api v1 referenceistio中部署后pilot的启动方式是pilot-discove">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/19/pilot-xDS/"/>
+
+
+
+
+
+  <title>服务网格istio之pilot-xDS接口笔记 | nino's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">nino's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我的读书笔记 我的自留地</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/19/pilot-xDS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="nino">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/nino.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nino's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">服务网格istio之pilot-xDS接口笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-19T11:24:28+08:00">
+                2018-06-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/istio/" itemprop="url" rel="index">
+                    <span itemprop="name">istio</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本篇总结pilot的xDS常用接口，顺便浏览了部分pilot实现，下篇总结下istio的流量管理和服务发现的实现。简单来说istio做为管理面，集合了配置中心和服务中心两个功能，并把配置发现和服务发现以一组统一的xDS接口提供出来，数据面的envoy通过xDS获取需要的信息来做服务间通信和服务治理。</p>
+<h2 id="api-v1-reference"><a href="#api-v1-reference" class="headerlink" title="api v1 reference"></a>api v1 reference</h2><p>istio中部署后pilot的启动方式是<code>pilot-discovery discovery</code>。初始化阶段依次init了各种模块，其中discovery service就是xDS相关实现。<a href="https://www.envoyproxy.io/docs/envoy/latest/" target="_blank" rel="noopener">envoy API reference</a> 可以查到v1和v2两个版本的API文档。<a href="https://github.com/envoyproxy/go-control-plane" target="_blank" rel="noopener">envoy control plane</a> 给了v2 grpc接口相关的数据结构和接口。</p>
+<blockquote>
+<p><a href="https://github.com/ninokop/nino-notes/blob/master/istio/pilot-xDS.md" target="_blank" rel="noopener">pilot-xDS</a>是几个月前0.6.0版本的环境上实验的接口，今天在0.8.0上跑发现RDS和CDS都查不到配置了，心好累。追到对应版本的代码发现因为routerule的配置升级到v1alpha3 routing API之后，APIV1只支持原来route rule配置，APIV2才支持virtual service相关配置，所以0.8.0环境上RDS查不到信息。</p>
+</blockquote>
+<h3 id="sDS"><a href="#sDS" class="headerlink" title="sDS"></a>sDS</h3><blockquote>
+<p><strong>Tips</strong>  最初看xDS的文档的时候，非常疑惑这些接口里的service-key service-node cluster-name到底是什么含义，在0.6.0版本中有个cache_stats接口，只要envoy调用过，这次查询记录就可以在cache_stats中看到。本节记录每个字段的含义和查询方式。</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl http://xx/v1/registration</span><br><span class="line">curl http://xx/v1/registration/reviews.nino.svc.cluster.local\|http</span><br><span class="line">curl http://xx/v1/registration/reviews.nino.svc.cluster.local\|http\|version=v2</span><br></pre></td></tr></table></figure>
+<p><strong>pilot/pkg/proxy/envoy/v1/discovery.go</strong> 里v1接口文件中register函数完成了向go-restful注册服务。查询可以根据条件除了带上service-key，还可以在末尾带上labels，比如version=v2。在kube-service-registry当中service的查询是通过service endpoint 的shared informer查询的，可以很方便的匹配labels。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">   <span class="string">"service-key"</span>: <span class="string">"details.nino.svc.cluster.local|http"</span>,</span><br><span class="line">   <span class="string">"hosts"</span>: [&#123;</span><br><span class="line">     <span class="string">"ip_address"</span>: <span class="string">"10.244.0.37"</span>,</span><br><span class="line">     <span class="string">"port"</span>: <span class="number">9080</span></span><br><span class="line">   &#125;]</span><br><span class="line">  &#125;, &#123;</span><br><span class="line">   <span class="string">"service-key"</span>: <span class="string">"reviews.nino.svc.cluster.local|http"</span>,</span><br><span class="line">   <span class="string">"hosts"</span>: [&#123;</span><br><span class="line">     <span class="string">"ip_address"</span>: <span class="string">"10.244.0.38"</span>,</span><br><span class="line">     <span class="string">"port"</span>: <span class="number">9080</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">     <span class="string">"ip_address"</span>: <span class="string">"10.244.0.41"</span>,</span><br><span class="line">     <span class="string">"port"</span>: <span class="number">9080</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">     <span class="string">"ip_address"</span>: <span class="string">"10.244.0.42"</span>,</span><br><span class="line">     <span class="string">"port"</span>: <span class="number">9080</span></span><br><span class="line">    &#125;]</span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+<h3 id="cDS"><a href="#cDS" class="headerlink" title="cDS"></a>cDS</h3><p>cDS的接口里的cluster_name和service_node可以通过envoy启动参数配置。其中cluster_name可以通过serviceCluster配置，service_node默认通过ENVOY_TYPE、POD_NAME、POD_NAMESPACE和INSTANCE_IP这些环境变量合成。</p>
+<blockquote>
+<p>/v1/{:cluster_name}/{:service_node}</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl http://xx/v1/clusters/productpage/sidecar~10.244.0.40~productpage-v1-</span><br><span class="line">8666ffbd7c-mf5f4.nino~nino.svc.cluster.local</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"clusters"</span>: [&#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"in.9080"</span>,</span><br><span class="line">    <span class="attr">"connect_timeout_ms"</span>: <span class="number">1000</span>,</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"static"</span>,</span><br><span class="line">    <span class="attr">"lb_type"</span>: <span class="string">"round_robin"</span>,</span><br><span class="line">    <span class="attr">"hosts"</span>: [&#123;</span><br><span class="line">      <span class="attr">"url"</span>: <span class="string">"tcp://127.0.0.1:9080"</span></span><br><span class="line">     &#125;]</span><br><span class="line">   &#125;,&#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"out.ratings.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">    <span class="attr">"service_name"</span>: <span class="string">"ratings.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">    <span class="attr">"connect_timeout_ms"</span>: <span class="number">1000</span>,</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"sds"</span>,</span><br><span class="line">    <span class="attr">"lb_type"</span>: <span class="string">"round_robin"</span></span><br><span class="line">   &#125;,&#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"out.reviews.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">    <span class="attr">"service_name"</span>: <span class="string">"reviews.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">    <span class="attr">"connect_timeout_ms"</span>: <span class="number">1000</span>,</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"sds"</span>,</span><br><span class="line">    <span class="attr">"lb_type"</span>: <span class="string">"round_robin"</span></span><br><span class="line">   &#125;,&#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"out.reviews.nino.svc.cluster.local|http|version=v2"</span>,</span><br><span class="line">    <span class="attr">"service_name"</span>: <span class="string">"reviews.nino.svc.cluster.local|http|version=v2"</span>,</span><br><span class="line">    <span class="attr">"connect_timeout_ms"</span>: <span class="number">1000</span>,</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"sds"</span>,</span><br><span class="line">    <span class="attr">"lb_type"</span>: <span class="string">"round_robin"</span></span><br><span class="line">   &#125;]</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="rDS"><a href="#rDS" class="headerlink" title="rDS"></a>rDS</h3><p>接口类似cDS，通过istioctl创建了route rule之后可以通过routes查到结果。下面的例子是发布了关于reviews服务的权重规则。可以通过以下RDS接口查到对应的权重规则。</p>
+<blockquote>
+<p>/v1/{:route_config_name}/{:cluster_name}/{:service_node}</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl http://xx/v1/routes/<span class="number">9080</span>/productpage/sidecar~<span class="number">10.244</span>.<span class="number">0.40</span>~</span><br><span class="line">productpage-v1-<span class="number">8666</span>ffbd7c-mf5f4.nino~nino.svc.cluster.local</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"validate_clusters"</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">"virtual_hosts"</span>: [</span><br><span class="line">   &#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"ratings.nino.svc.cluster.local|http"</span>,</span><br><span class="line">    <span class="attr">"domains"</span>: [</span><br><span class="line">     <span class="string">"ratings:9080"</span>,</span><br><span class="line">     <span class="string">"ratings"</span>,</span><br><span class="line">     <span class="string">"ratings.nino:9080"</span>,</span><br><span class="line">     <span class="string">"ratings.nino"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc:9080"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc.cluster:9080"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc.cluster"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">     <span class="string">"ratings.nino.svc.cluster.local"</span>,</span><br><span class="line">     <span class="string">"10.101.178.48:9080"</span>,</span><br><span class="line">     <span class="string">"10.101.178.48"</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"routes"</span>: [</span><br><span class="line">     &#123;</span><br><span class="line">      <span class="attr">"prefix"</span>: <span class="string">"/"</span>,</span><br><span class="line">      <span class="attr">"cluster"</span>: <span class="string">"out.ratings.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">      <span class="attr">"timeout_ms"</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"decorator"</span>: &#123;</span><br><span class="line">       <span class="attr">"operation"</span>: <span class="string">"ratings-default"</span></span><br><span class="line">      &#125;</span><br><span class="line">     &#125;</span><br><span class="line">    ]</span><br><span class="line">   &#125;,</span><br><span class="line">   &#123;</span><br><span class="line">    <span class="attr">"name"</span>: <span class="string">"reviews.nino.svc.cluster.local|http"</span>,</span><br><span class="line">    <span class="attr">"domains"</span>: [</span><br><span class="line">     <span class="string">"reviews:9080"</span>,</span><br><span class="line">     <span class="string">"reviews"</span>,</span><br><span class="line">     <span class="string">"reviews.nino:9080"</span>,</span><br><span class="line">     <span class="string">"reviews.nino"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc:9080"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc.cluster:9080"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc.cluster"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">     <span class="string">"reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">     <span class="string">"10.108.121.171:9080"</span>,</span><br><span class="line">     <span class="string">"10.108.121.171"</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"routes"</span>: [</span><br><span class="line">     &#123;</span><br><span class="line">      <span class="attr">"prefix"</span>: <span class="string">"/"</span>,</span><br><span class="line">      <span class="attr">"weighted_clusters"</span>: &#123;</span><br><span class="line">       <span class="attr">"clusters"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">         <span class="attr">"name"</span>: <span class="string">"out.reviews.nino.svc.cluster.local|http|version=v1"</span>,</span><br><span class="line">         <span class="attr">"weight"</span>: <span class="number">50</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">         <span class="attr">"name"</span>: <span class="string">"out.reviews.nino.svc.cluster.local|http|version=v2"</span>,</span><br><span class="line">         <span class="attr">"weight"</span>: <span class="number">50</span></span><br><span class="line">        &#125;</span><br><span class="line">       ]</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">"timeout_ms"</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">"decorator"</span>: &#123;</span><br><span class="line">       <span class="attr">"operation"</span>: <span class="string">"reviews-default"</span></span><br><span class="line">      &#125;</span><br><span class="line">     &#125;</span><br><span class="line">    ]</span><br><span class="line">   &#125;</span><br><span class="line">  ]</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="api-v2-reference"><a href="#api-v2-reference" class="headerlink" title="api v2 reference"></a>api v2 reference</h2><h3 id="eds-http-debug"><a href="#eds-http-debug" class="headerlink" title="eds http debug"></a>eds http debug</h3><p>虽然v2是grpc的接口，但是pilot提供了<code>InitDebug</code>，可以通过debug接口查询服务和routes等服务和配置信息。比如下面是edsz的debug接口。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://10.99.241.12:8080/debug/edsz</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">[&#123;</span><br><span class="line">    <span class="attr">"clusterName"</span>: <span class="string">"outbound|9080||reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">    <span class="attr">"endpoints"</span>: [&#123;</span><br><span class="line">        <span class="attr">"lbEndpoints"</span>: [&#123;</span><br><span class="line">            <span class="attr">"endpoint"</span>: &#123;</span><br><span class="line">                <span class="attr">"address"</span>: &#123;</span><br><span class="line">                    <span class="attr">"socketAddress"</span>: &#123;</span><br><span class="line">                        <span class="attr">"address"</span>: <span class="string">"10.244.0.56"</span>,</span><br><span class="line">                        <span class="attr">"portValue"</span>: <span class="number">9080</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, &#123;</span><br><span class="line">            <span class="attr">"endpoint"</span>: &#123;</span><br><span class="line">                <span class="attr">"address"</span>: &#123;</span><br><span class="line">                    <span class="attr">"socketAddress"</span>: &#123;</span><br><span class="line">                        <span class="attr">"address"</span>: <span class="string">"10.244.0.58"</span>,</span><br><span class="line">                        <span class="attr">"portValue"</span>: <span class="number">9080</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, &#123;</span><br><span class="line">            <span class="attr">"endpoint"</span>: &#123;</span><br><span class="line">                <span class="attr">"address"</span>: &#123;</span><br><span class="line">                    <span class="attr">"socketAddress"</span>: &#123;</span><br><span class="line">                        <span class="attr">"address"</span>: <span class="string">"10.244.2.25"</span>,</span><br><span class="line">                        <span class="attr">"portValue"</span>: <span class="number">9080</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;]</span><br><span class="line">    &#125;]</span><br><span class="line">&#125;, &#123;</span><br><span class="line">    <span class="attr">"clusterName"</span>: <span class="string">"outbound|9080|v3|reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">    <span class="attr">"endpoints"</span>: [&#123;</span><br><span class="line">        <span class="attr">"lbEndpoints"</span>: [&#123;</span><br><span class="line">            <span class="attr">"endpoint"</span>: &#123;</span><br><span class="line">                <span class="attr">"address"</span>: &#123;</span><br><span class="line">                    <span class="attr">"socketAddress"</span>: &#123;</span><br><span class="line">                        <span class="attr">"address"</span>: <span class="string">"10.244.0.58"</span>,</span><br><span class="line">                        <span class="attr">"portValue"</span>: <span class="number">9080</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;]</span><br><span class="line">    &#125;]</span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure>
+<h3 id="eds-grpc"><a href="#eds-grpc" class="headerlink" title="eds grpc"></a>eds grpc</h3><p>在envoy的go-control-plane接口定义中istio需要实现以下接口，结果pilot只实现了StreamEndpoints。看了下基本实现eds只需要DiscoveryRequest里的ResourceNames这个字段，其实跟v1的接口一样就是需要service-key。NodeId和TypeUrl可省略，后者默认就是EndpointType。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> EndpointDiscoveryServiceServer <span class="keyword">interface</span> &#123;</span><br><span class="line">    StreamEndpoints(EndpointDiscoveryService_StreamEndpointsServer) error</span><br><span class="line">    FetchEndpoints(context.Context, *DiscoveryRequest) (*DiscoveryResponse, error)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> EndpointDiscoveryService_StreamEndpointsServer <span class="keyword">interface</span> &#123;</span><br><span class="line">    Send(*DiscoveryResponse) error</span><br><span class="line">    Recv() (*DiscoveryRequest, error)</span><br><span class="line">    grpc.ServerStream</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个ResourceNames支持两种格式，其中v1和version=v1可以没有，这个代表labels和新版定义的subsets。eds的解析里兼容两个版本的解析方式。</p>
+<blockquote>
+<p>outbound|http|v1|istioserver.pilot.svc.cluster.local</p>
+<p>istioserver.pilot.svc.cluster.local|http|version=v1</p>
+</blockquote>
+<p><strong>istio/pilot/pkg/proxy/envoy/v2/eds.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">xds := xdsapi.NewEndpointDiscoveryServiceClient(conn)</span><br><span class="line">edsstr, err := xds.StreamEndpoints(context.Background())</span><br><span class="line">err = edsstr.Send(&amp;xdsapi.DiscoveryRequest&#123;</span><br><span class="line">    ResourceNames: []<span class="keyword">string</span>&#123;<span class="string">"istioserver.pilot.svc.cluster.local|http|version=v1"</span>&#125;,</span><br><span class="line">	TypeUrl:       EndpointType,</span><br><span class="line">&#125;)</span><br><span class="line">res1, err := edsstr.Recv()</span><br><span class="line">cla, err := getLoadAssignment(res1)</span><br></pre></td></tr></table></figure>
+<p>pilot把这个响应<code>DiscoveryResponse</code>的Resources字段用<code>ClusterLoadAssignment</code>代替。客户端需要<code>getLoadAssignment</code>从res1.Resources[0].Value反序列化出真正的响应结构。</p>
+<p><strong>github.com/envoyproxy/go-control-plane/envoy/api/v2/eds.pb.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ClusterLoadAssignment <span class="keyword">struct</span> &#123;</span><br><span class="line">    ClusterName <span class="keyword">string</span> </span><br><span class="line">    <span class="comment">// List of endpoints to load balance to.</span></span><br><span class="line">    Endpoints []envoy_api_v2_endpoint.LocalityLbEndpoints </span><br><span class="line">    <span class="comment">// Load balancing policy settings.</span></span><br><span class="line">    Policy *ClusterLoadAssignment_Policy</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="ads-grpc"><a href="#ads-grpc" class="headerlink" title="ads grpc"></a>ads grpc</h3><p>查询eds还有另一种方式ads，即Aggregated Discovery Service，它封装了下面这个接口。istio在实现过程中根据typeUrl识别xDS的类别。除了eds以外，其他lds rds cds都是由ads集成的，没有单独的xds接口了。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> AggregatedDiscoveryServiceServer <span class="keyword">interface</span> &#123;</span><br><span class="line">    <span class="comment">// This is a gRPC-only API.</span></span><br><span class="line">    StreamAggregatedResources(AggregatedDiscoveryService_StreamAggregatedResourcesServer) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当类型选择为EndpointType时，查询结果跟eds一致，不过ads接口要求NodeID必须在pilot缓存中存在。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">xds := ads.NewAggregatedDiscoveryServiceClient(conn)</span><br><span class="line">adser, err := xds.StreamAggregatedResources(context.Background())</span><br><span class="line">err = adser.Send(&amp;xdsapi.DiscoveryRequest&#123;</span><br><span class="line">    Node: &amp;envoy_api_v2_core1.Node&#123;</span><br><span class="line">        Id: <span class="string">"sidecar~10.109.11.31~productpage-v1-586c4486b7-rk2rh.nino~nino.svc.cluster.local"</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">    ResourceNames: []<span class="keyword">string</span>&#123;<span class="string">"istioserver.pilot.svc.cluster.local|http"</span>&#125;,</span><br><span class="line">    TypeUrl:       EndpointType,</span><br><span class="line">&#125;)</span><br><span class="line">res1, err := adser.Recv()</span><br><span class="line">cla, err := getLoadAssignment(res1)</span><br></pre></td></tr></table></figure>
+<h3 id="cds-http-debug"><a href="#cds-http-debug" class="headerlink" title="cds http debug"></a>cds http debug</h3><p>通过cdsz可以看到每个nodeID对应的clusters的配置，如果系统中用户没有发布subnets，从cds实际上查不到带tag或者说带version的信息。</p>
+<blockquote>
+<p>curl <a href="http://10.99.241.12:8080/debug/cdsz" target="_blank" rel="noopener">http://10.99.241.12:8080/debug/cdsz</a></p>
+</blockquote>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"name"</span>: <span class="string">"outbound|8084||istioserver.pilot.svc.cluster.local"</span>,</span><br><span class="line">  <span class="string">"type"</span>: <span class="string">"EDS"</span>,</span><br><span class="line">  <span class="string">"edsClusterConfig"</span>: &#123;</span><br><span class="line">    <span class="string">"edsConfig"</span>: &#123;</span><br><span class="line">      <span class="string">"ads"</span>: &#123;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">"serviceName"</span>: <span class="string">"outbound|8084||istioserver.pilot.svc.cluster.local"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"connectTimeout"</span>: <span class="string">"1.000s"</span>,</span><br><span class="line">  <span class="string">"circuitBreakers"</span>: &#123;</span><br><span class="line">    <span class="string">"thresholds"</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<h3 id="cds-grpc"><a href="#cds-grpc" class="headerlink" title="cds grpc"></a>cds grpc</h3><p>cds接口返回的数据是Cluster，包含了所有这个服务的配置信息。但因为目前用不到就布列出来了，具体定义见文件 <strong>github.com/envoyproxy/go-control-plane/envoy/api/v2/cds.pb.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Cluster <span class="keyword">struct</span> &#123;</span><br><span class="line">    Name <span class="keyword">string</span> </span><br><span class="line">    ...</span><br><span class="line">    Type Cluster_DiscoveryType </span><br><span class="line">    EdsClusterConfig *Cluster_EdsClusterConfig </span><br><span class="line">    ConnectTimeout time.Duration </span><br><span class="line">    LbPolicy Cluster_LbPolicy </span><br><span class="line"></span><br><span class="line">    CircuitBreakers *envoy_api_v2_cluster.CircuitBreakers </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="rds-grpc"><a href="#rds-grpc" class="headerlink" title="rds grpc"></a>rds grpc</h3><p>rds接口返回的数据结构是<code>RouteConfiguration</code>，这个RouteConfiguration对应的是新版本的路由配置格式，就是virtual service和destination rules这对规则。</p>
+<p><strong>github.com/envoyproxy/go-control-plane/envoy/api/v2/rds.pb.go</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> RouteConfiguration <span class="keyword">struct</span> &#123;</span><br><span class="line">    Name <span class="keyword">string</span></span><br><span class="line">    VirtualHosts []envoy_api_v2_route.VirtualHost </span><br><span class="line">    InternalOnlyHeaders []<span class="keyword">string</span> </span><br><span class="line">    ResponseHeadersToAdd []*envoy_api_v2_core1.HeaderValueOption </span><br><span class="line">    ResponseHeadersToRemove []<span class="keyword">string</span> </span><br><span class="line">    RequestHeadersToAdd []*envoy_api_v2_core1.HeaderValueOption </span><br><span class="line">    ValidateClusters *google_protobuf.BoolValue </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>看了数据结构注释，在RDS当中ResourceName填的是routeConfiguration的名字。</p>
+</blockquote>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rds.Send(&amp;xdsapi.DiscoveryRequest&#123;</span><br><span class="line">    ResponseNonce: time.Now().String(),</span><br><span class="line">    Node: &amp;envoy_api_v2_core1.Node&#123;</span><br><span class="line">        Id: <span class="string">"sidecar~10.244.0.58~reviews-v3-79fb5c99d5-d9k7b.nino~nino.svc.cluster.local"</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    ResourceNames: []<span class="keyword">string</span>&#123;<span class="string">"9080"</span>&#125;,</span><br><span class="line">    TypeUrl:       RouteType&#125;)</span><br></pre></td></tr></table></figure>
+<p>rds的查询结果实例如下，我就是发布了一个reviews的50%：50%的权重规则。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> <span class="attr">"versionInfo"</span>: <span class="string">"2018-06-21 07:23:37.290525595 +0000 UTC m=+600.138437218"</span>,</span><br><span class="line"> <span class="attr">"resources"</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">   <span class="attr">"@type"</span>: <span class="string">"type.googleapis.com/envoy.api.v2.RouteConfiguration"</span>,</span><br><span class="line">   <span class="attr">"name"</span>: <span class="string">"9080"</span>,</span><br><span class="line">   <span class="attr">"virtualHosts"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">     <span class="attr">"name"</span>: <span class="string">"productpage.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">     <span class="attr">"domains"</span>: [</span><br><span class="line">      <span class="string">"productpage.nino.svc.cluster.local"</span>,</span><br><span class="line">      <span class="string">"productpage.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">      <span class="string">"productpage"</span>,</span><br><span class="line">      <span class="string">"productpage:9080"</span>,</span><br><span class="line">      <span class="string">"productpage.nino.svc.cluster"</span>,</span><br><span class="line">      <span class="string">"productpage.nino.svc.cluster:9080"</span>,</span><br><span class="line">      <span class="string">"productpage.nino.svc"</span>,</span><br><span class="line">      <span class="string">"productpage.nino.svc:9080"</span>,</span><br><span class="line">      <span class="string">"productpage.nino"</span>,</span><br><span class="line">      <span class="string">"productpage.nino:9080"</span>,</span><br><span class="line">      <span class="string">"10.109.11.31"</span>,</span><br><span class="line">      <span class="string">"10.109.11.31:9080"</span></span><br><span class="line">     ],</span><br><span class="line">     <span class="attr">"routes"</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">       <span class="attr">"match"</span>: &#123;</span><br><span class="line">        <span class="attr">"prefix"</span>: <span class="string">"/"</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">"route"</span>: &#123;</span><br><span class="line">        <span class="attr">"cluster"</span>: <span class="string">"outbound|9080|v1|productpage.nino.svc.cluster.local"</span>,</span><br><span class="line">        <span class="attr">"useWebsocket"</span>: <span class="literal">false</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">"decorator"</span>: &#123;</span><br><span class="line">        <span class="attr">"operation"</span>: <span class="string">"productpage"</span></span><br><span class="line">       &#125;</span><br><span class="line">      &#125;</span><br><span class="line">     ]</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">     <span class="attr">"name"</span>: <span class="string">"reviews.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">     <span class="attr">"domains"</span>: [</span><br><span class="line">      <span class="string">"reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">      <span class="string">"reviews.nino.svc.cluster.local:9080"</span>,</span><br><span class="line">      <span class="string">"reviews"</span>,</span><br><span class="line">      <span class="string">"reviews:9080"</span>,</span><br><span class="line">      <span class="string">"reviews.nino.svc.cluster"</span>,</span><br><span class="line">      <span class="string">"reviews.nino.svc.cluster:9080"</span>,</span><br><span class="line">      <span class="string">"reviews.nino.svc"</span>,</span><br><span class="line">      <span class="string">"reviews.nino.svc:9080"</span>,</span><br><span class="line">      <span class="string">"reviews.nino"</span>,</span><br><span class="line">      <span class="string">"reviews.nino:9080"</span>,</span><br><span class="line">      <span class="string">"10.109.242.124"</span>,</span><br><span class="line">      <span class="string">"10.109.242.124:9080"</span></span><br><span class="line">     ],</span><br><span class="line">     <span class="attr">"routes"</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">       <span class="attr">"match"</span>: &#123;</span><br><span class="line">        <span class="attr">"prefix"</span>: <span class="string">"/"</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">"route"</span>: &#123;</span><br><span class="line">        <span class="attr">"weightedClusters"</span>: &#123;</span><br><span class="line">         <span class="attr">"clusters"</span>: [</span><br><span class="line">          &#123;</span><br><span class="line">           <span class="attr">"name"</span>: <span class="string">"outbound|9080|v2|reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">           <span class="attr">"weight"</span>: <span class="number">50</span></span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">           <span class="attr">"name"</span>: <span class="string">"outbound|9080|v3|reviews.nino.svc.cluster.local"</span>,</span><br><span class="line">           <span class="attr">"weight"</span>: <span class="number">50</span></span><br><span class="line">          &#125;</span><br><span class="line">         ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">"useWebsocket"</span>: <span class="literal">false</span></span><br><span class="line">       &#125;,</span><br><span class="line">       <span class="attr">"decorator"</span>: &#123;</span><br><span class="line">        <span class="attr">"operation"</span>: <span class="string">"reviews"</span></span><br><span class="line">       &#125;</span><br><span class="line">      &#125;</span><br><span class="line">     ]</span><br><span class="line">    &#125;</span><br><span class="line">   ],</span><br><span class="line">   <span class="attr">"validateClusters"</span>: <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line"> ],</span><br><span class="line"> <span class="attr">"typeUrl"</span>: <span class="string">"type.googleapis.com/envoy.api.v2.RouteConfiguration"</span>,</span><br><span class="line"> <span class="attr">"nonce"</span>: <span class="string">"2018-06-21 07:23:59.18418814 +0000 UTC m=+622.032099759"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h2><p><a href="https://www.envoyproxy.io/docs/envoy/latest/" target="_blank" rel="noopener">envoy API reference</a></p>
+<p><a href="https://github.com/envoyproxy/go-control-plane" target="_blank" rel="noopener">envoy control plane</a></p>
+<p><a href="https://istio.io" target="_blank" rel="noopener">istio指南</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/micro-service/" rel="tag"># micro-service</a>
+          
+            <a href="/tags/istio/" rel="tag"># istio</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/18/gRPC的HTTP2实现/" rel="next" title="gRPC的HTTP2实现">
+                <i class="fa fa-chevron-left"></i> gRPC的HTTP2实现
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/nino.jpg"
+                alt="nino" />
+            
+              <p class="site-author-name" itemprop="name">nino</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/ninokop" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://weibo.com/u/1732126300" target="_blank" title="WeiBo">
+                    
+                      <i class="fa fa-fw fa-globe"></i>WeiBo</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#api-v1-reference"><span class="nav-number">1.</span> <span class="nav-text">api v1 reference</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sDS"><span class="nav-number">1.1.</span> <span class="nav-text">sDS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cDS"><span class="nav-number">1.2.</span> <span class="nav-text">cDS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rDS"><span class="nav-number">1.3.</span> <span class="nav-text">rDS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#api-v2-reference"><span class="nav-number">2.</span> <span class="nav-text">api v2 reference</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#eds-http-debug"><span class="nav-number">2.1.</span> <span class="nav-text">eds http debug</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#eds-grpc"><span class="nav-number">2.2.</span> <span class="nav-text">eds grpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ads-grpc"><span class="nav-number">2.3.</span> <span class="nav-text">ads grpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cds-http-debug"><span class="nav-number">2.4.</span> <span class="nav-text">cds http debug</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cds-grpc"><span class="nav-number">2.5.</span> <span class="nav-text">cds grpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rds-grpc"><span class="nav-number">2.6.</span> <span class="nav-text">rds grpc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#reference"><span class="nav-number">3.</span> <span class="nav-text">reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nino</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

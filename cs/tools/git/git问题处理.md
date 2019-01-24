@@ -1,4 +1,6 @@
-## checkout 把branch name认为是file name问题
+## git checkout
+
+### 把branch name认为是file name问题
 
 ```
 git co feature/user_controlled_site_layouts 
@@ -18,7 +20,7 @@ git co 2.12.4
 
 
 
-### 处理
+#### 处理
 
 ```shell
 git remote update
@@ -390,6 +392,34 @@ git config --global merge.tool opendiff
 
 
 `git pull <remote> <branch>` == `git fetch <remote> <branch> && git merge <remote> <branch>`
+
+
+
+
+
+# 场景
+
+
+
+## 公司内commit/push pub的repo
+
+
+
+* 修改user.name
+
+  ```sh
+  git config --replace-all user.name ${user_name}
+  
+  # 然后
+  git config --local --list 查看
+  ```
+
+* 修改user.email
+
+  ```sh
+  git config --replace-all user.email ${user_email}
+  ```
+
 
 
 

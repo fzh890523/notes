@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/mandoc.css" type="text/css" media="all">
+  <title>pf(4) - OpenBSD manual pages</title>
+</head>
+<body>
+<p><a href="https://www.openbsd.org/"><img height="30" width="141" src="/openbsd.gif" alt="[OpenBSD]"></a></p>
+<form action="/" method="get">
+  <fieldset>
+    <legend>Manual Page Search Parameters</legend>
+    <input type="search" name="query" value="pf" size="40">
+    <button type="submit" name="apropos" value="0">man</button>
+    <button type="submit" name="apropos" value="1">apropos</button>
+    <br/>
+    <select name="sec">
+      <option value="0">All Sections</option>
+      <option value="1">1 - General Commands</option>
+      <option value="2">2 - System Calls</option>
+      <option value="3">3 - Library Functions</option>
+      <option value="3p">3p - Perl Library</option>
+      <option value="4">4 - Device Drivers</option>
+      <option value="5">5 - File Formats</option>
+      <option value="6">6 - Games</option>
+      <option value="7">7 - Miscellaneous Information</option>
+      <option value="8">8 - System Manager's Manual</option>
+      <option value="9">9 - Kernel Developer's Manual</option>
+    </select>
+    <select name="arch">
+      <option value="default" selected="selected">All Architectures</option>
+      <option>amd64</option>
+      <option>alpha</option>
+      <option>armv7</option>
+      <option>arm64</option>
+      <option>hppa</option>
+      <option>i386</option>
+      <option>landisk</option>
+      <option>loongson</option>
+      <option>luna88k</option>
+      <option>macppc</option>
+      <option>mips64</option>
+      <option>octeon</option>
+      <option>sgi</option>
+      <option>socppc</option>
+      <option>sparc64</option>
+      <option>amiga</option>
+      <option>arc</option>
+      <option>armish</option>
+      <option>arm32</option>
+      <option>atari</option>
+      <option>aviion</option>
+      <option>beagle</option>
+      <option>cats</option>
+      <option>hppa64</option>
+      <option>hp300</option>
+      <option>ia64</option>
+      <option>mac68k</option>
+      <option>mvme68k</option>
+      <option>mvme88k</option>
+      <option>mvmeppc</option>
+      <option>palm</option>
+      <option>pc532</option>
+      <option>pegasos</option>
+      <option>pmax</option>
+      <option>powerpc</option>
+      <option>solbourne</option>
+      <option>sparc</option>
+      <option>sun3</option>
+      <option>vax</option>
+      <option>wgrisc</option>
+      <option>x68k</option>
+      <option>zaurus</option>
+    </select>
+    <select name="manpath">
+      <option selected="selected">OpenBSD-current</option>
+      <option>OpenBSD-6.3</option>
+      <option>OpenBSD-6.2</option>
+      <option>POSIX-2013</option>
+      <option>4.4BSD-Lite2</option>
+      <option>UNIX-7</option>
+      <option>FreeBSD-11.1</option>
+      <option>FreeBSD-10.4</option>
+      <option>DragonFly-5.0.0</option>
+      <option>NetBSD-7.1</option>
+      <option>NetBSD-6.1.5</option>
+      <option>Linux-4.13</option>
+      <option>OpenBSD-6.1</option>
+      <option>OpenBSD-6.0</option>
+      <option>OpenBSD-5.9</option>
+      <option>OpenBSD-5.8</option>
+      <option>OpenBSD-5.7</option>
+      <option>OpenBSD-5.6</option>
+      <option>OpenBSD-5.5</option>
+      <option>OpenBSD-5.4</option>
+      <option>OpenBSD-5.3</option>
+      <option>OpenBSD-5.2</option>
+      <option>OpenBSD-5.1</option>
+      <option>OpenBSD-5.0</option>
+      <option>OpenBSD-4.9</option>
+      <option>OpenBSD-4.8</option>
+      <option>OpenBSD-4.7</option>
+      <option>OpenBSD-4.6</option>
+      <option>OpenBSD-4.5</option>
+      <option>OpenBSD-4.4</option>
+      <option>OpenBSD-4.3</option>
+      <option>OpenBSD-4.2</option>
+      <option>OpenBSD-4.1</option>
+      <option>OpenBSD-4.0</option>
+      <option>OpenBSD-3.9</option>
+      <option>OpenBSD-3.8</option>
+      <option>OpenBSD-3.7</option>
+      <option>OpenBSD-3.6</option>
+      <option>OpenBSD-3.5</option>
+      <option>OpenBSD-3.4</option>
+      <option>OpenBSD-3.3</option>
+      <option>OpenBSD-3.2</option>
+      <option>OpenBSD-3.1</option>
+      <option>OpenBSD-3.0</option>
+      <option>OpenBSD-2.9</option>
+      <option>OpenBSD-2.8</option>
+      <option>OpenBSD-2.7</option>
+      <option>OpenBSD-2.6</option>
+      <option>OpenBSD-2.5</option>
+      <option>OpenBSD-2.4</option>
+      <option>OpenBSD-2.3</option>
+      <option>OpenBSD-2.2</option>
+      <option>FreeBSD-10.3</option>
+      <option>FreeBSD-10.2</option>
+      <option>FreeBSD-10.0</option>
+      <option>DragonFly-4.8.0</option>
+      <option>DragonFly-4.6.0</option>
+      <option>DragonFly-4.4.2</option>
+      <option>DragonFly-3.8.2</option>
+      <option>NetBSD-7.0.1</option>
+      <option>NetBSD-7.0</option>
+      <option>Linux-4.05</option>
+    </select>
+  </fieldset>
+</form>
+<hr>
+<table class="head">
+  <tr>
+    <td class="head-ltitle">PF(4)</td>
+    <td class="head-vol">Device Drivers Manual</td>
+    <td class="head-rtitle">PF(4)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<h1 class="Sh" title="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<code class="Nm" title="Nm">pf</code> &#x2014;
+<div class="Nd" title="Nd">packet filter</div>
+<h1 class="Sh" title="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<code class="Cd" title="Cd">pseudo-device pf</code>
+<h1 class="Sh" title="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+Packet filtering takes place in the kernel. A pseudo-device,
+  <span class="Pa" title="Pa">/dev/pf</span>, allows userland processes to
+  control the behavior of the packet filter through an
+  <a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a> interface. There are
+  commands to enable and disable the filter, load rulesets, add and remove
+  individual rules or state table entries, and retrieve statistics. The most
+  commonly used functions are covered by
+  <a class="Xr" title="Xr" href="/pfctl.8">pfctl(8)</a>.
+<div class="Pp"></div>
+Manipulations like loading a ruleset that involve more than a single
+  <a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a> call require a so-called
+  <i class="Em" title="Em">ticket</i>, which prevents the occurrence of multiple
+  concurrent manipulations.
+<div class="Pp"></div>
+Fields of <a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a> parameter
+  structures that refer to packet data (like addresses and ports) are generally
+  expected in network byte-order.
+<div class="Pp"></div>
+Rules and address tables are contained in so-called
+  <i class="Em" title="Em">anchors</i>. When servicing an
+  <a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a> request, if the anchor
+  field of the argument structure is empty, the kernel will use the default
+  anchor (i.e., the main ruleset) in operations. Anchors are specified by name
+  and may be nested, with components separated by &#x2018;/&#x2019; characters,
+  similar to how file system hierarchies are laid out. The final component of
+  the anchor path is the anchor under which operations will be performed. Anchor
+  names with characters after the terminating null byte are considered invalid;
+  if used in an ioctl, <code class="Er" title="Er">EINVAL</code> will be
+  returned.
+<h1 class="Sh" title="Sh" id="IOCTL_INTERFACE"><a class="permalink" href="#IOCTL_INTERFACE">IOCTL
+  INTERFACE</a></h1>
+<code class="Nm" title="Nm">pf</code> supports the following
+  <a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a> commands, available
+  through
+  <code class="In" title="In">&lt;<a class="In" title="In">net/pfvar.h</a>&gt;</code>:
+<dl class="Bl-tag">
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSTART"><code class="Dv" title="Dv" id="DIOCSTART">DIOCSTART</code></a></dt>
+  <dd>Start the packet filter.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSTOP"><code class="Dv" title="Dv" id="DIOCSTOP">DIOCSTOP</code></a></dt>
+  <dd>Stop the packet filter.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCADDRULE"><code class="Dv" title="Dv" id="DIOCADDRULE">DIOCADDRULE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_rule *pr</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_rule { 
+	u_int32_t	action; 
+	u_int32_t	ticket; 
+	u_int32_t	nr; 
+	char		anchor[PATH_MAX]; 
+	char		anchor_call[PATH_MAX]; 
+	struct pf_rule	rule; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Add <var class="Va" title="Va">rule</var> at the end of the inactive
+      ruleset. This call requires a <var class="Va" title="Va">ticket</var>
+      obtained through a preceding <code class="Dv" title="Dv">DIOCXBEGIN</code>
+      call. The optional <var class="Va" title="Va">anchor</var> name indicates
+      the anchor in which to append the rule.
+      <var class="Va" title="Va">nr</var> and
+      <var class="Va" title="Va">action</var> are ignored.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCADDQUEUE"><code class="Dv" title="Dv" id="DIOCADDQUEUE">DIOCADDQUEUE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_queue *q</var></dt>
+  <dd>Add a queue.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_queue { 
+	u_int32_t		ticket; 
+	u_int			nr; 
+	struct pf_queuespec	queue; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETRULES"><code class="Dv" title="Dv" id="DIOCGETRULES">DIOCGETRULES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_rule *pr</var></dt>
+  <dd>Get a <var class="Va" title="Va">ticket</var> for subsequent
+      <code class="Dv" title="Dv">DIOCGETRULE</code> calls and the number
+      <var class="Va" title="Va">nr</var> of rules in the active ruleset.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETRULE"><code class="Dv" title="Dv" id="DIOCGETRULE">DIOCGETRULE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_rule *pr</var></dt>
+  <dd>Get a <var class="Va" title="Va">rule</var> by its number
+      <var class="Va" title="Va">nr</var> using the
+      <var class="Va" title="Va">ticket</var> obtained through a preceding
+      <code class="Dv" title="Dv">DIOCGETRULES</code> call. If
+      <var class="Va" title="Va">action</var> is set to
+      <code class="Dv" title="Dv">PF_GET_CLR_CNTR</code>, the per-rule
+      statistics on the requested rule are cleared.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETQUEUES"><code class="Dv" title="Dv" id="DIOCGETQUEUES">DIOCGETQUEUES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_queue *pq</var></dt>
+  <dd>Get a <var class="Va" title="Va">ticket</var> for subsequent
+      <code class="Dv" title="Dv">DIOCGETQUEUE</code> calls and the number
+      <var class="Va" title="Va">nr</var> of queues in the active list.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETQUEUE"><code class="Dv" title="Dv" id="DIOCGETQUEUE">DIOCGETQUEUE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_queue *pq</var></dt>
+  <dd>Get the queueing discipline by its number
+      <var class="Va" title="Va">nr</var> using the
+      <var class="Va" title="Va">ticket</var> obtained through a preceding
+      <code class="Dv" title="Dv">DIOCGETQUEUES</code> call.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETQSTATS"><code class="Dv" title="Dv" id="DIOCGETQSTATS">DIOCGETQSTATS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_qstats *pq</var></dt>
+  <dd>Get the statistics on a queue.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_qstats { 
+	u_int32_t	 	 ticket; 
+	u_int32_t	 	 nr; 
+	struct pf_queuespec	 queue; 
+	void			*buf; 
+	int		 	 nbytes; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    This call fills in a pointer to the buffer of statistics
+      <var class="Va" title="Va">buf</var>, of length
+      <var class="Va" title="Va">nbytes</var>, for the queue specified by
+      <var class="Va" title="Va">nr</var>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETRULESETS"><code class="Dv" title="Dv" id="DIOCGETRULESETS">DIOCGETRULESETS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_ruleset *pr</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_ruleset { 
+	u_int32_t	 nr; 
+	char		 path[PATH_MAX]; 
+	char		 name[PF_ANCHOR_NAME_SIZE]; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Get the number <var class="Va" title="Va">nr</var> of rulesets (i.e.,
+      anchors) directly attached to the anchor named by
+      <var class="Va" title="Va">path</var> for use in subsequent
+      <code class="Dv" title="Dv">DIOCGETRULESET</code> calls. Nested anchors,
+      since they are not directly attached to the given anchor, will not be
+      included. This ioctl returns <code class="Er" title="Er">EINVAL</code> if
+      the given anchor does not exist.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETRULESET"><code class="Dv" title="Dv" id="DIOCGETRULESET">DIOCGETRULESET</code></a>
+    <var class="Fa" title="Fa">struct pfioc_ruleset *pr</var></dt>
+  <dd>Get a ruleset (i.e., an anchor) <var class="Va" title="Va">name</var> by
+      its number <var class="Va" title="Va">nr</var> from the given anchor
+      <var class="Va" title="Va">path</var>, the maximum number of which can be
+      obtained from a preceding
+      <code class="Dv" title="Dv">DIOCGETRULESETS</code> call. This ioctl
+      returns <code class="Er" title="Er">EINVAL</code> if the given anchor does
+      not exist or <code class="Er" title="Er">EBUSY</code> if another process
+      is concurrently updating a ruleset.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCADDSTATE"><code class="Dv" title="Dv" id="DIOCADDSTATE">DIOCADDSTATE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_state *ps</var></dt>
+  <dd>Add a state entry.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_state { 
+	struct pfsync_state	state; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETSTATE"><code class="Dv" title="Dv" id="DIOCGETSTATE">DIOCGETSTATE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_state *ps</var></dt>
+  <dd>Extract the entry identified by the <var class="Va" title="Va">id</var>
+      and <var class="Va" title="Va">creatorid</var> fields of the
+      <var class="Va" title="Va">state</var> structure from the state
+    table.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCKILLSTATES"><code class="Dv" title="Dv" id="DIOCKILLSTATES">DIOCKILLSTATES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_state_kill *psk</var></dt>
+  <dd>Remove matching entries from the state table. This ioctl returns the
+      number of killed states in <var class="Va" title="Va">psk_killed</var>.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_state_kill { 
+	struct pf_state_cmp	psk_pfcmp; 
+	sa_family_t		psk_af; 
+	int			psk_proto; 
+	struct pf_rule_addr	psk_src; 
+	struct pf_rule_addr	psk_dst; 
+	char			psk_ifname[IFNAMSIZ]; 
+	char			psk_label[PF_RULE_LABEL_SIZE]; 
+	u_int			psk_killed; 
+	u_int16_t		psk_rdomain; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCCLRSTATES"><code class="Dv" title="Dv" id="DIOCCLRSTATES">DIOCCLRSTATES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_state_kill *psk</var></dt>
+  <dd>Clear all states. It works like
+      <code class="Dv" title="Dv">DIOCKILLSTATES</code>, but ignores all fields
+      of the <var class="Vt" title="Vt">pfioc_state_kill</var> structure, except
+      <var class="Va" title="Va">psk_ifname</var>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETSTATUS"><code class="Dv" title="Dv" id="DIOCGETSTATUS">DIOCGETSTATUS</code></a>
+    <var class="Fa" title="Fa">struct pf_status *s</var></dt>
+  <dd>Get the internal packet filter statistics.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pf_status { 
+	u_int64_t	counters[PFRES_MAX]; 
+	u_int64_t	lcounters[LCNT_MAX];	/* limit counters */ 
+	u_int64_t	fcounters[FCNT_MAX]; 
+	u_int64_t	scounters[SCNT_MAX]; 
+	u_int64_t	pcounters[2][2][3]; 
+	u_int64_t	bcounters[2][2]; 
+	u_int64_t	stateid; 
+	time_t		since; 
+	u_int32_t	running; 
+	u_int32_t	states; 
+	u_int32_t	states_halfopen; 
+	u_int32_t	src_nodes; 
+	u_int32_t	debug; 
+	u_int32_t	hostid; 
+	u_int32_t	reass;			/* reassembly */ 
+	char		ifname[IFNAMSIZ]; 
+	u_int8_t	pf_chksum[PF_MD5_DIGEST_LENGTH]; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCCLRSTATUS"><code class="Dv" title="Dv" id="DIOCCLRSTATUS">DIOCCLRSTATUS</code></a></dt>
+  <dd>Clear the internal packet filter statistics.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCNATLOOK"><code class="Dv" title="Dv" id="DIOCNATLOOK">DIOCNATLOOK</code></a>
+    <var class="Fa" title="Fa">struct pfioc_natlook *pnl</var></dt>
+  <dd>Look up a state table entry by source and destination addresses and ports.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_natlook { 
+	struct pf_addr	 saddr; 
+	struct pf_addr	 daddr; 
+	struct pf_addr	 rsaddr; 
+	struct pf_addr	 rdaddr; 
+	u_int16_t	 rdomain; 
+	u_int16_t	 rrdomain; 
+	u_int16_t	 sport; 
+	u_int16_t	 dport; 
+	u_int16_t	 rsport; 
+	u_int16_t	 rdport; 
+	sa_family_t	 af; 
+	u_int8_t	 proto; 
+	u_int8_t	 direction; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    This was primarily used to support transparent proxies with rdr-to rules.
+      New proxies should use divert-to rules instead. These do not require
+      access to the privileged <span class="Pa" title="Pa">/dev/pf</span> device
+      and preserve the original destination address for
+      <a class="Xr" title="Xr" href="/getsockname.2">getsockname(2)</a>. For
+      <code class="Dv" title="Dv">SOCK_DGRAM</code> sockets, the
+      <a class="Xr" title="Xr" href="/ip.4">ip(4)</a> socket options
+      <code class="Dv" title="Dv">IP_RECVDSTADDR</code> and
+      <code class="Dv" title="Dv">IP_RECVDSTPORT</code> can be used to retrieve
+      the destination address and port.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETDEBUG"><code class="Dv" title="Dv" id="DIOCSETDEBUG">DIOCSETDEBUG</code></a>
+    <var class="Fa" title="Fa">u_int32_t *level</var></dt>
+  <dd>Set the debug level. See the
+      <a class="Xr" title="Xr" href="/syslog.3">syslog(3)</a> man page for a
+      list of valid debug levels.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETSTATES"><code class="Dv" title="Dv" id="DIOCGETSTATES">DIOCGETSTATES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_states *ps</var></dt>
+  <dd>Get state table entries.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_states { 
+	int	ps_len; 
+	union { 
+		caddr_t		     psu_buf; 
+		struct pfsync_state *psu_states; 
+	} ps_u; 
+#define ps_buf		ps_u.psu_buf 
+#define ps_states	ps_u.psu_states 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    If <var class="Va" title="Va">ps_len</var> is non-zero on entry, as many
+      states as possible that can fit into this size will be copied into the
+      supplied buffer <var class="Va" title="Va">ps_states</var>. On exit,
+      <var class="Va" title="Va">ps_len</var> is always set to the total size
+      required to hold all state table entries (i.e., it is set to
+      <code class="Li">sizeof(struct pfsync_state) * nr</code>).</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCCHANGERULE"><code class="Dv" title="Dv" id="DIOCCHANGERULE">DIOCCHANGERULE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_rule *pcr</var></dt>
+  <dd>Add or remove the <var class="Va" title="Va">rule</var> in the ruleset
+      specified by <var class="Va" title="Va">rule.action</var>.
+    <div class="Pp"></div>
+    The type of operation to be performed is indicated by
+      <var class="Va" title="Va">action</var>, which can be any of the
+      following:
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+enum	{ PF_CHANGE_NONE, PF_CHANGE_ADD_HEAD, PF_CHANGE_ADD_TAIL, 
+	  PF_CHANGE_ADD_BEFORE, PF_CHANGE_ADD_AFTER, 
+	  PF_CHANGE_REMOVE, PF_CHANGE_GET_TICKET };
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    <var class="Va" title="Va">ticket</var> must be set to the value obtained
+      with <code class="Dv" title="Dv">PF_CHANGE_GET_TICKET</code> for all
+      actions except <code class="Dv" title="Dv">PF_CHANGE_GET_TICKET</code>.
+      <var class="Va" title="Va">anchor</var> indicates to which anchor the
+      operation applies. <var class="Va" title="Va">nr</var> indicates the rule
+      number against which
+      <code class="Dv" title="Dv">PF_CHANGE_ADD_BEFORE</code>,
+      <code class="Dv" title="Dv">PF_CHANGE_ADD_AFTER</code>, or
+      <code class="Dv" title="Dv">PF_CHANGE_REMOVE</code> actions are
+    applied.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETTIMEOUT"><code class="Dv" title="Dv" id="DIOCSETTIMEOUT">DIOCSETTIMEOUT</code></a>
+    <var class="Fa" title="Fa">struct pfioc_tm *pt</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_tm { 
+	int		 timeout; 
+	int		 seconds; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Set the state timeout of <var class="Va" title="Va">timeout</var> to
+      <var class="Va" title="Va">seconds</var>. The old value will be placed
+      into <var class="Va" title="Va">seconds</var>. For possible values of
+      <var class="Va" title="Va">timeout</var>, consult the
+      <code class="Dv" title="Dv">PFTM_*</code> values in
+      <code class="In" title="In">&lt;<a class="In" title="In">net/pfvar.h</a>&gt;</code>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETTIMEOUT"><code class="Dv" title="Dv" id="DIOCGETTIMEOUT">DIOCGETTIMEOUT</code></a>
+    <var class="Fa" title="Fa">struct pfioc_tm *pt</var></dt>
+  <dd>Get the state timeout of <var class="Va" title="Va">timeout</var>. The
+      value will be placed into the <var class="Va" title="Va">seconds</var>
+      field.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETLIMIT"><code class="Dv" title="Dv" id="DIOCSETLIMIT">DIOCSETLIMIT</code></a>
+    <var class="Fa" title="Fa">struct pfioc_limit *pl</var></dt>
+  <dd>Set the hard limits on the memory pools used by the packet filter.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_limit { 
+	int		index; 
+	unsigned	limit; 
+}; 
+ 
+enum	{ PF_LIMIT_STATES, PF_LIMIT_SRC_NODES, PF_LIMIT_FRAGS, 
+	  PF_LIMIT_TABLES, PF_LIMIT_TABLE_ENTRIES, PF_LIMIT_MAX };
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETLIMIT"><code class="Dv" title="Dv" id="DIOCGETLIMIT">DIOCGETLIMIT</code></a>
+    <var class="Fa" title="Fa">struct pfioc_limit *pl</var></dt>
+  <dd>Get the hard <var class="Va" title="Va">limit</var> for the memory pool
+      indicated by <var class="Va" title="Va">index</var>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRCLRTABLES"><code class="Dv" title="Dv" id="DIOCRCLRTABLES">DIOCRCLRTABLES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Clear all tables. All the ioctls that manipulate radix tables use the same
+      structure described below. For
+      <code class="Dv" title="Dv">DIOCRCLRTABLES</code>,
+      <var class="Va" title="Va">pfrio_ndel</var> contains on exit the number of
+      tables deleted.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_table { 
+	struct pfr_table	 pfrio_table; 
+	void			*pfrio_buffer; 
+	int			 pfrio_esize; 
+	int			 pfrio_size; 
+	int			 pfrio_size2; 
+	int			 pfrio_nadd; 
+	int			 pfrio_ndel; 
+	int			 pfrio_nchange; 
+	int			 pfrio_flags; 
+	u_int32_t		 pfrio_ticket; 
+}; 
+#define pfrio_exists    pfrio_nadd 
+#define pfrio_nzero     pfrio_nadd 
+#define pfrio_nmatch    pfrio_nadd 
+#define pfrio_naddr     pfrio_size2 
+#define pfrio_setflag   pfrio_size2 
+#define pfrio_clrflag   pfrio_nadd
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRADDTABLES"><code class="Dv" title="Dv" id="DIOCRADDTABLES">DIOCRADDTABLES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Create one or more tables. On entry,
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_table</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements.
+      <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_table</var>. On exit,
+      <var class="Va" title="Va">pfrio_nadd</var> contains the number of tables
+      effectively created.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfr_table { 
+	char		pfrt_anchor[PATH_MAX]; 
+	char		pfrt_name[PF_TABLE_NAME_SIZE]; 
+	u_int32_t	pfrt_flags; 
+	u_int8_t	pfrt_fback; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRDELTABLES"><code class="Dv" title="Dv" id="DIOCRDELTABLES">DIOCRDELTABLES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Delete one or more tables. On entry,
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_table</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements.
+      <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_table</var>. On exit,
+      <var class="Va" title="Va">pfrio_ndel</var> contains the number of tables
+      effectively deleted.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRGETTABLES"><code class="Dv" title="Dv" id="DIOCRGETTABLES">DIOCRGETTABLES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Get the list of all tables. On entry,
+      <var class="Va" title="Va">pfrio_buffer[pfrio_size]</var> contains a valid
+      writeable buffer for <var class="Vt" title="Vt">pfr_table</var>
+      structures. On exit, <var class="Va" title="Va">pfrio_size</var> contains
+      the number of tables written into the buffer. If the buffer is too small,
+      the kernel does not store anything but just returns the required buffer
+      size, without error.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRGETTSTATS"><code class="Dv" title="Dv" id="DIOCRGETTSTATS">DIOCRGETTSTATS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>This call is like <code class="Dv" title="Dv">DIOCRGETTABLES</code> but is
+      used to get an array of <var class="Vt" title="Vt">pfr_tstats</var>
+      structures.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfr_tstats { 
+	struct pfr_table pfrts_t; 
+	u_int64_t	 pfrts_packets 
+			     [PFR_DIR_MAX][PFR_OP_TABLE_MAX]; 
+	u_int64_t	 pfrts_bytes 
+			     [PFR_DIR_MAX][PFR_OP_TABLE_MAX]; 
+	u_int64_t	 pfrts_match; 
+	u_int64_t	 pfrts_nomatch; 
+	time_t		 pfrts_tzero; 
+	int		 pfrts_cnt; 
+	int		 pfrts_refcnt[PFR_REFCNT_MAX]; 
+}; 
+#define pfrts_name	 pfrts_t.pfrt_name 
+#define pfrts_flags	 pfrts_t.pfrt_flags
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRCLRTSTATS"><code class="Dv" title="Dv" id="DIOCRCLRTSTATS">DIOCRCLRTSTATS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Clear the statistics of one or more tables. On entry,
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_table</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements.
+      <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_table</var>. On exit,
+      <var class="Va" title="Va">pfrio_nzero</var> contains the number of tables
+      effectively cleared.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRCLRADDRS"><code class="Dv" title="Dv" id="DIOCRCLRADDRS">DIOCRCLRADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Clear all addresses in a table. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table to clear.
+      On exit, <var class="Va" title="Va">pfrio_ndel</var> contains the number
+      of addresses removed.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRADDADDRS"><code class="Dv" title="Dv" id="DIOCRADDADDRS">DIOCRADDADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Add one or more addresses to a table. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_addr</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements to add to the table.
+      <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_addr</var>. On exit,
+      <var class="Va" title="Va">pfrio_nadd</var> contains the number of
+      addresses effectively added.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfr_addr { 
+	union { 
+		struct in_addr	 _pfra_ip4addr; 
+		struct in6_addr	 _pfra_ip6addr; 
+	}		 pfra_u; 
+	char		 pfra_ifname[IFNAMSIZ]; 
+	u_int32_t	 pfra_states; 
+	u_int16_t	 pfra_weight; 
+	u_int8_t	 pfra_af; 
+	u_int8_t	 pfra_net; 
+	u_int8_t	 pfra_not; 
+	u_int8_t	 pfra_fback; 
+	u_int8_t	 pfra_type; 
+	u_int8_t	 pad[7]; 
+}; 
+#define pfra_ip4addr    pfra_u._pfra_ip4addr 
+#define pfra_ip6addr    pfra_u._pfra_ip6addr
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRDELADDRS"><code class="Dv" title="Dv" id="DIOCRDELADDRS">DIOCRDELADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Delete one or more addresses from a table. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_addr</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements to delete from the
+      table. <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_addr</var>. On exit,
+      <var class="Va" title="Va">pfrio_ndel</var> contains the number of
+      addresses effectively deleted.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRSETADDRS"><code class="Dv" title="Dv" id="DIOCRSETADDRS">DIOCRSETADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Replace the content of a table by a new address list. This is the most
+      complicated command, which uses all the structure members.
+    <div class="Pp"></div>
+    On entry, <var class="Va" title="Va">pfrio_table</var> contains the table ID
+      and <var class="Va" title="Va">pfrio_buffer</var> must point to an array
+      of <var class="Vt" title="Vt">struct pfr_addr</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements which become the new
+      contents of the table. <var class="Vt" title="Vt">pfrio_esize</var> must
+      be the size of <var class="Vt" title="Vt">struct pfr_addr</var>.
+      Additionally, if <var class="Va" title="Va">pfrio_size2</var> is non-zero,
+      <var class="Va" title="Va">pfrio_buffer[pfrio_size..pfrio_size2]</var>
+      must be a writeable buffer, into which the kernel can copy the addresses
+      that have been deleted during the replace operation. On exit,
+      <var class="Va" title="Va">pfrio_ndel</var>,
+      <var class="Va" title="Va">pfrio_nadd</var>, and
+      <var class="Va" title="Va">pfrio_nchange</var> contain the number of
+      addresses deleted, added, and changed by the kernel. If
+      <var class="Va" title="Va">pfrio_size2</var> was set on entry,
+      <var class="Va" title="Va">pfrio_size2</var> will point to the size of the
+      buffer used, exactly like
+      <code class="Dv" title="Dv">DIOCRGETADDRS</code>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRGETADDRS"><code class="Dv" title="Dv" id="DIOCRGETADDRS">DIOCRGETADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Get all the addresses of a table. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer[pfrio_size]</var> contains a valid
+      writeable buffer for <var class="Vt" title="Vt">pfr_addr</var> structures.
+      On exit, <var class="Va" title="Va">pfrio_size</var> contains the number
+      of addresses written into the buffer. If the buffer was too small, the
+      kernel does not store anything but just returns the required buffer size,
+      without returning an error.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRGETASTATS"><code class="Dv" title="Dv" id="DIOCRGETASTATS">DIOCRGETASTATS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>This call is like <code class="Dv" title="Dv">DIOCRGETADDRS</code> but is
+      used to get an array of <var class="Vt" title="Vt">pfr_astats</var>
+      structures.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfr_astats { 
+	struct pfr_addr	 pfras_a; 
+	u_int64_t	 pfras_packets 
+			     [PFR_DIR_MAX][PFR_OP_ADDR_MAX]; 
+	u_int64_t	 pfras_bytes 
+			     [PFR_DIR_MAX][PFR_OP_ADDR_MAX]; 
+	time_t		 pfras_tzero; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRCLRASTATS"><code class="Dv" title="Dv" id="DIOCRCLRASTATS">DIOCRCLRASTATS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Clear the statistics of one or more addresses. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_addr</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements to be cleared from
+      the table. <var class="Vt" title="Vt">pfrio_esize</var> must be the size
+      of <var class="Vt" title="Vt">struct pfr_addr</var>. On exit,
+      <var class="Va" title="Va">pfrio_nzero</var> contains the number of
+      addresses effectively cleared.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRTSTADDRS"><code class="Dv" title="Dv" id="DIOCRTSTADDRS">DIOCRTSTADDRS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Test if the given addresses match a table. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer</var> must point to an array of
+      <var class="Vt" title="Vt">struct pfr_addr</var> containing at least
+      <var class="Vt" title="Vt">pfrio_size</var> elements, each of which will
+      be tested for a match in the table.
+      <var class="Vt" title="Vt">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_addr</var>. On exit, the kernel
+      updates the <var class="Vt" title="Vt">pfr_addr</var> array by setting the
+      <var class="Va" title="Va">pfra_fback</var> member appropriately.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRSETTFLAGS"><code class="Dv" title="Dv" id="DIOCRSETTFLAGS">DIOCRSETTFLAGS</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Change the <code class="Dv" title="Dv">PFR_TFLAG_CONST</code> or
+      <code class="Dv" title="Dv">PFR_TFLAG_PERSIST</code> flags of a table. On
+      entry, <var class="Va" title="Va">pfrio_buffer</var> must point to an
+      array of <var class="Vt" title="Vt">struct pfr_table</var> containing at
+      least <var class="Vt" title="Vt">pfrio_size</var> elements.
+      <var class="Va" title="Va">pfrio_esize</var> must be the size of
+      <var class="Vt" title="Vt">struct pfr_table</var>.
+      <var class="Va" title="Va">pfrio_setflag</var> must contain the flags to
+      add, while <var class="Va" title="Va">pfrio_clrflag</var> must contain the
+      flags to remove. On exit, <var class="Va" title="Va">pfrio_nchange</var>
+      and <var class="Va" title="Va">pfrio_ndel</var> contain the number of
+      tables altered or deleted by the kernel. Yes, tables can be deleted if one
+      removes the <code class="Dv" title="Dv">PFR_TFLAG_PERSIST</code> flag of
+      an unreferenced table.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCRINADEFINE"><code class="Dv" title="Dv" id="DIOCRINADEFINE">DIOCRINADEFINE</code></a>
+    <var class="Fa" title="Fa">struct pfioc_table *io</var></dt>
+  <dd>Defines a table in the inactive set. On entry,
+      <var class="Va" title="Va">pfrio_table</var> contains the table ID and
+      <var class="Va" title="Va">pfrio_buffer[pfrio_size]</var> contains an
+      array of <var class="Vt" title="Vt">pfr_addr</var> structures to put in
+      the table. A valid ticket must also be supplied to
+      <var class="Va" title="Va">pfrio_ticket</var>. On exit,
+      <var class="Va" title="Va">pfrio_nadd</var> contains 0 if the table was
+      already defined in the inactive list or 1 if a new table has been created.
+      <var class="Va" title="Va">pfrio_naddr</var> contains the number of
+      addresses effectively put in the table.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCXBEGIN"><code class="Dv" title="Dv" id="DIOCXBEGIN">DIOCXBEGIN</code></a>
+    <var class="Fa" title="Fa">struct pfioc_trans *io</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_trans { 
+	int		 size;	/* number of elements */ 
+	int		 esize;	/* size of each element in bytes */ 
+	struct pfioc_trans_e { 
+		int		type; 
+		char		anchor[PATH_MAX]; 
+		u_int32_t	ticket; 
+	}		*array; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Clear all the inactive rulesets specified in the
+      <var class="Vt" title="Vt">pfioc_trans_e</var> array. For each ruleset, a
+      ticket is returned for subsequent &quot;add rule&quot; ioctls, as well as
+      for the <code class="Dv" title="Dv">DIOCXCOMMIT</code> and
+      <code class="Dv" title="Dv">DIOCXROLLBACK</code> calls.
+    <div class="Pp"></div>
+    Ruleset types, identified by <var class="Va" title="Va">type</var>, can be
+      one of the following:
+    <div class="Pp"></div>
+    <div class="Bd-indent">
+    <dl class="Bl-tag Bl-compact">
+      <dt><a class="permalink" href="#PF_TRANS_RULESET"><code class="Dv" title="Dv" id="PF_TRANS_RULESET">PF_TRANS_RULESET</code></a></dt>
+      <dd>Filter rules.</dd>
+      <dt><a class="permalink" href="#PF_TRANS_TABLE"><code class="Dv" title="Dv" id="PF_TRANS_TABLE">PF_TRANS_TABLE</code></a></dt>
+      <dd>Address tables.</dd>
+    </dl>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCXCOMMIT"><code class="Dv" title="Dv" id="DIOCXCOMMIT">DIOCXCOMMIT</code></a>
+    <var class="Fa" title="Fa">struct pfioc_trans *io</var></dt>
+  <dd>Atomically switch a vector of inactive rulesets to the active rulesets.
+      This call is implemented as a standard two-phase commit, which will either
+      fail for all rulesets or completely succeed. All tickets need to be valid.
+      This ioctl returns <code class="Er" title="Er">EBUSY</code> if another
+      process is concurrently updating some of the same rulesets.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCXROLLBACK"><code class="Dv" title="Dv" id="DIOCXROLLBACK">DIOCXROLLBACK</code></a>
+    <var class="Fa" title="Fa">struct pfioc_trans *io</var></dt>
+  <dd>Clean up the kernel by undoing all changes that have taken place on the
+      inactive rulesets since the last
+      <code class="Dv" title="Dv">DIOCXBEGIN</code>.
+      <code class="Dv" title="Dv">DIOCXROLLBACK</code> will silently ignore
+      rulesets for which the ticket is invalid.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETHOSTID"><code class="Dv" title="Dv" id="DIOCSETHOSTID">DIOCSETHOSTID</code></a>
+    <var class="Fa" title="Fa">u_int32_t *hostid</var></dt>
+  <dd>Set the host ID, which is used by
+      <a class="Xr" title="Xr" href="/pfsync.4">pfsync(4)</a> to identify which
+      host created state table entries.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCOSFPFLUSH"><code class="Dv" title="Dv" id="DIOCOSFPFLUSH">DIOCOSFPFLUSH</code></a></dt>
+  <dd>Flush the passive OS fingerprint table.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCOSFPADD"><code class="Dv" title="Dv" id="DIOCOSFPADD">DIOCOSFPADD</code></a>
+    <var class="Fa" title="Fa">struct pf_osfp_ioctl *io</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pf_osfp_ioctl { 
+	struct pf_osfp_entry	fp_os; 
+	pf_tcpopts_t		fp_tcpopts;	/* packed TCP options */ 
+	u_int16_t		fp_wsize;	/* TCP window size */ 
+	u_int16_t		fp_psize;	/* ip-&gt;ip_len */ 
+	u_int16_t		fp_mss;		/* TCP MSS */ 
+	u_int16_t		fp_flags; 
+	u_int8_t		fp_optcnt;	/* TCP option count */ 
+	u_int8_t		fp_wscale;	/* TCP window scaling */ 
+	u_int8_t		fp_ttl;		/* IPv4 TTL */ 
+ 
+	int			fp_getnum;	/* DIOCOSFPGET number */ 
+}; 
+ 
+struct pf_osfp_entry { 
+	SLIST_ENTRY(pf_osfp_entry) fp_entry; 
+	pf_osfp_t		fp_os; 
+	int			fp_enflags; 
+#define PF_OSFP_EXPANDED	0x001		/* expanded entry */ 
+#define PF_OSFP_GENERIC		0x002		/* generic signature */ 
+#define PF_OSFP_NODETAIL	0x004		/* no p0f details */ 
+#define PF_OSFP_LEN	32 
+	u_char			fp_class_nm[PF_OSFP_LEN]; 
+	u_char			fp_version_nm[PF_OSFP_LEN]; 
+	u_char			fp_subtype_nm[PF_OSFP_LEN]; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Add a passive OS fingerprint to the table. Set
+      <var class="Va" title="Va">fp_os.fp_os</var> to the packed fingerprint,
+      <var class="Va" title="Va">fp_os.fp_class_nm</var> to the name of the
+      class (Linux, Windows, etc),
+      <var class="Va" title="Va">fp_os.fp_version_nm</var> to the name of the
+      version (NT, 95, 98), and
+      <var class="Va" title="Va">fp_os.fp_subtype_nm</var> to the name of the
+      subtype or patchlevel. The members
+      <var class="Va" title="Va">fp_mss</var>,
+      <var class="Va" title="Va">fp_wsize</var>,
+      <var class="Va" title="Va">fp_psize</var>,
+      <var class="Va" title="Va">fp_ttl</var>,
+      <var class="Va" title="Va">fp_optcnt</var>, and
+      <var class="Va" title="Va">fp_wscale</var> are set to the TCP MSS, the TCP
+      window size, the IP length, the IP TTL, the number of TCP options, and the
+      TCP window scaling constant of the TCP SYN packet, respectively.
+    <div class="Pp"></div>
+    The <var class="Va" title="Va">fp_flags</var> member is filled according to
+      the
+      <code class="In" title="In">&lt;<a class="In" title="In">net/pfvar.h</a>&gt;</code>
+      include file <code class="Dv" title="Dv">PF_OSFP_*</code> defines. The
+      <var class="Va" title="Va">fp_tcpopts</var> member contains packed TCP
+      options. Each option uses
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_BITS</code> bits in the packed
+      value. Options include any of
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_NOP</code>,
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_SACK</code>,
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_WSCALE</code>,
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_MSS</code>, or
+      <code class="Dv" title="Dv">PF_OSFP_TCPOPT_TS</code>.
+    <div class="Pp"></div>
+    The <var class="Va" title="Va">fp_getnum</var> member is not used with this
+      ioctl.
+    <div class="Pp"></div>
+    The structure's slack space must be zeroed for correct operation;
+      <a class="Xr" title="Xr" href="/memset.3">memset(3)</a> the whole
+      structure to zero before filling and sending to the kernel.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCOSFPGET"><code class="Dv" title="Dv" id="DIOCOSFPGET">DIOCOSFPGET</code></a>
+    <var class="Fa" title="Fa">struct pf_osfp_ioctl *io</var></dt>
+  <dd>Get the passive OS fingerprint number
+      <var class="Va" title="Va">fp_getnum</var> from the kernel's fingerprint
+      list. The rest of the structure members will come back filled. Get the
+      whole list by repeatedly incrementing the
+      <var class="Va" title="Va">fp_getnum</var> number until the ioctl returns
+      <code class="Er" title="Er">EBUSY</code>.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCGETSRCNODES"><code class="Dv" title="Dv" id="DIOCGETSRCNODES">DIOCGETSRCNODES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_src_nodes *psn</var></dt>
+  <dd>
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_src_nodes { 
+	int	psn_len; 
+	union { 
+		caddr_t		psu_buf; 
+		struct pf_src_node	*psu_src_nodes; 
+	} psn_u; 
+#define psn_buf		psn_u.psu_buf 
+#define psn_src_nodes	psn_u.psu_src_nodes 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    Get the list of source nodes kept by sticky addresses and source tracking.
+      The ioctl must be called once with
+      <var class="Va" title="Va">psn_len</var> set to 0. If the ioctl returns
+      without error, <var class="Va" title="Va">psn_len</var> will be set to the
+      size of the buffer required to hold all the
+      <var class="Va" title="Va">pf_src_node</var> structures held in the table.
+      A buffer of this size should then be allocated, and a pointer to this
+      buffer placed in <var class="Va" title="Va">psn_buf</var>. The ioctl must
+      then be called again to fill this buffer with the actual source node data.
+      After that call, <var class="Va" title="Va">psn_len</var> will be set to
+      the length of the buffer actually used.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCCLRSRCNODES"><code class="Dv" title="Dv" id="DIOCCLRSRCNODES">DIOCCLRSRCNODES</code></a></dt>
+  <dd>Clear the tree of source tracking nodes.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCIGETIFACES"><code class="Dv" title="Dv" id="DIOCIGETIFACES">DIOCIGETIFACES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_iface *io</var></dt>
+  <dd>Get the list of interfaces and interface drivers known to
+      <code class="Nm" title="Nm">pf</code>. All the ioctls that manipulate
+      interfaces use the same structure described below:
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_iface { 
+	char			 pfiio_name[IFNAMSIZ]; 
+	void			*pfiio_buffer; 
+	int			 pfiio_esize; 
+	int			 pfiio_size; 
+	int			 pfiio_nzero; 
+	int			 pfiio_flags; 
+};
+    </pre>
+    </div>
+    <div class="Pp"></div>
+    If not empty, <var class="Va" title="Va">pfiio_name</var> can be used to
+      restrict the search to a specific interface or driver.
+      <var class="Va" title="Va">pfiio_buffer[pfiio_size]</var> is the
+      user-supplied buffer for returning the data. On entry,
+      <var class="Va" title="Va">pfiio_size</var> contains the number of
+      <var class="Vt" title="Vt">pfi_kif</var> entries that can fit into the
+      buffer. The kernel will replace this value by the real number of entries
+      it wants to return. <var class="Va" title="Va">pfiio_esize</var> should be
+      set to <code class="Li">sizeof(struct pfi_kif)</code>.
+    <div class="Pp"></div>
+    The data is returned in the <var class="Vt" title="Vt">pfi_kif</var>
+      structure described below:
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfi_kif { 
+	char				 pfik_name[IFNAMSIZ]; 
+	RB_ENTRY(pfi_kif)		 pfik_tree; 
+	u_int64_t			 pfik_packets[2][2][2]; 
+	u_int64_t			 pfik_bytes[2][2][2]; 
+	time_t				 pfik_tzero; 
+	int				 pfik_flags; 
+	int				 pfik_flags_new; 
+	void				*pfik_ah_cookie; 
+	struct ifnet			*pfik_ifp; 
+	struct ifg_group		*pfik_group; 
+	int				 pfik_states; 
+	int				 pfik_rules; 
+	int				 pfik_routes; 
+	TAILQ_HEAD(, pfi_dynaddr)	 pfik_dynaddrs; 
+};
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETSTATUSIF"><code class="Dv" title="Dv" id="DIOCSETSTATUSIF">DIOCSETSTATUSIF</code></a>
+    <var class="Fa" title="Fa">struct pfioc_iface *pi</var></dt>
+  <dd>Specify the interface for which statistics are accumulated.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCSETIFFLAG"><code class="Dv" title="Dv" id="DIOCSETIFFLAG">DIOCSETIFFLAG</code></a>
+    <var class="Fa" title="Fa">struct pfioc_iface *io</var></dt>
+  <dd>Set the user settable flags (described above) of the
+      <code class="Nm" title="Nm">pf</code> internal interface description. The
+      filtering process is the same as for
+      <code class="Dv" title="Dv">DIOCIGETIFACES</code>.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+#define PFI_IFLAG_SKIP	0x0100	/* skip filtering on interface */
+    </pre>
+    </div>
+  </dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCCLRIFFLAG"><code class="Dv" title="Dv" id="DIOCCLRIFFLAG">DIOCCLRIFFLAG</code></a>
+    <var class="Fa" title="Fa">struct pfioc_iface *io</var></dt>
+  <dd>Works as <code class="Dv" title="Dv">DIOCSETIFFLAG</code> above but clears
+      the flags.</dd>
+  <dt>&#x00A0;</dt>
+  <dd>&#x00A0;</dd>
+  <dt><a class="permalink" href="#DIOCKILLSRCNODES"><code class="Dv" title="Dv" id="DIOCKILLSRCNODES">DIOCKILLSRCNODES</code></a>
+    <var class="Fa" title="Fa">struct pfioc_src_node_kill *psnk</var></dt>
+  <dd>Explicitly remove source tracking nodes.
+    <div class="Pp"></div>
+    <div class="Bd">
+    <pre class="Li">
+struct pfioc_src_node_kill { 
+	sa_family_t		 psnk_af; 
+	struct pf_rule_addr	 psnk_src; 
+	struct pf_rule_addr	 psnk_dst; 
+	u_int			 psnk_killed; 
+};
+    </pre>
+    </div>
+  </dd>
+</dl>
+<h1 class="Sh" title="Sh" id="FILES"><a class="permalink" href="#FILES">FILES</a></h1>
+<dl class="Bl-tag Bl-compact">
+  <dt><span class="Pa" title="Pa">/dev/pf</span></dt>
+  <dd>packet filtering device.</dd>
+</dl>
+<h1 class="Sh" title="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+The following example demonstrates how to use the
+  <code class="Dv" title="Dv">DIOCGETLIMIT</code> command to show the hard limit
+  of a memory pool used by the packet filter:
+<div class="Pp"></div>
+<div class="Bd">
+<pre class="Li">
+#include &lt;sys/types.h&gt; 
+#include &lt;sys/socket.h&gt; 
+#include &lt;sys/ioctl.h&gt; 
+#include &lt;sys/fcntl.h&gt; 
+ 
+#include &lt;netinet/in.h&gt; 
+#include &lt;net/if.h&gt; 
+#include &lt;net/pfvar.h&gt; 
+ 
+#include &lt;err.h&gt; 
+#include &lt;limits.h&gt; 
+#include &lt;stdio.h&gt; 
+#include &lt;stdlib.h&gt; 
+#include &lt;string.h&gt; 
+ 
+static const struct { 
+	const char	*name; 
+	int		index; 
+} pf_limits[] = { 
+	{ &quot;states&quot;,		PF_LIMIT_STATES }, 
+	{ &quot;src-nodes&quot;,		PF_LIMIT_SRC_NODES }, 
+	{ &quot;frags&quot;,		PF_LIMIT_FRAGS }, 
+	{ &quot;tables&quot;,		PF_LIMIT_TABLES }, 
+	{ &quot;table-entries&quot;,	PF_LIMIT_TABLE_ENTRIES }, 
+	{ NULL,			0 } 
+}; 
+ 
+void 
+usage(void) 
+{ 
+	int i; 
+ 
+	fprintf(stderr, &quot;usage: %s [&quot;, getprogname()); 
+	for (i = 0; pf_limits[i].name; i++) 
+		fprintf(stderr, &quot;%s%s&quot;, (i &gt; 0 ? &quot;|&quot; : &quot;&quot;), pf_limits[i].name); 
+	fprintf(stderr, &quot;]\n&quot;); 
+	exit(1); 
+} 
+ 
+int 
+main(int argc, char *argv[]) 
+{ 
+	struct pfioc_limit pl; 
+	int i, dev; 
+	int pool_index = -1; 
+ 
+	if (argc != 2) 
+		usage(); 
+ 
+	for (i = 0; pf_limits[i].name; i++) 
+		if (strcmp(argv[1], pf_limits[i].name) == 0) { 
+			pool_index = pf_limits[i].index; 
+			break; 
+		} 
+ 
+	if (pool_index == -1) { 
+		warnx(&quot;no such memory pool: %s&quot;, argv[1]); 
+		usage(); 
+	} 
+ 
+	dev = open(&quot;/dev/pf&quot;, O_RDWR); 
+	if (dev == -1) 
+		err(1, &quot;open(\&quot;/dev/pf\&quot;) failed&quot;); 
+ 
+	memset(&amp;pl, 0, sizeof(struct pfioc_limit)); 
+	pl.index = pool_index; 
+ 
+	if (ioctl(dev, DIOCGETLIMIT, &amp;pl) == -1) 
+		err(1, &quot;DIOCGETLIMIT&quot;); 
+ 
+	printf(&quot;The %s memory pool has &quot;, pf_limits[i].name); 
+	if (pl.limit == UINT_MAX) 
+		printf(&quot;unlimited entries.\n&quot;); 
+	else 
+		printf(&quot;a hard limit of %u entries.\n&quot;, pl.limit); 
+ 
+	return 0; 
+}
+</pre>
+</div>
+<h1 class="Sh" title="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<a class="Xr" title="Xr" href="/ioctl.2">ioctl(2)</a>,
+  <a class="Xr" title="Xr" href="/bridge.4">bridge(4)</a>,
+  <a class="Xr" title="Xr" href="/pflog.4">pflog(4)</a>,
+  <a class="Xr" title="Xr" href="/pflow.4">pflow(4)</a>,
+  <a class="Xr" title="Xr" href="/pfsync.4">pfsync(4)</a>,
+  <a class="Xr" title="Xr" href="/pf.conf.5">pf.conf(5)</a>,
+  <a class="Xr" title="Xr" href="/pfctl.8">pfctl(8)</a>
+<h1 class="Sh" title="Sh" id="HISTORY"><a class="permalink" href="#HISTORY">HISTORY</a></h1>
+The <code class="Nm" title="Nm">pf</code> packet filtering mechanism first
+  appeared in <span class="Ux">OpenBSD 3.0</span>.</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">October 12, 2017</td>
+    <td class="foot-os">OpenBSD-current</td>
+  </tr>
+</table>
+</body>
+</html>
