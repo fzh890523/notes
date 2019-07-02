@@ -113,3 +113,7 @@ ssh user@host 'bash -s' < /path/script.sh
 
 
 
+## 指定端口： -p ${port}
+
+
+

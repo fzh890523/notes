@@ -1,0 +1,350 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="robots" content="index,nofollow">
+
+<title>Kernel/Systemtap - Ubuntu Wiki</title>
+<script type="text/javascript" src="/moin_static198/common/js/common.js"></script>
+
+<script type="text/javascript">
+<!--
+var search_hint = "搜索";
+//-->
+</script>
+
+
+<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static198/light/css/common.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static198/light/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="print" href="/moin_static198/light/css/print.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="projection" href="/moin_static198/light/css/projection.css">
+
+<!-- css only for MS IE6/IE7 browsers -->
+<!--[if lt IE 8]>
+   <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static198/light/css/msie.css">
+<![endif]-->
+
+
+<link rel="alternate" title="Ubuntu Wiki: Kernel/Systemtap" href="/Kernel/Systemtap?diffs=1&amp;show_att=1&amp;action=rss_rc&amp;unique=0&amp;page=Kernel%2FSystemtap&amp;ddiffs=1" type="application/rss+xml">
+
+
+<link rel="Start" href="/Home">
+<link rel="Alternate" title="维基标记" href="/Kernel/Systemtap?action=raw">
+<link rel="Alternate" media="print" title="打印视图" href="/Kernel/Systemtap?action=print">
+<link rel="Up" href="/Kernel">
+<link rel="Search" href="/FindPage">
+<link rel="Index" href="/TitleIndex">
+<link rel="Glossary" href="/WordIndex">
+<link rel="Help" href="/HelpOnFormatting">
+</head>
+
+<body  lang="zh" dir="ltr">
+
+<!-- BEGIN HEADER -->
+<div id="wrapper" class="hfeed">
+<div id="header">
+    <ul id="mothership">
+        <li> <a href="http://www.ubuntu.com/partners">Partners</a> </li>
+        <li> <a href="http://www.ubuntu.com/support">Support</a> </li>
+        <li> <a href="http://www.ubuntu.com/community">Community</a> </li>
+        <li> <a href="http://www.ubuntu.com">Ubuntu.com</a> </li>
+    </ul>
+
+    <div id="orangeHeader">
+        <h1> <a href="/" title="Ubuntu Wiki"><span>Ubuntu Wiki</span></a> </h1>
+            <div id="search-box">
+
+<form id="searchform" method="get" action="/Kernel/Systemtap">
+<div>
+<input type="hidden" name="action" value="fullsearch">
+<input type="hidden" name="context" value="180">
+<label for="searchinput">搜索：</label>
+<input id="searchinput" type="text" name="value" value="" size="20"
+    onfocus="searchFocus(this)" onblur="searchBlur(this)"
+    onkeyup="searchChange(this)" onchange="searchChange(this)" alt="Search">
+<input id="titlesearch" name="titlesearch" type="submit"
+    value="标题" alt="Search Titles">
+<input id="fullsearch" name="fullsearch" type="submit"
+    value="正文" alt="Search Full Text">
+</div>
+</form>
+<script type="text/javascript">
+<!--// Initialize search form
+var f = document.getElementById('searchform');
+f.getElementsByTagName('label')[0].style.display = 'none';
+var e = document.getElementById('searchinput');
+searchChange(e);
+searchBlur(e);
+//-->
+</script>
+
+
+            </div>
+    </div>
+
+</div>
+    <div id="wikinav"> 
+<ul class="editbar"><li><span class="disabled">只读网页</span></li><li><a class="nbinfo" href="/Kernel/Systemtap?action=info" rel="nofollow">信息</a></li><li><a class="nbattachments" href="/Kernel/Systemtap?action=AttachFile" rel="nofollow">附件</a></li><li>
+<form class="actionsmenu" method="GET" action="/Kernel/Systemtap">
+<div>
+    <label>更多操作：</label>
+    <select name="action"
+        onchange="if ((this.selectedIndex != 0) &&
+                      (this.options[this.selectedIndex].disabled == false)) {
+                this.form.submit();
+            }
+            this.selectedIndex = 0;">
+        <option value="raw">源码</option>
+<option value="print">打印视图</option>
+<option value="RenderAsDocbook">输出Docbook格式</option>
+<option value="refresh">删除缓存</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="SpellCheck">拼写检查</option>
+<option value="LikePages">相似网页</option>
+<option value="LocalSiteMap">本站地图</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="RenamePage" disabled class="disabled">改名</option>
+<option value="CopyPage">复制网页</option>
+<option value="DeletePage" disabled class="disabled">删除</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="show" disabled class="disabled">订阅</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="show" disabled class="disabled">删除垃圾广告</option>
+<option value="show" disabled class="disabled">恢复成此版本</option>
+<option value="PackagePages">网页打包</option>
+<option value="SyncPages">同步网页</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="Load">加载</option>
+<option value="Save">保存</option>
+<option value="SlideShow">SlideShow</option>
+    </select>
+    <input type="submit" value="执行">
+    
+</div>
+<script type="text/javascript">
+<!--// Init menu
+actionsMenuInit('更多操作：');
+//-->
+</script>
+</form>
+</li></ul>
+
+<ul id="username">
+<li><a href="/Home">Ubuntu Wiki</a></li>
+<li><a href="?action=login">登录</a></li>
+<li><a href="/HelpContents">Help</a></li>
+</ul>
+
+        <hr class="clearBoth" />
+    </div>
+    
+	<div id="main"> 
+		<div id="container">
+			<div id="content">
+		<h2 class="entry-title"> 
+<span><a href="/Kernel/Systemtap">Systemtap</a></span>
+</h2>
+	<div class="hentry post">
+               
+
+<div id="page" lang="en" dir="ltr">
+
+<!-- END HEADER --><div dir="ltr" id="content" lang="en"><span class="anchor" id="top"></span>
+<span class="anchor" id="line-1"></span><span class="anchor" id="line-2"></span><span class="anchor" id="line-3"></span><p class="line867"><div dir="ltr" id="KernelTeamHeader.content" lang="en"><span class="anchor" id="KernelTeamHeader.top"></span>
+<span class="anchor" id="KernelTeamHeader.line-1"></span><p class="line867"><div dir="ltr" id="Kernel.2FMenuBar.content" lang="en"><span class="anchor" id="Kernel.2FMenuBar.top"></span>
+<span class="anchor" id="Kernel.2FMenuBar.line-1"></span><span class="anchor" id="Kernel.2FMenuBar.line-2"></span><div><table style="width:100%;"><tbody><tr>  <td style="width: 40px;  border: none;  -moz-border-radius-topleft: 15px ; -moz-border-radius-bottomleft: 15px;  background-color: #F1F1DD;"><p class="line891"><img alt="IconsPage/iconCircle48.png" class="attachment" src="/IconsPage?action=AttachFile&amp;do=get&amp;target=iconCircle48.png" title="IconsPage/iconCircle48.png" /></td>
+  <td style="width: 20%;  border: none;  -moz-border-radius-topright: 15px; -moz-border-radius-bottomright: 15px;  font-size: 0.90em;  background-color: #F1F1DD;"><p class="line891"><a href="/Kernel">Ubuntu Kernel Main</a></td>
+  <td colspan="2" style="border:none; text-align: center"></td>
+  <td style="width: 40px;  border: none;  -moz-border-radius-topleft: 15px ; -moz-border-radius-bottomleft: 15px;  background-color: #F1F1DD;"><p class="line891"><img alt="information.png" class="attachment" src="/Kernel/MenuBar?action=AttachFile&amp;do=get&amp;target=information.png" title="information.png" /></td>
+  <td style="width: 20%;  border: none;  -moz-border-radius-topright: 15px; -moz-border-radius-bottomright: 15px;  font-size: 0.90em;  background-color: #F1F1DD;"><p class="line891"><a href="/Kernel/Debugging">Kernel Debugging</a></td>
+  <td colspan="2" style="border:none; text-align: center"></td>
+  <td style="width: 40px;  border: none;  -moz-border-radius-topleft: 15px ; -moz-border-radius-bottomleft: 15px;  background-color: #F1F1DD;"><p class="line891"><img alt="IconsPage/IconBug.png" class="attachment" src="/IconsPage?action=AttachFile&amp;do=get&amp;target=IconBug.png" title="IconsPage/IconBug.png" /></td>
+  <td style="width: 20%;  border: none;  -moz-border-radius-topright: 15px; -moz-border-radius-bottomright: 15px;  font-size: 0.90em;  background-color: #F1F1DD;"><p class="line891"><a href="/Kernel/BugTriage">Bug Triage</a></td>
+  <td colspan="2" style="border:none; text-align: center"></td>
+  <td style="width: 40px;  border: none;  -moz-border-radius-topleft: 15px ; -moz-border-radius-bottomleft: 15px;  background-color: #F1F1DD;"><p class="line891"><img alt="testing.png" class="attachment" src="/Kernel/MenuBar?action=AttachFile&amp;do=get&amp;target=testing.png" title="testing.png" /></td>
+  <td style="width: 20%;  border: none;  -moz-border-radius-topright: 15px; -moz-border-radius-bottomright: 15px;  font-size: 0.90em;  background-color: #F1F1DD;"><p class="line891"><a href="/Kernel/Dev">Kernel Development</a></td>
+  <td colspan="2" style="border:none; text-align: center"></td>
+  <td style="width: 40px;  border: none;  -moz-border-radius-topleft: 15px ; -moz-border-radius-bottomleft: 15px;  background-color: #F1F1DD;"><p class="line891"><img alt="todo.png" class="attachment" src="/Kernel/MenuBar?action=AttachFile&amp;do=get&amp;target=todo.png" title="todo.png" /></td>
+  <td style="width: 20%;  border: none;  -moz-border-radius-topright: 15px; -moz-border-radius-bottomright: 15px;  font-size: 0.90em;  background-color: #F1F1DD;"><p class="line891"><a href="/Kernel/FAQ">Frequently Asked Questions</a></td>
+</tr>
+</tbody></table></div><span class="anchor" id="Kernel.2FMenuBar.line-3"></span><span class="anchor" id="Kernel.2FMenuBar.bottom"></span></div> <span class="anchor" id="KernelTeamHeader.line-2"></span><span class="anchor" id="KernelTeamHeader.line-3"></span><p class="line867"><span class="anchor" id="KernelTeamHeader.line-4"></span><span class="anchor" id="KernelTeamHeader.bottom"></span></div> <span class="anchor" id="line-4"></span><div><table style="float:right;  font-size: 0.9em;  width:40%;  background:#F1F1ED;  margin: 0 0 1em 1em;"><tbody><tr>  <td style="padding:0.5em;"><p class="line891"><div class="table-of-contents"><p class="table-of-contents-heading">目录<ol><li>
+<a href="#Overview">Overview</a></li><li>
+<a href="#Basics">Basics</a></li><li>
+<a href="#Systemtap_Installation">Systemtap Installation</a></li><li>
+<a href="#Where_to_get_debug_symbols_for_kernel_X.3F">Where to get debug symbols for kernel X?</a><ol><li>
+<a href="#GPG_key_import">GPG key import</a></li><li>
+<a href="#Add_repository_config">Add repository config</a></li></ol></li><li>
+<a href="#How_do_I_build_a_debuginfo_kernel_if_one_isn.27t_available.3F">How do I build a debuginfo kernel if one isn't available?</a></li><li>
+<a href="#Work_around_broken_dbgsym_file_layout_so_kernel_and_module_probe_points_work">Work around broken dbgsym file layout so kernel and module probe points work</a></li><li>
+<a href="#List_all_functions_that_are_accessible_by_systemtap">List all functions that are accessible by systemtap</a></li><li>
+<a href="#Determine_local_variables_available_at_probe_point">Determine local variables available at probe point</a></li><li>
+<a href="#Easily_grab_a_functions_argument_list_and_return_value">Easily grab a functions argument list and return value</a></li><li>
+<a href="#Basic_syslog_integration">Basic syslog integration</a></li><li>
+<a href="#Aggregate_probe_points_for_easier_book_keeping">Aggregate probe points for easier book keeping</a></li><li>
+<a href="#Get_the_absolute_address_of_a_kernel_routine">Get the absolute address of a kernel routine</a></li><li>
+<a href="#Disassembling_the_kernel_and_related_modules_correctly">Disassembling the kernel and related modules correctly</a></li></ol></li></ol></div></td>
+</tr>
+</tbody></table></div><span class="anchor" id="line-5"></span><span class="anchor" id="line-6"></span><span class="anchor" id="line-7"></span><p class="line867">
+<h2 id="Overview">Overview</h2>
+<span class="anchor" id="line-8"></span><p class="line874">Systemtap allows you harness both static and dynamic <span class="anchor" id="line-9"></span>instrumentation without recompiling your code. It can perform simple things like dynamically <span class="anchor" id="line-10"></span>inserting a printk anywhere, or changing a critical data structure of the kernel (guru mode). <span class="anchor" id="line-11"></span>All operations are performed as root (shell prompt of #). While Systemtap has many safeguards <span class="anchor" id="line-12"></span>in place to sandbox dangerous, system crashing actions, it's not infallible. Proceed at your <span class="anchor" id="line-13"></span>own risk. <span class="anchor" id="line-14"></span><span class="anchor" id="line-15"></span><ul><li><p class="line891"><a class="http" href="http://sourceware.org/systemtap/">http://sourceware.org/systemtap/</a> <span class="anchor" id="line-16"></span></li><li><p class="line891"><a class="http" href="http://sourceware.org/systemtap/wiki/SystemtapOnUbuntu">http://sourceware.org/systemtap/wiki/SystemtapOnUbuntu</a> <span class="anchor" id="line-17"></span></li><li><p class="line891"><a class="http" href="http://sourceware.org/systemtap/wiki">http://sourceware.org/systemtap/wiki</a> <span class="anchor" id="line-18"></span></li><li><p class="line891"><a class="http" href="http://sourceware.org/systemtap/wiki/WarStories">http://sourceware.org/systemtap/wiki/WarStories</a> <span class="anchor" id="line-19"></span></li><li>git clone git://kernel.ubuntu.com/cking/systemtap-scripts.git <span class="anchor" id="line-20"></span></li><li>git clone git://kernel.ubuntu.com/ppetraki/manza-tapset.git <span class="anchor" id="line-21"></span></li><li>bzr branch lp:~peter-petrakis/+junk/systemtap-infosession <span class="anchor" id="line-22"></span></li><li><p class="line891"><a class="http" href="http://smackerelofopinion.blogspot.com/search/label/systemtap">Colin King's Systemtap musings</a> <span class="anchor" id="line-23"></span><span class="anchor" id="line-24"></span></li></ul><p class="line867">
+<h2 id="Basics">Basics</h2>
+<span class="anchor" id="line-25"></span><ul><li>Awk/C like language, gets the job done <span class="anchor" id="line-26"></span></li><li>Embedded C mode aka "guru mode" <span class="anchor" id="line-27"></span></li><li><p class="line862">Reference <a class="http" href="http://sourceware.org/systemtap/langref/">http://sourceware.org/systemtap/langref/</a> <span class="anchor" id="line-28"></span><span class="anchor" id="line-29"></span></li></ul><p class="line867">
+<h2 id="Systemtap_Installation">Systemtap Installation</h2>
+<span class="anchor" id="line-30"></span><p class="line867"><span class="anchor" id="line-31"></span><span class="anchor" id="line-32"></span><pre><span class="anchor" id="line-1"></span>$ sudo apt-get install -y systemtap gcc</pre><span class="anchor" id="line-33"></span><span class="anchor" id="line-34"></span><p class="line867">
+<h2 id="Where_to_get_debug_symbols_for_kernel_X.3F">Where to get debug symbols for kernel X?</h2>
+<span class="anchor" id="line-35"></span><span class="anchor" id="line-36"></span><ul><li><p class="line891"><a class="http" href="http://ddebs.ubuntu.com/pool/main/l/linux/">http://ddebs.ubuntu.com/pool/main/l/linux/</a> <span class="anchor" id="line-37"></span></li></ul><p class="line867">
+<h3 id="GPG_key_import">GPG key import</h3>
+<span class="anchor" id="line-38"></span><ul><li>16.04 and higher <span class="anchor" id="line-39"></span><span class="anchor" id="line-40"></span></li></ul><p class="line867"><tt>&nbsp;sudo&nbsp;apt-key&nbsp;adv&nbsp;--keyserver&nbsp;keyserver.ubuntu.com&nbsp;--recv-keys&nbsp;C8CAB6595FDFF622&nbsp;</tt> <span class="anchor" id="line-41"></span><span class="anchor" id="line-42"></span><ul><li>older distributions <span class="anchor" id="line-43"></span><span class="anchor" id="line-44"></span></li></ul><p class="line867"><tt>&nbsp;sudo&nbsp;apt-key&nbsp;adv&nbsp;--keyserver&nbsp;keyserver.ubuntu.com&nbsp;--recv-keys&nbsp;ECDCAD72428D7C01&nbsp;</tt> <span class="anchor" id="line-45"></span><span class="anchor" id="line-46"></span><p class="line867">
+<h3 id="Add_repository_config">Add repository config</h3>
+<span class="anchor" id="line-47"></span><p class="line867"><span class="anchor" id="line-48"></span><span class="anchor" id="line-49"></span><span class="anchor" id="line-50"></span><span class="anchor" id="line-51"></span><span class="anchor" id="line-52"></span><span class="anchor" id="line-53"></span><span class="anchor" id="line-54"></span><span class="anchor" id="line-55"></span><span class="anchor" id="line-56"></span><span class="anchor" id="line-57"></span><span class="anchor" id="line-58"></span><pre><span class="anchor" id="line-1-1"></span>codename=$(lsb_release -c | awk  '{print $2}')
+<span class="anchor" id="line-2"></span>sudo tee /etc/apt/sources.list.d/ddebs.list &lt;&lt; EOF
+<span class="anchor" id="line-3"></span>deb http://ddebs.ubuntu.com/ ${codename}      main restricted universe multiverse
+<span class="anchor" id="line-4"></span>deb http://ddebs.ubuntu.com/ ${codename}-security main restricted universe multiverse
+<span class="anchor" id="line-5"></span>deb http://ddebs.ubuntu.com/ ${codename}-updates  main restricted universe multiverse
+<span class="anchor" id="line-6"></span>deb http://ddebs.ubuntu.com/ ${codename}-proposed main restricted universe multiverse
+<span class="anchor" id="line-7"></span>EOF
+<span class="anchor" id="line-8"></span>
+<span class="anchor" id="line-9"></span>sudo apt-get update
+<span class="anchor" id="line-10"></span>sudo apt-get install linux-image-$(uname -r)-dbgsym</pre><span class="anchor" id="line-59"></span><span class="anchor" id="line-60"></span><p class="line867">
+<h2 id="How_do_I_build_a_debuginfo_kernel_if_one_isn.27t_available.3F">How do I build a debuginfo kernel if one isn't available?</h2>
+<span class="anchor" id="line-61"></span><ul><li><p class="line862">Getting the <a class="https" href="https://wiki.ubuntu.com/KernelTeam/KernelGitGuide">sources</a> and compiling the <a class="https" href="https://help.ubuntu.com/community/Kernel/Compile">kernel</a> on Ubuntu. <span class="anchor" id="line-62"></span></li></ul><p class="line867"><span class="anchor" id="line-63"></span><span class="anchor" id="line-64"></span><span class="anchor" id="line-65"></span><span class="anchor" id="line-66"></span><span class="anchor" id="line-67"></span><span class="anchor" id="line-68"></span><span class="anchor" id="line-69"></span><span class="anchor" id="line-70"></span><span class="anchor" id="line-71"></span><span class="anchor" id="line-72"></span><span class="anchor" id="line-73"></span><span class="anchor" id="line-74"></span><pre><span class="anchor" id="line-1-2"></span>$ cd $HOME
+<span class="anchor" id="line-2-1"></span>$ sudo apt-get install dpkg-dev debhelper gawk
+<span class="anchor" id="line-3-1"></span>$ mkdir tmp
+<span class="anchor" id="line-4-1"></span>$ cd tmp
+<span class="anchor" id="line-5-1"></span>$ sudo apt-get build-dep --no-install-recommends linux-image-$(uname -r)
+<span class="anchor" id="line-6-1"></span>$ apt-get source linux-image-$(uname -r)
+<span class="anchor" id="line-7-1"></span>$ cd linux-2.6.31 (this is currently the kernel version of 9.10)
+<span class="anchor" id="line-8-1"></span>$ fakeroot debian/rules clean
+<span class="anchor" id="line-9-1"></span>$ AUTOBUILD=1 fakeroot debian/rules binary-generic skipdbg=false
+<span class="anchor" id="line-10-1"></span>$ sudo dpkg -i ../linux-image-debug-2.6.31-19-generic_2.6.31-19.56_amd64.ddeb</pre><span class="anchor" id="line-75"></span><span class="anchor" id="line-76"></span><span class="anchor" id="line-77"></span><p class="line867">
+<h2 id="Work_around_broken_dbgsym_file_layout_so_kernel_and_module_probe_points_work">Work around broken dbgsym file layout so kernel and module probe points work</h2>
+<span class="anchor" id="line-78"></span><p class="line874">Systemtap having been developed at RH is predisposed to their layout for kernel <span class="anchor" id="line-79"></span>debug symbols. Typically, everything is installed under /usr/lib/debug/&lt;kernel ver&gt;, what <span class="anchor" id="line-80"></span>debian/ubuntu does is split the kernel proper and the modules into two separate directories. <span class="anchor" id="line-81"></span>Not only that, elfutils actually looks for modules with a .debug extension e.g. psmouse.ko.debug, <span class="anchor" id="line-82"></span>as a result, even though it's searching in the right place, the expected file name is wrong, <span class="anchor" id="line-83"></span>causing stap to fail when probing modules. <span class="anchor" id="line-84"></span><span class="anchor" id="line-85"></span><p class="line862">Run the following script <strong>as root</strong> to setup your debug symbols each time you install a <span class="anchor" id="line-86"></span>kernel ddeb. Eventually this will integrated into the main package. <strong>Note</strong> unlike <span class="anchor" id="line-87"></span>previous workarounds, this doesn't touch your real modules /lib/modules. <span class="anchor" id="line-88"></span><span class="anchor" id="line-89"></span><p class="line862">This issue is tracked <strong>[fix released: quantal, precise]</strong> by: <a class="https" href="https://bugs.launchpad.net/ubuntu/+source/systemtap/+bug/669641">https://bugs.launchpad.net/ubuntu/+source/systemtap/+bug/669641</a> <span class="anchor" id="line-90"></span><span class="anchor" id="line-91"></span><p class="line867"><span class="anchor" id="line-92"></span><span class="anchor" id="line-93"></span><pre><span class="anchor" id="line-1-3"></span># apt-get install -y elfutils</pre><span class="anchor" id="line-94"></span><p class="line867"><span class="anchor" id="line-95"></span><span class="anchor" id="line-96"></span><span class="anchor" id="line-97"></span><span class="anchor" id="line-98"></span><span class="anchor" id="line-99"></span><span class="anchor" id="line-100"></span><span class="anchor" id="line-101"></span><span class="anchor" id="line-102"></span><span class="anchor" id="line-103"></span><span class="anchor" id="line-104"></span><span class="anchor" id="line-105"></span><span class="anchor" id="line-106"></span><pre><span class="anchor" id="line-1-4"></span>for file in `find /usr/lib/debug -name '*.ko' -print`
+<span class="anchor" id="line-2-2"></span>do
+<span class="anchor" id="line-3-2"></span>        buildid=`eu-readelf -n $file| grep Build.ID: | awk '{print $3}'`
+<span class="anchor" id="line-4-2"></span>        dir=`echo $buildid | cut -c1-2`
+<span class="anchor" id="line-5-2"></span>        fn=`echo $buildid | cut -c3-`
+<span class="anchor" id="line-6-2"></span>        mkdir -p /usr/lib/debug/.build-id/$dir
+<span class="anchor" id="line-7-2"></span>        ln -s $file /usr/lib/debug/.build-id/$dir/$fn
+<span class="anchor" id="line-8-2"></span>        ln -s $file /usr/lib/debug/.build-id/$dir/${fn}.debug
+<span class="anchor" id="line-9-2"></span>done</pre><span class="anchor" id="line-107"></span><span class="anchor" id="line-108"></span><p class="line874">This will also make our debug symbols more friendly to gdb and company. <span class="anchor" id="line-109"></span><span class="anchor" id="line-110"></span><p class="line867">
+<h2 id="List_all_functions_that_are_accessible_by_systemtap">List all functions that are accessible by systemtap</h2>
+<span class="anchor" id="line-111"></span><p class="line867"><span class="anchor" id="line-112"></span><span class="anchor" id="line-113"></span><span class="anchor" id="line-114"></span><span class="anchor" id="line-115"></span><pre><span class="anchor" id="line-1-5"></span># stap -l 'kernel.function("acpi_*")' | sort
+<span class="anchor" id="line-2-3"></span>
+<span class="anchor" id="line-3-3"></span># stap -l 'module("ohci1394").function("*")' | sort</pre><span class="anchor" id="line-116"></span><span class="anchor" id="line-117"></span><p class="line862">and if that wasn't cool enough, using the <strong>-L</strong> switch instead <span class="anchor" id="line-118"></span>will show a list of probe points and the local variables accessible at <span class="anchor" id="line-119"></span>that point <span class="anchor" id="line-120"></span><span class="anchor" id="line-121"></span><p class="line867"><span class="anchor" id="line-122"></span><span class="anchor" id="line-123"></span><span class="anchor" id="line-124"></span><span class="anchor" id="line-125"></span><span class="anchor" id="line-126"></span><span class="anchor" id="line-127"></span><span class="anchor" id="line-128"></span><span class="anchor" id="line-129"></span><span class="anchor" id="line-130"></span><span class="anchor" id="line-131"></span><pre><span class="anchor" id="line-1-6"></span># stap -L 'module("thinkpad_acpi").function("brightness*")' | sort
+<span class="anchor" id="line-2-4"></span>module("thinkpad_acpi").function("brightness_exit@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6308")
+<span class="anchor" id="line-3-4"></span>module("thinkpad_acpi").function("brightness_get@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6113") $bd:struct backlight_device* $status:int $res:int
+<span class="anchor" id="line-4-3"></span>module("thinkpad_acpi").function("brightness_read@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6319") $m:struct seq_file* $level:int
+<span class="anchor" id="line-5-3"></span>module("thinkpad_acpi").function("brightness_set@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6064") $value:unsigned int $res:int
+<span class="anchor" id="line-6-3"></span>module("thinkpad_acpi").function("brightness_shutdown@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6303")
+<span class="anchor" id="line-7-3"></span>module("thinkpad_acpi").function("brightness_suspend@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6298") $state:pm_message_t
+<span class="anchor" id="line-8-3"></span>module("thinkpad_acpi").function("brightness_update_status@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6097") $bd:struct backlight_device* $level:unsigned int $__func__:char[] const
+<span class="anchor" id="line-9-3"></span>module("thinkpad_acpi").function("brightness_write@/build/buildd/linux-2.6.32/drivers/platform/x86/thinkpad_acpi.c:6337") $buf:char* $level:int $rc:int $cmd:char* $max_level:int</pre><span class="anchor" id="line-132"></span><span class="anchor" id="line-133"></span><p class="line867">
+<h2 id="Determine_local_variables_available_at_probe_point">Determine local variables available at probe point</h2>
+<span class="anchor" id="line-134"></span><p class="line874">By dumping the 'locals' var using '$$' which displays it as <span class="anchor" id="line-135"></span>an associative array flattened to a string, easy to print. <span class="anchor" id="line-136"></span><span class="anchor" id="line-137"></span><span class="anchor" id="line-138"></span><pre><span class="anchor" id="line-1-7"></span>  i8042_controller_selftest locals [param=0xc0 i=?]</pre><span class="anchor" id="line-139"></span><span class="anchor" id="line-140"></span><p class="line874">and the stap code to generate this: <span class="anchor" id="line-141"></span><span class="anchor" id="line-142"></span><span class="anchor" id="line-143"></span><pre><span class="anchor" id="line-1-8"></span>  printf (%s locals [%s]\n", probefunc(), $$locals)</pre><span class="anchor" id="line-144"></span><span class="anchor" id="line-145"></span><span class="anchor" id="line-146"></span><p class="line867">
+<h2 id="Easily_grab_a_functions_argument_list_and_return_value">Easily grab a functions argument list and return value</h2>
+<span class="anchor" id="line-147"></span><p class="line867"><span class="anchor" id="line-148"></span><span class="anchor" id="line-149"></span><span class="anchor" id="line-150"></span><span class="anchor" id="line-151"></span><span class="anchor" id="line-152"></span><span class="anchor" id="line-153"></span><span class="anchor" id="line-154"></span><span class="anchor" id="line-155"></span><span class="anchor" id="line-156"></span><span class="anchor" id="line-157"></span><span class="anchor" id="line-158"></span><span class="anchor" id="line-159"></span><span class="anchor" id="line-160"></span><span class="anchor" id="line-161"></span><span class="anchor" id="line-162"></span><span class="anchor" id="line-163"></span><span class="anchor" id="line-164"></span><span class="anchor" id="line-165"></span><span class="anchor" id="line-166"></span><span class="anchor" id="line-167"></span><span class="anchor" id="line-168"></span><span class="anchor" id="line-169"></span><span class="anchor" id="line-170"></span><span class="anchor" id="line-171"></span><span class="anchor" id="line-172"></span><span class="anchor" id="line-173"></span><pre><span class="anchor" id="line-1-9"></span>probe kernel.function("ps2_*").call {
+<span class="anchor" id="line-2-5"></span>       printf ("%s -&gt; %s\n", thread_indent(1), probefunc())
+<span class="anchor" id="line-3-5"></span>       printf ("%s args [%s]\n", probefunc(), $$parms)
+<span class="anchor" id="line-4-4"></span>}
+<span class="anchor" id="line-5-4"></span>
+<span class="anchor" id="line-6-4"></span>probe kernel.function("ps2_*").return {
+<span class="anchor" id="line-7-4"></span>       printf ("exit %s &lt;- %s\n", thread_indent(-1), probefunc())
+<span class="anchor" id="line-8-4"></span>       printf ("%s args [%s]\n", probefunc(), $$return)
+<span class="anchor" id="line-9-4"></span>}
+<span class="anchor" id="line-10-2"></span>
+<span class="anchor" id="line-11"></span>
+<span class="anchor" id="line-12"></span>and this is what it looks like.
+<span class="anchor" id="line-13"></span>
+<span class="anchor" id="line-14"></span>    0 kseriod(41): -&gt; ps2_init
+<span class="anchor" id="line-15"></span>ps2_init args [ps2dev=0xf006de08 serio=0xf6d36200 ]
+<span class="anchor" id="line-16"></span>exit 17 kseriod(41): -&gt; ps2_init
+<span class="anchor" id="line-17"></span>ps2_init args []
+<span class="anchor" id="line-18"></span>    0 kseriod(41): -&gt; ps2_command
+<span class="anchor" id="line-19"></span>ps2_command args [ps2dev=0xf006de08 param=0xf75bbeaa command=0x2f2 ]
+<span class="anchor" id="line-20"></span>   42 kseriod(41): -&gt; ps2_sendbyte
+<span class="anchor" id="line-21"></span>ps2_sendbyte args [ps2dev=0xf006de08 byte=0xf2 timeout=0xc8 ]
+<span class="anchor" id="line-22"></span>exit 200048 kseriod(41): -&gt; ps2_sendbyte
+<span class="anchor" id="line-23"></span>ps2_sendbyte args [return=0xffffffffffffffff ]
+<span class="anchor" id="line-24"></span>exit 200070 kseriod(41): -&gt; ps2_command
+<span class="anchor" id="line-25"></span>ps2_command args [return=0xffffffffffffffff ]</pre><span class="anchor" id="line-174"></span><span class="anchor" id="line-175"></span><p class="line867">
+<h2 id="Basic_syslog_integration">Basic syslog integration</h2>
+<span class="anchor" id="line-176"></span><p class="line874">Making use of the system() function. Having it print to syslog and stdout simultaneously <span class="anchor" id="line-177"></span>is an exercise left to the reader. <span class="anchor" id="line-178"></span><span class="anchor" id="line-179"></span><p class="line867"><span class="anchor" id="line-180"></span><span class="anchor" id="line-181"></span><span class="anchor" id="line-182"></span><span class="anchor" id="line-183"></span><span class="anchor" id="line-184"></span><span class="anchor" id="line-185"></span><span class="anchor" id="line-186"></span><span class="anchor" id="line-187"></span><span class="anchor" id="line-188"></span><span class="anchor" id="line-189"></span><span class="anchor" id="line-190"></span><span class="anchor" id="line-191"></span><span class="anchor" id="line-192"></span><span class="anchor" id="line-193"></span><span class="anchor" id="line-194"></span><pre><span class="anchor" id="line-1-10"></span>function syslog(msg:string)
+<span class="anchor" id="line-2-6"></span>{
+<span class="anchor" id="line-3-6"></span>    sendit = "/usr/bin/logger -t stap ".msg
+<span class="anchor" id="line-4-5"></span>    system(sendit)
+<span class="anchor" id="line-5-5"></span>}
+<span class="anchor" id="line-6-5"></span>
+<span class="anchor" id="line-7-5"></span>probe scsi.iodispatching
+<span class="anchor" id="line-8-5"></span>{
+<span class="anchor" id="line-9-5"></span>    if ($cmd-&gt;cmnd[0] == 0x12) {
+<span class="anchor" id="line-10-3"></span>        syslog(sprintf("%d %s: INQUIRY submitted to h:%d c:%d d:%d l:%d\n", gettimeofday_s(),
+<span class="anchor" id="line-11-1"></span>                execname(), host_no, channel, dev_id, lun))
+<span class="anchor" id="line-12-1"></span>    }
+<span class="anchor" id="line-13-1"></span>}</pre><span class="anchor" id="line-195"></span><span class="anchor" id="line-196"></span><p class="line867">
+<h2 id="Aggregate_probe_points_for_easier_book_keeping">Aggregate probe points for easier book keeping</h2>
+<span class="anchor" id="line-197"></span><p class="line862">Instead of creating a new body for <strong>call</strong> and <strong>return</strong> for <span class="anchor" id="line-198"></span>yet another trace function, you can create probe chains by making use <span class="anchor" id="line-199"></span>of the comma operator. <span class="anchor" id="line-200"></span><span class="anchor" id="line-201"></span><span class="anchor" id="line-202"></span><span class="anchor" id="line-203"></span><span class="anchor" id="line-204"></span><span class="anchor" id="line-205"></span><span class="anchor" id="line-206"></span><span class="anchor" id="line-207"></span><span class="anchor" id="line-208"></span><span class="anchor" id="line-209"></span><span class="anchor" id="line-210"></span><span class="anchor" id="line-211"></span><span class="anchor" id="line-212"></span><span class="anchor" id="line-213"></span><span class="anchor" id="line-214"></span><span class="anchor" id="line-215"></span><span class="anchor" id="line-216"></span><span class="anchor" id="line-217"></span><span class="anchor" id="line-218"></span><span class="anchor" id="line-219"></span><pre><span class="anchor" id="line-1-11"></span>probe kernel.function("i8042_controller_reset").call,
+<span class="anchor" id="line-2-7"></span>  kernel.function("i8042_controller_selftest").call,
+<span class="anchor" id="line-3-7"></span>  kernel.function("i8042_command").call
+<span class="anchor" id="line-4-6"></span>{
+<span class="anchor" id="line-5-6"></span>  printf ("%s -&gt; %s\n", thread_indent(1), probefunc())
+<span class="anchor" id="line-6-6"></span>  printf ("\t %s args [%s]\n", probefunc(), $$parms)
+<span class="anchor" id="line-7-6"></span>  printf ("\t %s locals [%s]\n", probefunc(), $$locals)
+<span class="anchor" id="line-8-6"></span>}
+<span class="anchor" id="line-9-6"></span>
+<span class="anchor" id="line-10-4"></span>probe kernel.function("i8042_controller_reset").return,
+<span class="anchor" id="line-11-2"></span>  kernel.function("i8042_controller_selftest").return,
+<span class="anchor" id="line-12-2"></span>  kernel.function("i8042_command").return
+<span class="anchor" id="line-13-2"></span>{
+<span class="anchor" id="line-14-1"></span>  printf ("exit %s -&gt; %s\n", thread_indent(-1), probefunc())
+<span class="anchor" id="line-15-1"></span>  printf ("%s args [%s]\n", probefunc(), $$return)
+<span class="anchor" id="line-16-1"></span>}</pre><span class="anchor" id="line-220"></span><span class="anchor" id="line-221"></span><p class="line867">
+<h2 id="Get_the_absolute_address_of_a_kernel_routine">Get the absolute address of a kernel routine</h2>
+<span class="anchor" id="line-222"></span><p class="line867"><strong>NOTE: statement/absolute addressing requires GURU mode (-g) to operate</strong> <span class="anchor" id="line-223"></span><span class="anchor" id="line-224"></span><p class="line874">Just grep /proc/kallsyms and then use the address like so <span class="anchor" id="line-225"></span><span class="anchor" id="line-226"></span><span class="anchor" id="line-227"></span><span class="anchor" id="line-228"></span><span class="anchor" id="line-229"></span><span class="anchor" id="line-230"></span><span class="anchor" id="line-231"></span><pre><span class="anchor" id="line-1-12"></span># grep ps2_sendbyte /proc/kallsyms 
+<span class="anchor" id="line-2-8"></span>c0489820 T ps2_sendbyte
+<span class="anchor" id="line-3-8"></span>
+<span class="anchor" id="line-4-7"></span># stap -ge 'kernel.statement(0xc0489820).absolute { printf("HERE! \n") }'</pre><span class="anchor" id="line-232"></span><span class="anchor" id="line-233"></span><p class="line874">Alternatively, you can disassemble the module/kernel, calculate the <span class="anchor" id="line-234"></span>offset like so. <span class="anchor" id="line-235"></span><span class="anchor" id="line-236"></span><p class="line867"><span class="anchor" id="line-237"></span><span class="anchor" id="line-238"></span><span class="anchor" id="line-239"></span><span class="anchor" id="line-240"></span><span class="anchor" id="line-241"></span><span class="anchor" id="line-242"></span><span class="anchor" id="line-243"></span><span class="anchor" id="line-244"></span><span class="anchor" id="line-245"></span><span class="anchor" id="line-246"></span><span class="anchor" id="line-247"></span><span class="anchor" id="line-248"></span><span class="anchor" id="line-249"></span><span class="anchor" id="line-250"></span><pre><span class="anchor" id="line-1-13"></span>probe kernel.statement(0xc0439c86).absolute {
+<span class="anchor" id="line-2-9"></span>/*
+<span class="anchor" id="line-3-9"></span>/build/buildd/linux-2.6.31/drivers/input/serio/libps2.c:224
+<span class="anchor" id="line-4-8"></span>c0439c86:       bb ff ff ff ff          mov    $0xffffffff,%ebx
+<span class="anchor" id="line-5-7"></span>serio_pause_rx():
+<span class="anchor" id="line-6-7"></span>
+<span class="anchor" id="line-7-7"></span>224         if (ps2dev-&gt;cmdcnt &amp;&amp; (command != PS2_CMD_RESET_BAT || ps2dev-&gt;cmdc    nt != 1))
+<span class="anchor" id="line-8-7"></span>225                 goto out;
+<span class="anchor" id="line-9-7"></span>226 
+<span class="anchor" id="line-10-5"></span>*/
+<span class="anchor" id="line-11-3"></span>
+<span class="anchor" id="line-12-3"></span>        printf("(%s) libps2.c:224  \n", probefunc() )
+<span class="anchor" id="line-13-3"></span>}</pre><span class="anchor" id="line-251"></span><span class="anchor" id="line-252"></span><p class="line874">I like to intersperse the related code so I can remember what I was working on. <span class="anchor" id="line-253"></span><span class="anchor" id="line-254"></span><p class="line874">Systemtap actually makes this easier by allowing you to cite the sourcecode file <span class="anchor" id="line-255"></span>and the line number and will take care of the translation for you. <span class="anchor" id="line-256"></span><span class="anchor" id="line-257"></span><span class="anchor" id="line-258"></span><p class="line867">
+<h2 id="Disassembling_the_kernel_and_related_modules_correctly">Disassembling the kernel and related modules correctly</h2>
+<span class="anchor" id="line-259"></span><p class="line874">If you need absolute addressing or are going through a dump then <span class="anchor" id="line-260"></span>you need to look at the ASM. Assuming you have the debug symbols installed <span class="anchor" id="line-261"></span><span class="anchor" id="line-262"></span><p class="line867"><span class="anchor" id="line-263"></span><span class="anchor" id="line-264"></span><pre><span class="anchor" id="line-1-14"></span># objdump -lD /usr/lib/debug/boot/vmlinux-`uname -r` &gt; vmlinux.S</pre><span class="anchor" id="line-265"></span><span class="anchor" id="line-266"></span><p class="line874">The same is done for any non-stripped KO object. The capital S tells <span class="anchor" id="line-267"></span>your editor that you're dealing with ASM + C preprocessor statements <span class="anchor" id="line-268"></span>so it will highlight the code correctly, especially if you intersperse <span class="anchor" id="line-269"></span>the source code. <span class="anchor" id="line-270"></span><span class="anchor" id="line-271"></span><p class="line874">Now if you want the source code injected with the relevant ASM you can <span class="anchor" id="line-272"></span>add the <strong>-S</strong> option to the above invocation but you need the actual <span class="anchor" id="line-273"></span>source code in place for this to work and it expects this code to be <span class="anchor" id="line-274"></span>in the same location it was built from originally on the build server. <span class="anchor" id="line-275"></span><span class="anchor" id="line-276"></span><p class="line874">To determine this location: <span class="anchor" id="line-277"></span><span class="anchor" id="line-278"></span><span class="anchor" id="line-279"></span><span class="anchor" id="line-280"></span><pre><span class="anchor" id="line-1-15"></span># readlink /lib/modules/`uname -r`/build/source
+<span class="anchor" id="line-2-10"></span>/build/buildd/linux-2.6.32</pre><span class="anchor" id="line-281"></span><span class="anchor" id="line-282"></span><p class="line874">Therefore: <span class="anchor" id="line-283"></span><span class="anchor" id="line-284"></span><span class="anchor" id="line-285"></span><span class="anchor" id="line-286"></span><span class="anchor" id="line-287"></span><pre><span class="anchor" id="line-1-16"></span># mkdir -p /build/buildd
+<span class="anchor" id="line-2-11"></span># pushd /build/buildd
+<span class="anchor" id="line-3-10"></span># apt-get apt-get source linux-image-$(uname -r)</pre><span class="anchor" id="line-288"></span><span class="anchor" id="line-289"></span><p class="line874">Then disassemble the kernel again with the additional statement <span class="anchor" id="line-290"></span><span class="anchor" id="line-291"></span><span class="anchor" id="line-292"></span><pre><span class="anchor" id="line-1-17"></span># objdump -lDS /usr/lib/debug/boot/vmlinux-`uname -r` &gt; vmlinux.S</pre><span class="anchor" id="line-293"></span><span class="anchor" id="bottom"></span></div> <!-- BEGIN FOOTER -->
+<div id="pagebottom"></div>
+</div>
+
+
+        <div class="entry-utility"> 
+            <span class="cat-links">
+<p id="pageinfo" class="info" lang="zh" dir="ltr">Kernel/Systemtap  (2016-05-06 19:50:08由<span title="peter-petrakis @ localhost[127.0.0.1]"><a class="interwiki" href="https://launchpad.net/~peter-petrakis" title="peter-petrakis @ localhost[127.0.0.1]">peter-petrakis</a></span>编辑)</p>
+
+</span> 
+        </div> 
+    </div><!-- .post --> 
+ 
+            </div><!-- #content --> 
+        </div><!-- #container --> 
+        <div class="clearBoth"></div> 
+    </div><!-- #main --> 
+</div><!-- #wrapper .hfeed --> 
+    
+<div id="footer"> 
+    <div id="siteinfo">        
+        <p> The material on this wiki is available under a free license, see 
+	<a href="https://help.ubuntu.com/community/License">Copyright / License</a> for details.
+        </p> 
+    </div><!-- #siteinfo --> 
+</div><!-- #footer  --> 
+<script> (function(i,s,o,g,r,a,m){ i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-1018242-7', 'auto'); ga('send', 'pageview'); </script></body>
+</html>
+

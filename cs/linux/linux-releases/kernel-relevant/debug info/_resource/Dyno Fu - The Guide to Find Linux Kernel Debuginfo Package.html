@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dyno Fu - The Guide to Find Linux Kernel Debuginfo Package</title>
+  <meta name="author" content="Dyno Fu" />
+  <meta name="description" content="The blog of Dyno Fu" />
+  <link rel="canonical" href="http://blog.dynofu.me/post/2015/08/31/linux-kernel-dbuginfo.html" />
+
+  <link href="//fonts.googleapis.com/css?family=Open+Sans:600,800" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="/favicon.png">
+  <link rel="alternate" type="application/atom+xml" title="Dyno Fu" href="http://blog.dynofu.me/atom.xml" />
+
+  <link rel="stylesheet" href="/assets/css/all.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.min.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="/assets/toc.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#toc').toc({headers: '.content h1, .content h2, .content h3'});
+});
+</script>
+
+</head>
+<body>
+  <div class="container">
+    <div class="three columns sidebar">
+      <nav>
+  <div id="avatar">
+  <a href="/">
+    
+    <img src="http://www.gravatar.com/avatar/1f02cce059c0fc8ca0f4012900bd00f0?s=200" id="gravatar" alt="My photo"/>
+    
+  </a>
+  </div>
+
+  <div id="social">
+    <div id="stalker">
+  
+  <a title="dyno on Github" href="https://github.com/dyno">
+    <i class="fa fa-github-square"></i>
+  </a>
+  
+
+  
+
+  
+
+  
+
+  
+  <a title="Dyno Fu on Stack Overflow" href="http://stackoverflow.com/users/221794">
+    <i class="fa fa-stack-overflow"></i>
+  </a>
+  
+
+  
+
+  
+
+  
+
+  
+  <a title="Dyno Fu on LinkedIn" href="https://www.linkedin.com/in/dynofu">
+    <i class="fa fa-linkedin-square"></i>
+  </a>
+  
+
+  
+
+  <a title="Atom feed" id="atom" href="/atom.xml">
+    <i class="fa fa-rss-square"></i>
+  </a>
+</div>
+
+  </div>
+
+  <div id="bio">
+    <p>Reality, with all its ambiguities, does the job just fine. <a href='http://edge.org/documents/archive/edge249.html#dysong'>-</a> GEORGE DYSON</p>
+  </div>
+
+</nav>
+
+    </div>
+
+    <div class="nine columns content">
+      <p class="meta">
+  August 31, 2015
+  <a href="/">
+    <i class="home fa fa-home"></i>
+  </a>
+</p>
+
+<h1 class="title">The Guide to Find Linux Kernel Debuginfo Package</h1>
+
+<div id="post">
+  <div id="toc"></div>
+  <p>A repeat task to Linux core dump analysis is to find the corresponding kernel debuginfo package.
+When you extract the kernel version from the memory, the first question is which release the kernel is at.
+Then where to find the kernel debuginfo package that has the symbols and maybe also the source package.
+The most popular commercial Linux distributions are RHEL, SLES, Ubuntu and their relatives, so
+here is the guide to find those packages.</p>
+
+<hr />
+
+<h3 id="ubuntu">Ubuntu</h3>
+
+<ul>
+  <li>Ubuntu List of Releases, https://wiki.ubuntu.com/Releases</li>
+  <li>Ubuntu Releases and Kernel Versions, https://en.wikipedia.org/wiki/List_of_Ubuntu_releases#Table_of_versions</li>
+  <li>debuginfo online repository: http://ddebs.ubuntu.com/pool/main/l/linux/</li>
+  <li>package name:</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kernel: linux-image
+symbol: linux-image-*-dbgsym
+source: linux-source
+</code></pre></div></div>
+
+<ul>
+  <li>extract package</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    ar <span class="nt">-x</span> linux-image-3.2.0-41-generic-dbgsym_3.2.0-41.66_amd64.ddeb
+</code></pre></div></div>
+
+<h4 id="debian">Debian</h4>
+<ul>
+  <li><a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=365349">Add support for creating a “debuginfo” package</a></li>
+  <li>e.g. <code class="highlighter-rouge">https://packages.debian.org/jessie/linux-image-3.16.0-4-amd64-dbg</code></li>
+</ul>
+
+<h3 id="rhel">RHEL</h3>
+<ul>
+  <li>Red Hat Enterprise Linux Release Dates, https://access.redhat.com/articles/3078</li>
+  <li><strong>CentOS debug packages are compatible with Redhat</strong></li>
+  <li>package online repository: http://vault.centos.org/</li>
+  <li>debuginfo online repository: http://debuginfo.centos.org/</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kernel: kernel
+source: kernel-debuginfo-common
+symbol: kernel-debuginfo
+</code></pre></div></div>
+
+<ul>
+  <li>extract package</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    rpm2cpio kernel-2.6.32-573.el6.x86_64.rpm | cpio -idmv
+</code></pre></div></div>
+
+<h4 id="oracle-uek-unbreakable-enterprise-kernel">Oracle UEK (Unbreakable Enterprise Kernel)</h4>
+<ul>
+  <li>package online repository: http://public-yum.oracle.com/repo/OracleLinux/</li>
+  <li>debuginfo online repository: https://oss.oracle.com/ol6/debuginfo/</li>
+</ul>
+
+<h4 id="more-relatives">More Relatives</h4>
+<ul>
+  <li><a href="http://wiki.centos.org/AdditionalResources/Repositories/DebugInfo">CentOS AdditionalResources/Repositories/DebugInfo</a></li>
+  <li><a href="http://fedoraproject.org/wiki/Packaging:Debuginfo">Fedora Packaging:Debuginfo</a></li>
+</ul>
+
+<h3 id="sles">SLES</h3>
+<ul>
+  <li>SLES kernel releases, https://wiki.novell.com/index.php/Kernel_versions</li>
+  <li>SLES <a href="http://www.novell.com/support/documentLink.do?externalID#3074997">How to add the catalog for debuginfo packages</a></li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>zypper search <span class="nt">-s</span> <span class="s1">'kernel-default'</span>
+zypper install <span class="nt">--download-only</span> <span class="nt">--oldpackage</span> kernel-default-debuginfo-3.0.101-0.15.1
+<span class="c"># debuginfo package needs the kernel binary in SLES</span>
+zypper install <span class="nt">--download-only</span> <span class="nt">--oldpackage</span> kernel-default-base-3.0.101-0.15.1
+<span class="c"># find the rpm in /var/cache/zypp/packages</span>
+</code></pre></div></div>
+<ul>
+  <li><em>I’ve not yet found an open free online repository for SLES…</em></li>
+</ul>
+
+
+
+<div id="disqus_thread"></div>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+this.page.url = window.location.href;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = "/post/2015/08/31/linux-kernel-dbuginfo.html"; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = '//dynofu.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+</div>
+
+<div id="related">
+  <h3>Related Posts</h3>
+  <ul class="posts">
+    
+    <li>
+      <span>24 Jan 2017 &raquo;</span> <a href="/post/2017/01/24/working-with-time.html">Python - Working With Time</a>
+    </li>
+    
+    <li>
+      <span>08 Oct 2016 &raquo;</span> <a href="/post/2016/10/08/tree-structure-with-pygraphviz.html">Visualize Tree Structure with PyGraphviz</a>
+    </li>
+    
+    <li>
+      <span>01 Aug 2016 &raquo;</span> <a href="/post/2016/08/01/Nutanix-hyperconverged-infrastructure.html">Nutanix Hyperconverged Infrastructure</a>
+    </li>
+    
+  </ul>
+</div>
+
+
+      <div class="footer">
+        <div class="disclaimer">
+  
+  <p>
+    NOTE: the post dates are not that relavant as it shows...
+  </p>
+  
+
+  <p>
+    © Dyno Fu, 2015 &mdash; built with <a href="http://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/swanson/lagom">Lagom theme</a> with modification.
+  </p>
+</div>
+
+      </div>
+    </div>
+  </div>
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-66817112-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+</body>
+</html>

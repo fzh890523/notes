@@ -10,6 +10,70 @@
 
 
 
+### match
+
+
+
+#### simple contains/fixed string
+
+* `grep -F ${fixStr}`
+* `fgrep`
+
+
+
+```sh
+echo 1223 | grep "2*"
+1223
+echo 1223 | grep -F "2*"
+echo 122*3 | grep -F "2*"
+122*3
+```
+
+
+
+#### multiple + fixed string: `grep -F -e -e`
+
+`egrep`不支持-F
+
+
+
+#### Multiple match(or)
+
+* `grep -E` 
+
+  == egrep
+
+*  `grep -e -e …` 
+
+  ```sh
+  echo -e "123\n456\n789" | grep -e "12" -e "56"  # 这里就不能用 "12|56" 了
+  ```
+
+  
+
+*  `egrep`
+
+  ```sh
+  echo -e "123\n456\n789" | egrep "12|56"
+  ```
+
+  
+
+#### multiple + only-matching: `grep -o -e -e`
+
+必要时还可以加上`-E`来扩展匹配。
+
+
+
+```sh
+ps aux | grep envoy |  grep -o -E -e "^root +" -e "restart-epoch [^ ]+"
+# 不过问题是会多行输出
+```
+
+
+
+
+
 ### different RE
 
 

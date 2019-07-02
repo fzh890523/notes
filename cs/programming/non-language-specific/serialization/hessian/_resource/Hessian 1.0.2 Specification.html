@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><meta name="product" content="resin"/><script type="text/javascript">    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-27887123-1']);
+    _gaq.push(['_setDomainName', 'caucho.com']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+          var ga = document.createElement('script'); 
+           ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') +                   '.google-analytics.com/ga.js';          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();</script><link rel="STYLESHEET" type="text/css" href="/css/default.css"/><link rel="shortcut icon" href="/images/favicon.ico"/><script type="text/javascript" src="/js/default.js"></script><script type="text/javascript">  window.onload = function() {
+    init();
+  };
+</script><title>Hessian 1.0.2 Specification</title></head><body><table width="98%" border="0" cellspacing="0" cellpadding="0" summary=""><tr><td><a href="http://www.caucho.com/" title="Caucho maker of Resin Server | Application Server (Java EE Certified) and Web Server"><img src="/images/caucho-white.jpg" alt="Caucho maker of Resin Server | Application Server (Java EE Certified) and Web Server"></img></a><br/><br/><br/><div class="breadcrumb">
+<a href="/">home</a> / <a href="hessian-1.0-spec.xtp">hessian 1.0 spec</a></div></td><td width="5%">&nbsp;</td><td width="70%"><h1>Resin Documentation<td width="20%"><a href="http://www.caucho.com/" title="Caucho home, makers of Resin Server, Java Application Server, Web Server and Querus PHP engine.">home</a>&nbsp;<a href="http://www.caucho.com/about/">company</a>&nbsp;<a href="http://www.caucho.com/resin-4.0/">docs</a>&nbsp;<br/><a href="http://www.caucho.com/" title="Resin | Java Application Server | Java EE Certified | Cloud Optimized ">app server</a>&nbsp;</td><td width="5%">&nbsp;</td><td width="10%" valign="bottom"><a href="http://www.caucho.com/" title="Resin Server | Application Server (Java EE Certified) and Web Server"><img src="/images/resin_logo_small.jpg" alt="Resin Server | Application Server (Java EE Certified) and Web Server"></img></a></td></h1></td><table width="98%" border="0" cellspacing="0" cellpadding="0" summary=""><tr valign="top"><td class="leftnav"><div class="not-selected"><a href="/doc/index.xtp" class="leftnav">Hessian 3.1</a></div><div class="leftnav"><div class="not-selected"><a href="/doc/hessian-overview.xtp" class="leftnav">Hessian</a></div><div class="not-selected"><a href="/doc/flash.xtp" class="leftnav">Flash</a></div><div class="selected"><a href="/doc/hessian-1.0-spec.xtp" class="leftnav">Hessian 1.0 spec</a></div><div class="not-selected"><a href="/doc/hessian-serialization.html" class="leftnav">Hessian 2.0 serialization</a></div><div class="not-selected"><a href="/doc/hessian-ws.html" class="leftnav">Hessian 2.0 protocol</a></div><div class="not-selected"><a href="/doc/hessian-java-binding-draft-spec.xtp" class="leftnav">Java Binding</a></div><div class="not-selected"><a href="/doc/burlap.xtp" class="leftnav">Burlap</a></div><div class="not-selected"><a href="/doc/burlap-1.0-spec.xtp" class="leftnav">Burlap 1.0 Spec</a></div><div class="not-selected"><a href="/doc/burlap-notes.xtp" class="leftnav">Burlap Design Notes</a></div><div class="not-selected"><a href="/doc/hessian-messaging.xtp" class="leftnav">Hessian Messaging</a></div><div class="not-selected"><a href="/doc/hessian-debug.xtp" class="leftnav">Debugging</a></div><div class="not-selected"><a href="/doc/metaprotocol-taxonomy.xtp" class="leftnav">Protocol Taxonomy</a></div></div></td><td width="5%">&nbsp;</td><td width="85%"><h1 class="title">hessian 1.0.2 specification</h1><hr></hr>
+<table class="breadcrumb" border="0" cellspacing="0" width="99%"><tr><td width="30%" align="left"><a href="/doc/flash.xtp">Flash</a></td><td width="40%"><center></center></td><td width="30%" align="right"><a href="/doc/hessian-serialization.html">Hessian 2.0 serialization</a></td></tr></table>
+<p>Hessian is a compact binary protocol for connecting web
+      services.</p>
+<p>Because Hessian is a small protocol, J2ME devices like cell-phones can use
+      it to connect to Resin servers.  Because it's powerful, it can be used
+      for EJB services.</p>
+<div class="toc"><ol><li><a href="#DesignGoals">Design Goals</a></li><li><a href="#Serialization">Serialization</a><ol><li><a href="#null">null</a></li><li><a href="#boolean">boolean</a></li><li><a href="#int">int</a></li><li><a href="#long">long</a></li><li><a href="#double">double</a></li><li><a href="#date">date</a></li><li><a href="#string">string</a></li><li><a href="#xml">xml</a></li><li><a href="#binary">binary</a></li><li><a href="#list">list</a></li><li><a href="#map">map</a></li><li><a href="#ref">ref</a></li><li><a href="#remote">remote</a></li></ol></li><li><a href="#Call">Call</a><ol><li><a href="#ObjectNamingnon-normative">Object Naming (non-normative)</a></li><li><a href="#Objectnamingnon-normative">Object naming (non-normative)</a></li><li><a href="#MethodsandOverloading">Methods and Overloading</a></li><li><a href="#Arguments">Arguments</a></li><li><a href="#Headers">Headers</a></li><li><a href="#Versioning">Versioning</a></li></ol></li><li><a href="#Reply">Reply</a><ol><li><a href="#Value">Value</a></li><li><a href="#Faults">Faults</a></li></ol></li><li><a href="#Metadatanon-normative">Metadata (non-normative)</a><ol><li><a href="#Obsoletemetadataproperties">Obsolete meta data properties</a></li></ol></li><li><a href="#MicroHessian">Micro Hessian</a></li><li><a href="#FormalDefinitions">Formal Definitions</a></li><li><a href="#CopyrightandLicensing">Copyright and Licensing</a></li><li><a href="#Changes">Changes</a><ol><li><a href="#changesin1.0.2">changes in 1.0.2</a></li><li><a href="#changesin1.0">changes in 1.0</a></li><li><a href="#changesinV3">changes in V3</a></li><li><a href="#changesinV2">changes in V2</a></li></ol></li></ol></div>
+<div class="s1"><a name="DesignGoals"></a><h1 class="section">Design Goals</h1></div>
+<p>The Hessian web services protocol was created as a
+lightweight binary alternative to the XML-based web services protocols.
+</p>
+<p>The <a href="http://www.caucho.com/hessian">Hessian home page</a>
+contains the latest information about Hessian.</p>
+<p>Unlike older binary protocols, Hessian is both self-describing
+and portable across languages.  The wire protocol for web
+services should be invisible to application writers.  Wire protocols
+should not require external schema or IDL.</p>
+<p>Given the EJB environment, the Hessian protocol has the
+following requirements:</p><ul>
+<li>It must support XML as a first class object.
+</li>
+<li>It must not require external IDL or schema definitions; it should be
+invisible to application writers.
+</li>
+<li>It must have sufficient power to serialize Java.
+</li>
+<li>It must have sufficient power to support EJB.
+</li>
+<li>It must allow non-Java clients to use web services.
+</li>
+<li>It must allow web services to deployed as a Servlet.
+</li>
+<li>It must be simple so it can be effectively tested.
+</li>
+<li>It must be as fast as possible.
+</li>
+<li>It should support transaction contexts.
+</li></ul>
+<div class="s1"><a name="Serialization"></a><h1 class="section">Serialization</h1></div>
+<p>Hessian's object serialization has 9 primitive types:</p><ol>
+<li><a href="#boolean">boolean</a></li>
+<li>32-bit <a href="#int">int</a></li>
+<li>64-bit <a href="#long">long</a></li>
+<li>64-bit <a href="#double">double</a></li>
+<li>64-bit <a href="#date">date</a></li>
+<li>UTF8-encoded <a href="#string">string</a></li>
+<li>UTF8-encoded <a href="#xml">xml</a></li>
+<li>raw <a href="#binary">binary</a> data
+</li>
+<li><a href="#remote">remote</a> objects
+</li></ol>
+<p>It has 2 combining constructs:</p><ol>
+<li><a href="#list">list</a> for lists and arrays
+</li>
+<li><a href="#map">map</a> for objects and hash tables.
+</li></ol>
+<p>Finally, it has 2 special contructs:</p><ol>
+<li><a href="#null">null</a> for null values
+</li>
+<li><a href="#ref">ref</a> for shared and circular object references.
+</li></ol>
+<div class="s2"><a name="null"></a><h2>null</h2>
+<p>Null represents a null pointer.</p>
+<p>The byte <span class="meta">'N'</span> represents the null pointer.</p>
+<p><span class="meta">null</span> values are allowed in place of any <span class="meta">string</span>, <span class="meta">xml</span>,
+<span class="meta">binary</span>, <span class="meta">list</span>, <span class="meta">map</span>, or <span class="meta">remote</span>.</p>
+<div class="example"><div class="caption">null</div><div class="example-body"><pre>
+null ::= N
+</pre></div></div></div>
+<div class="s2"><a name="boolean"></a><h2>boolean</h2>
+<p>The byte <span class="meta">'F'</span> represents false and the byte <span class="meta">'T'</span>
+represents true.</p><div class="definition"><div class="definition-body"><pre>
+boolean ::= T
+        ::= F
+</pre></div></div>
+<div class="example"><div class="caption">boolean true</div><div class="example-body"><pre>
+T
+</pre></div></div></div>
+<div class="s2"><a name="int"></a><h2>int</h2>
+<p>A 32-bit signed integer.  An integer is represented by the
+byte <span class="meta">'I'</span> followed by the 4-bytes of the integer in big-endian
+order</p><div class="definition"><div class="definition-body"><pre>
+int ::= I b32 b24 b16 b8
+</pre></div></div>
+<div class="example"><div class="caption">integer 300</div><div class="example-body"><pre>
+I x00 x00 x01 x2c
+</pre></div></div></div>
+<div class="s2"><a name="long"></a><h2>long</h2>
+<p>A 64-bit signed integer.  An long is represented by the
+byte <span class="meta">'L'</span> followed by the 8-bytes of the integer in big-endian order
+</p><div class="definition"><div class="definition-body"><pre>
+long ::= L b64 b56 b48 b40 b32 b24 b16 b8
+</pre></div></div>
+<div class="example"><div class="caption">long 300</div><div class="example-body"><pre>
+L x00 x00 x00 x00 x00 x00 x01 x2c
+</pre></div></div></div>
+<div class="s2"><a name="double"></a><h2>double</h2>
+<p>A 64-bit IEEE floating pointer number.</p><div class="definition"><div class="definition-body"><pre>
+double ::= D b64 b56 b48 b40 b32 b24 b16 b8
+</pre></div></div>
+<div class="example"><div class="caption">double 12.25</div><div class="example-body"><pre>
+D x40 x28 x80 x00 x00 x00 x00 x00
+</pre></div></div></div>
+<div class="s2"><a name="date"></a><h2>date</h2>
+<p>Date represented by a 64-bits long of milliseconds since the epoch.</p><div class="definition"><div class="definition-body"><pre>
+date ::= d b64 b56 b48 b40 b32 b24 b16 b8
+</pre></div></div>
+<div class="example"><div class="caption">2:51:31 May 8, 1998</div><div class="example-body"><pre>
+d x00 x00 x00 xd0 x4b x92 x84 xb8
+</pre></div></div></div>
+<div class="s2"><a name="string"></a><h2>string</h2>
+<p>A 16-bit unicode character string encoded in UTF-8.
+Strings are encoded in chunks.  <span class="meta">'S'</span> represents the final chunk
+and <span class="meta">'s'</span> represents any initial chunk.  Each chunk has a 16-bit
+length value.</p>
+<p>The length is the number of characters, which may be different than
+the number of bytes.</p><div class="definition"><div class="definition-body"><pre>
+string ::= (s b16 b8 utf-8-data)* S b16 b8 utf-8-data
+</pre></div></div>
+<div class="example"><div class="caption">"Hello" string</div><div class="example-body"><pre>
+S x00 x05 hello
+</pre></div></div></div>
+<div class="s2"><a name="xml"></a><h2>xml</h2>
+<p>An XML document encoded as a 16-bit unicode character
+string encoded in UTF-8.
+XML data is encoded in chunks.  <span class="meta">'X'</span> represents the final chunk
+and <span class="meta">'x'</span> represents any initial chunk.</p>
+<p>Each chunk has a 16-bit
+length value.  The length is the number of characters, which may
+be different than the number of bytes.</p><div class="definition"><div class="definition-body"><pre>
+xml ::= (x b16 b8 utf-8-data)* X b16 b8 utf-8-data
+</pre></div></div>
+<div class="example"><div class="caption">trivial XML document</div><div class="example-body"><pre>
+X x00 x10 &lt;top&gt;hello&lt;/top&gt;
+</pre></div></div><div class="note"><img class="note" alt="note" src="/images/note.png"/><div class="note-header">Note</div>Because this document does not define the language mapping,
+implementations are free to return a string when reading an <span class="meta">xml</span>
+entity.</div></div>
+<div class="s2"><a name="binary"></a><h2>binary</h2>
+<p>A binary value.</p>
+<p>Binary data is encoded in chunks.  <span class="meta">'B'</span> represents the final chunk
+and <span class="meta">'b'</span> represents any initial chunk.  Each chunk has a 16-bit
+length value.</p><div class="definition"><div class="definition-body"><pre>
+binary ::= (b b16 b8 binary-data)* B b16 b8 binary-data
+</pre></div></div></div>
+<div class="s2"><a name="list"></a><h2>list</h2>
+<p>An ordered list, like an array.  All lists have a type string,
+a length, a list of objects, and a trailing 'z'.
+The type string may be an arbitrary UTF-8 string understood
+by the service (often a Java class name, but this isn't required.)
+The length may be -1 to indicate that the list is variable length.
+</p><div class="definition"><div class="definition-body"><pre>
+list ::= V <span class="meta">type</span>? <span class="meta">length</span>? <span class="meta">object</span>* z
+</pre></div></div>
+<p>Each <span class="meta">list</span> item is added to the reference list to handle
+shared and circular elements.  See the
+<span class="meta">ref</span> element.</p>
+<p>Any parser expecting a <span class="meta">list</span> must also accept a <span class="meta">null</span>
+or a shared <span class="meta">ref</span>.</p>
+<div class="example"><div class="caption">serialization of a Java int[] = {0, 1}</div><div class="example-body"><pre>
+V t x00 x04 [int
+  l x00 x00 x00 x02
+  I x00 x00 x00 x00
+  I x00 x00 x00 x01
+  z
+</pre></div></div>
+<div class="example"><div class="caption">anonymous variable-length list = {0, "foobar"}</div><div class="example-body"><pre>
+V I x00 x00 x00 x00
+  S x00 x06 foobar
+  z
+</pre></div></div><div class="note"><img class="note" alt="note" src="/images/note.png"/><div class="note-header">Note</div>The valid values of <span class="meta">type</span> are not specified in this
+document and may depend on the specific application.  For example, a
+Java EJB server which exposes an Hessian interface can use the <span class="meta">type</span>
+information to instantiate the specific array type.
+On the other hand, a Perl server would likely ignore the contents of <span class="meta">type</span>
+entirely and create a generic array.
+</div></div>
+<div class="s2"><a name="map"></a><h2>map</h2>
+<p>Represents serialized objects and Maps. The <span class="meta">type</span>
+element describes the type of the map.  Objects are represented by a
+map from field names to their values and <span class="meta">type</span> is the class
+of the object itself.</p><div class="definition"><div class="definition-body"><pre>
+map ::= M t b16 b8 type-string (<span class="meta">object</span>, <span class="meta">object</span>)* z
+</pre></div></div>
+<p>The <span class="meta">type</span> may be empty, i.e. a zero length.  The parser is
+responsible for choosing a type if one is not specified.
+For objects, unrecognized keys will be ignored.</p>
+<p>Each <span class="meta">map</span> is added to the reference list.  Any time the
+parser expects a <span class="meta">map</span>, it must also be able to support a
+<span class="meta">null</span> or a <span class="meta">ref</span>.</p>
+<div class="example"><div class="caption">Serialization of a Java Object</div><div class="example-body"><pre>
+public class Car implements Serializable {
+  String model = "Beetle";
+  String color = "aquamarine";
+  int mileage = 65536;
+}
+</pre></div></div>
+<div class="example"><div class="example-body"><pre>
+M t x00 x13 com.caucho.test.Car
+  S x00 x05 model
+  S x00 x06 Beetle
+
+  S x00 x05 color
+  S x00 x0a aquamarine
+
+  S x00 x07 mileage
+  I x00 x01 x00 x00
+  z
+</pre></div></div>
+<div class="example"><div class="caption">A sparse array</div><div class="example-body"><pre>
+map = new HashMap();
+map.put(new Integer(1), "fee");
+map.put(new Integer(16), "fie");
+map.put(new Integer(256), "foe");
+</pre></div></div>
+<div class="example"><div class="example-body"><pre>
+M I x00 x00 x00 x01
+  S x00 x03 fee
+
+  I x00 x00 x00 x10
+  S x00 x03 fie
+
+  I x00 x00 x01 x00
+  S x00 x03 foe
+
+  z
+</pre></div></div><div class="note"><img class="note" alt="note" src="/images/note.png"/><div class="note-header">Note</div>The <span class="meta">type</span> is chosen by the service.  Often it may be the
+Java classname describing the service.</div></div>
+<div class="s2"><a name="ref"></a><h2>ref</h2>
+<p>An integer referring to a previous <span class="meta">list</span> or <span class="meta">map</span>
+instance.  As each <span class="meta">list</span> or <span class="meta">map</span> is read from the
+input stream, it is assigned the integer position in the stream,
+i.e. the first <span class="meta">list</span> or <span class="meta">map</span> is '0', the next is '1', etc.
+A later <span class="meta">ref</span> can then use the previous object.  Writers are not
+required to generate <span class="meta">refs</span>, but parsers must be able to recognize them.
+</p><div class="definition"><div class="definition-body"><pre>
+ref ::= R b32 b24 b16 b8
+</pre></div></div>
+<p><span class="meta">ref</span> can refer to incompletely-read items.  For example, a
+circular linked-list will refer to the first link before the entire list
+has been read.</p>
+<p>A possible implementation would add each <span class="meta">map</span> and <span class="meta">list</span> to an
+array as it's read.  The <span class="meta">ref</span> will return the corresponding
+object from the array.  To support circular structures, the
+implementation would store the <span class="meta">map</span> or <span class="meta">list</span> immediately,
+before filling in the object's contents.</p>
+<p>Each &lt;list&gt; or &lt;array&gt; is stored into an array as it is
+parsed.  &lt;ref&gt; selects one of the stored objects.  The first
+object is numbered '0'.</p>
+<div class="example"><div class="caption">circular list</div><div class="example-body"><pre>
+list = new LinkedList();
+list.head = 1;
+list.tail = list;
+</pre></div></div>
+<div class="example"><div class="example-body"><pre>
+M t x00 x0a LinkedList
+  S x00 x04 head
+  I x00 x00 x00 x01
+  S x00 x04 tail
+  R x00 x00 x00 x00
+  z
+</pre></div></div><div class="note"><img class="note" alt="note" src="/images/note.png"/><div class="note-header">Note</div><span class="meta">ref</span> only refers to <span class="meta">list</span> and <span class="meta">map</span> elements.
+<span class="meta">string</span> and <span class="meta">binary</span>, in particular, will only share
+references if they're wrapped in a <span class="meta">list</span> or <span class="meta">map</span>.</div></div>
+<div class="s2"><a name="remote"></a><h2>remote</h2>
+<p>A reference to a remote object.  The remote has a
+<span class="meta">type</span> and a utf-8 string representing the object's URL.</p><div class="definition"><div class="definition-body"><pre>
+remote ::= r t b16 b8 type-name S b16 b8 url
+</pre></div></div>
+<div class="example"><div class="caption">EJB Session Reference</div><div class="example-body"><pre>
+r t x00 x0c test.TestObj
+  S x00 x24 http://slytherin/ejbhome?id=69Xm8-zW
+</pre></div></div></div>
+<div class="s1"><a name="Call"></a><h1 class="section">Call</h1></div>
+<p>A Hessian call invokes a method on an object with an argument
+list.  The object is specified by the container, e.g. for a HTTP
+request, it's the HTTP URL.  The arguments are
+specified by Hessian serialization.</p><div class="definition"><div class="definition-body"><pre>
+call ::= c x01 x00 <span class="meta">header</span>* m b16 b8 method-string (<span class="meta">object</span>)* z
+</pre></div></div>
+<div class="example"><div class="caption">obj.add2(2,3) call</div><div class="example-body"><pre>
+c x01 x00
+  m x00 x04 add2
+  I x00 x00 x00 x02
+  I x00 x00 x00 x03
+  z
+</pre></div></div>
+<div class="example"><div class="caption">obj.add2(2,3) reply</div><div class="example-body"><pre>
+r x01 x00
+  I x00 x00 x00 x05
+  z
+</pre></div></div>
+<div class="s2"><a name="ObjectNamingnon-normative"></a><h2>Object Naming (non-normative)</h2>
+<p>
+URLs are flexible
+enough to encode object instances as well as simple
+static service locations.  The URL uniquely identifies the
+Hessian object.  Thus, Hessian can support
+object-oriented services, e.g. naming services, entity beans, or
+session beans, specified by the URL without requiring extra method parameters
+or headers.</p>
+<p>Object naming may use the query string convention that "?id=XXX"
+names the object "XXX" in the given service.  This convention is recommented,
+but not required.</p>
+<p>For example, a stock quote service might have a
+factory interface like http://foo.com/stock and object instances
+like http://foo.com?id=PEET.  The factory interface would return valid
+object references through the factory methods.</p></div>
+<div class="s2"><a name="Objectnamingnon-normative"></a><h2>Object naming (non-normative)</h2>
+<p>As an example, the following format is used for EJB:</p><div class="definition"><div class="definition-body"><pre>
+http://hostname/hessian<span class="meta">/ejb-name</span>?id=<span class="meta">object-id</span></pre></div></div>
+<p><span class="meta">http://hostname/hessian</span> identifies the EJB container.
+In Resin-EJB, this will refer to the EJB Servlet. 
+"/hessian" is the servlet prefix (url-pattern.)  HTTP is just used as
+an example; Hessian does not require the use of HTTP.
+</p>
+<p><span class="meta">/ejb-name</span>, the path info of the request, identifies the EJB name,
+specifically the home interface.  EJB containers can contain several
+entity and session beans, each with its own EJB home.  The <span class="meta">ejb-name</span>
+corresponds to the ejb-name in the deployment descriptor.
+</p>
+<p><span class="meta">object-id</span> identifies the specific object.  For entity beans, the
+object-id encodes the primary key.  For session beans, the object-id encodes
+a unique session identifier.  Home interfaces have no ";ejbid=..." portion.
+</p>
+<div class="example"><div class="caption">Example Entity Home Identifier</div><div class="example-body"><pre>
+http://localhost/hessian/my-entity-bean
+</pre></div></div>
+<div class="example"><div class="caption">Example Entity Bean Identifier</div><div class="example-body"><pre>
+http://localhost/hessian/my-entity-bean?ejbid=slytherin
+</pre></div></div>
+<div class="example"><div class="caption">Example Session Home Identifier</div><div class="example-body"><pre>
+http://localhost/hessian/my-session-bean
+</pre></div></div>
+<div class="example"><div class="caption">Example Session Bean Identifier</div><div class="example-body"><pre>
+http://localhost/hessian/my-session-bean?ejbid=M9Zs1Zm
+</pre></div></div></div>
+<div class="s2"><a name="MethodsandOverloading"></a><h2>Methods and Overloading</h2>
+<p>Method names must be unique.  Two styles of overloading are
+supported: overloading by number of argumetns and overloading
+by argument types.  Overloading is permitted by
+encoding the argument types in the method names.  The types of
+the actual arguments must not be used to select the methods.</p>
+<p>Method names beginning with <span class="meta">_hessian_</span> are reserved.</p>
+<p>Servers should accept calls with either the mangled method name
+or the unmangled method name.  Clients should send the mangled method name.</p><div class="note"><img class="note" alt="note" src="/images/note.png"/><div class="note-header">Note</div>See the Java binding for a possible overloading scheme.</div>
+<div class="example"><div class="example-body"><pre>add(int a, int b)</pre></div></div>
+<div class="example"><div class="example-body"><pre>add_int_int</pre></div></div>
+<div class="example"><div class="example-body"><pre>add(double a, double b)</pre></div></div>
+<div class="example"><div class="example-body"><pre>add_double_double</pre></div></div>
+<div class="example"><div class="example-body"><pre>add(shopping.Cart cart, shopping.Item item)</pre></div></div>
+<div class="example"><div class="example-body"><pre>add_shopping.Cart_shopping.Item</pre></div></div></div>
+<div class="s2"><a name="Arguments"></a><h2>Arguments</h2>
+<p>Arguments immediately follow the method in positional order.
+Argument values use Hessian's serialization.</p>
+<p>All arguments share references, i.e. the reference list
+starts with the first argument and continues for all other arguments.
+This lets two arguments share values.</p>
+<div class="example"><div class="caption">remote.eq(bean, bean)</div><div class="example-body"><pre>
+bean = new qa.Bean("foo", 13);
+
+System.out.println(remote.eq(bean, bean));
+</pre></div></div>
+<div class="example"><div class="example-body"><pre>
+c x01 x00
+  m x00 x02 eq
+  M t x00 x07 qa.Bean
+    S x00 x03 foo
+    I x00 x00 x00 x0d
+    z
+  R x00 x00 x00 x00
+  z
+</pre></div></div>
+<p>The number and type of arguments are fixed by the remote method.
+Variable length arguments are forbidden.  Implementations
+may take advantage of the expected type to improve performance.</p></div>
+<div class="s2"><a name="Headers"></a><h2>Headers</h2>
+<p>Headers are (string, object) pairs that preceed the arguments.</p>
+<p>The value of the header can be any serialized object.</p>
+<p>For example, a request might include a transaction context in a
+header.</p>
+<div class="example"><div class="caption">Call with Distributed Transaction Context</div><div class="example-body"><pre>
+c x01 x00
+  H x00 x0b transaction
+  r t x00 x28 com.caucho.hessian.xa.TransactionManager
+    S x00 x23 http://hostname/xa?ejbid=01b8e19a77
+  m x00 x05 debug
+  I x00 x03 x01 xcb
+  z
+</pre></div></div></div>
+<div class="s2"><a name="Versioning"></a><h2>Versioning</h2>
+<p>The call and response tags include a major and minor byte.  The
+current version is 1.0.</p></div>
+<div class="s1"><a name="Reply"></a><h1 class="section">Reply</h1></div><div class="definition"><div class="definition-body"><pre>
+valid-reply ::= r x01 x00 <span class="meta">header</span>* <span class="meta">object</span> z
+fault-reply ::= r x01 x00 <span class="meta">header</span>* <span class="meta">fault</span> z
+</pre></div></div>
+<div class="s2"><a name="Value"></a><h2>Value</h2>
+<p>A successful reply returns a single value and possibly
+some header information.  </p>
+<div class="example"><div class="caption">integer 5 result</div><div class="example-body"><pre>
+r x01 x00
+  I x00 x00 x00 x05
+  z
+</pre></div></div></div>
+<div class="s2"><a name="Faults"></a><h2>Faults</h2>
+<p>Failed calls return a <span class="meta">fault</span>.</p>
+<p>Each fault has a number of informative fields, expressed like
+&lt;map&gt; entries.  The defined fields are <span class="meta">code</span>, <span class="meta">message</span>,
+and <span class="meta">detail</span>. <span class="meta">code</span> is one of a short list of strings
+defined below.  <span class="meta">message</span> is a user-readable message.
+<span class="meta">detail</span> is an object representing the exception.  In Java,
+<span class="meta">detail</span> will be a serialized exception.</p>
+<div class="example"><div class="caption">Remote Call throws FileNotFoundException</div><div class="example-body"><pre>
+r x01 x00
+  f
+  S x00 x04 code
+  S x00 x10 ServiceException
+
+  S x00 x07 message
+  S x00 x0e File Not Found
+
+  S x00 x06 detail
+  M t x00 x1d java.io.FileNotFoundException
+    z
+  z
+</pre></div></div><table class="deftable"><tr class="a"><td>ProtocolException</td><td>The Hessian request has some sort of
+syntactic error.
+</td></tr><tr class="b"><td>NoSuchObjectException</td><td>The requested object does not exist.
+</td></tr><tr class="a"><td>NoSuchMethodException</td><td>The requested method does not exist.
+</td></tr><tr class="b"><td>RequireHeaderException</td><td>A required header was not understood
+by the server.
+</td></tr><tr class="a"><td>ServiceException</td><td>The called method threw an exception.
+</td></tr></table></div>
+<div class="s1"><a name="Metadatanon-normative"></a><h1 class="section">Metadata (non-normative)</h1></div>
+<p>Metadata is handled by special method calls, methods beginning
+with <span class="meta">_hessian_</span>.</p>
+<p><span class="meta">_hessian_getAttribute(String key)</span> returns a string.
+The following attributes are predefined by this spec:</p><table class="deftable"><tr class="a"><th scope="col">ATTRIBUTE</th><th scope="col">MEANING
+</th></tr><tr class="b"><td>java.api.class</td><td>Java interface for this URL
+</td></tr><tr class="a"><td>java.home.class</td><td>Java interface for this service
+</td></tr><tr class="b"><td>java.object.class</td><td>Java interface for a service object
+</td></tr><tr class="a"><td>java.ejb.primary.key.class</td><td>Java EJB primary key class
+</td></tr></table>
+<p>"java.api.class" returns the client proxy's Java API class
+for the current URL.  "java.home.class" returns the API class for the
+factory URL, i.e. without any "?id=XXX" query string.  "java.object.class"
+returns the API class for object instances.</p>
+<p>In the case of services with no object instances, i.e.
+non-factory services, all three attributes will return the
+same class name.</p>
+<div class="s2"><a name="Obsoletemetadataproperties"></a><h2>Obsolete meta data properties</h2><table class="deftable"><tr class="a"><th scope="col">ATTRIBUTE</th><th scope="col">MEANING
+</th></tr><tr class="b"><td>home-class</td><td>Java class for the home interface.
+</td></tr><tr class="a"><td>remote-class</td><td>Java class for the object interface.
+</td></tr><tr class="b"><td>primary-key-class</td><td>Java class for the primary key.
+</td></tr></table></div>
+<div class="s1"><a name="MicroHessian"></a><h1 class="section">Micro Hessian</h1></div>
+<p>A "Micro Hessian" implementation may omit support for the "double" type.
+</p>
+<div class="s1"><a name="FormalDefinitions"></a><h1 class="section">Formal Definitions</h1></div><div class="definition"><div class="definition-body"><pre><span class="meta">top</span>     ::= <span class="meta">call</span>
+        ::= <span class="meta">reply</span><span class="meta">call</span>    ::= c x01 x00 <span class="meta">header</span>* <span class="meta">method</span><span class="meta">object</span>* z
+
+<span class="meta">reply</span>   ::= r x01 x00 <span class="meta">header</span>* <span class="meta">object</span> z
+        ::= r x01 x00 <span class="meta">header</span>* <span class="meta">fault</span> z
+
+<span class="meta">object</span>  ::= <span class="meta">null</span>
+        ::= <span class="meta">boolean</span>
+        ::= <span class="meta">int</span>
+        ::= <span class="meta">long</span>
+        ::= <span class="meta">double</span>
+        ::= <span class="meta">date</span>
+        ::= <span class="meta">string</span>
+        ::= <span class="meta">xml</span>
+        ::= <span class="meta">binary</span>
+        ::= <span class="meta">remote</span>
+        ::= <span class="meta">ref</span>
+        ::= <span class="meta">list</span>
+        ::= <span class="meta">map</span><span class="meta">header</span>  ::= H b16 b8 header-string <span class="meta">object</span><span class="meta">method</span>  ::= m b16 b8 method-string
+
+<span class="meta">fault</span>   ::= f (<span class="meta">object</span><span class="meta">object</span>)* z
+
+<span class="meta">list</span>    ::= V <span class="meta">type</span>? <span class="meta">length</span>? <span class="meta">object</span>* z
+<span class="meta">map</span>     ::= M <span class="meta">type</span>? (<span class="meta">object</span><span class="meta">object</span>)* z
+<span class="meta">remote</span>  ::= r <span class="meta">type</span>? <span class="meta">string</span><span class="meta">type</span>    ::= t b16 b8 type-string
+<span class="meta">length</span>  ::= l b32 b24 b16 b8
+
+<span class="meta">null</span>    ::= N
+<span class="meta">boolean</span> ::= T
+        ::= F
+<span class="meta">int</span>     ::= I b32 b24 b16 b8
+<span class="meta">long</span>    ::= L b64 b56 b48 b40 b32 b24 b16 b8
+<span class="meta">double</span>  ::= D b64 b56 b48 b40 b32 b24 b16 b8
+<span class="meta">date</span>    ::= d b64 b56 b48 b40 b32 b24 b16 b8
+<span class="meta">string</span>  ::= (s b16 b8 string-data)* S b16 b8 string-data
+<span class="meta">xml</span>     ::= (x b16 b8 xml-data)* X b16 b8 xml-data
+<span class="meta">binary</span>  ::= (b b16 b8 binary-data)* B b16 b8 binary-data
+<span class="meta">ref</span>     ::= R b32 b24 b16 b8
+</pre></div></div>
+<div class="s1"><a name="CopyrightandLicensing"></a><h1 class="section">Copyright and Licensing</h1></div>
+<p>
+© Copyright 2000-2004 Caucho Technology, Inc. All Rights Reserved.
+</p>
+<p>Any party may implement this protocol for any purpose without royalty
+or license fee, provided that the implementation conforms to this
+specification.   Caucho Technology reserves the right to create a
+test suite, freely available without royalty or license fee, to
+validate implementation conformance.  The limited permissions granted
+herein are perpetual and may not be revoked by Caucho Technology or
+its successors or assigns.</p>
+<p>This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it
+or assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and these paragraphs are
+included on all such copies and derivative works.</p>
+<p>This document and the information contained herein is provided on an
+"AS IS" basis and CAUCHO TECHNOLOGY DISCLAIMS ALL WARRANTIES, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
+THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</p>
+<div class="s1"><a name="Changes"></a><h1 class="section">Changes</h1></div>
+<div class="s2"><a name="changesin1.0.2"></a><h2>changes in 1.0.2</h2><ul>
+<li>Clarified that length of XML and strings is in characters (Petr Gladkikh)
+</li></ul></div>
+<div class="s2"><a name="changesin1.0"></a><h2>changes in 1.0</h2><ul>
+<li>Removed unidirectional messages.
+</li></ul></div>
+<div class="s2"><a name="changesinV3"></a><h2>changes in V3</h2><ul>
+<li>Added unidirectional messages
+</li>
+<li>Removed 'v' from reply
+</li>
+<li>changed length code to 'l'
+</li>
+<li>made <span class="meta">type</span> and <span class="meta">length</span> optional
+</li></ul></div>
+<div class="s2"><a name="changesinV2"></a><h2>changes in V2</h2><ul>
+<li>EJB naming: clarified examples especially for session beans (John Mitchell)
+</li>
+<li>Formal definitions: clarified grammar and added missing object (John Mitchell)
+</li>
+<li>Formal definitions: initial binary should use 'b' (John Mitchell)
+</li></ul></div><hr></hr>
+<table class="breadcrumb" border="0" cellspacing="0" width="99%"><tr><td width="30%" align="left"><a href="/doc/flash.xtp">Flash</a></td><td width="40%"><center><a href="/doc/index.xtp">Hessian 3.1</a></center></td><td width="30%" align="right"><a href="/doc/hessian-serialization.html">Hessian 2.0 serialization</a></td></tr></table><table border="0" cellspacing="0" width="100%"><tr><td><em><small>Copyright &copy; 1998-2015 Caucho Technology, Inc. All rights reserved.&nbsp;Resin <sup><font size="-1">&#174;</font></sup> is a registered trademark. Quercus<sup>tm</sup>, and Hessian<sup>tm</sup> are trademarks of Caucho Technology.<br/><br/>Cloud-optimized Resin Server is a Java EE certified Java Application Server, and Web Server, and Distributed Cache Server (Memcached).<br/>Leading companies worldwide with demand for reliability and high performance web applications including SalesForce.com, CNET, DZone and many more are powered by Resin.<br/><br/></small></em></td></tr><tr><td><center><small><a href="http://www.caucho.com/" title="Caucho home, makers of Resin Server, Java Application Server, Web Server and Querus PHP engine.">home</a>&nbsp;<a href="http://www.caucho.com/about/">company</a>&nbsp;<a href="http://www.caucho.com/resin-4.0/">docs</a>&nbsp;<br/><a href="http://www.caucho.com/" title="Resin | Java Application Server | Java EE Certified | Cloud Optimized ">app server</a>&nbsp;</small></center></td></tr></table></td></tr></table><div id="popup"/></tr></table>

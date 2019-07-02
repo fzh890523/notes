@@ -73,7 +73,96 @@ will push your code to the master branch of the remote repository defined with `
 
 
 
+
+
+
+
+# merge
+
+
+
+## cherry-pick
+
+
+
+```shell
+# develop上有个hotfix commit（commit号为abcd...），但develop本身还来不及merge到master(比如commit太多)
+
+git checkout master
+git cherry-pick -x abcd  # -x的话生成标准commit message，减少重复merge
+```
+
+
+
+## resolve conflicts
+
+
+
+### 选用某一方的结果
+
+```sh
+git checkout --ours -- <paths>
+# or
+git checkout --theirs -- <paths>
+```
+
+**注意： merge 和 rebase时，ours和theirs的意义是相反的**
+
+* merge
+  `ours`指当前分支
+  
+  ```sh
+  git branch  # branchA
+  git merge -X ours branchB  # prefer files from branchA
+  ```
+  
+  
+  
+* rebase
+  `theirs`指当前分支
+  
+  ```sh
+  git branch  # branchA
+  git rebase -X theirs branchB  # prefer files from branchA
+  ```
+
+
+
+
 # pull
+
+
+
+# push
+
+
+
+## push到remote不同分支(尤其是不存在时)
+
+
+
+一种方式：
+
+* local new -> remote new
+
+  ```sh
+  git checkout new
+  git push origin new
+  ```
+
+* local old -> remote new 临时
+
+  ```sh
+  git push origin old:new
+  # 注意: git push origin :new 会导致remote new被删除
+  ```
+
+* local old -> remote new 持久
+
+  ```sh
+  git push --set-upstream new old
+  # 或者先set再push吧
+  ```
 
 
 
@@ -167,6 +256,44 @@ remote
 * `git push --delete origin tagname`
 
   > or `-d` for old git versions
+
+
+
+
+
+# describe
+
+ref: https://blog.csdn.net/ustccw/article/details/79068354s
+
+
+
+获取当前仓库当前的 commit 对应的最近的 tag`
+
+
+
+**参数选项**
+
+* `--dirty` 意味着如果源码如果被修改了(git status)，则会在版本后面加上 -dirty (默认)，如版本为 v2.1 ， 如果你修改了源码，则git describe 结果会成为 v2.1-dirty ,你也可以通过 --dirty= 来赋值新的字符串。
+* `--tags` Instead of using only the annotated tags, use any tag found in refs/tags namespace. This option enables matching a lightweight (non-annotated) tag.
+* `--always` Show uniquely abbreviated commit object as fallback.
+
+
+
+**示例**
+
+```sh
+git describe --always --tags --dirty
+v3.1-dev-374-gb0f7ff5  # output
+# v3.1-dev: 当前分支最近的 tag
+# 374 代表在 v3.1-dev tag 后有 374 次提交(commit)
+# -g 代表 git
+# b0f7ff5 代表最近的 commitID
+# git describe --always 会获取最近的 commitID
+```
+
+
+
+
 
 
 

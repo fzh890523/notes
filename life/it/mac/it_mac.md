@@ -1,499 +1,254 @@
-# 快捷键
 
-^ - ctrl
 
-类似 `-\_` - alt
+# 了解
 
-类似中国结 - cmd
 
 
+## 机型
 
 
 
+### mbp
 
 
-## 截屏
 
-### 截取全屏+保存到桌面： shift+cmd+3
+ref： [识别 MacBook Pro 机型](https://support.apple.com/zh-cn/HT201300)
 
-### 截取指定区域+保存到桌面： shift+cmd+4
+* `MacBookPro11,4` 
 
-### 截取全屏+保存到剪切板： ctrl+shift+cmd+3
+  **MacBook Pro（视网膜显示屏，15 英寸，2015 年中）**
+  机型标识符：MacBookPro11,4
+  部件号：MJLQ2xx/A
+  技术规格：[MacBook Pro（视网膜显示屏，15 英寸，2015 年中）](https://support.apple.com/kb/SP719?locale=zh_CN)
 
-### 截取指定区域+保存到剪切板： ctrl+shift+cmd+4
 
-## 文件操作
 
-### 新建文件夹： cmd+shift+n
+### imac
 
-### 删除文件/目录： cmd+del
 
-### 立即删除文件/目录（不进入废纸篓）： cmd+option+del
 
-### 在文件选择窗口选择/进入隐藏文件/目录： cmd+shift+g 然后输入要去的path
+ref: [识别您的 iMac 机型](https://support.apple.com/zh-cn/HT201634)
 
+* `iMac14,2`
 
+  **iMac（27 英寸，2013 年末）**
+  机型标识符：iMac14,2
+  部件号：ME086xx/A、ME088xx/A
+  技术规格：[iMac（27 英寸，2013 年末）](https://support.apple.com/kb/SP688?locale=zh_CN)
 
-## 窗口操作
+* `14,3` 文里没有，囧
 
-### 关闭当前窗口： cmd+f4（需要把function功能调整回来，否则还需要fn）
+* `iMac14,4` 
 
-### 显示桌面： f11 或者 五指触摸板展开
+  **iMac（21.5 英寸，2014 年中）**
+  机型标识符：iMac14,4
+  部件号：MF883xx/A、MG022xx/A
+  技术规格：[iMac（21.5 英寸，2014 年中）](https://support.apple.com/kb/SP701?locale=zh_CN)
 
-### 显示最近应用： 五指触摸板收缩
 
-### 同应用多窗口切换： cmd + ~
 
+## 保修
 
 
-# 交互
 
-## finder相关
+https://checkcoverage.apple.com/cn/zh/
 
-### 新建文本文档功能
+输入序列号(从关于本机那获取)
 
-```
-作者：谢俊驰
-链接：https://www.zhihu.com/question/20883777/answer/81780928
-来源：知乎
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 
-Automator 新建一个 Application<img src="https://pic1.zhimg.com/78ce627667e5b8c7ab1bcff125e19968_b.png" data-rawwidth="97" data-rawheight="109" class="content_image" width="97">添加一个动作 "Run AppleScript"<img src="https://pic2.zhimg.com/b1931d5f1328d30559719088c9faffb1_b.png" data-rawwidth="1816" data-rawheight="1088" class="origin_image zh-lightbox-thumb" width="1816" data-original="https://pic2.zhimg.com/b1931d5f1328d30559719088c9faffb1_r.png">代码如下on run {input, parameters}
 
-	tell application "Finder"
-	set selection to make new file at (get insertion location)
-	end tell
 
-	return input
-end run
-保存到 "应用程序"文件夹, 名字姑且叫 "New File.app" 吧.Finder 工具栏右键, 自定义, 然后把 New File.app 拖上去, 大功告成
-```
 
 
+# network
 
-# script
 
 
+## wireless
 
-## 执行
 
 
+### 问题
 
-### 双击执行sh
 
-- First in terminal make the script executable by typing:
 
-  ```
-  chmod a+x (yourscriptname)
-  ```
+#### 抖动过大
 
-- Then, in Finder, right-click your file and select "Open with" and then "Other...".
+**背景**
 
-- Here you select the application you want the file to execute into, in this case it would be Terminal. To be able to select terminal you need to switch from "Recommended Applications" to "All Applications". (The Terminal.app application can be found in the Utilities folder)
+* 14版本imac
+* 连2.4/5g wifi ssid，卡顿明显，开始怀疑是vnc的锅，后来发现ssh也是
+* 测试发现： ping 90ms、抖动57ms； 带宽正常 下行200多、上行五六十，跟mbp上差不多
+* 切到单2.4g，49ms、21；76MB、28 
+* 切到单5g，ping 38、抖动3.27； 下载218MB、上行38
 
-- NOTE that unless you don't want to associate all files with this extension to be run in terminal you should not have "Always Open With" checked.
+**结论**
 
-- After clicking OK you should be able to execute you script by simply double-clicking it.
+mac（尤其是老版本）对于双模ssid的接入是支持但有问题的。 坑。
 
 
 
+# device
 
 
 
+## disk
 
-# 命令行
 
-## netstat
 
-### 替代品
+### mount
 
-BSD风格的netstat相比GNU的太难用了，要实现`netstat -alnp`的效果，在mac中可以：`lsof -nP -iTCP -sTCP:LISTEN` （虽然挺不一样的 = =）。
 
-格式：`lsof -nP -iTCP:端口号 -sTCP:LISTEN`
 
-类似的有：
-
-* lsof -nP -iTCP -sTCP:LISTEN
-* lsof -nP -iTCP:4000 -sTCP:LISTEN
-
-
-## sz rz
-
-Ref: [mac iterm2 安装 lrzsz  rz sz命令](http://blog.csdn.net/jack85986370/article/details/51382077)
-
-
-
-首先mac自带的终端是不支持lrzsz的，需要下载安装iterm2，下载地址：
-
-[http://www.iterm2.cn/download](http://www.iterm2.cn/download)
-
-1. 安装lrzsz
-
-```shell
-brew install lrzsz
-```
-
-2. 安装脚本到mac指定目录，地址在： [https://github.com/mmastrac/iterm2-zmodem](https://github.com/mmastrac/iterm2-zmodem)
-
-保存 iterm2-send-zmodem.sh 和 iterm2-recv-zmodem.sh 到mac的 /usr/local/bin/ 路径下 
-`注意添加脚本可执行权限：`
-
-```shell
-chmod +x iterm2-send-zmodem.sh 
-chmod +x iterm2-recv-zmodem.sh  1212
-```
-
-------
-
-3. iterm2 添加 triggers
-
-```
-Regular expression: \*\*B0100
-    Action: Run Silent Coprocess
-    Parameters: /usr/local/bin/iterm2-send-zmodem.sh
-Regular expression: \*\*B00000000000000
-    Action: Run Silent Coprocess
-    Parameters: /usr/local/bin/iterm2-recv-zmodem.sh 
-```
-
-添加步骤：command+“,” 组合键打开“Preferences”面板->Profiles选项卡->Advanced->Triggers（点击Edit即可）
-
-![这里写图片描述](http://img.blog.csdn.net/20160512103326982)
-
-> add、按照上面的内容在GUI里填入...
->
-> 注意要勾选instant
-
-4. 重启iterm2，链接远程[Linux](http://lib.csdn.net/base/linux)，输入rz命令试一下吧（注意上传文件路径不能包含中文）。
-
-
-
-# 文件
-
-## 修改默认打开的程序
-
-1. 类win方式
-   * 操作： 右键 - 打开方式 - 其他，然后选择好程序后勾选中☑️“始终以此方式打开”
-   * 效果： 似乎不行 = =（仅限一个文件？）
-2. 右键 然后安卓alt，这时候打开方式会变成始终以此方式打开
-   * 效果： 好像还是不行
-3. 选中文件，cmd+i（或者finder的file - 显示简介）- 简介窗口里的打开方式选项 - 选择好后点一下“全部更改”
-   * 效果： ok，但可能需要设置几次 = =
-
-# sublime
-
-## 列模式/列选择
-
-option+鼠标左键（或触摸板）
-
-
-
-# 文本操作
-
-## 删除
-
-### 删除光标之前（win的backspace）： delete
-
-### 删除光标之后（win的del）： fn+delete
-
-### 删除光标之前的一个词（英文有效）： alt+del
-
-### 删除光标之后的一个词： fn+alt+del
-
-### 删除光标之前的整行内容：cmd+del
-
-
-
-# 媒体
-
-## 音频
-
-## 视频
-
-### 屏幕录制
-
-#### 自带quicktime
-
-默认不能录制系统音频，只能选择麦克风作为音频输入，可以安装soundflower，原理类似作为一个虚拟音频设备，quicktime录制时可以选择该设备作为音频输入。
-
-注意，使用时需要设置该设备作为音频输出。
-
-`系统音频 - soundflower - quicktime`
-
-
-
-但这样的话就没有音频输出到外设了，也就是听不到声音了。
-
-解决办法：
-
-在MIDI（音频设备）系统设置里创建多输出设备，选择内建输出和soundflower的输出然后把该多输出设备作为音频输出就OK了（如果用了外置声卡的话也是类似处理、选中）。
-
-
-
-参考：
-
-* [Mac 小贴士：整合多台音频设备](http://www.midifan.com/modulearticle-detailview-5413.htm)
-* [Record your computer's screen with audio on a Mac](https://www.cnet.com/how-to/record-your-computers-screen-with-audio-on-a-mac/)
-* [Mac 下有什么好用的屏幕录像软件？](https://www.zhihu.com/question/19595687)
-
-
-
-# alfred
-
-暂时放这里吧。
-
-
-
-## file explorer
-
-### 打开文件
-
-空格或单引号'然后输入文件名即可
-
-（性能开销不知道如何，哎，以后可以考虑定制，在指定目录下搜索。 目前还是挺快的）
-
-
-
-### 打开目录
-
-飘号~或者斜杠/然后就出现目录了，可以代替大部分finder，操作很便利。
-
-
-
-
-
-# applications
-
-
-
-## 杂项
-
-
-
-### 打开应用内容（content）目录
-
-选择`Show Package Contents`
-
-* 应用图标右键
-* alfred选项里在`*.app`上选项里选择
-
-
-
-比如： `/Applications/NetBeans/NetBeans 8.2.app/Contents/` 这个目录是无法直接进入的（到`*.app`就无法双击进入了），那么想改其下的 `Resources/NetBeans/etc/netbeans.conf`就得通过这种方式了。
-
-
-
-
-
-
-
-# 软件
-
-
-
-## 包管理 - brew
-
-
-
-### install brew
-
-
-
-```shell
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-
-
-## network
-
-### telnet
-
-
-
-```shell
-brew install telnet
-```
-
-
-
-
-
-
-
-## PDF
-
-
-
-### 功用
-
-#### 书签编辑
-
-##### JPdfBookmarks
-
-
-
-* `Ctrl-alt-S` - add bookmark
-
-* `Ctrl-alt-F` - add child(bookmark)
-
-  好像跟默认的file menu快捷键冲突了 = =
-
-* `ctrl-F2` - rename bookmark
-
-* `ctrl-delete` - delete bookmark
-
-* `ctrl-C` - copy bookmark
-
-* `ctrl-X` - cut bookmark
-
-* `ctrl-V` - paste bookmark
-
-
-
-这个工具比较特色的功能还是在于： 书签的导出/导入。
-
-
-
-###### 问题
-
-
-
-对于一些格式错误（但能兼容阅读）的pdf，save时会报错 = =，然后会导致写坏文件。
-
-最好在副本里操作。
-
-```Java
-Exception in thread "main" java.lang.NullPointerException
-	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1251)
-	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
-	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
-	at com.lowagie.text.pdf.PdfStamperImp.outlineTravel(PdfStamperImp.java:1253)
-	at com.lowagie.text.pdf.PdfStamperImp.deleteOutlines(PdfStamperImp.java:1267)
-	at com.lowagie.text.pdf.PdfStamperImp.setOutlines(PdfStamperImp.java:1329)
-	at com.lowagie.text.pdf.PdfStamperImp.close(PdfStamperImp.java:180)
-	at com.lowagie.text.pdf.PdfStamper.close(PdfStamper.java:191)
-	at it.flavianopetrocchi.jpdfbookmarks.itextbookmarksconverter.iTextBookmarksConverter.save(iTextBookmarksConverter.java:420)
-	at it.flavianopetrocchi.jpdfbookmarks.Applier.save(Unknown Source)
-	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.applySave(Unknown Source)
-	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.apply(Unknown Source)
-	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.start(Unknown Source)
-	at it.flavianopetrocchi.jpdfbookmarks.JPdfBookmarks.main(Unknown Source)
-```
-
-
-
-后来发现好像是foxit把书签写坏了，用JPdfBookMarks dump下来书签然后在foxit里删掉全部书签，再用JPdfBookMarks打开 - load书签后save就好了，囧。
-
-
-
-
-
-## sublime
-
-
-
-### 文本
-
-#### 列选择
-
-
-
-## iterm
-
-
-
-### tab
-
-#### tab name
-
-
-
-`cmd + I` 然后修改session name，再esc推出。
-
-
-
-
-
-# 用户
-
-
-
-## root用户执行
-
-
-
-### root用户执行/启动app
-
-* sudo open
-
-  如：
-
-  ```shell
-  sudo open /Applications/VisualVM.app
+* 可以用linux风格
+  ```sh
+  sudo mount -t apfs /dev/disk5s1 ~/xx
+  vim /etc/fstab
   ```
 
-  好像不行，open后面又以普通用户运行了。
-
-* sudo /Applications/ApplicationName.app/Contents/MacOS/ApplicationName
-
-  `-b` : background
-
-  这个可以。
 
 
+**fstab**
 
+* mac上不建议使用`/etc/fstab`，而是建议使用`diskutil`
+* 但mac还是支持fstab的功能，也许文件不存在，可以手动创建一下
+  
+  > https://superuser.com/questions/336455/mac-lion-fstab-is-deprecated-so-what-replaces-it-to-prevent-a-partition-from-m 提到不是不建议使用fstab，而是不建议直接编辑它 --- 应该通过`vifs` 命令来编辑。
 
 
 
-# os
+**uuid**
 
 
 
-## kernel
-
-### 类似strace
+### ntfs
 
 
 
-#### dtrace
-
-```shell
-sudo dtrace -ln 'syscall:::entry'
-
-sudo dtrace -qn 'syscall::write:entry, syscall::sendto:entry /pid == $target/ { printf("(%d) %s %s", pid, probefunc, copyinstr(arg1)); }' -p $SERVER_PID
-
-sudo dtrace -n 'syscall::open*:entry { printf("%s %s", execname, copyinstr(arg0)); }'
-```
+#### ntfs mount rw
 
 
 
-#### dtruss
+* `mount`命令有点半废
 
-```shell
-sudo dtruss -t open_nocancel -p $SERVER_PID
-# sudo strace -e open -p $SERVER_PID
-```
+  对于`mount -t ntfs uuid=xxx ~/mount/hdd-test-entertainment`会报错`No such file or directory`；
+
+  对于fstab中`UUID=xxx none ntfs rw,auto,nobrowse`然后`mount -a`也一样
+
+* fstab + `diskutil mount`
+
+  `diskutil mount /dev/disk6s2` 会读fstab，但如果没有rw的话ok，有rw的话会报错：
+
+  ```
+  Volume on disk6s2 failed to mount
+  If the volume is damaged, try the "readOnly" option
+  ```
+
+  这一点与搜到的信息不一样，网上这样ok
+
+  > 其实是文件系统dirty。。。修复一下就好了，见下文
+  >
+  > 后来又不行了，噗。。。弃疗
+
+* 用三方方案
+
+  Ref： 
+
+  * <https://www.howtogeek.com/236055/how-to-write-to-ntfs-drives-on-a-mac/>
+  * <https://www.makeuseof.com/tag/write-ntfs-drives-el-capitan-free/>
+
+  
+
+  * 收费： Paragon NTFS
+
+  * 免费： [FUSE for macOS](https://github.com/osxfuse/osxfuse/releases) + NTFS-3G
+
+    `wget https://github.com/osxfuse/osxfuse/releases/download/osxfuse-3.9.0/osxfuse-3.9.0.dmg`
+
+    选装打钩 **MacFUSE Compatibility Layer**
+
+    `brew install ntfs-3g`
+
+    ```sh
+    sudo /usr/local/bin/ntfs-3g /dev/disk6s2 /Volumes/xxx -olocal -oallow_other
+    
+    The disk contains an unclean file system (0, 0).
+    The file system wasn't safely closed on Windows. Fixing.
+    
+    # ok了
+    # <del>并且之后用 fstab + diskutil mount 也ok了</del>
+    ```
+
+    
+
+
+
+### ext
 
 
 
 
 
-## process
+# smb
+
+
+## 权限
+
+slbj的mac，不希望login user能rw访问sharing dir所以删掉了这一行授权。。
+于是。。 在本机login user无法访问这个dir了。 简直智障。。。
+
+  
+
+## 用户
+
+可以在用户里创建sharing only的用户，来避免login用户信息外泄。
+
+## win兼容性
+
+部分client以”windows“方式访问，需要勾选file sharing - options - windows file sharing。
+> 有提示说启用该模式需要使得用户密码以更不安全方式存储
+> 所以也只能是专用用户了
+
+## 问题
+
+**用户名密码报错**
+
+需要重置一下密码（同样的密码）。
+
+我这边复现是：
+1. 在sharing里添加用户时用contacts里选择、设置密码，然后会自动创建sharing only的用户
+2. 连接时密码报错
+3. 在用户里重置密码为同样内容，ok
+
+估计是实现bug。
 
 
 
-### 查看进程cwd - lsof
 
-* `lsof -d cwd`
+# sw
 
-  查看所有进程的cwd
 
-* `lsof -a -d cwd -p ${pid}`
 
-  查看指定进程的cwd
+## item2
 
-> 需要具有要查看进程的权限，同user或者root
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

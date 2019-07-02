@@ -14,6 +14,60 @@
 
 
 
+## timeout
+
+ref: https://unix.stackexchange.com/questions/94604/does-curl-have-a-timeout/94612
+
+**Timeout parameters**
+
+`curl` has two options: `--connect-timeout` and `--max-time`.
+
+Quoting from the manpage:
+
+```
+--connect-timeout <seconds>
+    Maximum  time  in  seconds  that you allow the connection to the
+    server to take.  This only limits  the  connection  phase,  once
+    curl has connected this option is of no more use.  Since 7.32.0,
+    this option accepts decimal values, but the actual timeout  will
+    decrease in accuracy as the specified timeout increases in deci‐
+    mal precision. See also the -m, --max-time option.
+
+    If this option is used several times, the last one will be used.
+```
+
+and:
+
+```
+-m, --max-time <seconds>
+    Maximum  time  in  seconds that you allow the whole operation to
+    take.  This is useful for preventing your batch jobs from  hang‐
+    ing  for  hours due to slow networks or links going down.  Since
+    7.32.0, this option accepts decimal values, but the actual time‐
+    out will decrease in accuracy as the specified timeout increases
+    in decimal precision.  See also the --connect-timeout option.
+
+    If this option is used several times, the last one will be used.
+```
+
+**Defaults**
+
+Here (on Debian) it stops trying to connect after 2 minutes, regardless of the time specified with `--connect-timeout` and although the default connect timeout value seems to be *5 minutes* according to the `DEFAULT_CONNECT_TIMEOUT` macro in [lib/connect.h](https://github.com/curl/curl/blob/master/lib/connect.h).
+
+A default value for `--max-time` doesn't seem to exist, making `curl` wait forever for a response if the initial connect succeeds.
+
+**What to use?**
+
+You are probably interested in the latter option, `--max-time`. For your case set it to `900` (15 minutes).
+
+Specifying option `--connect-timeout` to something like `60` (one minute) might also be a good idea. Otherwise `curl` will try to connect again and again, apparently using some backoff algorithm.
+
+
+
+
+
+
+
 ## method
 
 
@@ -30,6 +84,8 @@ curl -X POST
 
 ```sh
 curl -data "xxx"
+
+curl -d @${filePath} "xxx"  # 从${filePath}指定的路径读取文件作为body
 ```
 
 
@@ -163,7 +219,7 @@ Ref: [Can I make cURL fail with an exitCode different than 0 if the HTTP status 
   curl: (22) The requested URL returned error: 404 Not Found
   ```
 
-  ​
+  
 
 
 

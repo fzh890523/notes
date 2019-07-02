@@ -6,11 +6,62 @@
 
 
 
+# install
+
+
+
+```sh
+apt-file find /usr/bin/ab  # ubuntu某版本下没找到 httpd-tools
+aptitude install -y apache2-utils
+```
+
+
+
+# 问题
+
+
+
+## http 1.1支持
+
+
+
+没办法显式指定发1.1的包，而当server不支持1.0(返回426告知升级)时，会无法继续。。
+
+```sh
+HTTP/1.1 426 Upgrade Required
+date: Fri, 17 May 2019 03:11:12 GMT
+server: envoy
+connection: close
+content-length: 0
+```
+
 
 
 
 
 # usage
+
+
+
+```sh
+       ab  [  -A auth-username:password ] [ -b windowsize ] [ -B
+       local-address ] [ -c concurrency ] [ -C cookie-name=value
+       ]  [  -d  ] [ -e csv-file ] [ -f protocol ] [ -g gnuplot-
+       file ] [ -h ] [ -H custom-header ] [ -i ] [ -k ] [ -l ] [
+       -m  HTTP-method  ]  [ -n requests ] [ -p POST-file ] [ -P
+       proxy-auth-username:password ] [ -q ] [ -r ] [ -s timeout
+       ]  [  -S ] [ -t timelimit ] [ -T content-type ] [ -u PUT-
+       file ] [  -v  verbosity]  [  -V  ]  [  -w  ]  [  -x  <ta‐
+       ble>-attributes    ]   [   -X   proxy[:port]   ]   [   -y
+       <tr>-attributes ] [ -z <td>-attributes ] [ -Z ciphersuite
+       ] [http[s]://]hostname[:port]/path
+```
+
+
+
+```sh
+ab -v 2 -n 10 -p /tmp/ab_body.json -H "Host:xx.com" http://127.0.0.1:8080/xx
+```
 
 
 
