@@ -334,8 +334,27 @@ On another note, something is telling me you have some bigger issues with your w
 
 
 
+### rebase冲突手动选择手动选择(而不是compare)
 
+主要用于“显然以某方为准”的场景，尤其是binary文件不好diff-再选择。
 
+```sh
+git checkout --ours -- <paths>
+# or
+git checkout --theirs -- <paths>
+```
+
+还有就是rebase时直接指定：
+```sh
+# rebase preferring current branch changes during conflicts
+$ git rebase -X theirs branch-b
+```
+
+对于merge,**ours, theirs的含义与rebase相反**，要`prefer current branch时`：
+```sh
+# assuming branch-a is our current version
+$ git merge -X ours branch-b  # <- ours: branch-a, theirs: branch-b
+```
 
 
 ### git merge tool
@@ -421,6 +440,89 @@ git config --global merge.tool opendiff
   ```
 
 
+
+## auth
+
+
+
+### 选择ssh key
+
+
+
+ref： <https://superuser.com/questions/232373/how-to-tell-git-which-private-key-to-use>
+
+There is **no direct way** to tell `git` which private key to use, because it relies on `ssh` for repository authentication. However, there are still a few ways to achieve your goal:
+
+
+
+**Option 1**: `ssh-agent`
+
+You can use `ssh-agent` to temporarily authorize your private key.
+
+For example:
+
+```
+$ ssh-agent sh -c 'ssh-add ~/.ssh/id_rsa; git fetch user@host'
+```
+
+
+
+**Option 2**: `GIT_SSH_COMMAND`
+
+Pass the ssh arguments by using the `GIT_SSH_COMMAND` environment variable (Git 2.3.0+).
+
+For example:
+
+```
+$ GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' \
+  git clone user@host
+```
+
+You can type this all on one line — ignore `$` and leave out the `\`.
+
+
+
+**Option 3**: `GIT_SSH`
+
+Pass the ssh arguments by using the `GIT_SSH` environment variable to specify alternate `ssh` binary.
+
+For example:
+
+```
+$ echo 'ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*' > ssh
+$ chmod +x ssh
+$ GIT_TRACE=1 GIT_SSH='./ssh' git clone user@host
+```
+
+Note: The above lines are shell (terminal) command lines which you should paste into your terminal. They will create a file named *ssh*, make it executable, and (indirectly) execute it.
+
+Note: [`GIT_SSH` is available since v0.99.4](https://github.com/git/git/commit/4852f7232b7a83fbd1b745520181bd67bf95911b) (2005).
+
+
+
+**Option 4**: `~/.ssh/config`
+
+Use the `~/.ssh/config` file as suggested in other answers in order to specify the location of your private key, e.g.
+
+```
+Host github.com
+  User git
+  Hostname github.com
+  IdentityFile ~/.ssh/id_rsa
+```
+
+example:
+
+```
+Host testHost
+  User git
+  Hostname www.testHost.com
+  IdentityFile ~/.ssh/id_rsa.1  
+```
+然后：
+```sh
+git remote add remote1 git@testHost:user/repo  # 这个testHost与前面Host对应
+```
 
 
 

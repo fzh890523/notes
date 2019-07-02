@@ -1,5 +1,94 @@
 
 
+# tutorial
+
+
+
+## 返回值
+
+
+
+Ref: https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
+
+
+
+通过 `multiprocessing.pool`
+
+```python
+def foo(bar, baz):
+  print 'hello {0}'.format(bar)
+  return 'foo' + baz
+
+from multiprocessing.pool import ThreadPool
+pool = ThreadPool(processes=1)
+
+async_result = pool.apply_async(foo, ('world', 'foo')) # tuple of args for foo
+
+# do some other stuff in the main process
+
+return_val = async_result.get()  # get the return value from your function.
+```
+
+
+
+通过mutable var：
+
+```python
+def foo(bar, result, index):
+    print 'hello {0}'.format(bar)
+    result[index] = "foo"
+
+from threading import Thread
+
+threads = [None] * 10
+results = [None] * 10
+
+for i in range(len(threads)):
+    threads[i] = Thread(target=foo, args=('world!', results, i))
+    threads[i].start()
+
+# do some other stuff
+
+for i in range(len(threads)):
+    threads[i].join()
+
+print " ".join(results)  # what sound does a metasyntactic locomotive make?
+```
+
+
+
+通过继承`Thread`
+
+```python
+from threading import Thread
+
+def foo(bar):
+    print 'hello {0}'.format(bar)
+    return "foo"
+
+class ThreadWithReturnValue(Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs, Verbose)
+        self._return = None
+    def run(self):
+        if self._Thread__target is not None:
+            self._return = self._Thread__target(*self._Thread__args,
+                                                **self._Thread__kwargs)
+    def join(self):
+        Thread.join(self)
+        return self._return
+
+twrv = ThreadWithReturnValue(target=foo, args=('world!',))
+
+twrv.start()
+print twrv.join()   # prints foo
+```
+
+
+
+
+
 
 
 # 多线程

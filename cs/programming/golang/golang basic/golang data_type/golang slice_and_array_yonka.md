@@ -164,6 +164,28 @@ s = append(nil, 1)  // 报错如下
 
 
 
+## compare/equal
+
+
+
+* shallow compare or `==`/`!=`
+
+  ```
+  Slice, map, and function values are not comparable. However, as a special case, a slice, map, or function value may be compared to the predeclared identifier nil. Comparison of pointer, channel, and interface values to nil is also allowed and follows from the general rules above.
+  ```
+
+  from: https://golang.org/ref/spec#Comparison_operators
+
+  
+
+## expand/grow
+
+
+
+
+
+
+
 
 
 

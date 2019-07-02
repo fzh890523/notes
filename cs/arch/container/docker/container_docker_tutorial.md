@@ -1,4 +1,10 @@
+# ref 
 
+## startup
+
+* [How To Install and Use Docker on Ubuntu 18.04 - DO](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04)
+
+## 
 
 # cmd
 

@@ -6,6 +6,30 @@
 
 
 
+Ref: https://docs.fedoraproject.org/ro/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch02s03.html
+
+Tabel 2.1. The main `rpm` operations
+
+| Operation                                   | Short Option | Long Option |
+| ------------------------------------------- | ------------ | ----------- |
+| Upgrade/install                             | -U           | --upgrade   |
+| Install                                     | -I           | --install   |
+| Remove                                      | -e           | --erase     |
+| Query                                       | -q           | --query     |
+| Verify                                      | -V           | --verify    |
+| Check signature                             | -K           | --checksig  |
+| Freshen (upgrade) already-installed package | -F           | --freshen   |
+| Initialize database                         | None         | --initdb    |
+| Rebuild database                            | None         | --rebuilddb |
+
+
+
+### Install file
+
+
+
+
+
 ### provider file
 
 
@@ -45,6 +69,18 @@
   ```
 
 
+
+### Extract file
+
+
+
+* rpm2cpio
+
+  ```sh
+  rpm2cpio ./packagecloud-test-1.1-1.x86_64.rpm | cpio -idmv
+  ```
+
+  
 
 
 

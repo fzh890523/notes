@@ -6,7 +6,34 @@
 
 
 
-## Mac -h
+
+
+## basic
+
+
+
+* `lsof ${filename}`
+
+  基本用法，列出打开该指定文件的进程
+
+  ```sh
+  #lsof xxx.log
+  COMMAND    PID  USER   FD   TYPE DEVICE SIZE/OFF     NODE NAME
+  cmd1    142917 admin   33w   REG    8,5  1466629 70408201 xxx.log
+  cmd1    142939 admin   33w   REG    8,5  1466629 70408201 xxx.log
+  cmd1    142940 admin   33w   REG    8,5  1466629 70408201 xxx.log
+  cmd2  158590  root    6w   REG    8,5  1466629 70408201 xxx.log
+  ```
+
+  
+
+
+
+
+
+
+
+## Mac -h help info
 
 
 
@@ -47,6 +74,50 @@ Anyone can list all files; /dev warnings disabled; kernel ID check disabled.
 
 
 
+## output
+
+
+
+lsof输出各列信息的意义如下：
+
+* COMMAND：进程的名称 PID：进程标识符
+
+* USER：进程所有者
+
+* FD：文件描述符，应用程序通过文件描述符识别该文件。如cwd、txt等 
+  * FD 列中的文件描述符cwd 值表示应用程序的当前工作目录，这是该应用程序启动的目录，除非它本身对这个目录进行更改,txt 类型的文件是程序代码，如应用程序二进制文件本身或共享库，如上列表中显示的 /sbin/init 程序。
+  * 其次数值表示应用程序的文件描述符，这是打开该文件时返回的一个整数。如上的最后一行文件/dev/initctl，其文件描述符为 10。u  表示该文件被打开并处于读取/写入模式，而不是只读 ® 或只写 (w) 模式。同时还有大写 的W  表示该应用程序具有对整个文件的写锁。该文件描述符用于确保每次只能打开一个应用程序实例。初始打开每个应用程序时，都具有三个文件描述符，从 0 到  2，分别表示标准输入、输出和错误流。所以大多数应用程序所打开的文件的 FD 都是从 3 开始。
+
+* TYPE：文件类型，如DIR、REG等
+
+  与 FD 列相比，Type 列则比较直观。文件和目录分别称为 REG 和 DIR。而CHR 和 BLK，分别表示字符和块设备；或者 UNIX、FIFO 和 IPv4，分别表示 UNIX 域套接字、先进先出 (FIFO) 队列和网际协议 (IP) 套接字。
+
+* DEVICE：指定磁盘的名称
+
+* SIZE：文件的大小
+
+* NODE：索引节点（文件在磁盘上的标识）
+
+* NAME：打开文件的确切名称
+
+
+
+
+
+与 FD 列相比，Type 列则比较直观。文件和目录分别称为 REG 和 DIR。而CHR 和 BLK，分别表示字符和块设备；或者 UNIX、FIFO 和 IPv4，分别表示 UNIX 域套接字、先进先出 (FIFO) 队列和网际协议 (IP) 套接字。
+
+
+
+
+
+## options
+
+
+
+
+
+
+
 
 
 
@@ -78,7 +149,7 @@ Anyone can list all files; /dev warnings disabled; kernel ID check disabled.
    >
    > `gcore 30495` [as suggested by Mark Plotnick](https://unix.stackexchange.com/questions/268247/recover-files-if-still-being-used-by-a-process#comment464904_268247) would dump a memory image of the process in the file `core.30495`. You could try to sift through that memory image, but don't get your hopes up: there's a good chance that the process has parsed the configuration file and reused whatever memory it stored the file in for other purposes. It's even likely that the whole configuration file was never entirely in memory, only piece by piece and each piece overwrote the previous one.
 
-   ​
+   
 
 
 
@@ -99,6 +170,22 @@ lsof -nP -iTCP:80 -sTCP:LISTEN
 
 lsof -nP -iTCP -sTCP:LISTEN | grep 80
 ```
+
+
+
+
+
+## 查看用户打开的文件
+
+
+
+
+
+
+
+
+
+
 
 
 

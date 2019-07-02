@@ -10,7 +10,6 @@
 
 * 单引号（`'`）
 * 前后两个单引号之前的斜线（`\`）
-* ​
 
 
 
@@ -34,7 +33,65 @@ http://stackoverflow.com/questions/6697753/difference-between-single-and-double-
 
 
 
+### (single) quote in quote怎么escape
 
+
+
+#### `' -> '"'"'`
+
+
+
+如：
+
+```sh
+# 'abc'def'
+'abc'"'"'def'
+```
+
+
+
+
+
+#### `' -> \'` - 好像不行
+
+* 以py为例，可以：
+
+  ```python
+  cmd = "echo '%s'" % line.replace("'", "'\\''")  # ' -> '\''
+  ```
+
+* 以py为例，可以：
+
+  ```python
+  cmd = "echo $'%s'" % line.replace("'"， "\\'")  # ' -> \'
+  ```
+
+  但还有点问题，见下文：
+
+  
+
+  ```
+  From man bash
+  Words of the form $'string' are treated specially. The word expands to string, with backslash-escaped characters replaced as specified by the ANSI C standard. Backslash escape sequences, if present, are decoded as follows:
+  
+            \a     alert (bell)
+            \b     backspace
+            \e
+            \E     an escape character
+            \f     form feed
+            \n     new line
+            \r     carriage return
+            \t     horizontal tab
+            \v     vertical tab
+            \\     backslash
+            \'     single quote
+            \"     double quote
+            \nnn   the eight-bit character whose value is the octal value nnn (one to three digits)
+            \xHH   the eight-bit character whose value is the hexadecimal value HH (one or two hex digits)
+            \cx    a control-x character
+  ```
+
+  
 
 
 
@@ -218,7 +275,7 @@ let "var++"
 
 
 
-#### 数组
+### 数组
 
 Bash array的索引<del>从1开始</del>>。。。
 
