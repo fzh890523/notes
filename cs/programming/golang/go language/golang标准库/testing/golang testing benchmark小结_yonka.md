@@ -468,3 +468,104 @@
 >    return b.run()
 > }
 > ```
+
+
+
+
+
+# tutorial
+
+
+
+```sh
+go test -bench=^BenchmarkXX.* -benchtime 15s -count 2 -cpu 1,4 ./api
+# -bench=. 匹配全部
+```
+
+
+
+
+
+# examples
+
+
+
+## compare search map and slice
+
+
+
+```go
+if i, err := strconv.Atoi(v); err != nil {
+			panic(err)
+		} else {
+			l = i
+		}
+	}
+
+	missRatio := 0.0
+
+	if v := os.Getenv("miss_ratio"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err != nil {
+			panic(err)
+		} else {
+			missRatio = f
+		}
+	}
+
+	dataMap = make(map[string]string)
+
+	for i := 0; i < l; i++ {
+		k := fmt.Sprintf("key_%d_xxx_%d", i, i)
+		keys = append(keys, k)
+		dataSlice = append(dataSlice, [2]string{k, k})
+		dataMap[k] = k
+	}
+
+	if missRatio > 0 {
+		miss := int(math.Floor(missRatio * float64(l)))
+		for i := 0; i < miss; i++ {
+			keys = append(keys, "can_not_found")
+		}
+	}
+
+	rand.Shuffle(len(keys), func(i, j int) {
+		keys[i], keys[j] = keys[j], keys[i]
+	})
+}
+
+func BenchmarkSearchMap(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, k := range keys {
+			_ = dataMap[k]
+		}
+	}
+}
+
+func BenchmarkSearchList(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, k := range keys {
+			for _, item := range dataSlice {
+				if item[0] == k {
+					break
+				}
+			}
+		}
+	}
+}
+```
+
+
+
+```sh
+# len == 20
+
+goos: darwin
+goarch: amd64
+pkg: istio.io/istio/pilot/pkg/networking/util
+BenchmarkSearchMap-8    	 3000000	       391 ns/op
+BenchmarkSearchList-8   	 1000000	      1483 ns/op
+PASS
+```
+
+
+

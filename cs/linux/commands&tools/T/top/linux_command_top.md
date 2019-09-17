@@ -97,6 +97,12 @@ top -d ${cpu_period} -n 2 -b -H | awk 'BEGIN{count=0}{if($1=="top"){count+=1;} i
 
 
 
+## 第一次显示问题
+
+
+
+
+
 # 实现
 
 

@@ -42,6 +42,62 @@ will push your code to the master branch of the remote repository defined with `
 
 
 
+# diff
+
+ref： https://cloud.tencent.com/developer/ask/26560
+
+
+
+
+
+* `git diff --shortstat`
+
+  显示文件、行数变化。
+
+  ```
+   1 file changed, 23 deletions(-)
+  ```
+
+* `git diff --stat`
+
+  更可读一些
+
+  ```
+   codecov.skip | 23 -----------------------
+   1 file changed, 23 deletions(-)
+  ```
+
+  `git diff --stat <commit-ish> <commit-ish>`
+
+* `git diff --numstat`
+
+  表格式输出
+
+  ```
+  4       4       Gopkg.toml
+  0       23      codecov.skip
+  ```
+
+
+
+**git log与diff**
+
+git log内部调用diff机器以打印请求的信息，所以可以给它任何差异统计选项 - 不只是--shortstat。你可能想要使用的是：
+
+```js
+git log --author="Your name" --stat <commit1>..<commit2>
+```
+
+但你可以使用--numstat或--shortstat为好。git  log也可以用各种其他方式选择提交 -  查看文档。你可能会感兴趣的东西--since（而不是指定提交范围，只是从上周选择提交）和--no-merges（合并提交实际上不引入更改），以及漂亮的输出选项（--pretty=oneline,  short, medium, full...）。
+
+```sh
+git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF==3 {plus+=$1; minus+=$2} END {printf("+%d, -%d\n", plus, minus)}'
+```
+
+
+
+
+
 
 
 # commit

@@ -185,9 +185,16 @@ curl http://127.0.0.1:9093/debug/pprof/profile?seconds=30 > profile.30s
 go tool pprof profile.30s
 web  # or other ...
 # web需要设置好svg默认打开程序
+
+# --inuse_space vs --alloc_space
 ```
 
 
+
+```sh
+http://localhost:8888/debug/pprof/goroutine?debug=1
+http://localhost:8888/debug/pprof/goroutine?debug=2
+```
 
 
 

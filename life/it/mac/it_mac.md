@@ -108,7 +108,46 @@ mac（尤其是老版本）对于双模ssid的接入是支持但有问题的。 
 
 
 
-**fstab**
+#### mount local directory
+
+
+
+> macos上mount好像不支持bind，可以：
+>
+> Ref: <https://apple.stackexchange.com/questions/197029/how-do-you-mount-bind-a-local-directory>
+>
+> - 使用第三方FS支持，比如FUSE/bindfs
+>
+> ```sh
+> # install osxfuse first, and then:
+> brew install homebrew/fuse/bindfs
+> ```
+>
+> - use NFS mound to do this
+>
+> ```sh
+> sudo tee -a /etc/exports <<< "/ -alldirs -mapall=$USER localhost"
+> sudo launchctl start com.apple.rpcbind
+> sudo nfsd start
+> sudo mount localhost:/path/to/target ./mnt
+> # sudo umount ./mnt
+> ```
+>
+> - use buildin file-sharing(afp/smb)
+>
+>   ```sh
+>   # share target directory
+>   # As finder refuse to connect to a local "network-location", we mount it manually
+>   mount -t afp afp://${user}:${password}@127.0.0.1/${shareName} ${mntPoint}
+>   ```
+>
+>   
+
+
+
+
+
+### **fstab**
 
 * mac上不建议使用`/etc/fstab`，而是建议使用`diskutil`
 * 但mac还是支持fstab的功能，也许文件不存在，可以手动创建一下

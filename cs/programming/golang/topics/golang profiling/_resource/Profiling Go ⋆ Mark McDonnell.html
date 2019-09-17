@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)https://www.integralist.co.uk/posts/profiling-go/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Memory Management Types of Profiling Tools Matrix Analysis Steps Base Example ReadMemStats Pprof Trace Conclusion  
+Memory Management Before we dive into the techniques and tools available for profiling Go applications, we should first understand a little bit about its memory model as this can help us to understand what it is we’re seeing in relation to memory consumption.
+Go’s implementation is a parallel mark-and-sweep garbage collector. In the traditional mark-and-sweep model, the garbage collector would stop the program from running (i.">
+
+<meta property="og:title" content="Profiling Go ⋆ Mark McDonnell">
+<meta property="og:description" content="Memory Management Types of Profiling Tools Matrix Analysis Steps Base Example ReadMemStats Pprof Trace Conclusion  
+Memory Management Before we dive into the techniques and tools available for profiling Go applications, we should first understand a little bit about its memory model as this can help us to understand what it is we’re seeing in relation to memory consumption.
+Go’s implementation is a parallel mark-and-sweep garbage collector. In the traditional mark-and-sweep model, the garbage collector would stop the program from running (i.">
+<meta property="og:url" content="https://www.integralist.co.uk/posts/profiling-go/">
+<meta property="og:site_name" content="integralist">
+<meta property="og:type" content="article"><meta property="article:section" content="Posts"><meta property="article:tag" content="bash"><meta property="article:tag" content="go"><meta property="article:tag" content="profiling"><meta property="article:published_time" content="2017-10-31T13:00:00+01:00"><meta property="article:modified_time" content="2017-10-31T13:00:00+01:00">
+
+<meta name="generator" content="Hugo 0.55.0">
+
+  <title>Profiling Go ⋆ Mark McDonnell</title>
+  <link rel="canonical" href="https://www.integralist.co.uk/posts/profiling-go/">
+  <link rel="icon" href="https://www.integralist.co.uk/favicon.ico">
+<link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/css">
+<link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/main.d02777fd.css">
+
+  <link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/custom.css">
+
+  <link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/highlight.github.css">
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-33159515-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async="" src="./Profiling Go ⋆ Mark McDonnell_files/analytics.js"></script>
+
+
+</head>
+
+
+<body class="page">
+  <div class="site">
+    <header id="header" class="header-container">
+      <div class="site-header">
+        <nav id="navmenu" aria-label="Main Menu">
+  <ul class="main-menu">
+    
+    <li>
+      <a href="https://www.integralist.co.uk/">Home</a>
+    </li>
+    
+    <li>
+      <a href="https://www.integralist.co.uk/about">About</a>
+    </li>
+    
+    <li>
+      <a href="https://www.integralist.co.uk/posts">Posts</a>
+    </li>
+    
+    <li>
+      <a href="https://www.integralist.co.uk/search">Search</a>
+    </li>
+    
+    <li>
+      <a href="https://www.integralist.co.uk/resume">Resume</a>
+    </li>
+    
+    <li>
+      <a href="https://www.integralist.co.uk/posts/profiling-go/#theme">Night Mode</a>
+    </li>
+    
+  </ul>
+</nav>
+
+        <div class="site-info">
+          
+          <p class="site-title title">integralist</p>
+          
+          <p class="site-description">Compassionate Listener. Polyglot. Author. Husband. Father. He/Him.</p>
+        </div>
+      </div>
+    </header>
+
+
+<main class="main">
+  <article lang="en" class="entry">
+    <header class="entry-header">
+  <div class="entry-info">
+    <h1 class="entry-title title">Profiling Go</h1>
+    
+  </div>
+  
+<div class="meta">
+  <span class="posted-on">
+    <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+  <line x1="16" y1="2" x2="16" y2="6"></line>
+  <line x1="8" y1="2" x2="8" y2="6"></line>
+  <line x1="3" y1="10" x2="21" y2="10"></line>
+  
+</svg>
+
+    <span class="screen-reader">Posted on </span>
+    <time class="date" datetime="2017-10-31T13:00:00+01:00">2017-10-31</time>
+  </span>
+  
+  <span class="byline">
+    <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <path d="M21,21V20c0-2.76-4-5-9-5s-9,2.24-9,5v1"></path>
+  <path d="M16,6.37A4,4,0,1,1,12.63,3,4,4,0,0,1,16,6.37Z"></path>
+  
+</svg>
+
+    <span class="screen-reader"> by </span>
+    Mark McDonnell
+  </span>
+  
+  
+  <span class="reading-time">
+    <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <circle cx="12" cy="12" r="10"></circle>
+  <polyline points="12 6 12 12 15 15"></polyline> 
+  
+</svg>
+
+    19 mins read
+  </span>
+  
+</div>
+
+
+</header>
+
+    <div class="entry-content">
+  
+
+<ul>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#1">Memory Management</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#2">Types of Profiling</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#2.1">Tools Matrix</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#3">Analysis Steps</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#4">Base Example</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#5">ReadMemStats</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#6">Pprof</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#7">Trace</a></li>
+<li><a href="https://www.integralist.co.uk/posts/profiling-go/#8">Conclusion</a></li>
+</ul>
+
+<p></p><div id="1"></div><p></p>
+
+<h2 id="memory-management">Memory Management</h2>
+
+<p>Before we dive into the techniques and tools available for profiling Go applications, we should first understand a little bit about its memory model as this can help us to understand what it is we’re seeing in relation to memory consumption.</p>
+
+<p>Go’s implementation is a <em>parallel</em> <a href="http://wiki.c2.com/?MarkAndSweep">mark-and-sweep garbage collector</a>. In the <em>traditional</em> mark-and-sweep model, the garbage collector would stop the program from running (i.e. “stop the world”) while it detects unreachable objects and again while it clears them (i.e. deallocates the memory). This is to prevent complications where the running program could end up moving references around during the identification/clean-up phase. This would also cause latency and other issues for users of the program while the GC ran. With Go the <a href="https://blog.golang.org/go15gc">GC is executed concurrently</a>, so users don’t notice pauses or delays even though the GC is running.</p>
+
+<p></p><div id="2"></div><p></p>
+
+<h2 id="types-of-profiling">Types of Profiling</h2>
+
+<p>There are a couple of approaches available to us for monitoring performance…</p>
+
+<ul>
+<li><strong>Timers</strong>: useful for benchmarking, as well as comparing <em>before</em> and <em>after</em> fixes.</li>
+<li><strong>Profilers</strong>: useful for high-level verification.</li>
+</ul>
+
+<p></p><div id="2.1"></div><p></p>
+
+<h2 id="tools-matrix">Tools Matrix</h2>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><a href="https://www.integralist.co.uk/posts/profiling-go/#5">ReadMemStats</a></td>
+<td>- Simple, quick and easy.<br>- Only details memory usage.</td>
+<td>- Requires code change.</td>
+</tr>
+
+<tr>
+<td><a href="https://www.integralist.co.uk/posts/profiling-go/#6">pprof</a></td>
+<td>- Details CPU and Memory.<br>- Remote analysis possible.<br>- Image generation.</td>
+<td>- Requires code change.<br>- More complicated API.</td>
+</tr>
+
+<tr>
+<td><a href="https://www.integralist.co.uk/posts/profiling-go/#7">trace</a></td>
+<td>- Helps analyse data over time.<br>- Powerful debugging UI.<br>- Visualise problem area easily.</td>
+<td>- Requires code change.<br>- UI is complex.<br>- Takes time to understand.</td>
+</tr>
+</tbody>
+</table>
+
+<p></p><div id="3"></div><p></p>
+
+<h2 id="analysis-steps">Analysis Steps</h2>
+
+<p>Regardless of the tool you use for analysis, a general rule of thumb is to:</p>
+
+<ol>
+<li><strong>Identify a bottleneck at a high-level</strong>
+
+<ul>
+<li>For example, you might notice a long running function call.</li>
+</ul></li>
+<li><strong>Reduce the operations</strong>
+
+<ul>
+<li>Look at time spent, or number of calls, and figure out an alternative approach.</li>
+<li>Look at the number of memory allocations, figure out an alternative approach.</li>
+</ul></li>
+<li><strong>Drill down</strong>
+
+<ul>
+<li>Use a tool that gives you data at a lower-level.</li>
+</ul></li>
+</ol>
+
+<p>Think about more performant algorithms or data structures.<br>
+There may also be simpler solutions.<br>
+Take a pragmatic look at your code.</p>
+
+<p></p><div id="4"></div><p></p>
+
+<h2 id="base-example">Base Example</h2>
+
+<p>Let’s begin with a simple program written using Go 1.9.2…</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"log"</span>
+)
+
+<span class="hljs-comment">// bigBytes allocates 100 megabytes</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+    s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+    <span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+        s := bigBytes()
+        <span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+            log.Println(<span class="hljs-string">"oh noes"</span>)
+        }
+    }
+}
+</code></pre>
+
+<p>Running this program can take ~0.2 seconds to execute.</p>
+
+<p>So this isn’t a slow program, we’re just using it as a base to measure memory consumption.</p>
+
+<p></p><div id="5"></div><p></p>
+
+<h2 id="readmemstats">ReadMemStats</h2>
+
+<p>The easiest way to look what our application is doing with regards to memory allocation is by utilising the <code>MemStats</code> from the <code>runtime</code> package.</p>
+
+<p>In the following snippet we modify the <code>main</code> function to print out specific memory statistics.</p>
+
+<pre><code class="hljs lua">func main() {
+    var mem runtime.MemStats
+
+    fmt.Println(<span class="hljs-string">"memory baseline..."</span>)
+
+    runtime.ReadMemStats(&amp;mem)
+    <span class="hljs-built_in">log</span>.Println(mem.Alloc)
+    <span class="hljs-built_in">log</span>.Println(mem.TotalAlloc)
+    <span class="hljs-built_in">log</span>.Println(mem.HeapAlloc)
+    <span class="hljs-built_in">log</span>.Println(mem.HeapSys)
+
+    <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+        s := bigBytes()
+        <span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+            <span class="hljs-built_in">log</span>.Println(<span class="hljs-string">"oh noes"</span>)
+        }
+    }
+
+    fmt.Println(<span class="hljs-string">"memory comparison..."</span>)
+
+    runtime.ReadMemStats(&amp;mem)
+    <span class="hljs-built_in">log</span>.Println(mem.Alloc)
+    <span class="hljs-built_in">log</span>.Println(mem.TotalAlloc)
+    <span class="hljs-built_in">log</span>.Println(mem.HeapAlloc)
+    <span class="hljs-built_in">log</span>.Println(mem.HeapSys)
+}
+</code></pre>
+
+<p>If I run this program I’ll see the following output:</p>
+
+<pre><code class="hljs nginx"><span class="hljs-attribute">memory</span> baseline…
+
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">56480</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">56480</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">56480</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">786432</span>
+
+memory comparison...
+
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">200074312</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">1000144520</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">200074312</span>
+<span class="hljs-number">2017</span>/<span class="hljs-number">10</span>/<span class="hljs-number">29</span> <span class="hljs-number">08</span>:<span class="hljs-number">51</span>:<span class="hljs-number">56</span> <span class="hljs-number">200704000</span>
+</code></pre>
+
+<p>So we can see the difference between what the go application was using at the point in time that the <code>main</code> function started and when it finished (after allocating a lot of memory via the <code>bigBytes</code> function). The two items we’re most interested in are <code>TotalAlloc</code> and <code>HeapAlloc</code>.</p>
+
+<p>The total allocations shows us the total amount of memory accumulated (this value <em>doesn’t</em> decrease as memory is freed). Whereas the heap allocations indicate the amount of memory at the point in time when the snapshot was taken, and it can include <em>both</em> reachable and unreachable objects (e.g. objects the garbage collector hasn’t freed yet). So it’s important to realise that the amount of memory ‘in use’ could have dropped after the snapshot was taken.</p>
+
+<p>Take a look at the <a href="https://golang.org/pkg/runtime/#MemStats">MemStats docs</a> for more properties (inc. <code>Mallocs</code> or <code>Frees</code>).</p>
+
+<p></p><div id="6"></div><p></p>
+
+<h2 id="pprof">Pprof</h2>
+
+<p><a href="https://github.com/google/pprof">Pprof</a> is a tool for visualization and analysis of profiling data.<br>
+It’s useful for identifying where your application is spending its time (CPU and memory).</p>
+
+<p>You can install it using:<br>
+<code>go get github.com/google/pprof</code></p>
+
+<p>To begin with, let’s understand what a “profile” is:</p>
+
+<blockquote>
+<p>A Profile is a collection of stack traces showing the call sequences that led to instances of a particular event, such as allocation. Packages can create and maintain their own profiles; the most common use is for tracking resources that must be explicitly closed, such as files or network connections. – <a href="https://golang.org/pkg/runtime/pprof/#Profile">pkg/runtime/pprof</a></p>
+</blockquote>
+
+<p>Now there are a couple of ways to use this tool:</p>
+
+<ol>
+<li>Instrument code within binary to generate a <code>.profile</code> for analysis <em>during</em> development.</li>
+<li>Remotely analyse binary via a web server (no <code>.profile</code> is explicitly generated).</li>
+</ol>
+
+<blockquote>
+<p>Note: the profile file doesn’t have to use a <code>.profile</code> extension (it can be whatever you like)</p>
+</blockquote>
+
+<h3 id="generate-profile-for-analysis-during-development">Generate .profile for analysis during development</h3>
+
+<p>In this section we’ll look at profiling both CPU and Memory allocation.<br>
+We’ll start with CPU profiling.</p>
+
+<h4 id="cpu-analysis">CPU Analysis</h4>
+
+<p>In the following example we’ve modified the application to import <code>"runtime/pprof"</code> and added the relevant API calls in order to record CPU data:</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+	<span class="hljs-string">"log"</span>
+	<span class="hljs-string">"os"</span>
+	<span class="hljs-string">"runtime/pprof"</span>
+)
+
+<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+	s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+	pprof.StartCPUProfile(os.Stdout)
+	<span class="hljs-keyword">defer</span> pprof.StopCPUProfile()
+
+	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+		s := bigBytes()
+		<span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+			log.Println(<span class="hljs-string">"oh noes"</span>)
+		}
+	}
+}
+</code></pre>
+
+<blockquote>
+<p>Note: we use <code>os.Stdout</code> to make the example easier (i.e. no need to create a file)
+We’ll just use the shell’s ability to redirect output to create the profile file instead.</p>
+</blockquote>
+
+<p>We can then build and run the application and save the profile data to a file:<br>
+<code>go build -o app &amp;&amp; time ./app &gt; cpu.profile</code></p>
+
+<p>Finally we can inspect the data interactively using go tool like so:<br>
+<code>go tool pprof cpu.profile</code></p>
+
+<p>From here you’ll see an interactive prompt has started up.<br>
+So let’s execute the <code>top</code> command and see what output we get:</p>
+
+<pre><code class="hljs go">(pprof) top
+Showing nodes accounting <span class="hljs-keyword">for</span> <span class="hljs-number">180</span>ms, <span class="hljs-number">100</span>% of <span class="hljs-number">180</span>ms total
+      flat  flat%   sum%        cum   cum%
+     <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.memclrNoHeapPointers /.../src/runtime/memclr_amd64.s
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  main.bigBytes /.../code/<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span> (inline)
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  main.main /.../code/<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.(*mheap).alloc /.../src/runtime/mheap.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.largeAlloc /.../src/runtime/malloc.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.main /.../src/runtime/proc.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.makeslice /.../src/runtime/slice.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.mallocgc /.../src/runtime/malloc.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.mallocgc.func1 /.../src/runtime/malloc.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%      <span class="hljs-number">180</span>ms   <span class="hljs-number">100</span>%  runtime.systemstack /.../src/runtime/asm_amd64.s
+</code></pre>
+
+<p>So this suggests the biggest CPU consumer is <code>runtime.memclrNoHeapPointers</code>.</p>
+
+<p>Let’s now view a “line by line” breakdown to see if we can pinpoint the CPU usage further.</p>
+
+<p>We’ll do this by using the <code>list &lt;function regex&gt;</code> command.<br>
+We can see from the <code>top</code> command that our <code>main</code> function is available via <code>main.main</code>.</p>
+
+<p>So let’s list any functions within the <code>main</code> namespace:</p>
+
+<pre><code class="hljs go">(pprof) list main\.
+Total: <span class="hljs-number">180</span>ms
+ROUTINE ======================== main.bigBytes in /.../<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>      <span class="hljs-number">180</span>ms (flat, cum)   <span class="hljs-number">100</span>% of Total
+         .          .      <span class="hljs-number">6</span>:   <span class="hljs-string">"runtime/pprof"</span>
+         .          .      <span class="hljs-number">7</span>:)
+         .          .      <span class="hljs-number">8</span>:
+         .          .      <span class="hljs-number">9</span>:<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+         .          .     <span class="hljs-number">10</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+         .      <span class="hljs-number">180</span>ms     <span class="hljs-number">11</span>:   s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+         .          .     <span class="hljs-number">12</span>:   <span class="hljs-keyword">return</span> &amp;s
+         .          .     <span class="hljs-number">13</span>:}
+         .          .     <span class="hljs-number">14</span>:
+         .          .     <span class="hljs-number">15</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">16</span>:   pprof.StartCPUProfile(os.Stdout)
+ROUTINE ======================== main.main in /.../code/<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>      <span class="hljs-number">180</span>ms (flat, cum)   <span class="hljs-number">100</span>% of Total
+         .          .     <span class="hljs-number">15</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">16</span>:   pprof.StartCPUProfile(os.Stdout)
+         .          .     <span class="hljs-number">17</span>:   <span class="hljs-keyword">defer</span> pprof.StopCPUProfile()
+         .          .     <span class="hljs-number">18</span>:
+         .          .     <span class="hljs-number">19</span>:   <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+         .      <span class="hljs-number">180</span>ms     <span class="hljs-number">20</span>:           s := bigBytes()
+         .          .     <span class="hljs-number">21</span>:           <span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+         .          .     <span class="hljs-number">22</span>:                   log.Println(<span class="hljs-string">"oh noes"</span>)
+         .          .     <span class="hljs-number">23</span>:           }
+         .          .     <span class="hljs-number">24</span>:   }
+         .          .     <span class="hljs-number">25</span>:}
+</code></pre>
+
+<p>OK, so yes we can see that 180ms is spent in the <code>bigBytes</code> function and pretty much all of <em>that</em> function’s time is spent allocating memory via <code>make([]byte, 100000000)</code>.</p>
+
+<h4 id="memory-analysis">Memory Analysis</h4>
+
+<p>Before we move on, let’s look at how to profile our memory consumption.</p>
+
+<p>To do this we’ll change our application slightly so that <code>StartCPUProfile</code> becomes <code>WriteHeapProfile</code> (we’ll also move this call to the bottom of our <code>main</code> function otherwise if we keep it at the top of the function no memory has been allocated at that point). We’ll also remove the <code>StopCPUProfile</code> call altogether (as recording the heap is done as a <em>snapshot</em> rather than an ongoing process like with the CPU profiling):</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+	<span class="hljs-string">"log"</span>
+	<span class="hljs-string">"os"</span>
+	<span class="hljs-string">"runtime/pprof"</span>
+)
+
+<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+	s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+		s := bigBytes()
+		<span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+			log.Println(<span class="hljs-string">"oh noes"</span>)
+		}
+	}
+
+	pprof.WriteHeapProfile(os.Stdout)
+}
+</code></pre>
+
+<p>Again, we’ll build and execute the application and redirect the stdout to a file (for simplicity), but you could have created the file dynamically within your application if you so choose:<br>
+<code>go build -o app &amp;&amp; time ./app &gt; memory.profile</code></p>
+
+<p>At this point we can now run pprof to interactively inspect the memory profile data:<br>
+<code>go tool pprof memory.profile</code></p>
+
+<p>Let’s run the top command and see what the output is:</p>
+
+<pre><code class="hljs go">(pprof) top
+Showing nodes accounting <span class="hljs-keyword">for</span> <span class="hljs-number">95.38</span>MB, <span class="hljs-number">100</span>% of <span class="hljs-number">95.38</span>MB total
+      flat  flat%   sum%        cum   cum%
+   <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  main.bigBytes /...ain.<span class="hljs-keyword">go</span> (inline)
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  main.main /.../profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  runtime.main /.../runtime/proc.<span class="hljs-keyword">go</span>
+</code></pre>
+
+<p>For a simple example application like we’re using, this is fine as it indicates pretty clearly which function is responsible for the majority of the memory allocation (<code>main.bigBytes</code>).</p>
+
+<p>But if I wanted a more specific breakdown of the data I would execute <code>list main.</code>:</p>
+
+<pre><code class="hljs go">(pprof) list main.
+Total: <span class="hljs-number">95.38</span>MB
+ROUTINE ======================== main.bigBytes in /.../<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+   <span class="hljs-number">95.38</span>MB    <span class="hljs-number">95.38</span>MB (flat, cum)   <span class="hljs-number">100</span>% of Total
+         .          .      <span class="hljs-number">6</span>:   <span class="hljs-string">"runtime/pprof"</span>
+         .          .      <span class="hljs-number">7</span>:)
+         .          .      <span class="hljs-number">8</span>:
+         .          .      <span class="hljs-number">9</span>:<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+         .          .     <span class="hljs-number">10</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+   <span class="hljs-number">95.38</span>MB    <span class="hljs-number">95.38</span>MB     <span class="hljs-number">11</span>:   s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+         .          .     <span class="hljs-number">12</span>:   <span class="hljs-keyword">return</span> &amp;s
+         .          .     <span class="hljs-number">13</span>:}
+         .          .     <span class="hljs-number">14</span>:
+         .          .     <span class="hljs-number">15</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">16</span>:   <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+ROUTINE ======================== main.main in /.../code/<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>    <span class="hljs-number">95.38</span>MB (flat, cum)   <span class="hljs-number">100</span>% of Total
+         .          .     <span class="hljs-number">12</span>:   <span class="hljs-keyword">return</span> &amp;s
+         .          .     <span class="hljs-number">13</span>:}
+         .          .     <span class="hljs-number">14</span>:
+         .          .     <span class="hljs-number">15</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">16</span>:   <span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+         .    <span class="hljs-number">95.38</span>MB     <span class="hljs-number">17</span>:           s := bigBytes()
+         .          .     <span class="hljs-number">18</span>:           <span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+         .          .     <span class="hljs-number">19</span>:                   log.Println(<span class="hljs-string">"oh noes"</span>)
+         .          .     <span class="hljs-number">20</span>:           }
+         .          .     <span class="hljs-number">21</span>:   }
+         .          .     <span class="hljs-number">22</span>:
+</code></pre>
+
+<p>This indicates where all our memory is allocated on a “line-by-line” basis.</p>
+
+<h3 id="remotely-analyse-via-web-server">Remotely analyse via web server</h3>
+
+<p>In the following example we’ve modified the application to start up a web server and we’ve imported the <code>"net/http/pprof"</code> <a href="https://golang.org/pkg/net/http/pprof/">package</a> which automatically profiles what’s happening.</p>
+
+<blockquote>
+<p>Note: if your application already uses a web server, then you don’t need to start another. The pprof package will hook into your web server’s multiplexer.</p>
+</blockquote>
+
+<pre><code class="hljs go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+	<span class="hljs-string">"fmt"</span>
+	<span class="hljs-string">"log"</span>
+	<span class="hljs-string">"net/http"</span>
+	_ <span class="hljs-string">"net/http/pprof"</span>
+	<span class="hljs-string">"sync"</span>
+)
+
+<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+	s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+	<span class="hljs-keyword">return</span> &amp;s
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+	<span class="hljs-keyword">var</span> wg sync.WaitGroup
+
+	<span class="hljs-keyword">go</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> {
+		log.Println(http.ListenAndServe(<span class="hljs-string">"localhost:6060"</span>, <span class="hljs-literal">nil</span>))
+	}()
+
+	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+		s := bigBytes()
+		<span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+			log.Println(<span class="hljs-string">"oh noes"</span>)
+		}
+	}
+
+	wg.Add(<span class="hljs-number">1</span>)
+	wg.Wait() <span class="hljs-comment">// this is for the benefit of the pprof server analysis</span>
+}
+</code></pre>
+
+<p>When you build and run this binary, first visit the web server the code is running.<br>
+You’ll find that the pprof data is accessible via the path <code>/debug/pprof/</code>:<br>
+<code>http://localhost:6060/debug/pprof/</code></p>
+
+<p>You should see something like:</p>
+
+<pre><code class="hljs lua">profiles:
+<span class="hljs-number">0</span>	block
+<span class="hljs-number">4</span>	goroutine
+<span class="hljs-number">5</span>	heap
+<span class="hljs-number">0</span>	mutex
+<span class="hljs-number">7</span>	threadcreate
+
+full goroutine stack <span class="hljs-built_in">dump</span>
+
+/<span class="hljs-built_in">debug</span>/pprof/
+</code></pre>
+
+<p>Where block, goroutine, heap, mutex and threadcreate are all links off to the recorded data; and by ‘recorded data’ I mean they each link through to a different <code>.profile</code>. This isn’t particularly useful though. A tool is needed to process these <code>.profile</code> data files.</p>
+
+<p>We’ll come back to that in a moment, first let’s understand what these five profiles represent:</p>
+
+<ul>
+<li><strong>block</strong>: stack traces that led to blocking on synchronization primitives</li>
+<li><strong>goroutine</strong>: stack traces of all current goroutines</li>
+<li><strong>heap</strong>: a sampling of all heap allocations</li>
+<li><strong>mutex</strong>: stack traces of holders of contended mutexes</li>
+<li><strong>threadcreate</strong>: stack traces that led to the creation of new OS threads</li>
+</ul>
+
+<p>The web server can also generate a 30 second CPU profile, which you can access via <a href="http://localhost:6060/debug/pprof/profile">http://localhost:6060/debug/pprof/profile</a> (it won’t be viewable in the browser, instead it’ll be downloaded to your file system).</p>
+
+<p>The CPU profile endpoint is not listed when viewing <code>/debug/pprof/</code> simply because the CPU profile has a special API, the <code>StartCPUProfile</code> and <code>StopCPUProfile</code> functions that stream output to a writer during profiling, hence this hidden endpoint will ultimately download the results to your file system (we looked at how to use this API in the previous section).</p>
+
+<p>The web server can also generate a “trace” file, which you can access via <a href="http://localhost:6060/debug/pprof/trace?seconds=5">http://localhost:6060/debug/pprof/trace?seconds=5</a> (again, it’s not listed for similar reasons as the CPU profile - in that it generates file output that is downloaded to your file system). This trace file out requires the use of <code>go tool trace</code> (which we’ll cover in the next section).</p>
+
+<blockquote>
+<p>Note: more info on pprof options can be found here: <a href="https://golang.org/pkg/net/http/pprof/">golang.org/pkg/net/http/pprof/</a></p>
+</blockquote>
+
+<hr>
+
+<p>If you’re using a custom URL router, you’ll need to register the individual <code>pprof</code> endpoints:</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">package</span> main
+
+<span class="hljs-keyword">import</span> (
+    <span class="hljs-string">"net/http"</span>
+    <span class="hljs-string">"net/http/pprof"</span>
+)
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">message</span><span class="hljs-params">(w http.ResponseWriter, r *http.Request)</span></span> {
+    w.Write([]<span class="hljs-keyword">byte</span>(<span class="hljs-string">"Hello World"</span>))
+}
+
+<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+    r := http.NewServeMux()
+    r.HandleFunc(<span class="hljs-string">"/"</span>, message)
+
+    r.HandleFunc(<span class="hljs-string">"/debug/pprof/"</span>, pprof.Index)
+    r.HandleFunc(<span class="hljs-string">"/debug/pprof/cmdline"</span>, pprof.Cmdline)
+    r.HandleFunc(<span class="hljs-string">"/debug/pprof/profile"</span>, pprof.Profile)
+    r.HandleFunc(<span class="hljs-string">"/debug/pprof/symbol"</span>, pprof.Symbol)
+    r.HandleFunc(<span class="hljs-string">"/debug/pprof/trace"</span>, pprof.Trace)
+
+    http.ListenAndServe(<span class="hljs-string">":8080"</span>, r)
+}
+</code></pre>
+
+<hr>
+
+<p>So ideally you would use <code>go tool pprof</code> on the command line.<br>
+As this allows you to more easily interpret and interrogate the data interactively.</p>
+
+<p>To do this, you have to run your binary as before and then, in a <em>separate</em> shell, execute:<br>
+<code>go tool pprof http://localhost:6060/debug/pprof/&lt;.profile&gt;</code></p>
+
+<p>For example, let’s look at the memory heap profile data:<br>
+<code>go tool pprof http://localhost:6060/debug/pprof/heap</code></p>
+
+<p>From here you’ll see an interactive prompt has started up:</p>
+
+<pre><code class="hljs lua">Fetching profile over HTTP from http://localhost:<span class="hljs-number">6060</span>/<span class="hljs-built_in">debug</span>/pprof/heap
+Saved profile <span class="hljs-keyword">in</span> /.../pprof.alloc_objects.alloc_space.inuse_objects.inuse_space<span class="hljs-number">.005</span>.pb.gz
+Type: inuse_space
+Time: Oct <span class="hljs-number">27</span>, <span class="hljs-number">2017</span> at <span class="hljs-number">10</span>:<span class="hljs-number">01</span>am (BST)
+Entering interactive mode (<span class="hljs-built_in">type</span> <span class="hljs-string">"help"</span> <span class="hljs-keyword">for</span> commands, <span class="hljs-string">"o"</span> <span class="hljs-keyword">for</span> options)
+(pprof)
+</code></pre>
+
+<blockquote>
+<p>Note: you’ll see the “type” is set to <code>inuse_space</code> (meaning how much memory is still in use)</p>
+</blockquote>
+
+<p>As shown, you can type either <code>help</code> or <code>o</code> to see what’s available to use.</p>
+
+<p>Here are a couple of useful commands:</p>
+
+<ul>
+<li><code>top</code>: outputs top entries in text form</li>
+<li><code>topK</code>: where K is a number (e.g. top2 would show top two entries)</li>
+<li><code>list &lt;function regex&gt;</code>: outputs top entries in text form</li>
+</ul>
+
+<p>For example, if I execute <code>top</code> then we’d see the following output:</p>
+
+<pre><code class="hljs go">Showing nodes accounting <span class="hljs-keyword">for</span> <span class="hljs-number">95.38</span>MB, <span class="hljs-number">100</span>% of <span class="hljs-number">95.38</span>MB total
+      flat  flat%   sum%        cum   cum%
+   <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  main.bigBytes /...ain.<span class="hljs-keyword">go</span> (inline)
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  main.main /.../profiling/main.<span class="hljs-keyword">go</span>
+         <span class="hljs-number">0</span>     <span class="hljs-number">0</span>%   <span class="hljs-number">100</span>%    <span class="hljs-number">95.38</span>MB   <span class="hljs-number">100</span>%  runtime.main /.../runtime/proc.<span class="hljs-keyword">go</span>
+</code></pre>
+
+<p>For a simple example application like we’re using, this is fine as it indicates pretty clearly which function is responsible for the majority of the memory allocation (<code>main.bigBytes</code>).</p>
+
+<p>But if I wanted a more specific breakdown of the data I would execute list <code>main.main</code>:</p>
+
+<pre><code class="hljs go">Total: <span class="hljs-number">95.38</span>MB
+ROUTINE ======================== main.main in /.../profiling/main.<span class="hljs-keyword">go</span>
+   <span class="hljs-number">95.38</span>MB    <span class="hljs-number">95.38</span>MB (flat, cum)   <span class="hljs-number">100</span>% of Total
+         .          .      <span class="hljs-number">8</span>:   <span class="hljs-string">"sync"</span>
+         .          .      <span class="hljs-number">9</span>:)
+         .          .     <span class="hljs-number">10</span>:
+         .          .     <span class="hljs-number">11</span>:<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+         .          .     <span class="hljs-number">12</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+   <span class="hljs-number">95.38</span>MB    <span class="hljs-number">95.38</span>MB     <span class="hljs-number">13</span>:   s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+         .          .     <span class="hljs-number">14</span>:   <span class="hljs-keyword">return</span> &amp;s
+         .          .     <span class="hljs-number">15</span>:}
+         .          .     <span class="hljs-number">16</span>:
+         .          .     <span class="hljs-number">17</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">18</span>:   fmt.Println(<span class="hljs-string">"starting..."</span>)
+</code></pre>
+
+<p>This indicates where all our memory is allocated on a “line-by-line” basis.</p>
+
+<p>I noted earlier that the default “type” for the heap analysis was “memory still in use”. But there is an alternative type which indicates the amount of memory that was allocated in total throughout the lifetime of the program. You can switch to that mode using the <code>-alloc_space</code> flag like so:</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">go</span> tool pprof -alloc_space http:<span class="hljs-comment">//localhost:6060/debug/pprof/heap</span>
+</code></pre>
+
+<p>Let’s see the difference in the output by executing the <code>list</code> command:</p>
+
+<pre><code class="hljs go">(pprof) list main.bigBytes
+
+Total: <span class="hljs-number">954.63</span>MB
+ROUTINE ======================== main.bigBytes in /.../<span class="hljs-keyword">go</span>/profiling/main.<span class="hljs-keyword">go</span>
+  <span class="hljs-number">953.75</span>MB   <span class="hljs-number">953.75</span>MB (flat, cum) <span class="hljs-number">99.91</span>% of Total
+         .          .      <span class="hljs-number">7</span>:   <span class="hljs-string">"sync"</span>
+         .          .      <span class="hljs-number">8</span>:)
+         .          .      <span class="hljs-number">9</span>:
+         .          .     <span class="hljs-number">10</span>:<span class="hljs-comment">// bigBytes allocates 10 sets of 100 megabytes</span>
+         .          .     <span class="hljs-number">11</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">bigBytes</span><span class="hljs-params">()</span> *[]<span class="hljs-title">byte</span></span> {
+  <span class="hljs-number">953.75</span>MB   <span class="hljs-number">953.75</span>MB     <span class="hljs-number">12</span>:   s := <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">100000000</span>)
+         .          .     <span class="hljs-number">13</span>:   <span class="hljs-keyword">return</span> &amp;s
+         .          .     <span class="hljs-number">14</span>:}
+         .          .     <span class="hljs-number">15</span>:
+         .          .     <span class="hljs-number">16</span>:<span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+         .          .     <span class="hljs-number">17</span>:   <span class="hljs-keyword">var</span> wg sync.WaitGroup
+</code></pre>
+
+<blockquote>
+<p>Note: if you wanted to be explicit you could have used the “in use” type like so:<br>
+<code>go tool pprof -inuse_space http://localhost:6060/debug/pprof/heap</code></p>
+</blockquote>
+
+<p>The reason to choose either <code>-inuse_space</code> or <code>-alloc_space</code> will depend on where your specific concerns are focused. For example, if you’re concerned about garbage collection performance then you’ll want to look at the “allocated” memory (i.e. <code>-alloc_space</code>).</p>
+
+<blockquote>
+<p>Note: you can also inspect the number of objects (not just their space) with <code>-inuse_objects</code> and <code>-alloc_objects</code>.</p>
+</blockquote>
+
+<h3 id="image-generation">Image Generation</h3>
+
+<p>You can also generate an image of your analysis data using either the flag <code>-png</code>, <code>-gif</code> or <code>-svg</code> and then redirecting stdout to a filename like so:</p>
+
+<pre><code class="hljs go"><span class="hljs-keyword">go</span> tool pprof -png http:<span class="hljs-comment">//localhost:6060/debug/pprof/heap &gt; data.png</span>
+</code></pre>
+
+<p>This generates an image that looks like the following (notice how the bigger the box, the more resources it’s consuming - this helps you ‘at a glance’ to identify a potential problem zone):</p>
+
+<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go.png">
+    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go.png">
+</a></p>
+
+<blockquote>
+<p>Note: you can also output as a PDF with <code>-pdf</code>.</p>
+</blockquote>
+
+<h3 id="web-ui">Web UI</h3>
+
+<p>Finally, there is a interactive web ui coming for pprof in the near future (as of November 2017).</p>
+
+<p>See <a href="https://rakyll.org/pprof-ui/">this post</a> for more details.</p>
+
+<p>But in short you can get the updated pprof tool from GitHub and then execute it with the new flag <code>-http</code> (e.g. <code>-http=:8080</code>).</p>
+
+<p></p><div id="7"></div><p></p>
+
+<h2 id="trace">Trace</h2>
+
+<p><a href="https://golang.org/cmd/trace/">Trace</a> is a tool for visualization and analysis of trace data.<br>
+It’s suited at finding out what your program is doing over time, not in aggregate.</p>
+
+<blockquote>
+<p>Note: if you want to track down slow functions, or generally find where your program is spending most of its CPU time, then you should consider using <code>go tool pprof</code> instead.</p>
+</blockquote>
+
+<p>Let’s first modify our application to utilise tracing…</p>
+
+<pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> {
+	trace.Start(os.Stdout)
+	<span class="hljs-keyword">defer</span> trace.Stop()
+
+	<span class="hljs-keyword">for</span> i := <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++ {
+		s := bigBytes()
+		<span class="hljs-keyword">if</span> s == <span class="hljs-literal">nil</span> {
+			log.Println(<span class="hljs-string">"oh noes"</span>)
+		}
+	}
+
+	<span class="hljs-keyword">var</span> wg sync.WaitGroup
+	wg.Add(<span class="hljs-number">1</span>)
+
+	<span class="hljs-keyword">var</span> result []<span class="hljs-keyword">byte</span>
+	<span class="hljs-keyword">go</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> {
+		result = <span class="hljs-built_in">make</span>([]<span class="hljs-keyword">byte</span>, <span class="hljs-number">500000000</span>)
+		log.Println(<span class="hljs-string">"done here"</span>)
+		wg.Done()
+	}()
+
+	wg.Wait()
+	log.Printf(<span class="hljs-string">"%T"</span>, result)
+}
+</code></pre>
+
+<p>So, as far as utilising tracing, all we’ve done is import <code>"runtime/trace"</code> and then added calls to the <code>trace.Start</code> and <code>trace.Stop</code> functions (we <code>defer</code> the <code>trace.Stop</code> in order to ensure we trace everything our application is doing).</p>
+
+<p>Additionally we create a goroutine and allocate a large 500mb slice of bytes. We wait for the goroutine to complete and then we log the type of the result. We’re doing this just so we have some additional spike data to visualise.</p>
+
+<p>Now let’s re-compile our application, generate the trace data and open it with the trace tool…</p>
+
+<pre><code class="hljs go">$ <span class="hljs-keyword">go</span> build -o app
+$ time ./app &gt; app.trace
+$ <span class="hljs-keyword">go</span> tool trace app.trace
+</code></pre>
+
+<blockquote>
+<p>Note: you can also generate a pprof compatible file from a trace by using the <code>-pprof</code> flag (if you decided you wanted to dynamically inspect the data that way). See the <a href="https://golang.org/cmd/trace/">go documentation</a> for more details.</p>
+</blockquote>
+
+<p>Here’s the output from running <code>go tool trace app.trace</code>:</p>
+
+<pre><code class="hljs">2017/10/29 09:30:40 Parsing trace...
+2017/10/29 09:30:40 Serializing trace...
+2017/10/29 09:30:40 Splitting trace...
+2017/10/29 09:30:40 Opening browser
+</code></pre>
+
+<p>You’ll now see your default web browser should have automatically opened to:<br>
+<a href="http://127.0.0.1:60331/">http://127.0.0.1:60331</a></p>
+
+<blockquote>
+<p>Note: it’s best to use Chrome, as <code>go tool trace</code> is designed to work best with it.</p>
+</blockquote>
+
+<p>The page that is loaded will show the following list of links:</p>
+
+<ul>
+<li>View trace</li>
+<li>Goroutine analysis</li>
+<li>Network blocking profile</li>
+<li>Synchronization blocking profile</li>
+<li>Syscall blocking profile</li>
+<li>Scheduler latency profile</li>
+</ul>
+
+<p>Each of these items can give a good insight as to what your application is doing, but we’re most interested in the first one “view trace”. Click it and it’ll give you a complete overview of what your application is doing in an interactive graph.</p>
+
+<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_2.png">
+    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_2.png">
+</a></p>
+
+<blockquote>
+<p>Note: press <code>&lt;Shift-?&gt;</code> to show shortcut keys, like <code>w</code> and <code>s</code> for zooming in/out.</p>
+</blockquote>
+
+<h3 id="goroutines">Goroutines</h3>
+
+<p>If you zoom in enough on the graph you’ll see the “goroutines” segment is made up of two colours: a light green (runnable goroutines) and a dark green (running goroutines). If you click on that part of the graph you’ll see the details of that sample in the bottom preview of the screen. It’s interesting to see how, at any given moment, there can be multiple goroutines but not all of them are necessarily running all at once.</p>
+
+<p>So in our example you see the program moves between having one goroutine ready to run, but not actually running (e.g. it’s “runnable”) and then we move towards two goroutines running (e.g. they’re both “running” and so there are no goroutines left marked as “runnable”).</p>
+
+<p>It’s also interesting to see the correlation between the number of goroutines running and the number of <em>actual</em> underlying OS threads being utilised (i.e. the number of threads the goroutines are being scheduled on to).</p>
+
+<h3 id="threads">Threads</h3>
+
+<p>Again, if you zoom in enough on the graph you’ll see the “threads” segment is made up of two colours: a light purple (syscalls) and a dark purple (running threads).</p>
+
+<p>What’s interesting about the “heap” segment of the UI is that we can see for a short while we never allocate more (total) than 100mb to the heap because the go garbage collection is running concurrently (we can see it running on various processes/threads) and is clearing up after us.</p>
+
+<p>This makes sense because in our code we allocate 100mb of memory and then assign it to a variable <code>s</code> which is scoped to exist only within the <code>for</code> loop block. Once that loop iteration ends the <code>s</code> value isn’t referenced anywhere else so the GC knows it can clean up that memory.</p>
+
+<h3 id="heap">Heap</h3>
+
+<p>We can see as the program moves on that we eventually start seeing some contention and so the total allocated heap becomes 200mb then back and forth between 100mb and 200mb (this is because the GC isn’t running all the time). Then near the end we see the 500mb spike that I added to our code as the total allocated amount of memory in the heap shoots to 600mb.</p>
+
+<p>But at that point, if we click on the spike in heap allocation, we can see in the bottom preview window the “NextGC” run indicates that the total allocated should be zero (which makes sense as that’s the end of the program).</p>
+
+<h3 id="procs">Procs</h3>
+
+<p>In the “procs” section of the UI we can see during our large 500mb allocation that Proc 3 has a new goroutine running <code>main.main.func1</code> (which is our go function that’s doing the allocating).</p>
+
+<p>If you were to “View Options” and then tick “Flow events” you’ll see an arrow from the <code>main.main</code> function going towards the <code>main.main.func1</code> function running on a separate process/thread (probably a bit difficult to see in the below image, but it’s definitely there).</p>
+
+<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_3.png">
+    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_3.png">
+</a></p>
+
+<p>So it’s good to be able to visually see the correlation between first of all the <code>main.main.func1</code> goroutine running and the memory allocation occurring at that time, but also being able to see the cause and effect (i.e. the <em>flow</em>) of the program (i.e. knowing <em>what</em> exactly triggered the new goroutine to be spun up).</p>
+
+<p></p><div id="8"></div><p></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>That’s our tour of various tools for profiling your Go code. Take a look at my earlier article on profiling Python for more of the same.</p>
+
+</div>
+
+    
+<footer class="entry-footer">
+  
+    
+      
+      
+
+<div class="categories">
+  <span class="category-icon">
+    <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <path d="M22,19a2,2,0,0,1-2,2H4a2,2,0,0,1-2-2V5A2,2,0,0,1,4,3H9l2,3h9a2,2,0,0,1,2,2Z"></path>
+  
+</svg>
+
+  </span>
+  <span class="screen-reader">Categories: </span><a class="category" href="https://www.integralist.co.uk/categories/code">code</a>, <a class="category" href="https://www.integralist.co.uk/categories/development">development</a>, <a class="category" href="https://www.integralist.co.uk/categories/guide">guide</a>, <a class="category" href="https://www.integralist.co.uk/categories/performance">performance</a></div>
+
+    
+  
+    
+      
+      
+
+<div class="tags">
+  <span class="tag-icon">
+    <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <path d="M20.59,13.41l-7.17,7.17a2,2,0,0,1-2.83,0L2,12V2H12l8.59,8.59A2,2,0,0,1,20.59,13.41Z"></path>
+  <line x1="7" y1="7" x2="7" y2="7"></line>
+  
+</svg>
+
+  </span>
+  <span class="screen-reader">Tags: </span><a class="tag" href="https://www.integralist.co.uk/tags/bash">bash</a>, <a class="tag" href="https://www.integralist.co.uk/tags/go">go</a>, <a class="tag" href="https://www.integralist.co.uk/tags/profiling">profiling</a></div>
+
+    
+  
+</footer>
+
+
+  </article>
+
+  
+    
+<nav class="entry-nav">
+  <div class="entry-nav-links"><div class="prev-entry">
+      <a href="https://www.integralist.co.uk/posts/profiling-python/">
+        <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <line x1="20" y1="12" x2="4" y2="12"></line>
+  <polyline points="10 18 4 12 10 6"></polyline>
+  
+</svg>
+ Previous</span>
+        <span class="screen-reader">Previous post: </span>Profiling Python</a>
+    </div><div class="next-entry">
+      <a href="https://www.integralist.co.uk/posts/fastly-varnish/">
+        <span class="screen-reader">Next post: </span>Fastly Varnish<span aria-hidden="true">Next <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <line x1="4" y1="12" x2="20" y2="12"></line>
+  <polyline points="14 6 20 12 14 18"></polyline>
+  
+</svg>
+</span>
+      </a>
+    </div></div>
+</nav>
+
+
+  
+
+  
+    <div class="comments-container">
+  
+</div>
+
+  
+</main>
+
+    <footer id="footer" class="footer-container">
+      <div class="footer">
+        <div class="social">
+  <nav aria-label="Social Menu">
+    <ul class="social-menu"><li>
+        <a href="https://github.com/integralist" target="_blank" rel="noopener">
+          <span class="screen-reader">Open Github account in new tab</span>
+          <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+  
+</svg>
+
+        </a>
+      </li><li>
+        <a href="https://instagram.com/integralist" target="_blank" rel="noopener">
+          <span class="screen-reader">Open Instagram account in new tab</span>
+          <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+  <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line>
+  
+</svg>
+
+        </a>
+      </li><li>
+        <a href="https://twitter.com/integralist" target="_blank" rel="noopener">
+          <span class="screen-reader">Open Twitter account in new tab</span>
+          <svg class="icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true">
+  
+  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+  
+</svg>
+
+        </a>
+      </li></ul>
+  </nav>
+</div>
+
+        <div class="copyright">
+          <p>
+    
+      
+    
+  
+  © 2017-2019 integralist</p>
+
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="./Profiling Go ⋆ Mark McDonnell_files/main.af838dd5.js"></script>
+  
+    <script src="./Profiling Go ⋆ Mark McDonnell_files/custom.js"></script>
+  
+    <script src="./Profiling Go ⋆ Mark McDonnell_files/highlight.pack.js"></script>
+  
+    <script src="./Profiling Go ⋆ Mark McDonnell_files/highlight-trigger.js"></script>
+  
+
+
+
+
+
+</body></html>
