@@ -66,3 +66,31 @@ dpkg-query -L ${packagename}  # name
 
 dpkg-deb -c ${package_name.deb}  # file
 ```
+
+
+
+
+
+## package versions
+
+
+
+* `aptitude version <package>`
+
+  `aptitude -V -s install <package>` Passing `-V` will show detailed information about versions
+
+* `aptitude search <package> -F "%c %p %d %V"
+
+  `%c` = status (package installed or not)
+  `%p` = package's name
+  `%d` = package's description
+  `%V` = available package's version
+
+* `apt-show-versions <package>` 
+
+  if installed
+
+
+
+
+

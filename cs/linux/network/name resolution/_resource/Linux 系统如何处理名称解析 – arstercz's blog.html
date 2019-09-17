@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<!--[if IE 7]>
+<html class="ie ie7" lang="en-US">
+<![endif]-->
+<!--[if IE 8]>
+<html class="ie ie8" lang="en-US">
+<![endif]-->
+<!--[if !(IE 7) | !(IE 8)  ]><!-->
+<html class=" js" lang="en-US"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="https://arstercz.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://arstercz.com/wp-content/themes/iconic-one/js/html5.js" type="text/javascript"></script>
+<![endif]-->
+<title>Linux 系统如何处理名称解析 – arstercz's blog</title>
+<link rel="alternate" type="application/rss+xml" title="arstercz's blog » Feed" href="https://arstercz.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="arstercz's blog » Comments Feed" href="https://arstercz.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="arstercz's blog » Linux 系统如何处理名称解析 Comments Feed" href="https://arstercz.com/linux-%e7%b3%bb%e7%bb%9f%e5%a6%82%e4%bd%95%e5%a4%84%e7%90%86%e5%90%8d%e7%a7%b0%e8%a7%a3%e6%9e%90/feed/">
+		<script src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/hm.js"></script><script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/72x72\/","ext":".png","source":{"concatemoji":"https:\/\/arstercz.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.5.3"}};
+			!function(a,b,c){function d(a){var c,d,e,f=b.createElement("canvas"),g=f.getContext&&f.getContext("2d"),h=String.fromCharCode;if(!g||!g.fillText)return!1;switch(g.textBaseline="top",g.font="600 32px Arial",a){case"flag":return g.fillText(h(55356,56806,55356,56826),0,0),f.toDataURL().length>3e3;case"diversity":return g.fillText(h(55356,57221),0,0),c=g.getImageData(16,16,1,1).data,d=c[0]+","+c[1]+","+c[2]+","+c[3],g.fillText(h(55356,57221,55356,57343),0,0),c=g.getImageData(16,16,1,1).data,e=c[0]+","+c[1]+","+c[2]+","+c[3],d!==e;case"simple":return g.fillText(h(55357,56835),0,0),0!==g.getImageData(16,16,1,1).data[0];case"unicode8":return g.fillText(h(55356,57135),0,0),0!==g.getImageData(16,16,1,1).data[0]}return!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i;for(i=Array("simple","flag","unicode8","diversity"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel="stylesheet" id="themonic-fonts-css" href="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/css.css" type="text/css" media="all">
+<link rel="stylesheet" id="themonic-style-css" href="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/style.css" type="text/css" media="all">
+<link rel="stylesheet" id="custom-style-css" href="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/custom.css" type="text/css" media="all">
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='themonic-ie-css'  href='https://arstercz.com/wp-content/themes/iconic-one/css/ie.css?ver=20130305' type='text/css' media='all' />
+<![endif]-->
+<link rel="https://api.w.org/" href="https://arstercz.com/wp-json/">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://arstercz.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://arstercz.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="使用 systemd 限制系统资源的使用" href="https://arstercz.com/%e4%bd%bf%e7%94%a8-systemd-%e9%99%90%e5%88%b6%e7%b3%bb%e7%bb%9f%e8%b5%84%e6%ba%90%e7%9a%84%e4%bd%bf%e7%94%a8/">
+<link rel="next" title="使用 mmm-manager 管理云环境中的 MySQL 双主实例" href="https://arstercz.com/%e4%bd%bf%e7%94%a8-mmm-manager-%e7%ae%a1%e7%90%86%e4%ba%91%e7%8e%af%e5%a2%83%e4%b8%ad%e7%9a%84-mysql-%e5%8f%8c%e4%b8%bb%e5%ae%9e%e4%be%8b/">
+<meta name="generator" content="WordPress 4.5.3">
+<link rel="canonical" href="https://arstercz.com/linux-%e7%b3%bb%e7%bb%9f%e5%a6%82%e4%bd%95%e5%a4%84%e7%90%86%e5%90%8d%e7%a7%b0%e8%a7%a3%e6%9e%90/">
+<link rel="shortlink" href="https://arstercz.com/?p=1107">
+<link rel="alternate" type="application/json+oembed" href="https://arstercz.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Farstercz.com%2Flinux-%25e7%25b3%25bb%25e7%25bb%259f%25e5%25a6%2582%25e4%25bd%2595%25e5%25a4%2584%25e7%2590%2586%25e5%2590%258d%25e7%25a7%25b0%25e8%25a7%25a3%25e6%259e%2590%2F">
+<link rel="alternate" type="text/xml+oembed" href="https://arstercz.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Farstercz.com%2Flinux-%25e7%25b3%25bb%25e7%25bb%259f%25e5%25a6%2582%25e4%25bd%2595%25e5%25a4%2584%25e7%2590%2586%25e5%2590%258d%25e7%25a7%25b0%25e8%25a7%25a3%25e6%259e%2590%2F&amp;format=xml">
+		<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+		<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #ffffff; }
+</style>
+<link rel="icon" href="https://arstercz.com/wp-content/uploads/2018/06/cropped-bg2-32x32.jpg" sizes="32x32">
+<link rel="icon" href="https://arstercz.com/wp-content/uploads/2018/06/cropped-bg2-192x192.jpg" sizes="192x192">
+<link rel="apple-touch-icon-precomposed" href="https://arstercz.com/wp-content/uploads/2018/06/cropped-bg2-180x180.jpg">
+<meta name="msapplication-TileImage" content="https://arstercz.com/wp-content/uploads/2018/06/cropped-bg2-270x270.jpg">
+</head>
+<body class="single single-post postid-1107 single-format-standard custom-background custom-background-white custom-font-enabled single-author">
+<div id="page" class="site">
+	<header id="masthead" class="site-header" role="banner">
+					<div class="io-title-description">
+			<a href="https://arstercz.com/" title="arstercz's blog" rel="home">arstercz's blog</a>
+				<br ...=""> 
+								 <a class="site-description">Technical blog, just for writing</a>
+						</div>
+			<div class="socialmedia">
+								<a href="https://github.com/arstercz/" target="_blank"><img src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/github.png" alt="Follow me on github"></a>
+									<a class="rss" href="https://arstercz.com/feed/" target="_blank"><img src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/rss.png" alt="Follow us on rss"></a>			
+					</div>
+		
+		
+		<nav id="site-navigation" class="themonic-nav" role="navigation">
+			<a class="assistive-text" href="#main" title="Skip to content">Skip to content</a>
+			<ul id="menu-top" class="nav-menu"><li id="menu-item-304" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-304"><a href="https://arstercz.com/category/database/">database</a></li>
+<li id="menu-item-305" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-305"><a href="https://arstercz.com/category/percona/">percona</a></li>
+<li id="menu-item-308" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-308"><a href="https://arstercz.com/category/performance/">performance</a></li>
+<li id="menu-item-309" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-309"><a href="https://arstercz.com/category/system/">system</a></li>
+<li id="menu-item-310" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-310"><a href="https://arstercz.com/category/code/">code</a></li>
+<li id="menu-item-311" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-311"><a href="https://arstercz.com/category/network/">network</a></li>
+<li id="menu-item-679" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-679"><a href="https://arstercz.com/category/monit/">monit</a></li>
+<li id="menu-item-680" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-680"><a href="https://arstercz.com/category/bugs/">bugs-report</a></li>
+<li id="menu-item-681" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-681"><a href="https://arstercz.com/category/mongodb/">nosql</a></li>
+<li id="menu-item-892" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-892"><a href="https://arstercz.com/about/">about</a></li>
+</ul><select class="selectnav" id="selectnav1"><option value="" selected="selected">Menu</option><option value="https://arstercz.com/category/database/">DATABASE</option><option value="https://arstercz.com/category/percona/">PERCONA</option><option value="https://arstercz.com/category/performance/">PERFORMANCE</option><option value="https://arstercz.com/category/system/">SYSTEM</option><option value="https://arstercz.com/category/code/">CODE</option><option value="https://arstercz.com/category/network/">NETWORK</option><option value="https://arstercz.com/category/monit/">MONIT</option><option value="https://arstercz.com/category/bugs/">BUGS-REPORT</option><option value="https://arstercz.com/category/mongodb/">NOSQL</option><option value="https://arstercz.com/about/">ABOUT</option></select>		</nav><!-- #site-navigation -->
+		<div class="clear"></div>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2ae4beadc8f9249405de91a460bd8346";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+	</header><!-- #masthead -->
+
+	<div id="main" class="wrapper">
+	<div id="primary" class="site-content">
+		<div id="content" role="main">
+
+			
+				
+	<article id="post-1107" class="post-1107 post type-post status-publish format-standard hentry category-network category-performance category-system tag-dns tag-nscd tag-resolved tag-systemd">
+				<header class="entry-header">
+						<h1 class="entry-title">Linux 系统如何处理名称解析</h1>
+									
+		<div class="below-title-meta">
+		<div class="adt">
+		By        <span class="vcard author">
+			<span class="fn"><a href="https://arstercz.com/author/admin/" title="Posts by arstercz" rel="author">arstercz</a></span>
+        </span>
+        <span class="meta-sep">|</span> 
+			<span class="date updated">2018-12-19</span>		 
+        </div>
+		<div class="adt-comment">
+		<a class="link-comments" href="https://arstercz.com/linux-%e7%b3%bb%e7%bb%9f%e5%a6%82%e4%bd%95%e5%a4%84%e7%90%86%e5%90%8d%e7%a7%b0%e8%a7%a3%e6%9e%90/#comments">1 Comment</a> 
+        </div>       
+		</div><!-- below title meta end -->
+			
+						
+		</header><!-- .entry-header -->
+
+							<div class="entry-content">
+						<h2>简单介绍</h2>
+<p>在 Linux 系统中, 绝大多数程序依赖系统库函数来完成名称解析, 整个解析过程包含多个操作, 有些操作信息在启动程序时确定, 
+有些操作信息则在程序运行时确认, Linux 也提供了一些网络函数(由 glibc 提供)来控制这些操作,下图所示为一个比较典型的应用程序, 
+域名解析及域名服务器之间的关系图:</p>
+<p><img src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/dns_que1.png" alt="dns_que1"></p>
+<p>程序在运行后通过 glibc 提供的网络函数(<code>gethostbyname</code>, <code>getaddrinfo</code>等)来调用解析器(<code>resolver code</code>, 比如 nsswitch 等), 解析器则读取一些配置文件(比如 <code>/etc/nsswitch.conf</code>, <code>/etc/hosts</code>, <code>/etc/resolv.conf</code>)
+ 来决定使用什么域名服务器(nameserver)以什么选项(超时时间, 重试次数), 什么优先级(先 hosts 还是 先 dns) 
+对指定的域名进行处理. 当然也可以使用 dns 缓存类的工具加速请求的处理, 这些工具可以是 bind(当缓存用), nscd(由 glibc 
+提供), <code>systemd-resolved</code>(由 systemd 提供). 下面则简单介绍解析器提供的几个网络函数.</p>
+<h2>函数说明</h2>
+<p>glibc 的解析器(<code>revolver code</code>) 提供了下面两个函数实现名称到 ip 地址的解析, <code>gethostbyname</code> 函数以同步阻塞的方式提供服务, 没有超时等选项, 仅提供 IPv4 的解析. getaddrinfo 则没有这些限制, 同时支持 IPv4, IPv6, 也支持 IPv4 到 IPv6 的映射选项. 包含 Linux 在内的很多系统都已废弃 <code>gethostbyname</code> 函数, 使用 <code>getaddrinfo</code> 函数代替. 不过从现实的情况来看, 还是有很多程序或网络库使用 <code>gethostbyname</code> 进行服务.</p>
+<h3>gethostbyname</h3>
+<pre><code>#include &lt;netdb.h&gt;
+struct hostent *gethostbyname (const char *hostname);
+
+        Returns: non-null pointer if OK,NULL on error with h_errno set
+</code></pre>
+<h3>getaddrinfo</h3>
+<pre><code>#include &lt;netdb.h&gt;
+int getaddrinfo (const char *hostname, const char *service, const struct
+                 addrinfo *hints, struct addrinfo **result) ;
+
+        Returns: 0 if OK, nonzero on error
+</code></pre>
+<h4><em>备注</em>: 下文中用到的示例程序见:</h4>
+<p><a href="http://get.arstercz.com/test/hostrecv.c">hostercv.c</a><br>
+<a href="http://get.arstercz.com/test/hostrecv.go">hostercv.go</a><br>
+<a href="http://get.arstercz.com/test/hostrecv.java">hostercv.java</a><br>
+<a href="http://get.arstercz.com/test/hostrecv.pl">hostrecv.pl</a><br>
+<a href="http://get.arstercz.com/test/hostrecv.py">hostrecv.py</a></p>
+<h2>resolv 解析</h2>
+<p>解析过程稍显复杂, 我们从一个正常的请求过程来分析整体的过程:</p>
+<pre><code># strace -f -e open curl -I www.baidu.com
+...
+open("/lib64/libcurl.so.4", O_RDONLY|O_CLOEXEC) = 3
+...
+open("/lib64/libnss3.so", O_RDONLY|O_CLOEXEC) = 3
+open("/lib64/libnssutil3.so", O_RDONLY|O_CLOEXEC) = 3
+...
+open("/lib64/libresolv.so.2", O_RDONLY|O_CLOEXEC) = 3
+...
+strace: Process 2398 attached
+[pid  2398] open("/etc/nsswitch.conf", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/host.conf", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/resolv.conf", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/lib64/libnss_files.so.2", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/hosts", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/lib64/libnss_mdns4_minimal.so.2", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] open("/lib64/libnss_dns.so.2", O_RDONLY|O_CLOEXEC) = 3
+[pid  2398] connect(3, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.12.17.21")}, 16) = 0
+[pid  2398] open("/etc/gai.conf", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+[pid  2398] connect(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("220.181.111.37")}, 16) = 0
+[pid  2398] +++ exited with 0 +++
+HTTP/1.1 200 OK
+Server: bfe/1.0.8.18
+Date: Tue, 18 Dec 2018 09:32:19 GMT
+Content-Type: text/html
+Content-Length: 277
+Last-Modified: Mon, 13 Jun 2016 02:50:08 GMT
+Connection: Keep-Alive
+ETag: "575e1f60-115"
+Cache-Control: private, no-cache, no-store, proxy-revalidate, no-transform
+Pragma: no-cache
+Accept-Ranges: bytes
+</code></pre>
+<p>可以看到整个过程依次调用了 <code>libnns3</code>, <code>libresolv</code> 等动态库, 再访问 <code>nsswitch.conf</code> 以确定解析是先访问 <code>hosts</code> 文件还是先通过 <code>dns server</code>. <code>host.conf</code> 包含解析器的配置, 默认为 <code>multi on</code>, 表示 <code>libresolv</code> 会返回解析到的所有ip(单域名可能对应多条 A 记录). <code>resolv.conf</code> 包含指定的 <code>nameserver</code>, 解析器会连接这些 <code>nameserver</code> 获取域名对应的 A 记录. 后面的 <code>/etc/hosts</code> 和 <code>/etc/libnss_dns.so</code> 则表示先访问 hosts 文件再发起 dns 到 <code>nameserver</code> 的请求. 如果我们绑定了域名 到 <code>/etc/hosts</code>, 则会忽略 <code>/etc/libnss_dns.so</code> 的步骤; 如果 <code>nsswitch.conf</code> 中 dns 优先, 则先通过 <code>/etc/libnss_dns.so</code> 请求, 找到记录则忽略 <code>/etc/hosts</code> 步骤. 之后连接 <code>resolv.conf</code> 指定的 <code>dns server(10.12.17.21)</code> 获取域名对应的 A 记录 <code>220.181.111.37</code>, 程序再连接该 A 记录得到网站的内容. 下面则详细介绍几个配置文件的作用.</p>
+<h3>/etc/nsswitch.conf</h3>
+<p><a href="http://man7.org/linux/man-pages/man5/nsswitch.conf.5.html">nsswitch.conf</a>
+ 为系统库和域名服务切换的配置文件, 支持的种类较多, 包含 group, hosts, networks, passwd 等, 绝大多数基于 
+GNU C 库的应用都会遵循该配置文件的设置以确定具体的信息以何种顺序获取. 以名称解析为例, 获取一个域名可以通过绑 hosts, dns, 
+nis  以及自定义程序等多种方式获取, 不过我们可以在 <code>nsswitch.conf</code> 中控制优先使用哪种方式, 没有找到结果则使用下一种方式, 如下所示为默认的配置信息, 先文件(<code>/etc/hosts</code>) 再 dns 请求:</p>
+<pre><code>hosts:      files dns
+</code></pre>
+<h4>备注: 修改 nsswitch.conf 中的选项顺序不影响已运行的程序的解析顺序.</h4>
+<h3>/etc/hosts</h3>
+<p>hosts 文件使用的很普遍, 主要提供静态的名称查找. 本地测试等环境中会普遍使用此功能. 文件中的条目以如下格式存在:</p>
+<pre><code>IP_address canonical_hostname [aliases...]
+</code></pre>
+<h4>备注: 修改此文件立即生效. 运行的程序也会受此影响, 长连接除外.</h4>
+<h3>/etc/resolv.conf</h3>
+<p><a href="http://man7.org/linux/man-pages/man5/resolv.conf.5.html">resolv.conf</a> 为解析器的配置文件, 可以为解析器配置相关的 <code>dns server</code>, 超时, 重试次数等选项. 推荐的配置参考如下:</p>
+<pre><code>options timeout:1 attempts:1
+nameserver 10.0.2.2
+nameserver 10.0.2.3
+nameserver 10.0.2.4
+</code></pre>
+<p>上述的配置中, 我们制定每个 <code>dns server</code> 的超时时间为1, 失败 1 次即轮转下一个 dns server. 在网络连接不上情况下, 解析器先选取 <code>10.0.2.2</code> 作为 dns server, 如果 1s 内没有获取结果则轮转到 <code>10.0.2.3</code>, 以此类推, 如果三个 <code>dns server</code> 都没有成功则程序异常退出. 如果 <code>attempts</code> 设置为 2, 则每隔 dns server 会试 2 次, 如果都失败则转到下一个 dns. 如下所示:</p>
+<pre><code># strace -f -e connect,poll curl -I www.baidu.com
+strace: Process 3375 attached
+...
+[pid  3375] connect(3, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.0.2.2")}, 16) = 0
+[pid  3375] poll([{fd=3, events=POLLIN}], 1, 1000 &lt;unfinished ...&gt;
+[pid  3374] poll(NULL, 0, 1000 &lt;unfinished ...&gt;
+[pid  3375] &lt;... poll resumed&gt; )        = 0 (Timeout)
+...
+[pid  3375] connect(4, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.0.2.3")}, 16) = 0
+[pid  3375] poll([{fd=4, events=POLLIN}], 1, 1000 &lt;unfinished ...&gt;
+[pid  3374] poll(NULL, 0, 1000 &lt;unfinished ...&gt;
+[pid  3374] &lt;... poll resumed&gt; )        = 0 (Timeout)
+...
+[pid  3375] connect(5, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.0.2.4")}, 16) = 0
+[pid  3375] poll([{fd=5, events=POLLIN}], 1, 1000 &lt;unfinished ...&gt;
+[pid  3374] poll(NULL, 0, 1000 &lt;unfinished ...&gt;
+[pid  3375] &lt;... poll resumed&gt; )        = 0 (Timeout)
+[pid  3375] +++ exited with 0 +++
+&lt;... poll resumed&gt; )                    = 0 (Timeout)
+curl: (6) Could not resolve host: www.baidu.com; Unknown error
+</code></pre>
+<h4>备注:</h4>
+<p>修改 resolv.conf 里的 dns server, 多数运行的程序不会立即生效. Centos 7 系统中, 
+glibc-2.17-202 版本合并了官方 glibc-2.25.90-18 的功能, 增加了自动检测 resolv.conf 修改功能, 
+如下:</p>
+<pre><code># rpm -q --changelog glibc-2.17-260
+...
+* Fri Sep 29 2017 Florian Weimer &lt;fweimer@redhat.com&gt; - 2.17-202
+....
+- Detect and apply /etc/resolv.conf changes in libresolv (#1432085)
+</code></pre>
+<p>其它 Linux 发行版的 glibc 也可能合并该功能. 低版本的 glibc 可以在以下两种情况会立即生效:</p>
+<h4>调用 res_init 函数</h4>
+<p>早期的很多程序在 <code>gehostbyname</code> 函数失败的时候会额外调用一次 res_init 函数以重新加载 <code>/etc/resolv.conf</code> 配置, 这种情况下修改的 <code>resolv.conf</code> 配置即可立即生效. 一些编程语言的网络库可能提供此功能或选项控制. 示例如下:</p>
+<pre><code>        if ((get = gethostbyname(argv[1])) == NULL) {  // get the host info
+            herror("gethostbyname");
+            res_init();
+            continue;
+        }
+</code></pre>
+<p><code>res_init</code> 函数, 由 glibc 提供:</p>
+<pre><code>#include &lt;netinet/in.h&gt;
+#include &lt;arpa/nameser.h&gt;
+#include &lt;resolv.h&gt;
+
+int res_init(void);
+</code></pre>
+<h4>dns 缓存</h4>
+<p>一些 dns 缓存程序(<code>nscd</code>, <code>systemd-resolved</code>) 在运行时监听 <code>resolv.conf</code> 配置文件的修改,如果有变动则重新加载配置, 这样新的 <code>dns server</code> 就会生效. 下面小节会详细介绍 dns 缓存工具.</p>
+<h2>dns 缓存工具</h2>
+<p>在没有 dns 缓存的情况下, 正常名称解析的流程如下所示, 可以看到系统层是不做 dns 缓存的:</p>
+<pre><code>+-----------+     +----------------+     +----------+     +------------------+
+|application| --&gt; |network function| --&gt; |glibc(nss)| --&gt; |hosts/named server|
++-----------+     +----------------+     +----------+     +------------------+ 
+</code></pre>
+<p>启用了 dns 缓存工具后, 正常的名称解析大致如下:</p>
+<pre><code>+-----------+     +----------------+     +----------+     +----------+     +---------------+     +------------------+
+|application| --&gt; |network function| --&gt; |glibc(nss)| --&gt; |cache tool| --&gt; |netwok function| --&gt; |hosts/named server|
++-----------+     +----------------+     +----------+     +----------+     +---------------+     +------------------+
+</code></pre>
+<p>这里的 <code>cache tool</code> 相当于反向代理的角色, 应用程序将解析请求转给 <code>cache tool</code>, <code>cache tool</code> 则按照上述的流程进行名称解析, 如果缓存中包含待解析的条目则直接返回给程序, 反之则到 <code>dns server</code> 请求, 得到结果后返回给用户并加到缓存中.</p>
+<p>目前常用的缓存工具包含以下几种:</p>
+<h3>nscd</h3>
+<p>该工具由 glibc 提供, <code>/etc/nscd.conf</code> 为其配置信息, 同 <code>nsswitch</code>, <code>nscd</code> 也支持 group, services, hosts, passwd 的缓存, 正式环境中推荐仅缓存 hosts 条目, 如下配置:</p>
+<pre><code>        enable-cache            hosts           yes
+        positive-time-to-live   hosts           100      # 缓存中成功项的 TTL 值, 程序通过缓存的条目请求成功后可以多保留一会.
+        negative-time-to-live   hosts           2        # 缓存中失败项的 TTL 值, 程序通过缓存的条目请求失败应该尽快剔除该条目.
+        suggested-size          hosts           211
+        check-files             hosts           yes      # 检查 hosts/resolv.conf 等文件的修改
+        persistent              hosts           yes
+        shared                  hosts           yes
+        max-db-size             hosts           33554432 # 缓存的 db 文件最大 32M
+</code></pre>
+<p>如上所示, 开启 check-files 选项后, nscd 会监听 <code>/etc/host</code>, <code>/etc/resolv.conf</code> 的修改, 进而触发 nscd 重新加载配置文件:</p>
+<pre><code>[pid  5332] 17:57:25.629904 inotify_add_watch(3, "/etc/resolv.conf", IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF) = 4
+[pid  5332] 17:57:25.630037 stat("/etc/resolv.conf", {st_mode=S_IFREG|0644, st_size=130, ...}) = 0
+[pid  5332] 17:57:25.630150 open("/etc/resolv.conf", O_RDONLY|O_CLOEXEC) = 12
+</code></pre>
+<h4>备注:</h4>
+<p>线上开启 nscd 前, 建议做好程序的测试, nscd 仅支持通过 glibc, c 标准机制运行的程序, 没有基于 glibc 
+运行的程序可能不支持 nscd. 另外一些 go, perl 等编程语言网络库的解析函数是单独实现的, 不会走 nscd 的 socket, 
+这种情况下程序可以进行名称解析, 但不会使用 nscd 缓存. 不过我们在测试环境中使用go, java 的常规网络库都可以正常连接 nscd 的
+ socket 进行请求; perl 语言使用 Net::DNS 模块, 不会使用 nscd 缓存; python 语言使用 
+python-dns 模块, 不会使用 nscd 缓存. python 和 perl 不使用模块的时候进行解析还是遵循上述的过程, 同时使用 
+nscd 缓存.</p>
+<h4>其它风险:</h4>
+<p>单独安装 nscd(deb, rpm)时, 其依赖的 <code>glibc-{common,devel,headers}</code> 可能会更新. 如果要使用 nscd, 最好在装机时就安装好.</p>
+<h3>systemd-resolved</h3>
+<p><a href="https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html">systemd</a> 也提供 dns 解析服务, 和 nscd 类似, 不过功能更加丰富, <code>systemd-resolved</code> 可以提供端口监听(默认 <code>127.0.0.53:53</code>, <code>/etc/resolv.conf</code> 需增加该 dns 地址), dbus 等方式对外服务, 也支持 DNSSEC 和 LLMNR 功能. 不过在实际的使用中, 低版本的 systemd 存在一些权限类的问题, 不如高版本的稳定, 下面以 <code>Centos 7(Linux-3.10.0-862.14.4.el7.x86_64)</code> 为例说明.</p>
+<p>centos 7 的 systemd 为 219 版本, 在启动 <code>systemd-resolved</code> 服务的时候提示权限拒绝:</p>
+<pre><code># /usr/lib/systemd/systemd-resolved               
+Using system hostname 'dbinfo8'.
+Failed to register name: Permission denied
+Could not create manager: Permission denied
+</code></pre>
+<p>追踪来看, 启动的时候不允许设置本地 socket 的 buf, 以及连接 dbus 不支持一些协议:</p>
+<pre><code>11:27:26.585170 socket(AF_LOCAL, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 11
+11:27:26.585479 setsockopt(11, SOL_SOCKET, SO_RCVBUFFORCE, [8388608], 4) = -1 EPERM (Operation not permitted)
+11:27:26.585705 setsockopt(11, SOL_SOCKET, SO_SNDBUFFORCE, [8388608], 4) = -1 EPERM (Operation not permitted)
+11:27:26.585905 connect(11, {sa_family=AF_LOCAL, sun_path="/var/run/dbus/system_bus_socket"}, 33) = 0
+11:27:26.586093 getsockopt(11, SOL_SOCKET, SO_PEERSEC, 0x55b0f44d3a10, 0x7ffee693b7e4) = -1 ENOPROTOOPT (Protocol not available)
+</code></pre>
+<p>systemd 229 版本才开始完全支持 dbus 特性以鼓励开发者使用 dbus 而不是 dns server(53端口) 处理 
+dns 请求, 从这点来看在 centos 7 系统中不要使用该服务. 基于 Linux-4.x 系列的发行版的 systemd 都为 23x 
+版本, <code>systemd-resolved</code> 默认集成到 systemd 中. 该服务通过以下配置进行 dns 请求代理, 并监听 127.0.0.53:53 供本地程序作为 dns server 使用:</p>
+<pre><code>/run/systemd/resolve/resolv.conf
+</code></pre>
+<h3>bind9, dnsmasq</h3>
+<p>bind9, dnsmasq 本身为 dns server 工具, 不过它们也提供 dns 缓存功能, 性能也足够好, 只需本地 <code>/etc/resolv.conf</code> 增加该 dns server 的信息即可. 实际使用中仅把 <code>dns server</code> 当缓存用的不多见.</p>
+<h3>consul</h3>
+<p>consul 类似上述 bind9, dnsmasq 工具, 不过提供 client 模式同步 server 端的 dns 条目. 其也自带故障转换功能, 一个 dns 条目有问题, 所有的请求都会转到能够正常服务的 dns 条目中.</p>
+<h3>java</h3>
+<p><a href="https://docs.oracle.com/javase/7/docs/technotes/guides/net/properties.html">java_doc</a> 默认提供了 dns 缓存特性, jdk1.5 及之前, 默认都永久缓存, jdk 1.6 及之后受以下策略影响:</p>
+<pre><code>开启安全管理, 则永久缓存;
+没有开启安全管理, 则缓存 30s;
+</code></pre>
+<p>是否开启安全管理查看以下信息, AllPermission 即为所有权限, 表示没有开启安全管理, <code>jdk1.6 ~ 1.8</code> 中默认都没有开启:</p>
+<pre><code># /opt/jdk/jre/lib/security/java.policy
+// Standard extensions get all permissions by default
+
+grant codeBase "file:${{java.ext.dirs}}/*" {
+        permission java.security.AllPermission;
+};
+</code></pre>
+<p>同样也需要注意以下两个选项:</p>
+<pre><code># /opt/jdk/jre/lib/security/java.security
+
+networkaddress.cache.ttl    # 由上述安全管理影响
+
+networkaddress.cache.negative.ttl (default: 10) #缓存里的 ip 无效的时候多久剔除无效条目, 这个时间不要太长. 
+</code></pre>
+<p>如下所示, java 示例程序每 30s 请求一次 <code>dns server</code>, 在低于 glibc-2.17-202 的版本中修改 <code>resolv.conf</code> 不会生效, 高版本 glibc 中在 30s 周期完成后会重新加载 <code>resolv.conf</code> 信息:</p>
+<pre><code># strace -f -e connect -tt /opt/jdk1.7.0_04/bin/java hostrecv www.baidu.com
+[pid 55938] 13:33:18.375060 connect(4, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.12.17.21")}, 16) = 0
+...
+apidev.baidu.com/109.244.11.48
+...
+[pid 55938] 13:33:48.401914 connect(4, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.12.17.21")}, 16) = 0
+...
+</code></pre>
+<p>在 30s 的缓存时间内, 修改 <code>/etc/hosts</code> 无效, 如下所示, 修改 hosts 后没有立即生效:</p>
+<pre><code># strace -f -e connect,open,stat -tt /opt/jdk1.7.0_04/bin/java hostrecv www.baidu.com
+...
+[pid 57843] 13:36:04.186257 open("/etc/hosts", O_RDONLY|O_CLOEXEC) = 4
+...
+[pid 57843] 13:36:04.187994 connect(4, {sa_family=AF_INET, sin_port=htons(53), sin_addr=inet_addr("10.12.17.21")}, 16) = 0
+apidev.baidu.com/109.244.11.47
+...
+[pid 57843] 13:36:34.214701 stat("/etc/resolv.conf", {st_mode=S_IFREG|0644, st_size=52, ...}) = 0
+[pid 57843] 13:36:34.215079 open("/etc/hosts", O_RDONLY|O_CLOEXEC) = 4
+apidev.baidu.com/10.12.17.28
+...
+</code></pre>
+<p>这种策略并不会使得绑定 hosts 立即生效, 在实际的正式环境中需要注意这点. 一些 Java 容器, 比如 resin, tomcat 等可能会有自己的缓存策略, 具体信息可以查看对应的官方手册.</p>
+<h2>解析可能碰到的问题</h2>
+<p>了解上述的内容后, 正常的系统运行时, 尤其服务端调用服务端的场景中可能会碰到一些解析相关的问题:</p>
+<h3>网站连接超时</h3>
+<p>这种情况下 <code>resolv.conf</code> 中的 dns server 正常, 只是解析到的 A 记录可能因为网络等问题连接不上, 可以直接修改 hosts 记录使程序及时生效连接新的 ip 地址. 如果是长连接请求, 只能中断连接重新发起请求才会生效.</p>
+<h3>dns server 超时</h3>
+<p><code>dns server</code> 超时的情况下, 很容易通过 <code>strace curl</code> 等方式判别, 如果 poll 调用超时, 在启用 nscd 等缓存或者程序及其依赖的网络库有 <code>res_init</code> 控制的情况下, 可以及时更换 resolv.conf 中的 nameserver 条目. 其它情况下包括修改 resolv.conf 不生效, 不能连接所有的 <code>dns server</code> 的时候, 都可以考虑绑 hosts 方式临时解决问题, 这种方式需要提前搜集好需要访问哪些域名.</p>
+<h3>并发请求过多</h3>
+<p>client 如果以短连接方式请求 server 端, 大量的 dns 也可能拖慢整个请求的过程. 这种情况可以考虑绑 hosts 
+缓解名称解析的压力, 如果请求的域名很多或不确定具体的域名, 建议开启 nscd 以支持 dns 缓存, 开启 nscd 
+前最好对程序做足够的测试. RHEL 7/Centos 7 系列不建议使用 systemd-resolved 服务.</p>
+<h3>多记录问题</h3>
+<p>有些域名存在多个 A 记录, 在 <code>/etc/host.conf</code> 启用 multi on 的情况下, 名称解析到的
+ ip 就会返回所有的 A 记录地址. 不过很多程序及其网络库在访问有问题的情况下会对解析到的 A 记录进行轮询访问. 在有单个 ip 
+访问有问题的情况可能会加重整个请求的超时时间, 建议程序设置好请求的连接超时时间. 以 curl(7.29.0) 为例, 在对端 ip 
+拒绝或丢包的情况下, 会对解析到的 A 记录做轮询请求, 这里设置连接超时时间为 5s:</p>
+<pre><code># ./hostrecv baidu.com
+Official name is: baidu.com
+    IP addresses: 10.12.17.26 10.12.17.27 
+</code></pre>
+<p>在两个 A 记录拒绝连接的情况下, 很快返回连接拒绝:</p>
+<pre><code># strace -f -tt -e connect,poll curl --connect-timeout 5 baidu.com
+11:04:44.562428 connect(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("10.12.17.26")}, 16) = -1 EINPROGRESS (Operation now in progress)
+11:04:44.562797 poll([{fd=3, events=POLLOUT|POLLWRNORM}], 1, 0) = 0 (Timeout)
+...
+11:04:44.564040 connect(4, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("10.12.17.27")}, 16) = -1 EINPROGRESS (Operation now in progress)
+...
+curl: (7) Failed connect to baidu.com:80; Connection refused
+</code></pre>
+<p>在 26,27 中 drop 所有 80 的包, 总共耗时接近 5s:</p>
+<pre><code># strace -e connect,poll -tt curl --connect-timeout 5 baidu.com   
+11:00:30.974243 connect(3, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("10.12.17.26")}, 16) = -1 EINPROGRESS (Operation now in progress)
+11:00:30.974524 poll([{fd=3, events=POLLOUT|POLLWRNORM}], 1, 0) = 0 (Timeout)
+...
+11:00:33.467425 poll([{fd=3, events=POLLOUT|POLLWRNORM}], 1, 0) = 0 (Timeout)
+11:00:33.467909 connect(4, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("10.12.17.27")}, 16) = -1 EINPROGRESS (Operation now in progress)
+...
+11:00:34.715443 poll([{fd=4, events=POLLOUT|POLLWRNORM}], 1, 0) = 0 (Timeout)
+curl: (7) Failed connect to baidu.com:80; Operation now in progress
+</code></pre>
+<p>tcpdump 查看则更明显, tcp 三次握手没有完成, 进行了重试:</p>
+<pre><code>11:00:30.974364 IP 10.12.17.22.27490 &gt; 10.12.17.26.80: Flags [S], ...
+11:00:31.975390 IP 10.12.17.22.27490 &gt; 10.12.17.26.80: Flags [S], ...
+11:00:33.468005 IP 10.12.17.22.13030 &gt; 10.12.17.27.80: Flags [S], ...
+11:00:34.469362 IP 10.12.17.22.13030 &gt; 10.12.17.27.80: Flags [S], ...
+</code></pre>
+<h2>参考</h2>
+<p><a href="https://github.com/rust-lang/rust/issues/41570">rust-issues-41570</a><br>
+<a href="https://linux.die.net/man/3/res_init">res_init</a><br>
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=214538">bugzilla-214538</a><br>
+<a href="https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html">systemd-resolved.service</a><br>
+<a href="https://www.freedesktop.org/wiki/Software/systemd/resolved/">resolved</a><br>
+<a href="https://jameshfisher.com/2018/02/05/dont-use-nscd.html">dont-use-nscd</a><br>
+<a href="https://github.com/jonathanio/update-systemd-resolved/issues/47">systemd-issues-47</a></p>
+											</div><!-- .entry-content -->
+		
+	<footer class="entry-meta">
+					<span>Category: <a href="https://arstercz.com/category/network/" rel="category tag">network</a> <a href="https://arstercz.com/category/performance/" rel="category tag">performance</a> <a href="https://arstercz.com/category/system/" rel="category tag">system</a></span>
+								<span>Tags: <a href="https://arstercz.com/tag/dns/" rel="tag">dns</a>, <a href="https://arstercz.com/tag/nscd/" rel="tag">nscd</a>, <a href="https://arstercz.com/tag/resolved/" rel="tag">resolved</a>, <a href="https://arstercz.com/tag/systemd/" rel="tag">systemd</a></span>
+			
+           						</footer><!-- .entry-meta -->
+	</article><!-- #post -->
+				<nav class="nav-single">
+					<div class="assistive-text">Post navigation</div>
+					<span class="nav-previous"><a href="https://arstercz.com/%e4%bd%bf%e7%94%a8-systemd-%e9%99%90%e5%88%b6%e7%b3%bb%e7%bb%9f%e8%b5%84%e6%ba%90%e7%9a%84%e4%bd%bf%e7%94%a8/" rel="prev"><span class="meta-nav">←</span> 使用 systemd 限制系统资源的使用</a></span>
+					<span class="nav-next"><a href="https://arstercz.com/%e4%bd%bf%e7%94%a8-mmm-manager-%e7%ae%a1%e7%90%86%e4%ba%91%e7%8e%af%e5%a2%83%e4%b8%ad%e7%9a%84-mysql-%e5%8f%8c%e4%b8%bb%e5%ae%9e%e4%be%8b/" rel="next">使用 mmm-manager 管理云环境中的 MySQL 双主实例 <span class="meta-nav">→</span></a></span>
+				</nav><!-- .nav-single -->
+
+				
+<div id="comments" class="comments-area">
+
+	
+			<h2 class="comments-title">
+			One thought on “<span>Linux 系统如何处理名称解析</span>”		</h2>
+
+		<ol class="commentlist">
+				<li class="comment even thread-even depth-1" id="li-comment-9425">
+		<article id="comment-9425" class="comment">
+			<header class="comment-meta comment-author vcard">
+				<img alt="" src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/f3085d21f285a7c2fbf472f6908be6e6.jpg" srcset="https://secure.gravatar.com/avatar/f3085d21f285a7c2fbf472f6908be6e6?s=60&amp;r=g 2x" class="avatar avatar-30 photo" width="30" height="30"><cite class="fn">开发者头条 </cite><a href="https://arstercz.com/linux-%e7%b3%bb%e7%bb%9f%e5%a6%82%e4%bd%95%e5%a4%84%e7%90%86%e5%90%8d%e7%a7%b0%e8%a7%a3%e6%9e%90/#comment-9425"><time datetime="2019-02-28T09:47:08+08:00">2019-02-28</time></a>			</header><!-- .comment-meta -->
+
+			
+			<section class="comment-content comment">
+				<p>感谢分享！已推荐到《开发者头条》：https://toutiao.io/posts/lkm37z 欢迎点赞支持！使用开发者头条 App 搜索 319147 即可订阅《arstercz》</p>
+							</section><!-- .comment-content -->
+
+			<div class="reply">
+				<a rel="nofollow" class="comment-reply-link" href="https://arstercz.com/linux-%e7%b3%bb%e7%bb%9f%e5%a6%82%e4%bd%95%e5%a4%84%e7%90%86%e5%90%8d%e7%a7%b0%e8%a7%a3%e6%9e%90/?replytocom=9425#respond" onclick='return addComment.moveForm( "comment-9425", "9425", "respond", "1107" )' aria-label="Reply to 开发者头条">Reply</a> <span>↓</span>			</div><!-- .reply -->
+		</article><!-- #comment-## -->
+	</li><!-- #comment-## -->
+		</ol><!-- .commentlist -->
+
+		
+		
+	
+					<div id="respond" class="comment-respond">
+			<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="https://arstercz.com/linux-%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90/#respond" style="display:none;">Cancel reply</a></small></h3>				<form action="https://arstercz.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+					<p class="comment-notes"><span id="email-notes">Your email address will not be published.</span> Required fields are marked <span class="required">*</span></p><p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" aria-required="true" required="required"></textarea></p><p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" size="30" maxlength="245" aria-required="true" required="required"></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="text" size="30" maxlength="100" aria-describedby="email-notes" aria-required="true" required="required"></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="text" size="30" maxlength="200"></p>
+<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="Post Comment"> <input type="hidden" name="comment_post_ID" value="1107" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="94259d2fa3"></p><p style="display: none;"></p>				<input type="hidden" id="ak_js" name="ak_js" value="1563432432645"></form>
+					</div><!-- #respond -->
+		
+</div><!-- #comments .comments-area -->
+			
+		</div><!-- #content -->
+	</div><!-- #primary -->
+
+
+			<div id="secondary" class="widget-area" role="complementary">
+			<aside id="search-2" class="widget widget_search"><form role="search" method="get" id="searchform" class="searchform" action="https://arstercz.com/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" name="s" id="s">
+					<input type="submit" id="searchsubmit" value="Search">
+				</div>
+			</form></aside><aside id="text-7" class="widget widget_text"><p class="widget-title">Favorite websites</p>			<div class="textwidget"><a href="https://blog.cloudflare.com/">Blog for Cloudflare</a>
+<br>
+<a href="http://www.brendangregg.com/">Brendan D. Gregg's Homepage</a>
+<br>
+<a href="http://yoshinorimatsunobu.blogspot.com/">Yoshinori Matsunobu's Blog</a>
+<br>
+<a href="https://feedly.com/">Feedly</a>
+<br>
+<a href="https://paper.seebug.org/">Seebug</a>
+<br>
+<a href="https://access.redhat.com/security/security-updates/#/cve"> RedHat security CVE</a>
+<br>
+<a href="http://hedengcheng.com/">hedengcheng's blog</a>
+<br>
+<a href="http://linuxperf.com/">linuxperf.com</a>
+<br>
+<a href="https://thesanguy.com/">thesanguy.com</a></div>
+		</aside><aside id="archives-2" class="widget widget_archive"><p class="widget-title">Archives</p>		<ul>
+			<li><a href="https://arstercz.com/2019/07/">July 2019</a></li>
+	<li><a href="https://arstercz.com/2019/06/">June 2019</a></li>
+	<li><a href="https://arstercz.com/2019/05/">May 2019</a></li>
+	<li><a href="https://arstercz.com/2019/04/">April 2019</a></li>
+	<li><a href="https://arstercz.com/2019/03/">March 2019</a></li>
+	<li><a href="https://arstercz.com/2019/02/">February 2019</a></li>
+	<li><a href="https://arstercz.com/2019/01/">January 2019</a></li>
+	<li><a href="https://arstercz.com/2018/12/">December 2018</a></li>
+	<li><a href="https://arstercz.com/2018/10/">October 2018</a></li>
+	<li><a href="https://arstercz.com/2018/08/">August 2018</a></li>
+	<li><a href="https://arstercz.com/2018/07/">July 2018</a></li>
+	<li><a href="https://arstercz.com/2018/06/">June 2018</a></li>
+	<li><a href="https://arstercz.com/2018/05/">May 2018</a></li>
+	<li><a href="https://arstercz.com/2018/04/">April 2018</a></li>
+	<li><a href="https://arstercz.com/2018/01/">January 2018</a></li>
+	<li><a href="https://arstercz.com/2017/12/">December 2017</a></li>
+	<li><a href="https://arstercz.com/2017/11/">November 2017</a></li>
+	<li><a href="https://arstercz.com/2017/10/">October 2017</a></li>
+	<li><a href="https://arstercz.com/2017/09/">September 2017</a></li>
+	<li><a href="https://arstercz.com/2017/08/">August 2017</a></li>
+	<li><a href="https://arstercz.com/2017/07/">July 2017</a></li>
+	<li><a href="https://arstercz.com/2017/06/">June 2017</a></li>
+	<li><a href="https://arstercz.com/2017/05/">May 2017</a></li>
+	<li><a href="https://arstercz.com/2017/03/">March 2017</a></li>
+	<li><a href="https://arstercz.com/2016/12/">December 2016</a></li>
+	<li><a href="https://arstercz.com/2016/11/">November 2016</a></li>
+	<li><a href="https://arstercz.com/2016/10/">October 2016</a></li>
+	<li><a href="https://arstercz.com/2016/09/">September 2016</a></li>
+	<li><a href="https://arstercz.com/2016/07/">July 2016</a></li>
+	<li><a href="https://arstercz.com/2016/06/">June 2016</a></li>
+	<li><a href="https://arstercz.com/2016/05/">May 2016</a></li>
+	<li><a href="https://arstercz.com/2016/02/">February 2016</a></li>
+	<li><a href="https://arstercz.com/2015/12/">December 2015</a></li>
+	<li><a href="https://arstercz.com/2015/11/">November 2015</a></li>
+	<li><a href="https://arstercz.com/2015/09/">September 2015</a></li>
+	<li><a href="https://arstercz.com/2015/08/">August 2015</a></li>
+	<li><a href="https://arstercz.com/2015/06/">June 2015</a></li>
+	<li><a href="https://arstercz.com/2015/05/">May 2015</a></li>
+	<li><a href="https://arstercz.com/2015/04/">April 2015</a></li>
+	<li><a href="https://arstercz.com/2015/03/">March 2015</a></li>
+	<li><a href="https://arstercz.com/2015/02/">February 2015</a></li>
+	<li><a href="https://arstercz.com/2015/01/">January 2015</a></li>
+	<li><a href="https://arstercz.com/2014/12/">December 2014</a></li>
+	<li><a href="https://arstercz.com/2014/11/">November 2014</a></li>
+	<li><a href="https://arstercz.com/2014/10/">October 2014</a></li>
+	<li><a href="https://arstercz.com/2014/09/">September 2014</a></li>
+	<li><a href="https://arstercz.com/2014/08/">August 2014</a></li>
+	<li><a href="https://arstercz.com/2014/07/">July 2014</a></li>
+	<li><a href="https://arstercz.com/2014/06/">June 2014</a></li>
+	<li><a href="https://arstercz.com/2014/05/">May 2014</a></li>
+	<li><a href="https://arstercz.com/2014/04/">April 2014</a></li>
+	<li><a href="https://arstercz.com/2014/03/">March 2014</a></li>
+	<li><a href="https://arstercz.com/2014/02/">February 2014</a></li>
+	<li><a href="https://arstercz.com/2014/01/">January 2014</a></li>
+	<li><a href="https://arstercz.com/2013/12/">December 2013</a></li>
+	<li><a href="https://arstercz.com/2013/11/">November 2013</a></li>
+	<li><a href="https://arstercz.com/2013/10/">October 2013</a></li>
+	<li><a href="https://arstercz.com/2013/09/">September 2013</a></li>
+		</ul>
+		</aside>		</div><!-- #secondary -->
+		</div><!-- #main .wrapper -->
+	<footer id="colophon" role="contentinfo">
+		<div class="site-info">
+		<div class="footercopy">@Copyright 2013 ~ 2019</div>
+		<div class="footercredit"><a href="https://arstercz.com/">arstercz.com</a></div>
+		<div class="clear"></div>
+		</div><!-- .site-info -->
+		</footer><!-- #colophon -->
+		<div class="site-wordpress">
+				<a href="http://themonic.com/iconic-one/">Iconic One</a> Theme | Powered by <a href="http://wordpress.org/">Wordpress</a>
+				</div><!-- .site-info -->
+				<div class="clear"></div>
+</div><!-- #page -->
+
+<script type="text/javascript" src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/comment-reply.js"></script>
+<script type="text/javascript" src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/selectnav.js"></script>
+<script type="text/javascript" src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/wp-embed.js"></script>
+<script type="text/javascript" src="Linux%20%E7%B3%BB%E7%BB%9F%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%90%8D%E7%A7%B0%E8%A7%A3%E6%9E%90%20%E2%80%93%20arstercz's%20blog_files/form.js"></script>
+
+</body></html>

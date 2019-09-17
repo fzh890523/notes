@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
+<title>Using Linux or Windows as a Time Machine network server &middot; kirbblog</title>
+<link rel="stylesheet" type="text/css" href="/assets/A.blog-9a5151bc933b15d1f3af44af09a2567c3401fc0c7d6cb8278822e761ce2e0ee0.css.pagespeed.cf.f6qHT_vQq5.css">
+<!-- Begin Jekyll SEO tag v2.4.0 -->
+<meta name="generator" content="Jekyll v3.6.2"/>
+<meta property="og:title" content="Using Linux or Windows as a Time Machine network server"/>
+<meta name="author" content="Adam Demasi"/>
+<meta property="og:locale" content="en_US"/>
+<meta name="description" content="So easy you have no excuse not to."/>
+<meta property="og:description" content="So easy you have no excuse not to."/>
+<link rel="canonical" href="https://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html"/>
+<meta property="og:url" content="https://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html"/>
+<meta property="og:site_name" content="kirbblog"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2018-03-24T15:37:28+10:30"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:site" content="@hbkirb"/>
+<meta name="twitter:creator" content="@hbkirb"/>
+<script type="application/ld+json">
+{"headline":"Using Linux or Windows as a Time Machine network server","dateModified":"2018-03-24T15:37:28+10:30","datePublished":"2018-03-24T15:37:28+10:30","url":"https://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html","mainEntityOfPage":{"@type":"WebPage","@id":"https://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html"},"author":{"@type":"Person","name":"Adam Demasi"},"description":"So easy you have no excuse not to.","@type":"BlogPosting","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link type="application/atom+xml" rel="alternate" href="https://kirb.me/feed.xml" title="kirbblog"/>
+<meta name="description" content="">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:url" content="https://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html">
+<meta name="twitter:title" content="Using Linux or Windows as a Time Machine network server">
+<meta name="twitter:description" content="">
+<script src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({google_ad_client:"ca-pub-4590537067273622",enable_page_level_ads:true});</script>
+</head>
+<body><noscript><meta HTTP-EQUIV="refresh" content="0;url='http://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html?PageSpeed=noscript'" /><style><!--table,div,span,font,p{display:none} --></style><div style="display:block">Please click <a href="http://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html?PageSpeed=noscript">here</a> if you are not redirected within a few seconds.</div></noscript>
+<main>
+<nav class="nav">
+<div class="grid grid-centered">
+<div class="grid-cell">
+<a href="/" class="nav-body header-logo" title="kirbblog">
+kirbblog
+<em>A place where I write words, for some reason</em>
+</a>
+</div>
+</div>
+</nav>
+<div id="content">
+<div class="grid grid-centered">
+<div class="grid-cell">
+<article class="article">
+<header class="article-header">
+<h1>Using Linux or Windows as a Time Machine network server</h1>
+<p></p>
+<div class="article-list-footer">
+<span class="article-list-date">
+March 24, 2018
+</span>
+<span class="article-list-divider"></span>
+<span class="article-list-minutes">
+7 minute read
+</span>
+<span class="article-list-divider"></span>
+<div class="article-list-tags">
+</div>
+</div>
+</header>
+<div class="article-content">
+<p><a href="https://www.samba.org/">Samba</a>, in its simplest form, is a program for Linux, FreeBSD, Windows (via <a href="https://docs.microsoft.com/windows/wsl">WSL</a>), etc. that enables you to share storage attached to a server with any other device in the network. It uses the SMB protocol, originally a proprietary protocol designed by Microsoft for sharing files between a Windows server and workstation. Nowadays, SMB is the standard protocol regardless of operating system.</p>
+<p>macOS’s <a href="https://twitter.com/hbkirb/status/902293537093386241">amazing</a> Time Machine feature can make backups either to a local drive (whether connected externally or internally), or to a network share. Unfortunately, the way Apple has implemented it, not just any network share can be used — the server has to mark it as a Time Machine-capable share.</p>
+<p>The Samba project <a href="https://github.com/samba-team/samba/pull/64">recently merged</a> the support necessary for macOS to “see” an SMB shared folder as capable of being a network Time Machine share. That’s the good news. The bad news is that your favorite Linux distro probably doesn’t have this version (4.8.0) and <a href="https://launchpad.net/samba/+packages">likely won’t</a> until the distro’s next major release.</p>
+<p>Until that time, you’ll need to build Samba from source. <strong>Skip past this section if your distro already comes with Samba 4.8.0 or newer.</strong> Ubuntu 18.10 and Debian Buster do have 4.8.x.</p>
+<p>Start by downloading the latest version of the Samba source.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir ~/build
+<span class="nb">cd</span> ~/build
+wget <span class="nt">--content-disposition</span> https://github.com/samba-team/samba/archive/samba-4.9.2.tar.gz
+<span class="nb">tar</span> <span class="nt">-xf</span> samba-samba-<span class="k">*</span>.tar.gz
+<span class="nb">cd </span>samba-samba-<span class="k">*</span>/
+</code></pre></div></div>
+<p>Before we build, install the build dependencies, and (if needed) uninstall the currently installed copy of Samba. This, of course, varies based on the package manager your distro uses. Here is how it would be done with Debian or Ubuntu:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt remove samba
+<span class="nb">sudo </span>apt autoremove  <span class="c"># (clear out the now-unused Samba dependencies)</span>
+<span class="nb">sudo </span>apt install build-essential avahi-daemon tracker libtracker-sparql-1.0-dev
+<span class="nb">sudo </span>apt build-dep samba
+</code></pre></div></div>
+<p>The Samba wiki has <a href="https://wiki.samba.org/index.php/Package_Dependencies_Required_to_Build_Samba">instructions for other distros</a>.</p>
+<p>Now we can build and install:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">DEB_HOST_MULTIARCH</span><span class="o">=</span><span class="k">$(</span>dpkg-architecture <span class="nt">-qDEB_HOST_MULTIARCH</span><span class="k">)</span>
+
+./configure <span class="se">\</span>
+    <span class="nt">--prefix</span><span class="o">=</span>/usr <span class="nt">--exec-prefix</span><span class="o">=</span>/usr <span class="nt">--sysconfdir</span><span class="o">=</span>/etc <span class="se">\</span>
+    <span class="nt">--localstatedir</span><span class="o">=</span>/var <span class="nt">--libdir</span><span class="o">=</span>/usr/lib/<span class="nv">$DEB_HOST_MULTIARCH</span> <span class="se">\</span>
+    <span class="nt">--with-privatedir</span><span class="o">=</span>/var/lib/samba/private <span class="se">\</span>
+    <span class="nt">--with-smbpasswd-file</span><span class="o">=</span>/etc/samba/smbpasswd <span class="se">\</span>
+    <span class="nt">--enable-fhs</span> <span class="nt">--enable-spotlight</span> <span class="nt">--with-systemd</span>
+
+make <span class="nt">-j</span><span class="k">$(</span>nproc<span class="k">)</span>
+<span class="nb">sudo </span>make install
+
+<span class="nb">sudo </span>cp bin/default/packaging/systemd/<span class="k">*</span>.service /lib/systemd/system
+<span class="nb">sudo </span>systemctl daemon-reload
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="o">{</span>nmb,smb,winbind<span class="o">}</span>.service
+<span class="nb">sudo </span>systemctl start <span class="o">{</span>nmb,smb,winbind<span class="o">}</span>.service
+</code></pre></div></div>
+<p>Again, this is pretty specific to Debian/Ubuntu. <code class="highlighter-rouge">$DEB_HOST_MULTIARCH</code> is, for instance, <code class="highlighter-rouge">x86_64-linux-gnu</code> on a 64-bit PC, or <code class="highlighter-rouge">aarch64-linux-gnu</code> on a Raspberry Pi 3. If you’re not on a systemd-based distro, remove <code class="highlighter-rouge">--with-systemd</code>, and replace the last few systemd-related lines with calls to the init scripts:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for </span>i <span class="k">in </span>nmb smb winbind<span class="p">;</span> <span class="k">do </span><span class="nb">sudo</span> /etc/init.d/<span class="nv">$i</span> start<span class="p">;</span> <span class="k">done</span>
+</code></pre></div></div>
+<p>Newer distros (at least the case with Ubuntu 17.10) may have libtracker-sparql version 2 rather than 1. It doesn’t seem Samba’s Spotlight feature supports version 2 yet, so just remove <code class="highlighter-rouge">--enable-spotlight</code> in this case.</p>
+<p>Hopefully, you’ll now have your own copy of Samba built and running. Disconnect and reconnect to your shares on your Mac to double-check that it’s working fine.</p>
+<p>You’ll need to do <a href="https://wiki.samba.org/index.php/Spotlight">some additional work</a> to set up Tracker, the search backend. (I really wish this part were much easier.)</p>
+<hr/>
+<p>A Time Machine share is for the most part no different from any other share. The five parts required to enable Time Machine support are:</p>
+<ul>
+<li>The <code class="highlighter-rouge">fruit</code> module, which provides Apple’s proprietary extensions to SMB,</li>
+<li>The <code class="highlighter-rouge">catia</code> module, which maps the encoding of filenames that macOS expects to a form most native Linux filesystems can support,</li>
+<li>The <code class="highlighter-rouge">streams_xattr</code> module, which maps macOS’s extended attributes to a separate <a href="https://lists.apple.com/archives/applescript-users/2006/Jun/msg00180.html">AppleDouble file</a>,</li>
+<li>Optionally, the <code class="highlighter-rouge">spotlight</code> module, which builds a Spotlight search index on the server to speed up discovery of files in the backup, and</li>
+<li>Avahi, a multicast (aka Bonjour) daemon for Linux, used here to allow Macs on the network to discover the Time Machine share.</li>
+</ul>
+<p>Importantly, Avahi support is intentionally disabled in Debian and Ubuntu’s builds of Samba, and Spotlight support is not enabled. These are both features you can live without; you can manually configure Avahi to advertise the services, and a Spotlight index is recommended but entirely optional. Since we’re building from source here, we’ll just pick the easier option of having them both enabled for us.</p>
+<p>Edit <code class="highlighter-rouge">/etc/samba/smb.conf</code> (this assumes you already have one or understand how to create one), and fill in the details for your Time Machine share:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[timemachine]
+    comment = Time Machine
+    path = /data/backup/timemachine
+    browseable = yes
+    writeable = yes
+    create mask = 0600
+    directory mask = 0700
+    spotlight = yes
+    vfs objects = catia fruit streams_xattr
+    fruit:aapl = yes
+    fruit:time machine = yes
+</code></pre></div></div>
+<p>What this does:</p>
+<ul>
+<li>Defines a share called <code class="highlighter-rouge">timemachine</code>,</li>
+<li>Sets its location on the server to <code class="highlighter-rouge">/data/backup/timemachine</code> (you should change this to suit your setup),</li>
+<li>Enables authorised users to read and write to it,</li>
+<li>Sets tight file and directory permissions so only the original owner can access their own files,</li>
+<li>Enables Spotlight indexing on the share,</li>
+<li>Enables the VFS modules that were discussed above, and</li>
+<li>Enables the Apple extensions, and instructs <code class="highlighter-rouge">fruit</code> to set the Time Machine flag on the share.</li>
+</ul>
+<p>Save this, and create the directory you specified. After restarting <code class="highlighter-rouge">smbd</code> as per usual (<code class="highlighter-rouge">sudo systemctl smb restart</code> or <code class="highlighter-rouge">sudo /etc/init.d/smb restart</code>), open Finder on a Mac. As long as no firewall is blocking it, in the Shared section of the sidebar, you’ll see your server’s hostname.</p>
+<p><script data-pagespeed-no-defer>//<![CDATA[
+(function(){for(var g="function"==typeof Object.defineProperties?Object.defineProperty:function(b,c,a){if(a.get||a.set)throw new TypeError("ES3 does not support getters and setters.");b!=Array.prototype&&b!=Object.prototype&&(b[c]=a.value)},h="undefined"!=typeof window&&window===this?this:"undefined"!=typeof global&&null!=global?global:this,k=["String","prototype","repeat"],l=0;l<k.length-1;l++){var m=k[l];m in h||(h[m]={});h=h[m]}var n=k[k.length-1],p=h[n],q=p?p:function(b){var c;if(null==this)throw new TypeError("The 'this' value for String.prototype.repeat must not be null or undefined");c=this+"";if(0>b||1342177279<b)throw new RangeError("Invalid count value");b|=0;for(var a="";b;)if(b&1&&(a+=c),b>>>=1)c+=c;return a};q!=p&&null!=q&&g(h,n,{configurable:!0,writable:!0,value:q});var t=this;function u(b,c){var a=b.split("."),d=t;a[0]in d||!d.execScript||d.execScript("var "+a[0]);for(var e;a.length&&(e=a.shift());)a.length||void 0===c?d[e]?d=d[e]:d=d[e]={}:d[e]=c};function v(b){var c=b.length;if(0<c){for(var a=Array(c),d=0;d<c;d++)a[d]=b[d];return a}return[]};function w(b){var c=window;if(c.addEventListener)c.addEventListener("load",b,!1);else if(c.attachEvent)c.attachEvent("onload",b);else{var a=c.onload;c.onload=function(){b.call(this);a&&a.call(this)}}};var x;function y(b,c,a,d,e){this.h=b;this.j=c;this.l=a;this.f=e;this.g={height:window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight,width:window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth};this.i=d;this.b={};this.a=[];this.c={}}function z(b,c){var a,d,e=c.getAttribute("data-pagespeed-url-hash");if(a=e&&!(e in b.c))if(0>=c.offsetWidth&&0>=c.offsetHeight)a=!1;else{d=c.getBoundingClientRect();var f=document.body;a=d.top+("pageYOffset"in window?window.pageYOffset:(document.documentElement||f.parentNode||f).scrollTop);d=d.left+("pageXOffset"in window?window.pageXOffset:(document.documentElement||f.parentNode||f).scrollLeft);f=a.toString()+","+d;b.b.hasOwnProperty(f)?a=!1:(b.b[f]=!0,a=a<=b.g.height&&d<=b.g.width)}a&&(b.a.push(e),b.c[e]=!0)}y.prototype.checkImageForCriticality=function(b){b.getBoundingClientRect&&z(this,b)};u("pagespeed.CriticalImages.checkImageForCriticality",function(b){x.checkImageForCriticality(b)});u("pagespeed.CriticalImages.checkCriticalImages",function(){A(x)});function A(b){b.b={};for(var c=["IMG","INPUT"],a=[],d=0;d<c.length;++d)a=a.concat(v(document.getElementsByTagName(c[d])));if(a.length&&a[0].getBoundingClientRect){for(d=0;c=a[d];++d)z(b,c);a="oh="+b.l;b.f&&(a+="&n="+b.f);if(c=!!b.a.length)for(a+="&ci="+encodeURIComponent(b.a[0]),d=1;d<b.a.length;++d){var e=","+encodeURIComponent(b.a[d]);131072>=a.length+e.length&&(a+=e)}b.i&&(e="&rd="+encodeURIComponent(JSON.stringify(B())),131072>=a.length+e.length&&(a+=e),c=!0);C=a;if(c){d=b.h;b=b.j;var f;if(window.XMLHttpRequest)f=new XMLHttpRequest;else if(window.ActiveXObject)try{f=new ActiveXObject("Msxml2.XMLHTTP")}catch(r){try{f=new ActiveXObject("Microsoft.XMLHTTP")}catch(D){}}f&&(f.open("POST",d+(-1==d.indexOf("?")?"?":"&")+"url="+encodeURIComponent(b)),f.setRequestHeader("Content-Type","application/x-www-form-urlencoded"),f.send(a))}}}function B(){var b={},c;c=document.getElementsByTagName("IMG");if(!c.length)return{};var a=c[0];if(!("naturalWidth"in a&&"naturalHeight"in a))return{};for(var d=0;a=c[d];++d){var e=a.getAttribute("data-pagespeed-url-hash");e&&(!(e in b)&&0<a.width&&0<a.height&&0<a.naturalWidth&&0<a.naturalHeight||e in b&&a.width>=b[e].o&&a.height>=b[e].m)&&(b[e]={rw:a.width,rh:a.height,ow:a.naturalWidth,oh:a.naturalHeight})}return b}var C="";u("pagespeed.CriticalImages.getBeaconData",function(){return C});u("pagespeed.CriticalImages.Run",function(b,c,a,d,e,f){var r=new y(b,c,a,e,f);x=r;d&&w(function(){window.setTimeout(function(){A(r)},0)})});})();pagespeed.CriticalImages.Run('/mod_pagespeed_beacon','http://kirb.me/2018/03/24/using-samba-as-a-time-machine-network-server.html','SYGm5Jp__O',true,false,'EnPW3M1DyuI');
+//]]></script><img src="/content/images/x2018-03-24-time-machine-showing-in-finder.png.pagespeed.ic.0AAGrLwBHJ.webp" alt="Server showing in Finder" data-pagespeed-url-hash="1074476032" onload="pagespeed.CriticalImages.checkImageForCriticality(this);"/></p>
+<p>This is one part of the Avahi functionality — any device that supports multicast discovery (mostly Macs, but other devices can too) will now discover the server while performing a search for SMB services on the network. The second part is the ability for the Time Machine preferences pane to list it as an available destination for backing up to.</p>
+<p><img src="/content/images/x2018-03-24-time-machine-selecting-disk.png.pagespeed.ic.XWSI8yKcDU.webp" alt="Selecting Time Machine disk" data-pagespeed-url-hash="2326192580" onload="pagespeed.CriticalImages.checkImageForCriticality(this);"/></p>
+<p>In the Time Machine pane of System Preferences, click “Select Disk…”. The share will appear. Select it, enter your password, and it’ll instantly begin making an initial backup to it.</p>
+<p><img src="/content/images/x2018-03-24-time-machine-backing-up-yay.png.pagespeed.ic.BXmtQj-rd-.webp" alt="Time Machine backing up, yay" data-pagespeed-url-hash="724642149" onload="pagespeed.CriticalImages.checkImageForCriticality(this);"/></p>
+<p>Perfect!</p>
+<hr/>
+<p>If the share doesn’t appear due to a firewall blocking multicast packets, or because the server is external to your network, you can force it to be used anyway by running the following in Terminal on the Mac:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tmutil setdestination <span class="s1">'smb://kirb:mypassw0rd@myserver/timemachine'</span>
+</code></pre></div></div>
+<p>This will force Time Machine to connect to the specified server hostname or IP, using the specified username (<code class="highlighter-rouge">kirb</code>) and password (<code class="highlighter-rouge">mypassw0rd</code>), and back up to the specified share. The share still needs to have the Apple extensions enabled.</p>
+<p>Using this method, you could store your Time Machine backup offsite on a server located in a datacenter or colocation service. (Personally, I prefer this job to be handled by <a href="https://secure.backblaze.com/r/016ql1">Backblaze</a><sup id="fnref:bzaffiliate"><a href="#fn:bzaffiliate" class="footnote">1</a></sup>, alongside Time Machine for local backup.)</p>
+<hr/>
+<p><img src="/content/images/x2018-03-24-time-machine-zfs-derp.png.pagespeed.ic.LZfWrtBI7S.webp" alt="Error message: 1.59 TB needed but only 1.29 TB available" data-pagespeed-url-hash="1897497669" onload="pagespeed.CriticalImages.checkImageForCriticality(this);"/></p>
+<p>I’ve been running this for a few days and so far the only trouble I’ve had is that Time Machine will compare the size of the backup to the available space reported by the server, but as you can see in the above screenshot, ZFS indicates far less than the actual capacity I have available (4 TB). The only workaround I’ve found is to make a first backup with some larger directories excluded, which will make ZFS eventually indicate more space is available. Then, remove those exclusions, and on the next backup it will work fine.</p>
+<p>To make the most of your available space, you might consider enabling compression at the filesystem level. ZFS supports this. I created my backup volume like so:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>zfs create meteor/backup <span class="nt">-o</span> <span class="nv">mountpoint</span><span class="o">=</span>/data/backup <span class="nt">-o</span> <span class="nv">compression</span><span class="o">=</span>on <span class="nt">-o</span> <span class="nv">quota</span><span class="o">=</span>2T
+</code></pre></div></div>
+<p>This mounts the volume at /data/backup, enables compression, and ensures this volume can’t grow larger than 2 TB (so that the other 2 TB remains available for my own storage). This, of course, expects your server to have a reasonably fast CPU with a reasonable number of cores so your backups and restores don’t become extremely slow while the server produces large amounts of heat. Any Core i3/i5/i7 server is probably perfectly fine, but decide for yourself what you’re comfortable with.</p>
+<hr/>
+<p>By the way, if you have a Mac running macOS High Sierra or newer that you use as a server, you can now create a Time Machine share directly from the Sharing preferences pane, rather than having to buy and install macOS Server:</p>
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">ProTip®: you can make any mac a time machine server without buying macOS server. create a backups share, then right click → advanced options <a href="https://t.co/W2SKcjKQrt">pic.twitter.com/W2SKcjKQrt</a></p>&mdash; ‹insert scary name› (@hbkirb) <a href="https://twitter.com/hbkirb/status/923422377597210624?ref_src=twsrc%5Etfw">October 26, 2017</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<div class="footnotes">
+<ol>
+<li id="fn:bzaffiliate">
+<p>Affiliate link, but surely you won’t mind me gaining $5 in credit for the hours I spent researching and writing this article? <a href="#fnref:bzaffiliate" class="reversefootnote">&#8617;</a></p>
+</li>
+</ol>
+</div>
+</div>
+</article>
+</div>
+</div>
+</div>
+<footer class="nav">
+<div class="grid grid-centered">
+<div class="grid-cell">
+<div class="nav-body">
+<p>
+&copy; 2018 <a href="/">Adam Demasi</a><br>
+Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noreferrer noopener">CC-BY 4.0</a><br>
+Theme based on <a href="https://github.com/nielsenramon/chalk" rel="noreferrer noopener" target="_blank">Chalk</a>
+</p>
+</div>
+</div>
+</div>
+</footer>
+</main>
+</body>
+</html>

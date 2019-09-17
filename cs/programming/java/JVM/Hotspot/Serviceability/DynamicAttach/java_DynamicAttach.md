@@ -34,7 +34,7 @@
 
 2. 如前文提到的，init里会创建attach listener线程
 
-3. 该线程init方法里会创建socket文件并且listen，文件为： **${系统temp}/.java_pid${pid}.tmp**，然后设置权限… 最后rename为去掉tmp后缀的...
+3. 该线程init方法里会创建socket文件并且listen，文件为： `${系统temp}/.java_pid${pid}.tmp`，然后设置权限… 最后rename为去掉tmp后缀的...
 
 4. 之后就在该socket上接受请求（AttachOperation）、处理、响应。这里没有用…模型，所以是读完一个请求、处理、响应后才会读下一个请求
 

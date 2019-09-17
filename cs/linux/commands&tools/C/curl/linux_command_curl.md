@@ -199,6 +199,80 @@ curl -d @${filePath} "xxx"  # 从${filePath}指定的路径读取文件作为bod
 
 
 
+### ssl证书问题
+
+类似的问题：
+
+```
+*   Trying x.x.x.x...
+* TCP_NODELAY set
+* Connected to xx.xx.xx (x.x.x.x) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* Cipher selection: ALL:!EXPORT:!EXPORT40:!EXPORT56:!aNULL:!LOW:!RC4:@STRENGTH
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/certs/ca-certificates.crt
+  CApath: none
+* TLSv1.2 (OUT), TLS header, Certificate Status (22):
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (OUT), TLS alert, Server hello (2):
+* SSL certificate problem: unable to get local issuer certificate
+* stopped the pause stream!
+* Closing connection 0
+```
+
+
+
+
+
+```
+-k, --insecure
+
+(TLS) By default, every SSL connection curl makes is verified to be secure. This option allows curl to proceed and operate even for server connections otherwise considered insecure.
+
+The server connection is verified by making sure the server's certificate contains the right name and verifies successfully using the cert store.
+
+See this online resource for further details: https://curl.haxx.se/docs/sslcerts.html
+
+See also --proxy-insecure and --cacert.
+```
+
+
+
+
+
+
+
+### follow redirect
+
+```
+-L, --location
+
+(HTTP) If the server reports that the requested page has moved to a different location (indicated with a Location: header and a 3XX response code), this option will make curl redo the request on the new place. If used together with -i, --include or -I, --head, headers from all requested pages will be shown. When authentication is used, curl only sends its credentials to the initial host. If a redirect takes curl to a different host, it won't be able to intercept the user+password. See also --location-trusted on how to change this. You can limit the amount of redirects to follow by using the --max-redirs option.
+
+When curl follows a redirect and the request is not a plain GET (for example POST or PUT), it will do the following request with a GET if the HTTP response was 301, 302, or 303. If the response code was any other 3xx code, curl will re-send the following request using the same unmodified method.
+
+You can tell curl to not change the non-GET request method to GET after a 30x response by using the dedicated options for that: --post301, --post302 and --post303.
+```
+
+
+
+
+
+* `-L` 开启follow
+* `--max-redirs` 指定最大redirect次数
+* `--post301, --post302 --post303` 指定对于这几个code不会转为GET(否则会重定向为GET)
+
+
+
+example： `-L --max-redirs 8 --post3-1 --post302 --post303`
+
+
+
+
+
 ### 把“请求失败”体现在exitCode
 
 Ref: [Can I make cURL fail with an exitCode different than 0 if the HTTP status code is not 200?](https://superuser.com/questions/590099/can-i-make-curl-fail-with-an-exitcode-different-than-0-if-the-http-status-code-i)

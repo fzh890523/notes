@@ -145,7 +145,28 @@ check_permission()
 ## 变量
 
 
+### 特殊变量
 
+ref： https://www.cnblogs.com/zhangjiansheng/p/8318042.html
+
+1. `$$`
+  Shell本身的PID（ProcessID）
+2. `$!`
+  Shell最后运行的后台Process的PID
+3. `$?`
+  最后运行的命令的结束代码（返回值）
+4. `$-`
+  使用Set命令设定的Flag一览
+5. `$*`
+  所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
+6. `$@`
+  所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
+7. `$#`
+  添加到Shell的参数个数
+8. `$0`
+  Shell本身的文件名
+9. `$1～$n`
+  添加到Shell的各参数值。$1是第1参数、$2是第2参数…。
 
 
 ### default value
@@ -153,6 +174,34 @@ check_permission()
 `var1=${var2:-defaultvalue}`
 
 > var2不存在 或者 为空 都会用 后面的默认值
+
+
+
+### 遍历变量
+
+ref: <https://stackoverflow.com/questions/1305237/how-to-list-variables-declared-in-script-in-bash>
+
+
+
+```sh
+# 假设变量都是 prefix__ 开头
+    for var in "${!prefix__@}"; do
+        if [[ -n "${!var}" && -n "${var:8}" ]]; then
+            cmd_parts+=("--${var:8}=${!var}")
+        fi
+    done
+```
+
+
+
+```sh
+for i in _ {a..z} {A..Z}; do
+   for var in `eval echo "\\${!$i@}"`; do
+      echo $var
+      # you can test if $var matches some criteria and put it in the file or ignore
+   done 
+done
+```
 
 
 
@@ -171,6 +220,10 @@ check_permission()
 * `-n "${var}"` 非空
 
   > 部分场景不行，噗，此时需要 `! -z "${var}"`
+
+
+
+`==` is a bash-ism. The POSIX form is `=`. If portability to non-bash shells is important, use `=`.
 
 
 
@@ -229,6 +282,22 @@ echo $b  # should be before:middle:after
 
 
 
+#### substr: ${varname:offset:length}
+
+* offset： 从0开始
+* length： 子串长度
+
+
+
+```sh
+s="abcd"
+echo ${s:1}  # bcd
+echo ${s:2:1} # c
+echo ${s:2:}  # 空
+```
+
+
+
 
 
 ### 数字
@@ -240,10 +309,17 @@ echo $b  # should be before:middle:after
 
 
 * `if [ int1 -eq int2 ]`    如果int1等于int2
+
+  注意，不能用于比较非数字形式的。。，普通字符串需要用 `=`
+
 * `if [ int1 -ne int2 ]`    如果不等于    
+
 * `if [ int1 -ge int2 ]`     如果>=
+
 * `if [ int1 -gt int2 ]`     如果>
+
 * `if [ int1 -le int2 ]`     如果<=
+
 * `if [ int1 -lt int2 ]`     如果<
 
 
@@ -271,7 +347,48 @@ let "var+=1"
 let "var++"
 ```
 
+#### 随机数
 
+ref: https://www.cnblogs.com/ginvip/p/6363120.html
+
+* `$RANDOM`
+  `$(($RANDOM+1000000000))`
+* `$(rand 400000 500000) `
+* 使用awk的随机函数 `awk 'BEGIN{srand();print rand()*1000000}'`
+* openssl rand产生随机数 `openssl rand -base64 8`
+  `openssl rand -base64 8|md5sum`
+* 通过时间获得随机数（date） `date +%s%N`
+  ```sh
+  function rand(){   
+      min=$1   
+      max=$(($2-$min+1))   
+      num=$(date +%s%N)   
+      echo $(($num%$max+$min))   
+  }    
+  ```
+* 通过系统内唯一数据生成随机数（/dev/random及/dev/urandom）
+  `cat /dev/urandom|head -n 10|md5sum|head -c 10`
+  `cat /dev/urandom|strings -n 8|head -n 1`
+* 读取Linux的uuid码
+  `cat /proc/sys/kernel/random/uuid |cksum|cut -f1 -d " "`
+  ```sh
+  function rand(){   
+      min=$1   
+      max=$(($2-$min+1))   
+      num=$(cat /proc/sys/kernel/random/uuid | cksum | awk -F ' ' '{print $1}')   
+      echo $(($num%$max+$min))   
+  }   
+     
+  ```
+
+rnd=$(rand 100 500)  
+```  
+* 从元素池中随机抽取取
+  ```sh
+  pool=(a b c d e f g h i j k l m n o p q r s t 1 2 3 4 5 6 7 8 9 10)
+  num=${#pool[*]}
+  result=${pool[$((RANDOM%num))]}
+```
 
 
 
@@ -605,7 +722,24 @@ fi
 
 
 
-#### 
+### 重定向
+
+
+
+#### 保存、恢复
+
+```sh
+exec 6>&1 7>&2  # save 1 2 to 6 7
+exec &>> a.log   # redirect。 May be ">> a.log 2>> a.log" for some bash versions.
+# do sth
+exec >&6 2>&7 6>&- 7>&-  # Restore stdout and stderr and close backups.
+```
+
+
+
+注意： 如果在`do sth`阶段执行了子命令（尤其是后台执行的），那么6 7会被继承。
+
+而当ssh执行时，stdout、stderr其实是pipe，那么会导致这个pipe被后台任务继承而无法关闭（即使此时shell已经退出），从而hang住ssh。
 
 
 
@@ -649,7 +783,7 @@ fi
 
 
 
-
+### 重定向
 
 
 

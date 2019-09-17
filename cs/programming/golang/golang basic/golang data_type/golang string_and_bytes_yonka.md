@@ -10,7 +10,45 @@
 
 
 
+Note that since the `rune` type is an alias for `int32`, we must use `%c` instead of the usual `%v` in the `Printf` statement, or we will see the integer representation of the Unicode code point (see [A Tour of Go](https://tour.golang.org/basics/11)).
+
+
+
+```
+ A rune literal represents a rune constant, an integer value identifying a Unicode code point. A rune literal is expressed as one or more characters enclosed in single quotes, as in 'x' or '\n'. Within the quotes, any character may appear except newline and unescaped single quote. A single quoted character represents the Unicode value of the character itself, while multi-character sequences beginning with a backslash encode values in various formats.
+
+The simplest form represents the single character within the quotes; since Go source text is Unicode characters encoded in UTF-8, multiple UTF-8-encoded bytes may represent a single integer value. For instance, the literal 'a' holds a single byte representing a literal a, Unicode U+0061, value 0x61, while 'ä' holds two bytes (0xc3 0xa4) representing a literal a-dieresis, U+00E4, value 0xe4.
+
+Several backslash escapes allow arbitrary values to be encoded as ASCII text. There are four ways to represent the integer value as a numeric constant: \x followed by exactly two hexadecimal digits; \u followed by exactly four hexadecimal digits; \U followed by exactly eight hexadecimal digits, and a plain backslash \ followed by exactly three octal digits. In each case the value of the literal is the value represented by the digits in the corresponding base.
+
+Although these representations all result in an integer, they have different valid ranges. Octal escapes must represent a value between 0 and 255 inclusive. Hexadecimal escapes satisfy this condition by construction. The escapes \u and \U represent Unicode code points so within them some values are illegal, in particular those above 0x10FFFF and surrogate halves. 
+```
+
+
+
+
+
 ## literal
+
+
+
+
+
+```
+ A rune literal represents a rune constant, an integer value identifying a Unicode code point. A rune literal is expressed as one or more characters enclosed in single quotes, as in 'x' or '\n'. Within the quotes, any character may appear except newline and unescaped single quote. A single quoted character represents the Unicode value of the character itself, while multi-character sequences beginning with a backslash encode values in various formats.
+
+The simplest form represents the single character within the quotes; since Go source text is Unicode characters encoded in UTF-8, multiple UTF-8-encoded bytes may represent a single integer value. For instance, the literal 'a' holds a single byte representing a literal a, Unicode U+0061, value 0x61, while 'ä' holds two bytes (0xc3 0xa4) representing a literal a-dieresis, U+00E4, value 0xe4.
+
+Several backslash escapes allow arbitrary values to be encoded as ASCII text. There are four ways to represent the integer value as a numeric constant: \x followed by exactly two hexadecimal digits; \u followed by exactly four hexadecimal digits; \U followed by exactly eight hexadecimal digits, and a plain backslash \ followed by exactly three octal digits. In each case the value of the literal is the value represented by the digits in the corresponding base.
+
+Although these representations all result in an integer, they have different valid ranges. Octal escapes must represent a value between 0 and 255 inclusive. Hexadecimal escapes satisfy this condition by construction. The escapes \u and \U represent Unicode code points so within them some values are illegal, in particular those above 0x10FFFF and surrogate halves. 
+```
+
+
+
+
+
+
 
 https://golang.org/ref/spec#Rune_literals
 
@@ -74,8 +112,12 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 # string
 
 * 一份`[]byte`拷贝
+
 * 只读
+
 * 以`utf-8`去"理解"(如iterate)
+
+  但len不行，`len(s)` == `len(underlying_bytes)`
 
 
 
@@ -214,6 +256,40 @@ interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
 "\U000065e5\U0000672c\U00008a9e"        // the explicit Unicode code points
 "\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // the explicit UTF-8 bytes
 ```
+
+
+
+## iterate
+
+
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+        for i, rune := range "Hello, 世界" {
+                fmt.Printf("%d: %c\n", i, rune)
+        }
+}
+```
+
+
+
+```
+0: H
+1: e
+2: l
+3: l
+4: o
+5: ,
+6:  
+7: 世
+10: 界
+```
+
+
 
 
 
