@@ -187,6 +187,7 @@ web  # or other ...
 # web需要设置好svg默认打开程序
 
 # --inuse_space vs --alloc_space
+go tool pprof --alloc_space -base xx.heap yy.heap  # 看xx -> yy的差量
 ```
 
 

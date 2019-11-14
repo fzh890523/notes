@@ -1,3 +1,20 @@
+# branch
+
+
+
+## checkout
+
+
+
+### checkout到指定的remote分支
+
+
+
+* 如果是默认的remote: `git checkout ${remoteBranchName}`
+* 如果不是默认的remote： `git checkout -b ${localBranchName} ${remoteName}/${remoteBranchName}`
+
+
+
 # history
 
 
@@ -242,7 +259,9 @@ git checkout --theirs -- <paths>
 
   `git tag -l "0.1.*"`
 
+* `git tag -a v1.0.0 -m "for test"`
 
+*  `git push origin v1.0.0`/`git push origin --tags`
 
 ## show(detail)
 
@@ -369,6 +388,18 @@ git cherry-pick -x abcd  # -x的话生成标准commit message，减少重复merg
 ```
 
 
+
+
+
+# stash
+
+
+
+* `git stash`
+* `git stash pop`
+* `git stash list`
+* `git stash show`/`git stash show -P`
+* `git stash clear`
 
 
 

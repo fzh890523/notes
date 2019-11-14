@@ -60,6 +60,27 @@ Apr 24 13:42:58 ${host} sshd[12123]: pam_unix(sshd:session): session closed for 
 
 
 
+## 想不重复登录输入密码等验证： 连接复用
+
+
+
+```sh
+Host xxx
+  HostName xxxx
+  ControlMaster auto
+  ControlPersist 3600  # 使得第一个连接断开后也能保持一段时间
+  ControlPath /tmp/ssh_connection_%h_%p_%r.sock
+  ServerAliveInterval 80  # 避免被idle timeout踢掉
+  ServerAliveCountMax 6
+  User xxx
+```
+
+
+
+
+
+
+
 # tutorial
 
 
@@ -114,6 +135,16 @@ ssh user@host 'bash -s' < /path/script.sh
 
 
 ## 指定端口： -p ${port}
+
+
+
+
+
+
+
+
+
+
 
 
 

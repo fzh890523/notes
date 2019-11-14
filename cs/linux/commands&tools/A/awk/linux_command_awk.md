@@ -27,7 +27,26 @@ total
 
 
 
-## Field separator
+## field
+
+
+
+### 选择/删除指定的fields
+
+```sh
+echo "1 2 3" | awk '{$1 = ""; print $0}'
+ 2 3  // 可以看到那个空格还在
+echo "1  2 3" | awk '{$1 = ""; print $0}' 
+ 2 3
+```
+
+```sh
+echo '1 2 3' | awk '{for (i=2; i<=NF; i++) printf("%s ", $i)}'
+2 3   // 多了一个空格
+```
+
+
+### Field separator
 
 
 

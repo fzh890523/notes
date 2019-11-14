@@ -35,3 +35,12 @@ function watch_cpu() {
     done    
 }
 ```
+
+```sh
+watch_cpu ${pid} ${gap} | awk '{
+    if(NR > 1) {
+        printf("%s %.3f\n", strftime("%m/%d/%Y %H:%M:%S", systime()), $1 - last)
+    }
+    last=$1;
+}'
+```
