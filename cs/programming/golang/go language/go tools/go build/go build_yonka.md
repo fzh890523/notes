@@ -2,6 +2,86 @@
 
 
 
+
+
+# compile time constants
+
+ref: https://stackoverflow.com/questions/15214459/how-to-properly-use-build-tags
+
+
+
+```sh
+go build -ldflags '-X main.DEBUG=YES' test.go
+# 老版本是： -X main.DEBUG YES
+```
+
+
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+var DEBUG = "NO"
+
+func main() {
+    fmt.Printf("DEBUG is %q\n", DEBUG)
+}
+```
+
+
+
+
+
+# build tag
+
+
+
+ref: https://stackoverflow.com/questions/10646531/golang-conditional-compilation/10649653#10649653
+
+
+
+```go
+// +build main1
+
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    fmt.Println("This is main 1")
+}
+
+// +build main2
+
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    fmt.Println("This is main 2")
+}
+```
+
+
+> 在 package main 前面需要有空行，因为在此行之前的（连续）注释行被视为包注释
+
+
+
+```sh
+go build -tags 'main1'
+```
+
+
+
+
+
 # flags
 
 

@@ -14,6 +14,27 @@
 
 
 
+#### binary file
+
+
+
+有些时候，文件里包含一些特殊字符，导致grep时会报：
+
+`Binary file (standard input) matches`。
+
+
+
+这时候如果确认还是文本文件的话，可以强行用`-a`来指示其当做文本处理。
+
+```
+-a, --text
+Process a binary file as if it were text; this is equivalent to the ‘--binary-files=text’ option.
+```
+
+
+
+
+
 #### simple contains/fixed string
 
 * `grep -F ${fixStr}`

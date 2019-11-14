@@ -1,5 +1,25 @@
 ## git checkout
 
+
+
+### 如何只切换文件不切换HEAD
+
+ref： https://clubmate.fi/git-checkout-file-or-directories-from-another-branch/
+
+
+
+* 指定文件： `git checkout feature-branch -- src/js/some-file.js`
+
+  然后，该文件就被替换成`feature-branch`分支的了
+
+* 指定目录： `git checkout feature-branch -- src/js/`
+
+* 全部： `git checkout feature-branch -- ./`
+
+
+
+
+
 ### 把branch name认为是file name问题
 
 ```
@@ -526,7 +546,22 @@ git remote add remote1 git@testHost:user/repo  # 这个testHost与前面Host对�
 
 
 
+### https -> ssh/git (insteadOf配置)
 
+主要是有些场景下只能用https格式，比如go get。
+
+`go get github.com/xx/yy`，而当private repo时，鉴权会比较麻烦，明文密码也不方便，这时候用ssh/git是必要的，但url格式又不能改，于是：
+
+> 在 gitconfig配置（如`~/.gitconfig`）中加入：
+
+```
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+```
+
+其他repo同理。（gitlab好像也是git username）。
+
+y
 
 
 
