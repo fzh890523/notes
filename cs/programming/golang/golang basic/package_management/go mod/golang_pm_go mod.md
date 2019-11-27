@@ -99,7 +99,7 @@ verifying github.com/rasteric/minidb@v0.0.7: github.com/rasteric/minidb@v0.0.7: 
 
 是因为go mod会有个校验的过程，而对于私有repo，golang.org没有该信息也无法访问，所以需要skip，方式是`GOPRIVATE`环境变量，如下：
 ```sh
-GOPRIVATE=*.xx.com go build
+GOPRIVATE=*.xx.com,yy.com go build
 ```
 
 ref: https://golang.org/cmd/go/#hdr-Module_configuration_for_non_public_modules
@@ -179,6 +179,19 @@ To override this guess, supply the module path as an argument.
 
 
 > 据说还会 this will import dependencies from `Gopkg.lock`.
+
+
+
+#### go mod vendor
+
+
+
+```sh
+go mod vendor
+go -mod=readonly mod vendor  # 据说只collect-to-vendor而不会做update，但不知道生效不。 有说法go mod会忽略 `-mod` 选项
+```
+
+
 
 
 
