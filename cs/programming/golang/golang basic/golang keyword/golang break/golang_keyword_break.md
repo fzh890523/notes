@@ -1,6 +1,14 @@
 
 
+可以作用的scope/statement：
 
+* `for`
+
+* `select`
+
+* `switch`
+
+后两者都需要格外留意，因为在一般语言里没有 或者 不支持break。
 
 > [Break statements, The Go Programming Language Specification.](http://golang.org/ref/spec#Break_statements)
 >

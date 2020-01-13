@@ -132,6 +132,25 @@ where the fields are as follows:
 
 
 
+## 触发GC
+
+* 自动触发
+
+  * `GOGC`
+
+  * `SetMaxHeap`  - ongoing
+
+    ref:
+    
+    * [proposal: runtime: add a mechanism for specifying a minimum target heap size #23044](https://github.com/golang/go/issues/23044)
+    * [golang-codereviews › [go] runtime/debug: add SetMaxHeap API](https://groups.google.com/forum/#!topic/golang-codereviews/brkajcJ0mhI)
+
+* 主动触发
+
+  见下文
+
+
+
 ## GC设置
 
 

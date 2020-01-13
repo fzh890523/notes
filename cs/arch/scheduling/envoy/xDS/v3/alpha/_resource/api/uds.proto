@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package envoy.api.v3alpha;
+
+option java_outer_classname = "UdsProto";
+option java_multiple_files = true;
+option java_package = "io.envoyproxy.envoy.api.v3alpha";
+option java_generic_services = true;
+
+import "envoy/api/v3alpha/discovery.proto";
+
+import "google/protobuf/wrappers.proto";
+
+import "validate/validate.proto";
+
+// option (gogoproto.equal_all) = true;
+
+// Return list of all unit routes this proxy will load balance to.
+service UnitRouteDiscoveryService {
+  rpc StreamUnitRoutes(stream DiscoveryRequest) returns (stream DiscoveryResponse) {
+  }
+
+  rpc FetchUnitRoutes(DiscoveryRequest) returns (DiscoveryResponse) {
+  }
+}
+
+// UnitRoute store unit item parsed from route rules.
+message UnitRoute {
+  // Range by [minimum_val, maximum_val]
+  message Range {
+    google.protobuf.UInt64Value minimum_val = 1;
+
+    google.protobuf.UInt64Value maximum_val = 2;
+  }
+
+  message ModSubsets {
+    google.protobuf.UInt64Value base_mod = 1;
+
+    google.protobuf.UInt64Value secondary_mod = 2;
+
+    repeated Range ranges = 3;
+  }
+
+  // Identifying name of unit.
+  string name = 1;
+
+  repeated ModSubsets subsets = 2;
+
+  // Store single values for unit.
+  repeated google.protobuf.UInt64Value scattered_vals = 3;
+}

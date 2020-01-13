@@ -4,6 +4,47 @@
 
 
 
+## 源配置
+
+
+
+### 改用国内源
+
+
+
+大约步骤：
+
+```sh
+cd /etc/apt
+cp source.list source.list.bak  # 备份
+:> source.list  # 清空
+vim source.list  # 加入需要的源，比如阿里的。 见下文
+apt-get update
+```
+
+
+
+```sh
+deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
+deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
+
+# 这里以bionic版本为例。 不同的版本，需要单独找
+```
+
+
+
+
+
+
+
 ## list 
 
 ### installed packages
