@@ -52,6 +52,24 @@ rm -fr Gopkg.* vendor/
 
 
 
+### 如果在goland里使用vendor编译
+
+也即这时要禁用 go mod。
+
+
+
+1. 项目结构要满足GOPATH
+
+   如: `${base}/src/ xx.com/xx`
+
+2. 加环境变量 GOPATH把`${base}`加入
+
+3. 加环境变量 `GO111MODULE=off`
+
+
+
+即可
+
 
 
 ### 问题处理
@@ -195,6 +213,8 @@ go -mod=readonly mod vendor  # 据说只collect-to-vendor而不会做update，�
 
 
 
+
+
 # background
 
 
@@ -226,6 +246,34 @@ golang的`vgo executable` 里就是：
 GOPATH多个的话，取第一个。
 
 
+
+## GO111MODULE环境变量
+
+
+
+ref：
+
+* [cmd/go: default to GO111MODULE=auto (with changes) for Go 1.13 #31857](https://github.com/golang/go/issues/31857)
+* [go wiki Modules](https://github.com/golang/go/wiki/Modules)
+
+* [Why is GO111MODULE everywhere, and everything about Go Modules](https://dev.to/maelvls/why-is-go111module-everywhere-and-everything-about-go-modules-24k#-raw-go111module-endraw-with-go-113)
+
+
+
+`GO111MODULE` with Go 1.11 and 1.12
+
+- `GO111MODULE=on` will force using Go modules even if the project is in your GOPATH. Requires `go.mod` to work.
+- `GO111MODULE=off` forces Go to behave the GOPATH way, even outside of GOPATH.
+- `GO111MODULE=auto` is the default mode. In this mode, Go will behave
+  - similarly to `GO111MODULE=on` when you are outside of `GOPATH`,
+  - similarly to `GO111MODULE=off` when you are inside the `GOPATH` even if a `go.mod` is present.
+
+
+
+Using Go 1.13, `GO111MODULE`'s default (`auto`) changes:
+
+- behaves like `GO111MODULE=on` anywhere there is a `go.mod` OR anywhere outside the GOPATH even if there is no `go.mod`. So you can keep all your repositories in your GOPATH with Go 1.13.
+- behaves like `GO111MODULE=off` in the GOPATH with no `go.mod`.
 
 
 

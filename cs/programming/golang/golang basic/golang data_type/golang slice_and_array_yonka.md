@@ -76,7 +76,11 @@ func test2() {
 
 
 * 下界可以是 len 表示一个都不要（empty）
+
+  包括对于空slice的`s[0:]`
+
 * 下界 > len 会panic 而不是类似py的empty
+
 * 3-index-reslicing在go里含义跟一般的有所差别： [lower_bound:upper_bound:cap_bound]
 
 

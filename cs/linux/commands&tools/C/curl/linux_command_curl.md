@@ -90,6 +90,50 @@ curl -d @${filePath} "xxx"  # 从${filePath}指定的路径读取文件作为bod
 
 
 
+## proxy
+
+
+
+Ref: https://www.cnblogs.com/zafu/p/10000188.html
+
+
+
+* env
+
+  ```sh
+  export http_proxy=http://your-ip-address:port/
+  export http_proxy=http://user:password@your-proxy-ip-address:port/
+  
+  
+  export https_proxy=https://your-ip-address:port/
+  export https_proxy=https://user:password@your-proxy-ip-address:port/
+  ```
+
+* 命令行选项
+
+  ```sh
+  curl -x <[protocol://][user:password@]proxyhost[:port]> url
+  --proxy <[protocol://][user:password@]proxyhost[:port]> url
+  --proxy http://user:password@Your-Ip-Hereort url
+  -x http://user:password@Your-Ip-Hereort url
+  
+  # 可以alias：
+  alias curl = "curl -x server1.cyberciti.biz:3128"
+  ```
+
+* curl配置
+
+  ```sh
+  vi ~/.curlrc
+  # add:
+  proxy = server1.cyberciti.biz:3128
+  proxy-user = "foo:bar"
+  ```
+
+  
+
+
+
 
 
 ## http2

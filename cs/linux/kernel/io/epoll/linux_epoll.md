@@ -1,5 +1,53 @@
 
 
+
+
+
+
+# epoll的问题
+
+
+
+ref自一篇《Epoll is fundamentally broken》的文。
+
+
+
+主要两个问题：
+
+
+
+* 多线程扩展
+
+  原文提到两个典型场景
+
+  * 多线程（通过epoll）accept 同一个listen fd
+
+    原文提到，LT下会有不必要的唤醒； ET下会有不必要的唤醒+饥饿。 可以通过 ``EPOLLEXCLUSIVE`` 或者 LT+`EPOLLONESHOT` 模拟前者 来解决。
+
+    还有个做法是，通过`SO_REUSEPORT`来得到多个listen fd然后各自epoll，不过这样会有多个accept queue，关掉某个listen fd时，其queue里pending conn会被丢弃。
+
+  * 多线程（通过epoll）read一批fd
+
+    > 这个思路有点清奇，更常见的思路应该把fd按线程分配。
+    >
+    > ```
+    > 你希望尽快的处理每个客户端的请求。而每个客户端连接的请求的处理时间可能并不一样，有些快有些慢，并且不可预测，因此简单的将这些连接切分到不同的 CPU 上，可能导致平均响应时间变长。一种更好的排队策略可能是：用一个 epoll fd 来管理这些连接并设置 EPOLLEXCLUSIVE，然后多个 worker 线程来 epoll_wait()，取出就绪的连接并处理[注1]。油管上有个视频介绍这种称之为 "combined queue" 的模型。
+    > ```
+    >
+    > 道理不是没有，但（即使解决了并发read问题）如果一个fd的read事件分别被不同线程处理的话，数据完整性怎么保证？
+
+    先不管合不合理，考虑笔者的这个思路，原文提到，此时（即使加上`EPOLLEXCLUSIVE`）无论LT还是ET（因为先后到来的event）都会有读竞争。 只有``EPOLLEXCLUSIVE`` + `EPOLLONESHOT` 才能避免竞争。
+
+    > 但如上，原文认为可以解决“保证同一个连接的数据始终落到同一个线程上”，但个人觉得并不能。 结果就是 先后到来的数据，一段段的被不同线程“无竞争”的读到
+
+* close的fd仍然可能冒event而且无法从epoll移除
+
+  笔者认为是epoll设计时没有分清（用户层面的）file descriptor（下面简称fd） 和 （kernel层面的）file description（下面简称fD）： 只要不是最后一个引用fd被close，fD都不会销毁，则仍然...； 此外，被close的fd无法从epoll移除，只能 先移除、再close
+
+
+
+
+
 # ET VS LT
 
 ref：
@@ -177,6 +225,36 @@ JY
 客气了……
 ​```
 ```
+
+
+
+### 以accept为例理解“边缘”
+
+
+
+0. accept queue为空，A、B线程ET epoll这个listen fd
+
+1. 来了个conn，`queue 空 -> 非空` 假设A被唤醒
+
+   * accept成功之前又来一个，这样的话不会触发边缘事件
+
+     1. A处理完之前又来，...
+
+        最后导致所有的请求都被A处理，而B饥饿
+
+        > 这种主要常见于短时间内大量请求到来的情况
+
+   * accept成功，`queue 非空 -> 空`（会触发边缘事件？）
+
+      1. 又来一个， `queue 空 -> 非空`，唤醒B
+2. 而A接着accept（对于ET的处理逻辑都是一直处理到`EAGAIN`为止）抢到了这个conn并处理
+      3. B accept到`EAGAIN`，一脸懵逼
+
+
+
+
+
+
 
 
 

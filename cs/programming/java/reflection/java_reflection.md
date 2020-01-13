@@ -152,7 +152,7 @@ Ref:
     LINENUMBER 40 L3
     NEW java/io/File
     DUP
-    GETSTATIC com/alibaba/edas/sandbox/module/common/utils/ThreadUtils.PROC_DIR_PATH : Ljava/lang/String;
+    GETSTATIC com/axx/edxx/saxx/module/common/utils/ThreadUtils.PROC_DIR_PATH : Ljava/lang/String;
     INVOKESPECIAL java/io/File.<init> (Ljava/lang/String;)V
     ASTORE 0
 ```

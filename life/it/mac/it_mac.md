@@ -263,10 +263,7 @@ slbj的mac，不希望login user能rw访问sharing dir所以删掉了这一行�
 
 
 
-
 # sw
-
-
 
 ## item2
 
@@ -276,7 +273,7 @@ slbj的mac，不希望login user能rw访问sharing dir所以删掉了这一行�
 
 
 
-
+见 《it_mac_sw.md》
 
 
 

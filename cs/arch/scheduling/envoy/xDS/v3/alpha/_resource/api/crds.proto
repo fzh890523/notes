@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package envoy.api.v3alpha;
+
+option java_outer_classname = "CrdsProto";
+option java_multiple_files = true;
+option java_package = "io.envoyproxy.envoy.api.v3alpha";
+option java_generic_services = true;
+
+import "envoy/api/v3alpha/core/config_source.proto";
+import "envoy/api/v3alpha/discovery.proto";
+
+import "google/protobuf/struct.proto";
+
+import "validate/validate.proto";
+
+// Return list of all the resources of the subscription
+service CustomResourceDiscoveryService {
+  rpc StreamCustomResource(stream DiscoveryRequest) returns (stream DiscoveryResponse) {
+  }
+
+  rpc FetchCustomResource(DiscoveryRequest) returns (DiscoveryResponse) {
+  }
+}
+
+message CustomResourceConfig {
+  oneof custom_resource_specifier {
+    option (validate.required) = true;
+
+    CRdsCustomResourceConfig crds = 1;
+
+    CustomResource custom_resource = 2;
+  }
+}
+
+message CRdsCustomResourceConfig {
+  string custom_resource_config_name = 1;
+
+  core.ConfigSource config_source = 2;
+}
+
+// Storage custom resource
+message CustomResource {
+  // Identifying name of resource.
+  string name = 1;
+
+  map<string, string> resources = 2;
+}
