@@ -1,6 +1,5 @@
 
 
-
 ### 大小写不敏感搜索
 
 ```
@@ -17,4 +16,15 @@ Like -i, but searches ignore case even if the pattern contains uppercase letters
 
 * `-i` 可以“运行时”通过search pattern里包含大写字母来关闭 - 此时倒回到大小写敏感
 * `-I` 不可以被如上方式“运行时”关闭，也即永远ignore
+
+
+
+### follow-name模式（跟进文件变化）
+
+
+
+* `+F`
+* `--follow-name`
+
+
 

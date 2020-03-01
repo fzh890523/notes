@@ -486,6 +486,49 @@ go test -bench=^BenchmarkXX.* -benchtime 15s -count 2 -cpu 1,4 ./api
 
 
 
+## 参数
+
+
+
+```sh
+  -test.bench regexp
+
+    	run only benchmarks matching regexp
+
+  -test.benchmem
+
+    	print memory allocations for benchmarks
+
+  -test.benchtime d
+
+    	run each benchmark for duration d (default 1s)
+
+  -test.blockprofile file
+
+    	write a goroutine blocking profile to file
+
+  -test.blockprofilerate rate
+
+    	set blocking profile rate (see runtime.SetBlockProfileRate) (default 1)
+
+  -test.count n
+
+    	run tests and benchmarks n times (default 1)
+    	# 跑多少次，而不是 b.N
+```
+
+
+
+```sh
+    xx.go:373: b.N: 1
+    xx.go:373: b.N: 40
+    # 好像每次会先N=1跑一次，然后N=...跑一次(或者更多)
+```
+
+
+
+
+
 # examples
 
 

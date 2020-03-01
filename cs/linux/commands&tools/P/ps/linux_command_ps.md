@@ -30,6 +30,14 @@
 
 
 
+```
+
+```
+
+
+
+
+
 ### ruid, ruser: real
 
 
@@ -226,6 +234,19 @@ Process was using the CPU 38% of the time during this period.
 
 
 
+### 启动时间
+
+
+
+* `lstart` 精确的启动时间点，格式为`Fri Mar  4 16:04:27 2016`
+* `etime` 精确的启动（后持续）时间，格式为`[[DD-]hh:]mm:ss` 如 `41-21:14:04`
+
+
+
+
+
+
+
 ## 场景
 
 
@@ -233,6 +254,115 @@ Process was using the CPU 38% of the time during this period.
 ### 查看线程 `-T -p ${pid}`
 
 
+
+## 典型用法
+
+
+
+Ref: 
+
+https://www.cnblogs.com/weifeng1463/p/8807849.html
+
+
+
+### `ps aux`(bsd style)
+
+
+
+参数含义
+
+```s
+a      Lift the BSD-style "only yourself" restriction, which is imposed upon the set of all processes 
+when some BSD-style (without "-") options are used or when the ps personality setting is BSD-like.  
+The set of processes selected in this manner is in addition to the set of processes selected by other means.
+An alternate description is that this option causes ps to list all processes with a terminal (tty), 
+or to list all processes when used together with the x option.
+
+x      Lift the BSD-style "must have a tty" restriction, which is imposed upon the set of all processes 
+when some BSD-style (without "-") options are used or when the ps personality setting is BSD-like.  
+The set of processes selected in this manner is in addition to the set of processes selected by other means.  
+An alternate description is that this option causes ps to list all processes owned by you (same EUID as ps), 
+or to list all processes when used together with the a option.
+
+u      Display user-oriented format.
+```
+
+
+
+输出字段
+
+```s
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+```
+
+
+
+我们可以看到START和TIME列，通过 man 其说明如下：
+
+```
+bsdstart    START     time the command started.  
+If the process was started less than 24 hours ago, the output format is " HH:MM", 
+else it is " Mmm:SS" (where Mmm is the three letters of the month). 
+See also lstart, start, start_time, and stime.
+
+bsdtime     TIME      accumulated cpu time, user + system.  
+The display format is usually "MMM:SS", 
+but can be shifted to the right if the process used more than 999 minutes of cpu time.
+```
+
+START 是命令启动的时间，如果在 24 小时之内启动的，则输出格式为”HH:MM”（小时：分钟），
+否则就是”Mmm:SS”（月份英语单词前 3 个字母：一月的第几号？[SS 这里面怎么理解？为什么有冒号呢？输出并没冒号]） 可以知道，这里并不能直接看出 24 小时之前启动的命令的精确启动时间。
+
+TIME 是累积的 CPU 时间（user+system），显示格式通常是”MMM:SS”。（分钟：秒） 可以看出，这里并不是指从命令启动开始到现在所花的时间。
+
+
+
+### `ps -ef`(unix style)
+
+
+
+参数含义
+
+```s
+-e     Select all processes.  Identical to -A.
+
+-f     Do full-format listing. 
+This option can be combined with many other UNIX-style options to add additional columns.  
+It also causes the command arguments to be printed.  
+When used with -L, the NLWP (number of threads) and LWP (thread ID) columns will be added.  
+See the c option, the format keyword args, and the format keyword comm.
+
+-o format     User-defined format.  
+format is a single argument in the form of a blank-separated or comma-separated list, 
+which offers a way to specify individual output columns.  
+The recognized keywords are described in the STANDARD FORMAT SPECIFIERS section below.  
+
+Headers may be renamed (ps -o pid,ruser=RealUser -o comm=Command) as desired.  
+If all column headers are empty (ps -o pid= -o comm=) then the header line will not be output.  
+Column width will increase as needed for wide headers; 
+this may be used to widen up columns such as WCHAN (ps -o pid,wchan=WIDE-WCHAN-COLUMN -o comm).  
+Explicit width control (ps opid,wchan:42,cmd) is offered too.  
+The behavior of ps -o pid=X,comm=Y varies with personality; 
+output may be one column named "X,comm=Y" or two columnsnamed "X" and "Y".  
+Use multiple -o options when in doubt.  
+Use the PS_FORMAT environment variable to specify a default as desired; 
+DefSysV and DefBSD are macros that may be used to choose the default UNIX or BSD columns.       
+```
+
+
+
+输出字段
+
+```s
+UID        PID  PPID  C STIME TTY          TIME CMD
+```
+
+
+
+我们可以看到 STIM E和 TIME 列，通过 man 其说明如下 (我这台服务器上 ps 版本为 procps-ng version 3.3.9，man 中找不到 STIME 的解释，通过观察输出，
+我们可以推断这个 STIME 其实和前面 START 是一样的，指的是命令启动的时间，[这里](http://www.linfo.org/ps.html)有这个说明）：
+
+TIME 列也和前面说的 TIME 列一样指的命令使用的累积 CPU 时间。
 
 
 

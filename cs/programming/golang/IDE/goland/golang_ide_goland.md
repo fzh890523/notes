@@ -47,6 +47,12 @@ from https://intellij-support.jetbrains.com/hc/en-us/community/posts/36000038110
 
 
 
+#### 取地址好像也不行，但add-to-watch能勉强显示
+
+
+
+
+
 #### function call: 暂不支持(19-03-27)
 
 https://youtrack.jetbrains.com/issue/GO-3433
