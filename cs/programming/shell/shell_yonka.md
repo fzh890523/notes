@@ -282,7 +282,7 @@ echo $b  # should be before:middle:after
 
 
 
-#### substr: ${varname:offset:length}
+#### 截取子串substr: ${varname:offset:length}
 
 * offset： 从0开始
 * length： 子串长度
@@ -297,6 +297,34 @@ echo ${s:2:}  # 空
 ```
 
 
+
+#### 子串替换
+
+
+以下示例中`s=abc123abc`
+
+* `${varname/substr/replacement}` 替换一次
+  
+  `${s/abc/ }` -> ` 123abc`
+  
+* `${varname//substr/replacement}` 全部替换
+
+  `${s//abc/ }` -> ` 123 `
+  
+* `${varname/#substr/replacement}` 替换开头的(类似`^`)
+
+  `${s/#abc/ }` -> ` 123abc`
+  
+* `${varname/%substr/replacement}` 替换末尾的(类似`$`)
+
+  `${s/%abc/ }` -> `abc123 `
+
+
+
+还有一些外部命令的方式：
+
+* `tr "\0" "\n"`
+* `awk `
 
 
 
@@ -496,6 +524,36 @@ Bash array的索引<del>从1开始</del>>。。。
   "b c"
   ```
 
+  
+
+#### 转换（为数组)： 使用`()` 来做eval
+
+
+
+如： `(1 2 3)`，不过既然是转换，所以就没有这个字面量了，那么 
+
+```sh
+a="1 2 3"
+arr=($a)
+# 注意: arr=("1 2 3")得到的是一个元素的数组，原因很简单。。。
+```
+
+如果得到的数据不符合要求的话怎么办呢？(默认应该是用`IFS`来切分的)
+
+* 字符串替换
+
+  见字符串部分
+
+* (临时)修改`IFS`
+
+  ```sh
+  str="A,B,C,D,E,F,G,H"
+  oldIFS=$IFS
+  IFS=,
+  arr=($str)  # 得到了8元素数组
+  IFS=$oldIFS
+  # 一般IFS默认为 ` \t\n`，也即空格+tab+换行。
+  ```
 
 
 

@@ -79,3 +79,8 @@ https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_i
 我这边选择把windows的端口改了。
 
 
+
+> 不过WSL好像还没解决服务启动的问题，需要手动启动服务。 也即意味着每次都要。。。
+>
+> 如： sudo service ssh start
+

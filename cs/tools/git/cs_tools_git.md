@@ -2,6 +2,20 @@
 
 
 
+## 删除分支
+
+
+
+* git branch -d ${branchName}
+
+  删除本地
+
+* git push origin --delete ${branchName}
+
+  删除远端
+
+
+
 ## checkout
 
 

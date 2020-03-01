@@ -162,6 +162,12 @@ where the fields are as follows:
 * [`debug.SetGCPercent()`](https://golang.org/pkg/runtime/debug/#SetGCPercent)
 
   同样设置该GC比例。-1表示禁用。
+  
+  ```
+  SetGCPercent sets the garbage collection target percentage: a collection is triggered when the ratio of freshly allocated data to live data remaining after the previous collection reaches this percentage. SetGCPercent returns the previous setting. The initial setting is the value of the GOGC environment variable at startup, or 100 if the variable is not set. A negative percentage disables garbage collection. 
+  ```
+  
+  
 
 
 

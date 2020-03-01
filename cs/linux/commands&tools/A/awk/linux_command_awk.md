@@ -45,7 +45,6 @@ echo '1 2 3' | awk '{for (i=2; i<=NF; i++) printf("%s ", $i)}'
 2 3   // 多了一个空格
 ```
 
-
 ### Field separator
 
 
@@ -55,6 +54,30 @@ echo '1 2 3' | awk '{for (i=2; i<=NF; i++) printf("%s ", $i)}'
 ```sh
 awk -F'[/=]' '{print $3 "\t" $5 "\t" $8}' file
 ```
+
+
+
+## line
+
+
+
+### line number： NR
+
+
+
+### line range： `NR>3 && NR<10`
+
+
+
+```sh
+awk 'NR>3 && NR<10 {print}' file.txt
+
+awk '/keyword1/,/keyword2/{print}' file.txt
+```
+
+
+
+
 
 
 
