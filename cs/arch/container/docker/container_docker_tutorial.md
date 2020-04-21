@@ -59,6 +59,81 @@ docker cp mycontainer:/foo.txt foo.txt
 
 
 
+## image
+
+
+
+### image proxy
+
+有时不方便设置全局proxy（如`https_proxy` env），比如还要做其他事情等等。
+
+
+
+```sh
+Here is a link to the official Docker documentation for proxy HTTP: https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
+
+A quick outline:
+
+First, create a systemd drop-in directory for the Docker service:
+
+mkdir /etc/systemd/system/docker.service.d
+Now create a file called /etc/systemd/system/docker.service.d/http-proxy.conf that adds the HTTP_PROXY environment variable:
+
+[Service]
+Environment="HTTP_PROXY=http://proxy.example.com:80/"
+If you have internal Docker registries that you need to contact without proxying you can specify them via the NO_PROXY environment variable:
+
+Environment="HTTP_PROXY=http://proxy.example.com:80/"
+Environment="NO_PROXY=localhost,127.0.0.0/8,docker-registry.somecorporation.com"
+Flush changes:
+
+$ sudo systemctl daemon-reload
+Verify that the configuration has been loaded:
+
+$ sudo systemctl show --property Environment docker
+Environment=HTTP_PROXY=http://proxy.example.com:80/
+Restart Docker:
+
+$ sudo systemctl restart docker
+```
+
+
+
+
+
+### registry-mirror
+
+
+参考： https://yq.aliyun.com/articles/29941
+
+* 比较新的docker版本： `vim /etc/docker/daemon.json`
+
+  ```json
+  {
+    "registry-mirrors": ["<your accelerate address>"]
+  }
+  ```
+  改完reload：
+  ```sh
+  sudo systemctl daemon-reload
+  sudo systemctl restart docker
+  ```
+  
+* 否则： 根据系统来配置
+
+  * Ubuntu 12.04 14.04
+  * Ubuntu 15.04 15.10
+  * CentOS 7
+  * Redhat 7
+  * Redhat 6、CentOS 6
+
+
+可以去aliyun申请： https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors
+得到有个专属url。
+这个页面也有不同系统的配置方式介绍。
+
+
+
 
 
 
@@ -159,7 +234,7 @@ screen -ls
   - `/var/lib/docker/devicemapper/devicemapper/metadata` the metadata
   - Note these files are thin provisioned "sparse" files so aren't as big as they seem.
 
-  ​
+  
 
 
 

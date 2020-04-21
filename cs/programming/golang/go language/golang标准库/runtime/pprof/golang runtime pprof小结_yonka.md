@@ -203,12 +203,21 @@ Dave讲了以下几点：
 
 
 
+## 获取pprof数据文件
+
+
+
 ```sh
 curl http://127.0.0.1:9093/debug/pprof/heap > heap
 curl http://127.0.0.1:9093/debug/pprof/profile?seconds=30 > profile.30s
+
+http://localhost:8888/debug/pprof/goroutine?debug=1
+http://localhost:8888/debug/pprof/goroutine?debug=2
 ```
 
 
+
+## 分析pprof文件
 
 ```sh
 go tool pprof profile.30s
@@ -216,17 +225,65 @@ web  # or other ...
 # web需要设置好svg默认打开程序
 
 # --inuse_space vs --alloc_space
+# 默认inuse
 go tool pprof --alloc_space -base xx.heap yy.heap  # 看xx -> yy的差量
 ```
 
 
 
 ```sh
-http://localhost:8888/debug/pprof/goroutine?debug=1
-http://localhost:8888/debug/pprof/goroutine?debug=2
+
 ```
 
 
+
+## 开启http pprof端口
+
+
+
+```go
+import _ "net/http/pprof"
+
+func main() {
+    http.ListenAndServe("localhost:8082", nil)
+}
+```
+
+
+
+如果是非标准path的话：
+
+```go
+	m := http.NewServeMux()
+	handleDebugPprof(m)
+	httpSvr := &http.Server{Handler: m}
+  l, err = net.Listen("tcp", addrStr)
+  httpSvr.Serve(l)
+
+func handleDebugPprof(m *http.ServeMux) {
+	m.HandleFunc("/debug/pprof/", pprof.Index)
+	m.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	m.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	m.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	m.HandleFunc("/debug/pprof/trace", pprof.Trace)  
+}
+```
+
+
+
+### 运行时代码里pprof
+
+
+
+```go
+  buf := &bytes.Buffer{}
+  pprof.StartCPUProfile(buf)
+  defer func() {
+          pprof.StopCPUProfile()
+          ioutil.WriteFile(fmt.Sprintf("/tmp/pprof_%v", time.Now()), buf.Bytes(), os.ModePerm)
+  }()
+  // do sth which will be pprofed
+```
 
 
 

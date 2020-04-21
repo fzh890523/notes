@@ -1,7 +1,18 @@
 
 
-
 # intro
+
+
+
+
+
+```sh
+go get -u github.com/derekparker/delve/cmd/dlv
+```
+
+
+
+
 
 ## concepts
 
@@ -209,6 +220,7 @@ debugserv 23133 xxx    4u  IPv4 0x980b6584a9fb9a03      0t0  TCP 127.0.0.1:53576
   之后就看到没有listen了，所以估计是accept之后马上close调了listen fd，留一个tcp conn只用于两者之间通讯。
 
   至于这个debugserver干嘛的，就不清楚了
+
   > 这个是backend，参见 dlv help backend
 
 * 额外`--headless`才会启动一个监听端口来提供`dlv server`服务

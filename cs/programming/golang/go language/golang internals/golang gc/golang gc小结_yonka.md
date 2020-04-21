@@ -167,7 +167,9 @@ where the fields are as follows:
   SetGCPercent sets the garbage collection target percentage: a collection is triggered when the ratio of freshly allocated data to live data remaining after the previous collection reaches this percentage. SetGCPercent returns the previous setting. The initial setting is the value of the GOGC environment variable at startup, or 100 if the variable is not set. A negative percentage disables garbage collection. 
   ```
   
+  亲测-1有效。
   
+  但不能避免`GC forced`，可能内部还有些其他机制绕过这个
 
 
 

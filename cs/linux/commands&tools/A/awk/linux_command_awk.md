@@ -45,6 +45,31 @@ echo '1 2 3' | awk '{for (i=2; i<=NF; i++) printf("%s ", $i)}'
 2 3   // 多了一个空格
 ```
 
+
+
+### 取“剩下”所有的fields
+
+类似的做法：
+
+```sh
+echo "1 2 3 4 5" | awk '{$1=$2=""; print $0}'
+# 不过分隔符还在
+```
+
+
+
+循环法：
+
+```sh
+awk '{out=""; for(i=2;i<=NF;i++){out=out" "$i}; print out}'
+
+awk '{for(i=2;i<=NF;i++){printf "%s ", $i}; printf "\n"}'
+```
+
+
+
+
+
 ### Field separator
 
 
@@ -207,6 +232,28 @@ substr(s, 1, i)  // index从1开始，表示截取第i个字符之前的部分
 ```sh
 substr(s, length(s) - 2) == "foo"  # 因为index从1开始算，所以 [len-2, len] 是最后三个字符
 # 如果s长度不够也没关系，不会报错，符合预期
+```
+
+
+
+
+
+#### `split(string, array [, fieldsep [, seps ] ])`
+
+* `fieldsep` 正则
+* `seps` 匹配出来的每个separator string（的数组）
+* `array` split出来的每个元素（的数组）
+
+
+
+```sh
+BEGIN {
+  count = split("a,b,c", a, ",");
+
+  for(i = 1; i <= count; i++) {
+    print a[i];
+  }
+}
 ```
 
 

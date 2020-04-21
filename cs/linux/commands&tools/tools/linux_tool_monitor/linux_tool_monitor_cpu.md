@@ -44,3 +44,30 @@ watch_cpu ${pid} ${gap} | awk '{
     last=$1;
 }'
 ```
+
+
+```sh
+while true; do
+  ps -a -x -o pid,lstart,etime,cputime,rss | grep `pidof envoy` >> ./a.log
+  sleep 60
+done
+# save as a.sh
+
+
+# nohup bash a.sh > a.log 
+
+# a.log格式类似： 
+#   1298 Fri Feb 28 15:01:40 2020  6-03:09:53 1-14:40:51 9280076
+#   1298 Fri Feb 28 15:01:40 2020  6-03:09:53 1-15:40:51 9280076
+
+# 算每个cpu累计值
+cat a.log | awk '{print $8}' | awk -F'[-:]' '{for(i=NF; i>0; i--){if((NF-i)==3){sum+=24*3600*$i; break} else {sum+=$i*60^(NF-i)}}; print sum}'
+# 139251
+# 282102
+
+# 算每个cpu差值（也即这一分钟消耗的cpu）
+cat a.log | awk '{print $8}' | awk -F'[-:]' '{for(i=NF; i>0; i--){if((NF-i)==3){sum+=24*3600*$i; break} else {sum+=$i*60^(NF-i)}}; print sum}' | awk '{if(NR>1){print $1-last}; last=$1}'
+# 142851
+```
+
+

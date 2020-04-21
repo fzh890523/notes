@@ -35,3 +35,13 @@ Now, you are able to list the docker folder from the WM host
 
 mac -> vm -> docker
 
+
+
+### pull images via proxy
+
+估计是因为mac下是通过vm来实际使用docker的，所以在mac设置的proxy env（`http_proxy`,`https_proxy`）没办法传递进去（虽然可以做，但是没实现）。
+
+需要在docker程序的设置里显示设置。 `docker - preferences - proxies`
+
+
+
