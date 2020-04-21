@@ -28,6 +28,15 @@ function kubeconf() {
 ```
 
 
+```sh
+kubectl -n nmspc exec "$POD" -- env curIP=123 script01
+
+runScript() {
+  kubectl -n nmspc exec "$POD" -- bash -c 'export curIP=123 && script01 "$@"' _ "$@"
+}
+
+runScript --command "do stuff"
+```
 
 
 

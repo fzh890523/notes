@@ -64,6 +64,16 @@ tcpdump -i any udp port 53 -vv -X
 
 
 
+## 特殊包： 如 tcp-syn ack fin rst
+
+
+
+```sh
+nohup tcpdump -i any tcp port 15010 and 'not(host 192.168.1.3 or host 192.168.1.4)' and "tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) != 0"
+```
+
+
+
 
 
 

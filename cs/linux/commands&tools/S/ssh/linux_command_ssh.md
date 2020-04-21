@@ -185,7 +185,28 @@ ssh -R remote_port:local_address:local_port username@server.com
 # 如：
 ssh -R 8888:localhost:1234 bob@ssh.youroffice.com
 # 在 jumper/proxy ssh.youroffice.com上开一个8888端口上的服务，该服务实际会被转发到 localhost:1234，也即把 localhost:1234 这个服务暴露给 jumper后的环境
+
+# <del>用了proxyCommand的好像不行，本端端口起不来</del>
+# 注意： 并不是tunnel自己来起这个1234端口，而是转发给（已有的）1234
 ```
+
+
+
+这里默认是bound到loopback接口，127.0.0.1。 可以如下方式来指定（[ref](https://superuser.com/questions/588591/how-to-make-ssh-tunnel-open-to-public)）： 
+
+* `ssh -R 0.0.0.0:8888:localhost:1234 bob@ssh.youroffice.com`
+* `ssh -R \*:8080:localhost:80 -N root@example.com`
+* `ssh -R "[::]:8080:localhost:80" -N root@example.com`
+
+不过，对于openSSH，需要配置启用才有效：
+
+```
+Note that if you use OpenSSH sshd server, the server's GatewayPorts option needs to be enabled (set to yes or clientspecified) for this to work (check file /etc/ssh/sshd_config on the server). Otherwise (default value for this option is no), the server will always force the port to be bound on the loopback interface only.
+
+# 修改然后重启ssh服务
+```
+
+
 
 
 
