@@ -2,6 +2,18 @@
 
 
 
+tar命令几个常用参数解读：
+
+* `-c`或`--create`：建立新的备份文件； 
+* `-x`或`--extract`或`--get`：从备份文件中还原文件；
+* `-t`或`--list`：列出备份文件的内容； 
+* `-f<备份文件>`或`--file=<备份文件>`：指定备份文件； 
+* `-v`或`--verbose`：显示指令执行过程；
+* `-z`或`--gzip`或`--ungzip`：通过gzip指令处理备份文件； 
+* `-j`：支持bzip2解压文件；
+
+
+
 ```sh
 tar czf xxx.tar.gz xx_dir --exclude=xx_dir/logs/
 ```
@@ -14,4 +26,19 @@ tar czf hsf-guide-server.tar.gz -C /Users/xxx/target/ release
 # 直接 tar czf hsf-guide-server.tar.gz /Users/xxx/target/release 会这样
 # -C == new_cwd
 ```
+
+
+
+```sh
+tar tzf xx.tar.gz
+# 查看原文件内容目录信息
+```
+
+
+
+
+
+
+
+
 

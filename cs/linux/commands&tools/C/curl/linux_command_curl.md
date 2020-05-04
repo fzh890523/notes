@@ -347,6 +347,37 @@ Ref: [Can I make cURL fail with an exitCode different than 0 if the HTTP status 
 
 
 
+### curl Expect:100-continue 问题
+
+ref: https://blog.csdn.net/fdipzone/article/details/42463727
+
+使用curl POST数据时，如果POST的数据大于1024字节，curl并不会直接就发起POST请求。而是会分两步。
+
+1.发送一个请求，header中包含一个Expect:100-continue，询问Server是否愿意接受数据。
+
+2.接受到Server返回的100-continue回应后，才把数据POST到Server。
+
+
+
+这个是libcurl定义的，具体可以查看相关描述：http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
+
+
+
+于是这样就会出现一个问题。并不是所有的Server都会回应100-continue的。例如lighttpd，会返回"417 Expectation Fail"，会造成逻辑错误。
+
+
+
+解决方法如下，就是发送请求时，header中包含一个空的Expect。
+
+```php
+curl_setopt($ch, CURLOPT_HTTPHEADER, array("Expect:"));
+```
+
+也即:
+```sh
+curl -H "Expect:"
+```
+
 
 
 ## features
