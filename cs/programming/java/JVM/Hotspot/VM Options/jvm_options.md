@@ -53,7 +53,7 @@ java [ options ] -jar file.jar [ arguments ]
 
 * 高级GC选项
 
-  ​
+  
 
 
 
@@ -176,7 +176,7 @@ java [ options ] -jar file.jar [ arguments ]
   Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
   ```
 
-  ​
+  
 
 * `-version:release`
 
@@ -300,7 +300,7 @@ java [ options ] -jar file.jar [ arguments ]
   -Xmn268435456
   ```
 
-  ​
+  
 
   见下面详解。
 
@@ -699,7 +699,7 @@ java [ options ] -jar file.jar [ arguments ]
     }
     ```
 
-    ​
+    
 
   会输出到stdout，内容类似如下：
   ```shell
@@ -1284,6 +1284,7 @@ java [ options ] -jar file.jar [ arguments ]
   默认禁用该特性，也即只使用标准探针。
 
   TODO 确认下linux java的dtrace功能，linux目前所知不支持dtrace只是支持了类似dtrace的功能。
+
   > 应该是不支持 = =
 
 * `-XX:+HeapDumpOnOutOfMemory`
@@ -1382,7 +1383,7 @@ java [ options ] -jar file.jar [ arguments ]
   > }
   > ```
   >
-  > ​
+  > 
 
   > ```cpp
   > ConcurrentMarkSweepGeneration::used
@@ -1889,14 +1890,14 @@ java [ options ] -jar file.jar [ arguments ]
 
   # of codelets    =    266
   avg codelet size =    530 bytes
+  ```
 
-
-  ----------------------------------------------------------------------
+----------------------------------------------------------------------
   slow signature handler  [0x0000000115e96640, 0x0000000115e96800]  448 bytes
 
   ...
 
-  ----------------------------------------------------------------------
+----------------------------------------------------------------------
   iload_2  28 iload_2  [0x0000000115eaab60, 0x0000000115eaabc0]  96 bytes
 
     0x0000000115eaab60: push   %rax
@@ -2439,7 +2440,7 @@ ref：
 
 #### `-XX:+UseRTMLocking`
 
-​设置： 对所有膨胀锁使用RTM（受限事务内存），失败时回退到普通的锁机制。
+设置： 对所有膨胀锁使用RTM（受限事务内存），失败时回退到普通的锁机制。
 
 默认禁用。 
 
@@ -2586,7 +2587,7 @@ RTM
   CompilerOracle: exclude java/lang/String.indexOf
   ```
 
-  ​
+  
 
 
 相关的代码见 [compilerOracle.cpp#l317](http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/b4bdf3484720/src/share/vm/compiler/compilerOracle.cpp#l317)
@@ -2909,7 +2910,7 @@ RTM
   // ExplicitGCInvokesConcurrentAndUnloadsClasses 为true会设置ExplicitGCInvokesConcurrent 为true
   ```
 
-  ​
+  
 
 
 #### `-XX:+TraceClassResolution`
@@ -3106,7 +3107,7 @@ ref：
 
 * [Package jdk.management.resource](http://weinert-automation.de/java/docs/jre/api/management/rm/index.html?jdk/management/resource/package-summary.html) or [local](resource/jdk.management.resource (Resource Management ).html)
 
-  ​
+  
 
 
 #### 介绍

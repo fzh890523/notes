@@ -7,10 +7,11 @@
   * 一些“取值”/"赋值"方法
 
     `Int()`,`Uint()`,`Bool()`等，大致原则是：
+    
     * 如果是对应（多个）类型之一，则转为该类类型的最大(size)值，如`Int8`,`Int16`等都转为`Int64`
     * 如果类型不对，则panic
-    * 对应的赋值方法为`SetXX`，如 `SetBool(bool)`,`SetBytes([]byte)`
-
+  * 对应的赋值方法为`SetXX`，如 `SetBool(bool)`,`SetBytes([]byte)`
+    
     * `Value.Interace() interface`返回原来的值，wrap为`interface{}`类型了
       
       ```go
@@ -18,9 +19,9 @@
       i := x.(int)            // an int
       fmt.Printf("%d\n", i)   // "3"
       ```
-      
+    
   * 一些特定类型的操作方法(限定于实际类型为该类型，否则panic)
-  
+
     * `Close` 顾名思义，只对于ch
     * `Bytes() []byte` 同样的，只对于`[]byte`
     * `Len() int` 只对于支持len操作的类型，如 `Array`,`Chan`,`Map`,`Slice`,`String`
@@ -36,13 +37,13 @@
     * `Elem() Value` 取interface wrap的值 或 指针指向的值
     * `Field(int) Value`,`FieldByIndex([]int) Value`,`FieldByName()`,`FieldByNameFunc(func(string)bool) Value`,`NumField() int` 取field，`ByIndex`支持嵌套获取(如 `a.b.c`)
     * `Method(int) Value`,`MethodByName(string) Value`,`NumMethod() int` method 。。。
-  
+
   * `Value.Type() Type`返回真实(具体)类型
 
     实现中value持有type指针。 不过对于method value比较特殊，这个指针是receiver的，要根据receiver类型拿到methods然后再从value的flag里拿到offset，然后。。。
 
   * `Value.Kind() Kind`返回类型的类别
-  
+
     实现上，这个kind实际嵌入了value的值中
 
 * `Type`
@@ -65,8 +66,8 @@
       * `ChanDir() ChanDir` chan方向
     * `struct`
       * `Field(int) StructField`,`FieldByIndex([]int) StructField`,`FieldByName(string) (StructField, bool)`,`FieldByNameFunc(func(name)bool) (StructField, bool)`,`FieldAlign() int`,`NumField() int`  返回的是字段描述(而不像Value的对应的方法返回的是值)，`FieldAlign`可以获取到该字段在结构体中的byte偏移量  
-  
-  
+
+
 * `Kind`
 
   感觉是 "类型的大类别"：
