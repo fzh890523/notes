@@ -36,6 +36,10 @@
 
 
 
+
+
+
+
 ### ssh
 
 
@@ -48,6 +52,8 @@ https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_i
 主要包括：
 
 * 安装openssh server（默认带了包，需要在可选功能里安装）
+
+  `Apps > Apps and Features > Manage Optional Features` 注意不是windows功能那个。
 
 * 启动服务
 
@@ -71,6 +77,12 @@ https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_i
 
 > 加防火墙规则时被defender干了，然后又是惯例的窗口卡死，算了。。。
 
+
+
+可以直接把sshd binary加进去： `C:\Windows\System32\OpenSSH\sshd.exe`
+
+z
+
 #### linux子系统ubuntu openssh
 
 参考： https://superuser.com/questions/1111591/how-can-i-ssh-into-bash-on-ubuntu-on-windows-10
@@ -83,4 +95,28 @@ https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_i
 > 不过WSL好像还没解决服务启动的问题，需要手动启动服务。 也即意味着每次都要。。。
 >
 > 如： sudo service ssh start
+
+
+
+有些版本里可能没有生成初始数据，这里启动会报错：
+
+```s
+ * Starting OpenBSD Secure Shell server sshd                                                                            sshd: no hostkeys available -- exiting.
+```
+
+
+
+需要：
+
+```sh
+sudo ssh-keygen -A
+# 生成了：/etc/ssh/ssh_host_*
+# 然后再start
+```
+
+
+
+默认好像没开密码登录
+
+authorized_keys文件注意权限需要为600
 
