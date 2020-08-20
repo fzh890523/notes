@@ -67,6 +67,14 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted unive
 
 
 
+## install
+
+
+
+### install from deb file
+
+
+
 ## what provides file
 
 ### `dpkg -S`

@@ -63,5 +63,23 @@ spctl kext-consent add VB5E2TV963
 
 
 
+## 问题
+
+
+
+### 只支持usb 1.1问题
+
+
+
+需要安装额外的 `Oracle VM VirtualBox Extension Pack`
+
+https://www.virtualbox.org/wiki/Downloads
+
+
+
+```
+Support for USB 2.0 and USB 3.0 devices, VirtualBox RDP, disk encryption, NVMe and PXE boot for Intel cards. See this chapter from the User Manual for an introduction to this Extension Pack. The Extension Pack binaries are released under the VirtualBox Personal Use and Evaluation License (PUEL). Please install the same version extension pack as your installed version of VirtualBox.
+```
+
 
 

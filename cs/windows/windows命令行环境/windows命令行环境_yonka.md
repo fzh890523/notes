@@ -1,6 +1,10 @@
 
 
-## shell
+## 软件
+
+
+
+### shell
 
 
 
@@ -9,6 +13,22 @@
 除了shell差异以外，命令工具差异比较大这个比较蛋疼。
 
 可以用
+
+
+
+### 终端软件
+
+
+
+* cmder
+* mobaxterm
+* conemu
+
+
+
+
+
+
 
 
 
@@ -36,7 +56,23 @@
 
 
 
+### arp
 
+
+
+* 老版本： arp命令
+
+  * 新增arp条目： `arp -s 192.168.1.5 xx-xx-xx-xx-xx-xx`
+  * 删除。。。： `arp -d ...`
+  * 查看arp条目： `arp -a`
+
+* 新版本（win7后）： netsh命令。 不能再用arp命令来改动arp条目，不过查看还是可以用
+
+  * 新增arp条目： `netsh -c "i i" add neighbors ${idx} ${ip} ${mac}`
+
+  * 查看接口： `netsh i i show in` （上面命令的idx从这里获取）
+
+    
 
 
 
@@ -119,4 +155,57 @@ sudo ssh-keygen -A
 默认好像没开密码登录
 
 authorized_keys文件注意权限需要为600
+
+
+
+#### ssh key pair生成
+
+
+
+好像cmder等终端shell中ssh-keygen能执行成功，但对应目录没文件生成。。。 
+
+```
+                                     λ ssh-keygen.exe
+Generating public/private rsa key pair.
+Enter file in which to save the key (C:\Users\xxx/.ssh/id_rsa): yes
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in yes.
+Your public key has been saved in yes.pub.
+The key fingerprint is:
+SHA256:xxx xxx@xxx
+The key's randomart image is:
++---[RSA 2048]----+
+xxx
++----[SHA256]-----+
+
+```
+
+
+
+换在powershell里执行就可以了。。。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
