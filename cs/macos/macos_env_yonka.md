@@ -53,7 +53,30 @@
   在这个的基础上，可以用一些同步的软件，比如 qnap的qsync。
 
   不过这个目录比较特殊，需要给权限才能访问，详见上面
+  
   > 给了权限能访问了，也选不中。 最后把父目录（Pictures）做了同步，囧
+
+
+
+## 远程桌面
+
+
+
+### windows远程桌面连接到macos
+
+
+
+用标准vnc协议，软件是vnc viewer。 默认是`509x`端口，可以在macos上先看下（`sudo lsof -nP -sTCP:LISTEN -i:5900`），有时可能没打开。
+
+暂时知道的：
+
+* `screen sharing`会开vnc server
+
+* `remote management`开启后`screen sharing`会默认灰掉，不清楚vnc server是开启还是“忘了关”
+
+  遇到的case就是vnc server用不了，然后关掉这个重新打开ss就可以了，然后再打开这个。。
+
+
 
 
 
