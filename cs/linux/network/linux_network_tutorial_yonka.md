@@ -174,6 +174,28 @@ nslookup iMac.localdomain  # 即可
       
       
 
+## route
+
+
+
+### 设置（指定接口）默认路由权重
+
+
+
+* 立即生效但不持久化： `ip route`
+
+* 持久化
+
+  * netplan方案
+
+    ```yaml
+    # 接口级别：
+    dhcp4-overrides:
+    	route-mertic: 99  # 默认100
+    ```
+
+    要生效的话见netplan命令 tutorial。
+
 
 
 

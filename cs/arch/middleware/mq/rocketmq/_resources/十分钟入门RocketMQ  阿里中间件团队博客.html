@@ -1,0 +1,942 @@
+
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="消息中间件,RocketMQ,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="阿里中间件团队博客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="本文首先引出消息中间件通常需要解决哪些问题，在解决这些问题当中会遇到什么困难，Apache RocketMQ作为阿里开源的一款高性能、高吞吐量的分布式消息中间件否可以解决，规范中如何定义这些问题。然后本文将介绍RocketMQ的架构设计，以期让读者快速了解RocketMQ。">
+<meta name="keywords" content="消息中间件,RocketMQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="十分钟入门RocketMQ">
+<meta property="og:url" content="http://jm.taobao.org/2017/01/12/rocketmq-quick-start-in-10-minutes/index.html">
+<meta property="og:site_name" content="阿里中间件团队博客">
+<meta property="og:description" content="本文首先引出消息中间件通常需要解决哪些问题，在解决这些问题当中会遇到什么困难，Apache RocketMQ作为阿里开源的一款高性能、高吞吐量的分布式消息中间件否可以解决，规范中如何定义这些问题。然后本文将介绍RocketMQ的架构设计，以期让读者快速了解RocketMQ。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1rdyvPXXXXXcBapXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB18GKUPXXXXXXRXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1lEPePXXXXXX8XXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Ali2PXXXXXXuXFXXXXXXXXXX">
+<meta property="og:updated_time" content="2019-04-01T02:49:53.750Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="十分钟入门RocketMQ">
+<meta name="twitter:description" content="本文首先引出消息中间件通常需要解决哪些问题，在解决这些问题当中会遇到什么困难，Apache RocketMQ作为阿里开源的一款高性能、高吞吐量的分布式消息中间件否可以解决，规范中如何定义这些问题。然后本文将介绍RocketMQ的架构设计，以期让读者快速了解RocketMQ。">
+<meta name="twitter:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1rdyvPXXXXXcBapXXXXXXXXXX">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 十分钟入门RocketMQ | 阿里中间件团队博客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?61b03a33c851aa3649c77f43702743b3";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title"><i class="iconfont icon-aliware"></i> 阿里中间件团队博客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">致力于成为中国第一，世界一流的中间件技术团队</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-hire">
+          <a href="/hire" rel="section">
+            
+              <i class="menu-item-icon fa fa-fire fa-fw"></i> <br>
+            
+            招聘
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-users fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                十分钟入门RocketMQ
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-01-12T10:25:29+08:00" content="2017-01-12">
+              2017-01-12
+            </time>
+          </span>
+
+          
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/01/12/rocketmq-quick-start-in-10-minutes/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/01/12/rocketmq-quick-start-in-10-minutes/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文首先引出消息中间件通常需要解决哪些问题，在解决这些问题当中会遇到什么困难，Apache RocketMQ作为阿里开源的一款高性能、高吞吐量的分布式消息中间件否可以解决，规范中如何定义这些问题。然后本文将介绍RocketMQ的架构设计，以期让读者快速了解RocketMQ。</p>
+<a id="more"></a>
+<h2 id="消息中间件需要解决哪些问题？"><a href="#消息中间件需要解决哪些问题？" class="headerlink" title="消息中间件需要解决哪些问题？"></a>消息中间件需要解决哪些问题？</h2><h3 id="Publish-Subscribe"><a href="#Publish-Subscribe" class="headerlink" title="Publish/Subscribe"></a>Publish/Subscribe</h3><p>发布订阅是消息中间件的最基本功能，也是相对于传统RPC通信而言。在此不再详述。</p>
+<h3 id="Message-Priority"><a href="#Message-Priority" class="headerlink" title="Message Priority"></a>Message Priority</h3><p>规范中描述的优先级是指在一个消息队列中，每条消息都有不同的优先级，一般用整数来描述，优先级高的消息先投递，如果消息完全在一个内存队列中，那么在投递前可以按照优先级排序，令优先级高的先投递。<br>由于RocketMQ所有消息都是持久化的，所以如果按照优先级来排序，开销会非常大，因此RocketMQ没有特意支持消息优先级，但是可以通过变通的方式实现类似功能，即单独配置一个优先级高的队列，和一个普通优先级的队列， 将不同优先级发送到不同队列即可。</p>
+<p>对于优先级问题，可以归纳为2类：</p>
+<ol>
+<li>只要达到优先级目的即可，不是严格意义上的优先级，通常将优先级划分为高、中、低，或者再多几个级别。每个优先级可以用不同的topic表示，发消息时，指定不同的topic来表示优先级，这种方式可以解决绝大部分的优先级问题，但是对业务的优先级精确性做了妥协。</li>
+<li>严格的优先级，优先级用整数表示，例如0 ~ 65535，这种优先级问题一般使用不同topic解决就非常不合适。如果要让MQ解决此问题，会对MQ的性能造成非常大的影响。这里要确保一点，业务上是否确实需要这种严格的优先级，如果将优先级压缩成几个，对业务的影响有多大？</li>
+</ol>
+<h3 id="Message-Order"><a href="#Message-Order" class="headerlink" title="Message Order"></a>Message Order</h3><p>消息有序指的是一类消息消费时，能按照发送的顺序来消费。例如：一个订单产生了3条消息，分别是订单创建，订单付款，订单完成。消费时，要按照这个顺序消费才能有意义。但是同时订单之间是可以并行消费的。<br>RocketMQ可以严格的保证消息有序。</p>
+<h3 id="Message-Filter"><a href="#Message-Filter" class="headerlink" title="Message Filter"></a>Message Filter</h3><h4 id="Broker端消息过滤"><a href="#Broker端消息过滤" class="headerlink" title="Broker端消息过滤"></a>Broker端消息过滤</h4><p>在Broker中，按照Consumer的要求做过滤，优点是减少了对于Consumer无用消息的网络传输。<br>缺点是增加了Broker的负担，实现相对复杂。</p>
+<ol>
+<li>淘宝Notify支持多种过滤方式，包含直接按照消息类型过滤，灵活的语法表达式过滤，几乎可以满足最苛刻的过滤需求。</li>
+<li>淘宝RocketMQ支持按照简单的Message Tag过滤，也支持按照Message Header、body进行过滤。</li>
+<li>CORBA Notification规范中也支持灵活的语法表达式过滤。</li>
+</ol>
+<h4 id="Consumer端消息过滤"><a href="#Consumer端消息过滤" class="headerlink" title="Consumer端消息过滤"></a>Consumer端消息过滤</h4><p>这种过滤方式可由应用完全自定义实现，但是缺点是很多无用的消息要传输到Consumer端。</p>
+<h3 id="Message-Persistence"><a href="#Message-Persistence" class="headerlink" title="Message Persistence"></a>Message Persistence</h3><p>消息中间件通常采用的几种持久化方式：</p>
+<ol>
+<li>持久化到数据库，例如Mysql。</li>
+<li>持久化到KV存储，例如levelDB、伯克利DB等KV存储系统。</li>
+<li>文件记录形式持久化，例如Kafka，RocketMQ</li>
+<li>对内存数据做一个持久化镜像，例如beanstalkd，VisiNotify</li>
+<li>(1)、(2)、(3)三种持久化方式都具有将内存队列Buffer进行扩展的能力，(4)只是一个内存的镜像，作用是当Broker挂掉重启后仍然能将之前内存的数据恢复出来。</li>
+</ol>
+<p>JMS与CORBA Notification规范没有明确说明如何持久化，但是持久化部分的性能直接决定了整个消息中间件的性能。</p>
+<p>RocketMQ充分利用Linux文件系统内存cache来提高性能。</p>
+<h3 id="Message-Reliablity"><a href="#Message-Reliablity" class="headerlink" title="Message Reliablity"></a>Message Reliablity</h3><p>影响消息可靠性的几种情况：</p>
+<ol>
+<li>Broker正常关闭</li>
+<li>Broker异常Crash</li>
+<li>OS Crash</li>
+<li>机器掉电，但是能立即恢复供电情况。</li>
+<li>机器无法开机（可能是cpu、主板、内存等关键设备损坏）</li>
+<li>磁盘设备损坏。</li>
+</ol>
+<p>(1)、(2)、(3)、(4)四种情况都属于硬件资源可立即恢复情况，RocketMQ在这四种情况下能保证消息不丢，或者丢失少量数据（依赖刷盘方式是同步还是异步）。</p>
+<p>(5)、(6)属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ在这两种情况下，通过异步复制，可保证99%的消息不丢，但是仍然会有极少量的消息可能丢失。通过同步双写技术可以完全避免单点，同步双写势必会影响性能，适合对消息可靠性要求极高的场合，例如与Money相关的应用。</p>
+<p>RocketMQ从3.0版本开始支持同步双写。</p>
+<h3 id="Low-Latency-Messaging"><a href="#Low-Latency-Messaging" class="headerlink" title="Low Latency Messaging"></a>Low Latency Messaging</h3><p>在消息不堆积情况下，消息到达Broker后，能立刻到达Consumer。<br>RocketMQ使用长轮询Pull方式，可保证消息非常实时，消息实时性不低于Push。</p>
+<h3 id="At-least-Once"><a href="#At-least-Once" class="headerlink" title="At least Once"></a>At least Once</h3><p>是指每个消息必须投递一次。<br>RocketMQ Consumer先pull消息到本地，消费完成后，才向服务器返回ack，如果没有消费一定不会ack消息，所以RocketMQ可以很好的支持此特性。</p>
+<h3 id="Exactly-Only-Once"><a href="#Exactly-Only-Once" class="headerlink" title="Exactly Only Once"></a>Exactly Only Once</h3><ol>
+<li>发送消息阶段，不允许发送重复的消息。</li>
+<li>消费消息阶段，不允许消费重复的消息。</li>
+</ol>
+<p>只有以上两个条件都满足情况下，才能认为消息是“Exactly Only Once”，而要实现以上两点，在分布式系统环境下，不可避免要产生巨大的开销。所以RocketMQ为了追求高性能，并不保证此特性，要求在业务上进行去重，也就是说消费消息要做到幂等性。RocketMQ虽然不能严格保证不重复，但是正常情况下很少会出现重复发送、消费情况，只有网络异常，Consumer启停等异常情况下会出现消息重复。</p>
+<h3 id="Broker的Buffer满了怎么办？"><a href="#Broker的Buffer满了怎么办？" class="headerlink" title="Broker的Buffer满了怎么办？"></a>Broker的Buffer满了怎么办？</h3><p>Broker的Buffer通常指的是Broker中一个队列的内存Buffer大小，这类Buffer通常大小有限，如果Buffer满了以后怎么办？<br>下面是CORBA Notification规范中处理方式：</p>
+<ol>
+<li>RejectNewEvents 拒绝新来的消息，向Producer返回RejectNewEvents错误码。</li>
+<li>按照特定策略丢弃已有消息<ul>
+<li>AnyOrder - Any event may be discarded on overflow. This is the default setting for this property.</li>
+<li>FifoOrder - The first event received will be the first discarded.</li>
+<li>LifoOrder - The last event received will be the first discarded.</li>
+<li>PriorityOrder - Events should be discarded in priority order, such that lower priority events will be discarded before higher priority events.</li>
+<li>DeadlineOrder - Events should be discarded in the order of shortest expiry deadline first.</li>
+</ul>
+</li>
+</ol>
+<p>RocketMQ没有内存Buffer概念，RocketMQ的队列都是持久化磁盘，数据定期清除。</p>
+<p>对于此问题的解决思路，RocketMQ同其他MQ有非常显著的区别，RocketMQ的内存Buffer抽象成一个无限长度的队列，不管有多少数据进来都能装得下，这个无限是有前提的，Broker会定期删除过期的数据，例如Broker只保存3天的消息，那么这个Buffer虽然长度无限，但是3天前的数据会被从队尾删除。</p>
+<p>此问题的本质原因是网络调用存在不确定性，即既不成功也不失败的第三种状态，所以才产生了消息重复性问题。</p>
+<h3 id="回溯消费"><a href="#回溯消费" class="headerlink" title="回溯消费"></a>回溯消费</h3><p>回溯消费是指Consumer已经消费成功的消息，由于业务上需求需要重新消费，要支持此功能，Broker在向Consumer投递成功消息后，消息仍然需要保留。并且重新消费一般是按照时间维度，例如由于Consumer系统故障，恢复后需要重新消费1小时前的数据，那么Broker要提供一种机制，可以按照时间维度来回退消费进度。<br>RocketMQ支持按照时间回溯消费，时间维度精确到毫秒，可以向前回溯，也可以向后回溯。</p>
+<h3 id="消息堆积"><a href="#消息堆积" class="headerlink" title="消息堆积"></a>消息堆积</h3><p>消息中间件的主要功能是异步解耦，还有个重要功能是挡住前端的数据洪峰，保证后端系统的稳定性，这就要求消息中间件具有一定的消息堆积能力，消息堆积分以下两种情况：</p>
+<ol>
+<li>消息堆积在内存Buffer，一旦超过内存Buffer，可以根据一定的丢弃策略来丢弃消息，如CORBA Notification规范中描述。适合能容忍丢弃消息的业务，这种情况消息的堆积能力主要在于内存Buffer大小，而且消息堆积后，性能下降不会太大，因为内存中数据多少对于对外提供的访问能力影响有限。</li>
+<li>消息堆积到持久化存储系统中，例如DB，KV存储，文件记录形式。 当消息不能在内存Cache命中时，要不可避免的访问磁盘，会产生大量读IO，读IO的吞吐量直接决定了消息堆积后的访问能力。</li>
+</ol>
+<p>评估消息堆积能力主要有以下四点：</p>
+<ol>
+<li>消息能堆积多少条，多少字节？即消息的堆积容量。</li>
+<li>消息堆积后，发消息的吞吐量大小，是否会受堆积影响？</li>
+<li>消息堆积后，正常消费的Consumer是否会受影响？</li>
+<li>消息堆积后，访问堆积在磁盘的消息时，吞吐量有多大？</li>
+</ol>
+<h3 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h3><p>已知的几个分布式事务规范，如XA，JTA等。其中XA规范被各大数据库厂商广泛支持，如Oracle，Mysql等。其中XA的TM实现佼佼者如Oracle Tuxedo，在金融、电信等领域被广泛应用。</p>
+<p>分布式事务涉及到两阶段提交问题，在数据存储方面的方面必然需要KV存储的支持，因为第二阶段的提交回滚需要修改消息状态，一定涉及到根据Key去查找Message的动作。RocketMQ在第二阶段绕过了根据Key去查找Message的问题，采用第一阶段发送Prepared消息时，拿到了消息的Offset，第二阶段通过Offset去访问消息，并修改状态，Offset就是数据的地址。</p>
+<p>RocketMQ这种实现事务方式，没有通过KV存储做，而是通过Offset方式，存在一个显著缺陷，即通过Offset更改数据，会令系统的脏页过多，需要特别关注。</p>
+<h3 id="定时消息"><a href="#定时消息" class="headerlink" title="定时消息"></a>定时消息</h3><p>定时消息是指消息发到Broker后，不能立刻被Consumer消费，要到特定的时间点或者等待特定的时间后才能被消费。<br>如果要支持任意的时间精度，在Broker层面，必须要做消息排序，如果再涉及到持久化，那么消息排序要不可避免的产生巨大性能开销。<br>RocketMQ支持定时消息，但是不支持任意时间精度，支持特定的level，例如定时5s，10s，1m等。</p>
+<h3 id="消息重试"><a href="#消息重试" class="headerlink" title="消息重试"></a>消息重试</h3><p>Consumer消费消息失败后，要提供一种重试机制，令消息再消费一次。Consumer消费消息失败通常可以认为有以下几种情况：</p>
+<ol>
+<li>由于消息本身的原因，例如反序列化失败，消息数据本身无法处理（例如话费充值，当前消息的手机号被注销，无法充值）等。这种错误通常需要跳过这条消息，再消费其他消息，而这条失败的消息即使立刻重试消费，99%也不成功，所以最好提供一种定时重试机制，即过10s秒后再重试。</li>
+<li>由于依赖的下游应用服务不可用，例如db连接不可用，外系统网络不可达等。遇到这种错误，即使跳过当前失败的消息，消费其他消息同样也会报错。这种情况建议应用sleep 30s，再消费下一条消息，这样可以减轻Broker重试消息的压力。</li>
+</ol>
+<h2 id="RocketMQ-Overview"><a href="#RocketMQ-Overview" class="headerlink" title="RocketMQ Overview"></a>RocketMQ Overview</h2><p>RocketMQ是否解决了上述消息中间件面临的问题，接下来让我们一探究竟。</p>
+<h3 id="RocketMQ-是什么？"><a href="#RocketMQ-是什么？" class="headerlink" title="RocketMQ 是什么？"></a>RocketMQ 是什么？</h3><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1rdyvPXXXXXcBapXXXXXXXXXX" alt></p>
+<p>上图是一个典型的消息中间件收发消息的模型，RocketMQ也是这样的设计，简单说来，RocketMQ具有以下特点：</p>
+<ul>
+<li>是一个队列模型的消息中间件，具有高性能、高可靠、高实时、分布式特点。</li>
+<li>Producer、Consumer、队列都可以分布式。</li>
+<li>Producer向一些队列轮流发送消息，队列集合称为Topic，Consumer如果做广播消费，则一个consumer实例消费这个Topic对应的所有队列，如果做集群消费，则多个Consumer实例平均消费这个topic对应的队列集合。</li>
+<li>能够保证严格的消息顺序</li>
+<li>提供丰富的消息拉取模式</li>
+<li>高效的订阅者水平扩展能力</li>
+<li>实时的消息订阅机制</li>
+<li>亿级消息堆积能力</li>
+<li>较少的依赖</li>
+</ul>
+<h3 id="RocketMQ-物理部署结构"><a href="#RocketMQ-物理部署结构" class="headerlink" title="RocketMQ 物理部署结构"></a>RocketMQ 物理部署结构</h3><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB18GKUPXXXXXXRXFXXXXXXXXXX" alt></p>
+<p>如上图所示， RocketMQ的部署结构有以下特点：</p>
+<ul>
+<li>Name Server是一个几乎无状态节点，可集群部署，节点之间无任何信息同步。</li>
+<li>Broker部署相对复杂，Broker分为Master与Slave，一个Master可以对应多个Slave，但是一个Slave只能对应一个Master，Master与Slave的对应关系通过指定相同的BrokerName，不同的BrokerId来定义，BrokerId为0表示Master，非0表示Slave。Master也可以部署多个。每个Broker与Name Server集群中的所有节点建立长连接，定时注册Topic信息到所有Name Server。</li>
+<li>Producer与Name Server集群中的其中一个节点（随机选择）建立长连接，定期从Name Server取Topic路由信息，并向提供Topic服务的Master建立长连接，且定时向Master发送心跳。Producer完全无状态，可集群部署。</li>
+<li>Consumer与Name Server集群中的其中一个节点（随机选择）建立长连接，定期从Name Server取Topic路由信息，并向提供Topic服务的Master、Slave建立长连接，且定时向Master、Slave发送心跳。Consumer既可以从Master订阅消息，也可以从Slave订阅消息，订阅规则由Broker配置决定。</li>
+</ul>
+<h3 id="RocketMQ-逻辑部署结构"><a href="#RocketMQ-逻辑部署结构" class="headerlink" title="RocketMQ 逻辑部署结构"></a>RocketMQ 逻辑部署结构</h3><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1lEPePXXXXXX8XXXXXXXXXXXX" alt></p>
+<p>如上图所示，RocketMQ的逻辑部署结构有Producer和Consumer两个特点。</p>
+<p>Producer Group</p>
+<p>用来表示一个发送消息应用，一个Producer Group下包含多个Producer实例，可以是多台机器，也可以是一台机器的多个进程，或者一个进程的多个Producer对象。一个Producer Group可以发送多个Topic消息，Producer Group作用如下：</p>
+<ol>
+<li>标识一类Producer</li>
+<li>可以通过运维工具查询这个发送消息应用下有多个Producer实例</li>
+<li>发送分布式事务消息时，如果Producer中途意外宕机，Broker会主动回调Producer Group内的任意一台机器来确认事务状态。</li>
+</ol>
+<p>Consumer Group</p>
+<p>用来表示一个消费消息应用，一个Consumer Group下包含多个Consumer实例，可以是多台机器，也可以是多个进程，或者是一个进程的多个Consumer对象。一个Consumer Group下的多个Consumer以均摊方式消费消息，如果设置为广播方式，那么这个Consumer Group下的每个实例都消费全量数据。</p>
+<h3 id="RocketMQ-数据存储结构"><a href="#RocketMQ-数据存储结构" class="headerlink" title="RocketMQ 数据存储结构"></a>RocketMQ 数据存储结构</h3><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Ali2PXXXXXXuXFXXXXXXXXXX" alt></p>
+<p>如上图所示，RocketMQ采取了一种数据与索引分离的存储方法。有效降低文件资源、IO资源，内存资源的损耗。即便是阿里这种海量数据，高并发场景也能够有效降低端到端延迟，并具备较强的横向扩展能力。</p>
+
+        <blockquote>
+          <p>企业级互联网架构Aliware，让您的业务能力云化：<a href="https://www.aliyun.com/aliware" target="_blank" rel="external">https://www.aliyun.com/aliware</a></p>
+        </blockquote>
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/消息中间件/" rel="tag">#消息中间件</a>
+          
+            <a href="/tags/RocketMQ/" rel="tag">#RocketMQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/05/rocketmq-big-data/" rel="next" title="RocketMQ大数据畅想">
+                <i class="fa fa-chevron-left"></i> RocketMQ大数据畅想
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/01/19/20170119/" rel="prev" title="阿里巴巴分布式数据库服务DRDS研发历程">
+                阿里巴巴分布式数据库服务DRDS研发历程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/01/12/rocketmq-quick-start-in-10-minutes/" data-title="十分钟入门RocketMQ" data-content data-url="http://jm.taobao.org/2017/01/12/rocketmq-quick-start-in-10-minutes/">
+  <div class="ds-share-inline">
+    <ul class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/01/12/rocketmq-quick-start-in-10-minutes/" data-title="十分钟入门RocketMQ" data-url="http://jm.taobao.org/2017/01/12/rocketmq-quick-start-in-10-minutes/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/aliware.png" alt="阿里中间件">
+          <p class="site-author-name" itemprop="name">阿里中间件</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">454</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">203</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        <div class="links-of-blogroll motion-element">
+          
+            <div class="links-of-blogroll-title">友情链接</div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.aliyun.com/aliware" target="_blank">企业级互联网架构Aliware</a>
+                </li>
+              
+            </ul>
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#消息中间件需要解决哪些问题？"><span class="nav-text">消息中间件需要解决哪些问题？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish-Subscribe"><span class="nav-text">Publish/Subscribe</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Priority"><span class="nav-text">Message Priority</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Order"><span class="nav-text">Message Order</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Filter"><span class="nav-text">Message Filter</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker端消息过滤"><span class="nav-text">Broker端消息过滤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer端消息过滤"><span class="nav-text">Consumer端消息过滤</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Persistence"><span class="nav-text">Message Persistence</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Message-Reliablity"><span class="nav-text">Message Reliablity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Low-Latency-Messaging"><span class="nav-text">Low Latency Messaging</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#At-least-Once"><span class="nav-text">At least Once</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exactly-Only-Once"><span class="nav-text">Exactly Only Once</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Broker的Buffer满了怎么办？"><span class="nav-text">Broker的Buffer满了怎么办？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回溯消费"><span class="nav-text">回溯消费</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息堆积"><span class="nav-text">消息堆积</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式事务"><span class="nav-text">分布式事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定时消息"><span class="nav-text">定时消息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息重试"><span class="nav-text">消息重试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RocketMQ-Overview"><span class="nav-text">RocketMQ Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ-是什么？"><span class="nav-text">RocketMQ 是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ-物理部署结构"><span class="nav-text">RocketMQ 物理部署结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ-逻辑部署结构"><span class="nav-text">RocketMQ 逻辑部署结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ-数据存储结构"><span class="nav-text">RocketMQ 数据存储结构</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">阿里中间件</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"aliware"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

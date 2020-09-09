@@ -1,0 +1,973 @@
+
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="RocketMQ,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="阿里中间件团队博客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="摘要：为了更好地让开发者们更加深入了解阿里开源，阿里云云栖社区在3月1号了举办“阿里开源项目最佳实践”在线技术峰会，直播讲述了当前阿里新兴和经典开源项目实战经验以及背后的开发思路。在本次在线技术峰会上，阿里巴巴中间件架构师冯嘉深入浅出的为大家讲述Apache RocketMQ背后的设计思路、典型场景、最佳实践以及社区运营与商业化之路。 演讲嘉宾介绍： 冯嘉（花名鼬神），阿里巴巴中间件架构师，具有丰">
+<meta name="keywords" content="RocketMQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache RocketMQ背后的设计思路与最佳实践">
+<meta property="og:url" content="http://jm.taobao.org/2017/03/09/20170309/index.html">
+<meta property="og:site_name" content="阿里中间件团队博客">
+<meta property="og:description" content="摘要：为了更好地让开发者们更加深入了解阿里开源，阿里云云栖社区在3月1号了举办“阿里开源项目最佳实践”在线技术峰会，直播讲述了当前阿里新兴和经典开源项目实战经验以及背后的开发思路。在本次在线技术峰会上，阿里巴巴中间件架构师冯嘉深入浅出的为大家讲述Apache RocketMQ背后的设计思路、典型场景、最佳实践以及社区运营与商业化之路。 演讲嘉宾介绍： 冯嘉（花名鼬神），阿里巴巴中间件架构师，具有丰">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Vhj8PVXXXXbYXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1amH2PVXXXXXWXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB19LwjPVXXXXX5XXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1GUkkPVXXXXXEXXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB11s2.PVXXXXbXXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1CYrYPVXXXXaoXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1toD9PVXXXXaKXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1oeL7PVXXXXcUXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1AIjxPVXXXXbPapXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1tsZcPVXXXXXsXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1x9_VPVXXXXXEXXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1rjPCPVXXXXX9aXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1QJv9PVXXXXaJXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1bRfFPVXXXXaWaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1_UH9PVXXXXa1XpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1drnMPVXXXXXIaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1tyDuPVXXXXcOaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB19PzDPVXXXXX0apXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB15VTOPVXXXXcZXVXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1PMY6PVXXXXc1XpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Jqz4PVXXXXXAXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB158rjLXXXXXarapXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1l7P0PVXXXXb6XFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1jrfLPVXXXXaGaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB19MTsPVXXXXXAaFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1W0bFPVXXXXbDaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB18zHPPVXXXXamXXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1yiDzPVXXXXcLaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1ONgePVXXXXXFXXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1zRnGPVXXXXbpXVXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1t5UkPVXXXXXyXXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1MofZPVXXXXasXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1e2H.PVXXXXaNXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1FTfDPVXXXXbkaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1lK2IPVXXXXaBaXXXXXXXXXXX">
+<meta property="og:image" content="https://yqfile.alicdn.com/0ec68f7809f9d82846fc0c518603f2ac98644f87.png">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1RHLyPVXXXXbsaXXXXXXXXXXX">
+<meta property="og:updated_time" content="2019-04-01T02:49:53.681Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache RocketMQ背后的设计思路与最佳实践">
+<meta name="twitter:description" content="摘要：为了更好地让开发者们更加深入了解阿里开源，阿里云云栖社区在3月1号了举办“阿里开源项目最佳实践”在线技术峰会，直播讲述了当前阿里新兴和经典开源项目实战经验以及背后的开发思路。在本次在线技术峰会上，阿里巴巴中间件架构师冯嘉深入浅出的为大家讲述Apache RocketMQ背后的设计思路、典型场景、最佳实践以及社区运营与商业化之路。 演讲嘉宾介绍： 冯嘉（花名鼬神），阿里巴巴中间件架构师，具有丰">
+<meta name="twitter:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Vhj8PVXXXXbYXpXXXXXXXXXX">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Apache RocketMQ背后的设计思路与最佳实践 | 阿里中间件团队博客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?61b03a33c851aa3649c77f43702743b3";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title"><i class="iconfont icon-aliware"></i> 阿里中间件团队博客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">致力于成为中国第一，世界一流的中间件技术团队</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-hire">
+          <a href="/hire" rel="section">
+            
+              <i class="menu-item-icon fa fa-fire fa-fw"></i> <br>
+            
+            招聘
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-users fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Apache RocketMQ背后的设计思路与最佳实践
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-03-09T09:50:54+08:00" content="2017-03-09">
+              2017-03-09
+            </time>
+          </span>
+
+          
+          <span class="post-time">
+            &nbsp; | &nbsp;
+            <span class="post-meta-item-text">
+              作者 &nbsp;
+            </span>
+            
+              
+                鼬神 
+              &nbsp;
+            
+          </span>
+          
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/消息中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">消息中间件</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/09/20170309/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/03/09/20170309/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>摘要：为了更好地让开发者们更加深入了解阿里开源，阿里云云栖社区在3月1号了举办“阿里开源项目最佳实践”在线技术峰会，直播讲述了当前阿里新兴和经典开源项目实战经验以及背后的开发思路。在本次在线技术峰会上，阿里巴巴中间件架构师冯嘉深入浅出的为大家讲述Apache RocketMQ背后的设计思路、典型场景、最佳实践以及社区运营与商业化之路。</p>
+<p>演讲嘉宾介绍：</p>
+<p>冯嘉（花名鼬神），阿里巴巴中间件架构师，具有丰富的分布式软件架构、高并发网站设计、性能调优经验，拥有多项分布式、推荐领域的专利。开源爱好者，关注分布式、云计算、大数据领域。目前主要负责阿里巴巴消息中间件生态输出、MQ商业化 ，Apache RocketMQ 联合创始人，社区布道者，目前主要负责Apache RocketMQ的云端商业化版本Aliware MQ。</p>
+<p>本次的分享主要围绕了以下四个议题：<br>一、分布式消息领域的相关产品以及技术体系<br>二、Apache RocketMQ的发展历史、架构设计以及Aliware MQ能够提供的高级特性<br>三、Apache RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验<br>四、对于Apache RocketMQ 4.X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划</p>
+<a id="more"></a>
+<h2 id="一、分布式消息领域的相关产品以及技术体系"><a href="#一、分布式消息领域的相关产品以及技术体系" class="headerlink" title="一、分布式消息领域的相关产品以及技术体系"></a>一、分布式消息领域的相关产品以及技术体系</h2><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Vhj8PVXXXXbYXpXXXXXXXXXX" alt></p>
+<p>下图所示的是分布式系统相关的技术领域。作为一款消息中间件，RocketMQ需要解决的技术问题其实在分布式系统领域中都有所体现。首先如果将分布式系统的领域按照分布式通信、分布式存储、分布式计算以及分布式管理这四大部分进行划分，其实就会发现在这四大技术栈下有很多的子技术。这里列举几个简单的例子，比如在分布式通信领域下对于网络协议的选择上面，像RocketMQ是基于TCP的，而基于RocketMQ内核的Aliware MQ是有基于HTTP协议的网关，同时也提供了MQTT协议网关。除了像网络协议的选择之外，还会有I/O的模型，这也属于分布式通信领域一个非常经典的问题。通常情况下会将I/O模型分成四种，第一种是所谓的Boss与Worker模型；还有一种是Only Boss模型，所谓的Select线程和事件真正处理的线程都统一在Boss里面，这样就减少了线程切换时产生的上下文开销；第三种I/O模型就是将第一种与第二种I/O模型进行了整合，并利用了统计学原理，在某些比如像内存负载比较重的场景下，从模型一切换到模型二，也就成了所谓的Dynamic Model。第四种I/O模型其实并不常见，它在开源领域有一个与Netty齐名的传输层框架Grizzly中会使用到，叫做Leader/Fellow框架，Leader/Fellow其实是将Select线程这部分的选择权交给了Worker，而在Selector线程里处理IO事件。聊完了分布式计算领域再来谈一谈分布式存储领域，这其实也是分布式领域最复杂，最难攻克的领域，包括结构化存储、半结构化、非结构化存储等。除此之外，在分布式计算领域，主要会涉及Streaming计算、图计算等相关的内容。而在分布式管理方面，也会涉及到很多子技术，包括分布式数据管理，这里面会牵扯到数据多副本的问题，还有分布式一致性、协调等，这些都属于分布式管理相关领域。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1amH2PVXXXXXWXFXXXXXXXXXX" alt></p>
+<p>大家对比前后两幅图就会发现，在消息领域需要解决的技术栈中的很多问题与分布式系统中的问题是存在交集的，所以可以说分布式消息领域融合了很多现代分布式系统技术中极具挑战性的研究领域。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB19LwjPVXXXXX5XXXXXXXXXXXX" alt></p>
+<p>那么目前在业界有哪些比较知名的消息引擎呢？如下图所示，这里面几乎完全列举了当下比较知名的消息引擎，包括ZeroMQ、推特的Distributedlog、Apache旗下的老牌消息引擎ActiveMQ、AMQP的默认实现RabbitMQ、Kafka、Apache的ActiveMQ下的子项目Artemis、同样为Apache的ActiveMQ的子项目的号称下一代消息引擎的Apollo、商业化的消息引擎IronMQ以及实现了JMS(Java Message Service)标准的OpenMQ，还有就是毫无疑问的今天分享的主角——Apache RocketMQ。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1GUkkPVXXXXXEXXXXXXXXXXXX" alt></p>
+<h2 id="二、Apache-RocketMQ的发展历史、架构设计以及Aliware-MQ能够提供的高级特性"><a href="#二、Apache-RocketMQ的发展历史、架构设计以及Aliware-MQ能够提供的高级特性" class="headerlink" title="二、Apache RocketMQ的发展历史、架构设计以及Aliware MQ能够提供的高级特性"></a>二、Apache RocketMQ的发展历史、架构设计以及Aliware MQ能够提供的高级特性</h2><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB11s2.PVXXXXbXXpXXXXXXXXXX" alt></p>
+<p>在简单地为大家分享了分布式系统以及分布式消息系统所使用到的一些技术之后，接着为大家分享一下RocketMQ的发展历史、架构设计以及Aliware MQ能够提供的高级特性。</p>
+<h3 id="RocketMQ的发展历史"><a href="#RocketMQ的发展历史" class="headerlink" title="RocketMQ的发展历史"></a>RocketMQ的发展历史</h3><p>下图展现的就是阿里巴巴消息引擎的发展历史。在2007年的时候，淘宝实施了“五彩石”项目，“五彩石”用于将交易系统从单机变成分布式，也是在这个过程中产生了阿里巴巴第一代消息引擎——Notify。在2010年的时候，阿里巴巴B2B部门基于ActiveMQ的5.1版本也开发了自己的一款消息引擎，称为Napoli，这款消息引擎在B2B里面广泛地被使用，不仅仅是在交易领域，在很多的后台异步解耦等方面也得到了广泛的应用。在2011年的时候，业界出现了现在被很多大数据领域所推崇的Kafka消息引擎，阿里巴巴在研究了Kafka的整体机制和架构设计之后，基于Kafka的设计使用Java进行了完全重写并推出了MetaQ 1.0版本，主要是用于解决顺序消息和海量堆积的问题。而在2012年，阿里巴巴对于MetaQ进行了架构重组升级，开发出了MetaQ 2.0，这时就发现MetaQ原本基于Kafka的架构在阿里巴巴如此庞大的体系下很难进行水平扩展，所以在2012年的时候就开发了RocketMQ 3.0版本。很多人会问到RocketMQ 3.0和MetaQ 3.0的区别，其实这两者是等价的版本，只不过阿里内部使用的称为MetaQ 3.0，外部开源称之为RocketMQ 3.0。在2015年，又基于RocketMQ开发了阿里云上的Aliware MQ和Notify 3.0。在2016年的时候，阿里巴巴将RocketMQ的内核引擎捐赠给了Apache基金会。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1CYrYPVXXXXaoXFXXXXXXXXXX" alt></p>
+<p>以上就是RocketMQ的整体发展历史，其实在阿里巴巴内部围绕着RocketMQ内核打造了三款产品，分别是MetaQ、Notify和Aliware MQ。这三者分别采用了不同的模型，MetaQ主要使用了拉模型，解决了顺序消息和海量堆积问题；Notify主要使用了推模型，解决了事务消息；而云产品Aliware MQ则是提供了商业化的版本。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1toD9PVXXXXaKXpXXXXXXXXXX" alt></p>
+<p>下图是RocketMQ在历年双11的整体情况，可以看出，从2012年开始，每年RocketMQ在整个双11当天的消息流转都会有极大的提升。在2012年大约是100亿的消息流转，在2013年就接近了332亿的消息流转，2014年和2015年都增长得非常迅速，到2015年已经接近6500亿消息流转，在2016年的双11当天整个阿里巴巴集团线上通过RocketMQ的消息流转达则到了1.4万亿。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1oeL7PVXXXXcUXpXXXXXXXXXX" alt></p>
+<p>在为大家介绍完阿里巴巴内部的消息流转的体量之后，再给大家近距离围观一下目前Apache RocketMQ的情况，如下图所示就是RocketMQ的官网，欢迎大家Star和Fork。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1AIjxPVXXXXbPapXXXXXXXXXX" alt></p>
+<p>下图展示的是RocketMQ商业化的云上版本Aliware MQ的官方入口。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1tsZcPVXXXXXsXpXXXXXXXXXX" alt></p>
+<h3 id="RocketMQ的整体架构设计"><a href="#RocketMQ的整体架构设计" class="headerlink" title="RocketMQ的整体架构设计"></a>RocketMQ的整体架构设计</h3><p>下图为大家清晰地展示了RocketMQ的几个组件，分别是nameserver、broker、producer和consumer。nameserver主要负责对于源数据的管理，包括了对于Topic和路由信息的管理，broker在启动的时候会去向nameserver注册并且定时发送心跳，producer在启动的时候会到nameserver上去拉取Topic所属的broker具体地址，然后向具体的broker发送消息。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1x9_VPVXXXXXEXXXXXXXXXXXX" alt></p>
+<p>下图是RocketMQ的消息领域模型，主要分为Message、Topic、Queue、Offset以及Group这几部分。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1rjPCPVXXXXX9aXXXXXXXXXXX" alt></p>
+<p>下图为RocketMQ服务端的整体架构设计。首先最上层是授权和认证部分，因为RocketMQ是基于TCP的自行研发的一套线路层协议，所以它需要编解码以及序列化。再接下来可这一层是健康检查，在健康检查之后是流控和熔断措施，因为再好的系统也需要流量保护，RocketMQ也是一样，为了良好的可用性，RocketMQ提供了针对于不同维度的流量控制。再往下就是存储，总体而言RocketMQ服务端对于部署运维是非常友好的，目前阿里巴巴内部也有很多系统在进行Docker容器化。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1QJv9PVXXXXaJXpXXXXXXXXXX" alt></p>
+<p>下面这幅图展示的是SDK的架构图。毋庸置疑第一步需要做的事情是服务发现，需要去找到发消息或者收消息具体的broker以及broker上的Topic，在此之外SDK还会需要做的事情就是长连接的保活。接下来与服务端相同，要有流量控制以及熔断机制，另外为了保证实现高可用性，就需要提供补偿机制，这种补偿机制表现在发送端的Retry和接收端的Redelivery，也就是重投和重发。接下来，在SDK层还存在元信息通知更新消息，比如nameserver上数据变更就需要进行通知。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1bRfFPVXXXXaWaXXXXXXXXXXX" alt></p>
+<p>下面这幅图为大家展示了现在的阿里巴巴内部消息引擎的部署架构图。从图中可以看到所谓的kernel就是RocketMQ，在kernel之外还外置了像专门为物联网提供解决方案的MQTT网关、主要解决多语言跨网络问题的HTTP网关、兼容Kafka 0.10.X协议与官方持续保持兼容的Kafka网关。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1_UH9PVXXXXa1XpXXXXXXXXXX" alt></p>
+<p>接下来为大家分享在Aliware MQ上几个比较优秀的特性。第一个就是常见的事务消息，这里的事务消息指的其实是数据发送者事务消息，简单而言就是在真正地做业务逻辑之前会发送一条半消息到服务端，接下来发送者会执行本地的事务，在完成本地事务之后，如果成功就会向服务端发送一条确认信息，这时候服务端会将之前的半消息事务状态进行变更；如果失败了，服务端就会不断地回调客户端，来保证发送端的事务一致性。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1drnMPVXXXXXIaXXXXXXXXXXX" alt></p>
+<p>第二个特性就是我们去年最新研发的一套基于原有多机房部署的集群模式，利用分布式锁和通知机制，借助Controller组件，设计并实现了高可用架构。请注意，HA Controller是消息引擎高可用架构中降低系统故障恢复时间的一个重要的无状态组件，通过监听服务状态变更，控制状态机状态切换，进而完成主从状态的一系列切换。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1tyDuPVXXXXcOaXXXXXXXXXXX" alt></p>
+<p>Aliware MQ的第三个特性也是非常有意思的，这个特性主要解决的是分布式链路追踪问题。从下图中可以非常清楚地看到，消息被发送到服务端，再投递给消费者，其中还包括了失败的次数以及一些时间点的信息。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB19PzDPVXXXXX0apXXXXXXXXXX" alt></p>
+<p>接下来这个高级特性也是目前在Aliware MQ上公测的所谓的中继产品，这个产品目前也是在消息引擎中进行孵化的，它主要解决了跨网络的问题。下图中左边是一个VPC私有网络，右边其实也是一个私有网络，如果要让这两个私有网络之间的应用进行网络互通，就需要为其搭建一套Relaying中继集群，在两个私有网络都能够访问公网的前提下，通过中继服务就可以实现两个私有网络的双向通讯。这个特性可以说是极其变态的。想想看，都已经私有网络了，还有通讯的需求，除了传统那种复杂的硬件白名单各种配置机制外，中继服务提供了一种灵活的软件服务级别的细粒度控制。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB15VTOPVXXXXcZXVXXXXXXXXXX" alt></p>
+<h2 id="三、Apache-RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验"><a href="#三、Apache-RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验" class="headerlink" title="三、Apache RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验"></a>三、Apache RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验</h2><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1PMY6PVXXXXc1XpXXXXXXXXXX" alt></p>
+<p>在第三部分会为大家分享RocketMQ作为消息引擎的典型应用场景以及最佳实践和对于RocketMQ服务端调优的经验。这部分的分享大致分成五个小部分：</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Jqz4PVXXXXXAXFXXXXXXXXXX" alt></p>
+<ol>
+<li>异构系统的整合，这个问题比较容易理解，在原阿里SOA ESB比较火的年代，很多异构系统需要进行互联互通。</li>
+<li>应用和应用之间的松耦合，这个在阿里巴巴内部很多的同步链路到异步链路里面，使用的非常多。</li>
+<li>事件驱动机制和复杂事件架构模型里面的Backbone，底层的机制可以通过MQ来玩转。</li>
+<li>数据复制通道，这个有很多比较典型的应用场景，比如模拟MySQL的binlog解析，将数据的变更封装为消息，进而复制到远端的另外一个数据源。</li>
+<li>与流计算引擎的整合，像和Apache Storm、Spark、Flink等框架进行整合，很好的服务于大数据通道。</li>
+</ol>
+<p>接下来分享一下RocketMQ的最佳实践，考虑到官方已经有比较细致的描述，这里我会分享一些设计层面的最佳经验，对实战也很有帮助。从发送端和接收端来看有如下图所示的几个比较重要的部分。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB158rjLXXXXXarapXXXXXXXXXX" alt></p>
+<p>首先对于发送端而言，需要重点关注是三个部分，一个就是发送失败了怎么办，这里就是send backoff也就是所谓的一种补偿。那么发送失败了，怎样进行补偿呢？比如现在的机制是三次补偿，需要设置每次间隔多少秒，这是就一种很好的补偿机制。还有就是send reliability，也就是发送的可靠性。第三块就是send oneway，也就是在一些大数据场景下不需要响应的情况下，可以采用send oneway的方式来迅速地提高吞吐量。</p>
+<p>而对于消费者端而言，有几块也需要重点关注。一个是重复消费问题，一般情况下推荐大家通过存储介质探重。而如果消费失败了或者消费速度太慢怎么办，有什么样的方式可以解决呢？一种方案就是通过并发去解决，可以通过提高并发的通道实现。第三块就是consume batch的问题，在RocketMQ里面默认的batch是32，如果大家觉得自己消息引擎吞吐量比较低就可以提高batch，但是如果不对于服务端的限制进行调整，batch最多也就只能达到32。</p>
+<p>接下来分享一下阿里巴巴内部对于RocketMQ服务端性能调优的几点经验总结。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1l7P0PVXXXXb6XFXXXXXXXXXX" alt></p>
+<p>这几点经验其实都与I/O相关，首先如果要进行I/O操作，那么就无法避免文件句柄的调优，这个是达到一个高吞吐必备的系统调优。其次CPU的亲和特性，包括线程亲和CPU，内存亲和CPU，网卡亲和CPU，这里面非常有学问。第三部分就是如何突破内存锁的限制，无锁设计是我们所推崇的。第四部分就是NUMA架构Disable问题。这里简单提一下NUMA架构，它主要是为了解决CPU访问内存的响应性能问题。因为由于所有CPU都是通过一个内存控制器来读取内存，随着CPU核不断发展，其响应时间上的性能问题越来越明显。于是，NUMA架构出现了。NUMA会为每个CPU核绑定一部分内存，每次在CPU中运行的线程会优先地去访问该CPU所对应的内存，而当内存不足的时候，会优先把CPU相对应的内存释放掉。NUM这种默认的内存分配算法对于存储类产品而言是存在问题的，所以建议大家对于这一部分进行Disable，当然业界也有很多其他的解决方案，比如打开NUMA中的交叉分配方案。<br>而通过很多的线上观察，我们发现在线程处理来自外部的请求的时候，对于内存的访问其实都是随机的，所以交叉分配方案可以使得线程对于内存的访问进行打散，具有一定程度上的提升。还有一部分就是PageCache flush调优，因为MQ的存储其实是一个文件系统，那么就避免不了与PageCache打交道，而PageCache里面就有很多可以进行调优的，包括脏页回写，换页机制等，这些都是进行调优的重点。最后一部分就是对于磁盘的I/O调度的调优，大家都知道在磁盘的I/O调度方面，Linux操作系统默认为我们提供了四种方式，而通过线上的观察以及实验建议大家将默认的调度方式变为Deadline方式，也就是最后期限调度算法，这样就可以有效地避免I/O写请求饿死情况的出现。</p>
+<h2 id="四、对于Apache-RocketMQ-4-X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划"><a href="#四、对于Apache-RocketMQ-4-X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划" class="headerlink" title="四、对于Apache RocketMQ 4.X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划"></a>四、对于Apache RocketMQ 4.X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划</h2><p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1jrfLPVXXXXaGaXXXXXXXXXXX" alt></p>
+<p>接下来为大家分享最后一部分，就是对于RocketMQ 4.X消息引擎的未来展望。</p>
+<p>其实目前我们也在RocketMQ 社区里面发起了这样的一个讨论，确定了在未来RocketMQ 4.X版本将会专注于电子商务、金融、物联网以及大数据等领域。而在电子商务领域，RocketMQ重点需要解决的还是高并发的问题；在金融领域重点需要解决的是消息的高可靠，也就是之前提到的分布式事务处理；在物联网loT领域需要重点解决的一个问题就是所谓的海量终端在线也就是海量长连接问题；而在大数据领域，RocketMQ需要重点攻克的就是海量的消息吞吐问题。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB19MTsPVXXXXXAaFXXXXXXXXXX" alt></p>
+<p>有了以上的目标之后，我们希望能够基于统一的架构进行实现，那么这其实很容易想到就是基于某种规范去实现四个领域里面的编程API的统一。下图中列举出了五个业界非常有名的消息领域的规范。CORBA是分布式领域里面一个非常古老的规范，CORBA里面有专门针对消息的一章就是Notification Service，CORBA的协议是非常学术化的。而JMS是大家都比较熟悉的，它是Java领域的一套编程API。MQTT和AMQP都是OASIS组织下的协议，MQTT是面向物联网的线路层协议，而AMQP也是消息领域的一个线路层协议，很明显，它只是一个协议。ActiveMQ中内置了OpenWire，它也是一个线路层协议。上述的这些协议在我们看来都无法完全满足对于四个领域的需求标准。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1W0bFPVXXXXbDaXXXXXXXXXXX" alt></p>
+<p>下图列出了目前在Apache官网上发起的关于Open Messaging规范的讨论，大家可以到官网上进行仔细阅读。目前这套API的初稿已经完成了，我们也在与阿里巴巴之外的像推特和雅虎这些MQ厂商进行联系，讨论并验证这套规范能否适用于之前提到的电子商务等四个领域。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB18zHPPVXXXXamXXXXXXXXXXXX" alt></p>
+<p>这套规范要想健康地成长，成为真正被大家所认可的规范还需要强大的后盾。那么这个时候，Linux基金会和Apache基金会就会毫无疑问地走入我们的视野。RocketMQ目前虽然已经捐赠给了Apache基金会并作为Apache的一个孵化项目，但是经过我们的深入调研，发现在Apache社区发起这样的一套规范是不太合适的，这与apache way甚至是相悖的。所以还需要Linux基金会的帮助。其实在Linux基金会中就会有很多开源的规范，我们也希望这套规范能够在Linux基金会下进行推进。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1yiDzPVXXXXcLaXXXXXXXXXXX" alt></p>
+<p>下图就是为大家列出最近RocketMQ 4.0在开源社区发布后，预期在RocketMQ 4.1至4.3版本中将会提供的一些特性。大家可以到官网上进行查看，感兴趣也可以参与进来。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1ONgePVXXXXXFXXXXXXXXXXXX" alt></p>
+<p>刚才整体的介绍了RocketMQ产品的大致情况，接下来为大家介绍一下RocketMQ社区的发展情况。RocketMQ目前主要的开发和贡献是在中国大陆以及包括韩国和日本在内的亚洲其他国家进行的，而我们希望RocketMQ的社区的开发者和参与者能够遍布全球。下图是在Apache中摘录的Apache的参与者在全球的分布情况，未来也希望在全球范围内都有的开发者能够非常积极地参与到Apache RocketMQ项目中来。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1zRnGPVXXXXbpXVXXXXXXXXXX" alt></p>
+<p>为了达成上面提出的目标，我们最近也在思考做这样的几件事情：首先会举办不定期的Workshop和Meetup，最近发布RocketMQ 4.0的时候就在国内以线下的方式举办了编程马拉松，并且收获了比较不错的效果，也发现了一些愿意持续跟进社区的参与者。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1t5UkPVXXXXXyXXXXXXXXXXXX" alt></p>
+<p>聊完了社区之后，还想与大家分享一下在RocketMQ的孵化过程中我们对于Apache基金会的初步认识。下图中的几个关键字其实非常准确地描述了Apache Way，那么什么是Apache Way呢？Apache非常强调对于软件进行合作开发，并且在实际上对于商业化的协议也是比较友好的，Apache还强调产品需要保证高质量，讲究尊重和诚实，并且强调基于技术的交互和对于规范的坚定实现的信念，最后还是将产品的安全特性作为强制要求进行考虑。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1MofZPVXXXXasXFXXXXXXXXXX" alt></p>
+<p>下图就是在Apache基金会对于项目进行孵化的流程。RocketMQ在孵化期间也是按照这个流程一路走来的。接下来就为大家简单介绍一下，首先要进行孵化需要选好自己的领路人，也就是Champion的概念，领路人将会对于项目在Apache上的孵化起到非常大的推进作用，所以如果大家有志于将自己的产品推到Apache上，一个好的领路人对于项目能够进入Apache是非常重要的。这里面的具体流程就是在社区起草一个提议，当提议通过了之后可以召集大家讨论一下提议的可行性，然后进行投票，在投票之后如果社区愿意接受产品的话就会真正地开启自己的Apache孵化之旅，也就是达到了图中最后一步的Podling。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1e2H.PVXXXXaNXpXXXXXXXXXX" alt></p>
+<p>下图中列举了目前RocketMQ在Apache社区的活跃度，其实从邮件列表中很容易直观地看出项目在社区的活跃状态。目前在Apache社区中最活跃的几个项目就是Hadoop、Spark以及Flink等，而且Hadoop和Spark的每月邮件列表的数量统计基本在400封到600封之间，目前RocketMQ的邮件列表里面每月邮件分发次数已经可以接近Hadoop和Spark的数字了，这里还是要感谢大家参与到RocketMQ的社区里面。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1FTfDPVXXXXbkaXXXXXXXXXXX" alt></p>
+<p>接下来还要分享一下Apache项目的组织结构。最上面是董事会，每个项目在Apache里面都有自己的PMC组织，也就是项目管理委员会，在项目管理委员会之下是Committer。而每个项目之间是独立分开的，如果你属于这个项目的PMC并不代表还会属于另外一个项目的PMC。而且在项目之下还会有多个子项目，正如刚才讲到的Apache的ActiveMQ是一个比较老牌的项目，在这个项目之下至少有4个子项目。而RocketMQ目前是一个孵化的项目，如果能够孵化成功就能够成为顶级的项目，也就是下图中标有PMC字样的框框。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1lK2IPVXXXXaBaXXXXXXXXXXX" alt></p>
+<p>下图是Apache社区对于开发者和贡献者的表彰。首先在开始时只会是某个项目的使用者，之后可能成为贡献者，接下来可能就会成为某个项目的Committer，如果希望能够参与这个项目未来的管理和规划当中，会需要努力地成为PMC Member，在这之上还会有Foundation Member，这也是最难达到境界。</p>
+<p><img src="https://yqfile.alicdn.com/0ec68f7809f9d82846fc0c518603f2ac98644f87.png" alt></p>
+<p>下图列出了几篇为大家推荐的文章，如果感兴趣的话可以仔细阅读和学习。另外，大家也看到了，中间件消息团队在做的事情有很多，非常需要一些优秀的同学加入，感兴趣的可以直接联系我。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1RHLyPVXXXXbsaXXXXXXXXXXX" alt></p>
+
+        <blockquote>
+          <p>企业级互联网架构Aliware，让您的业务能力云化：<a href="https://www.aliyun.com/aliware" target="_blank" rel="external">https://www.aliyun.com/aliware</a></p>
+        </blockquote>
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RocketMQ/" rel="tag">#RocketMQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/03/RocketMQ-future-idea/" rel="next" title="专访RocketMQ联合创始人：项目思路、技术细节和未来规划">
+                <i class="fa fa-chevron-left"></i> 专访RocketMQ联合创始人：项目思路、技术细节和未来规划
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/16/20170316/" rel="prev" title="如何快速实现一个基于Nginx的网站监控场景">
+                如何快速实现一个基于Nginx的网站监控场景 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/03/09/20170309/" data-title="Apache RocketMQ背后的设计思路与最佳实践" data-content data-url="http://jm.taobao.org/2017/03/09/20170309/">
+  <div class="ds-share-inline">
+    <ul class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/03/09/20170309/" data-title="Apache RocketMQ背后的设计思路与最佳实践" data-url="http://jm.taobao.org/2017/03/09/20170309/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/aliware.png" alt="阿里中间件">
+          <p class="site-author-name" itemprop="name">阿里中间件</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">454</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">203</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        <div class="links-of-blogroll motion-element">
+          
+            <div class="links-of-blogroll-title">友情链接</div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.aliyun.com/aliware" target="_blank">企业级互联网架构Aliware</a>
+                </li>
+              
+            </ul>
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、分布式消息领域的相关产品以及技术体系"><span class="nav-text">一、分布式消息领域的相关产品以及技术体系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、Apache-RocketMQ的发展历史、架构设计以及Aliware-MQ能够提供的高级特性"><span class="nav-text">二、Apache RocketMQ的发展历史、架构设计以及Aliware MQ能够提供的高级特性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ的发展历史"><span class="nav-text">RocketMQ的发展历史</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ的整体架构设计"><span class="nav-text">RocketMQ的整体架构设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、Apache-RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验"><span class="nav-text">三、Apache RocketMQ作为消息引擎的典型应用场景、最佳实践和RocketMQ服务端调优的经验</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四、对于Apache-RocketMQ-4-X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划"><span class="nav-text">四、对于Apache RocketMQ 4.X消息引擎的未来展望以及RocektMQ开源社区演进历史和发展规划</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">阿里中间件</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"aliware"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

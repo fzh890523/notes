@@ -23,7 +23,7 @@
 
   默认的`192.168.1.1`基本不可用，可以根据需要修改为dhcp或者其他静态地址。
   我这边因为这个接口后面做其他用途，所以先不改这个。
-  
+
   1. 新增网卡
 
   2. 启用 `ip link set eth1 up`
@@ -33,11 +33,16 @@
     ```sh
     # vim /etc/config/network
     # add content below:
-
+    
     config interface 'nat'
             option type 'bridge'
             option ifname 'eth1'
             option proto 'dhcp'
+            
+    config interface 'brg'
+            option type 'bridge'
+            option ifname 'eth2'
+            option proto 'dhcp'        
     ```
 
   4. 重启网络 `/etc/init.d/network restart`

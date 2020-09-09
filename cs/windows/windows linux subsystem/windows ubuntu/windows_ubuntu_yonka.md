@@ -28,11 +28,17 @@ Usage:
         Print usage information.
 ```
 
+
+
 ### 默认用户
 
 ```sh
 ubuntu.exe config --default-user ${user}
 ```
+
+
+
+可以指定root，应对某些case，比如其他用户的sodu无法使用（破坏了 `/etc/sudoers`文件等等）。
 
 
 
@@ -47,43 +53,50 @@ sudo apt-get install ubuntu-desktop
 
 
 
-## 存储
+## 服务
 
 
 
-### 磁盘/分区挂载
+### sshd
 
 
 
-> DrvFs now allows you to mount external drives like USB sticks, CDs, and DVDs. These devices must use a Windows file system like NTFS, [ReFS](https://www.howtogeek.com/311840/what-is-refs-the-resilient-file-system-on-windows/), or [FAT](https://www.howtogeek.com/235596/whats-the-difference-between-fat32-exfat-and-ntfs/). You still can’t mount devices formatted with a [Linux file system](https://www.howtogeek.com/howto/33552/htg-explains-which-linux-file-system-should-you-choose/) like ext3 or ext4.
+默认不开启，也没有systemd来管理，so...
 
-
+hack的方法：
 
 ```sh
-# mount
-$ sudo mkdir /mnt/d
-$ sudo mount -t drvfs D: /mnt/d
-
-# unmount
-$ sudo umount /mnt/d
-
-# mount network drive/share
-$ sudo mount -t drvfs '\\server\share' /mnt/share
+# ~/.profile里
+pgrep sshd || sudo service ssh start
 ```
 
 
 
+对于zsh
+
+```sh
+# ~/.zprofile里
+emulate sh
+. ~/.profile
+emulate zsh
+```
 
 
 
+这样需要打开wsl ubuntu，如果想不打开的话：
+
+```bat
+# C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp 里加入 wsl_start_services.bat，内容如下
+wsl sudo service ssh start
+
+# 这个目录在运行里： shell:startup 或者 shell:commons startup 可以打开
+
+# 其他windows启动执行/调度执行机制也可以
+```
 
 
 
-
-
-
-
-
+wsl2似乎就不用这么迂回了。。。 不过需要windows版本升上去才能升
 
 
 

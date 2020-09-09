@@ -36,3 +36,28 @@ You can find more details [here](http://support.typora.io/Math/).
 
 
 
+#### examples
+
+
+
+* $$
+  Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj}
+  $$
+
+* $$
+  c[i]=\underset{j=1}{\overset{n}{arg}}
+  $$
+
+* 
+
+
+
+# 设置
+
+
+
+## inline match 同行公式
+
+
+
+需要单独开启，因为可能干扰正常的非数学公式内容的显示

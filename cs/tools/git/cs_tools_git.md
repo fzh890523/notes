@@ -1,3 +1,80 @@
+
+
+# config
+
+
+
+## file changes
+
+
+
+### ignore file mode changes
+
+https://stackoverflow.com/questions/1580596/how-do-i-make-git-ignore-file-mode-chmod-changes
+
+
+
+```
+git config core.fileMode false
+```
+
+From [git-config(1)](https://www.kernel.org/pub/software/scm/git/docs/git-config.html):
+
+> ```
+> core.fileMode
+>     Tells Git if the executable bit of files in the working tree
+>     is to be honored.
+> 
+>     Some filesystems lose the executable bit when a file that is
+>     marked as executable is checked out, or checks out a
+>     non-executable file with executable bit on. git-clone(1)
+>     or git-init(1) probe the filesystem to see if it handles the 
+>     executable bit correctly and this variable is automatically
+>     set as necessary.
+> 
+>     A repository, however, may be on a filesystem that handles
+>     the filemode correctly, and this variable is set to true when
+>     created, but later may be made accessible from another
+>     environment that loses the filemode (e.g. exporting ext4
+>     via CIFS mount, visiting a Cygwin created repository with Git
+>     for Windows or Eclipse). In such a case it may be necessary
+>     to set this variable to false. See git-update-index(1).
+> 
+>     The default is true (when core.filemode is not specified
+>     in the config file).
+> ```
+
+The `-c` flag can be used to set this option for one-off commands:
+
+```
+git -c core.fileMode=false diff
+```
+
+And the `--global` flag will make it be the default behavior for the logged in user.
+
+```
+git config --global core.fileMode false
+```
+
+Changes of the global setting won't be applied to existing repositories. Additionally, `git clone` and `git init` explicitly set `core.fileMode` to `true` in the repo config as discussed in [Git global core.fileMode false overridden locally on clone](https://stackoverflow.com/questions/30392318/git-global-core-filemode-false-overridden-locally-on-clone)
+
+**Warning**
+
+`core.fileMode` is not the best practice and should be used carefully. This setting only covers the executable bit of mode and never the read/write bits. In many cases you think you need this setting because you did something like `chmod -R 777`, making all your files executable. But in most projects **most files don't need and should not be executable for security reasons**.
+
+The proper way to solve this kind of situation is to handle folder and file permission separately, with something like:
+
+```sh
+find . -type d -exec chmod a+rwx {} \; # Make folders traversable and read/write
+find . -type f -exec chmod a+rw {} \;  # Make files read/write
+```
+
+If you do that, you'll never need to use `core.fileMode`, except in very rare environment.
+
+
+
+
+
 # branch
 
 

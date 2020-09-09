@@ -102,3 +102,97 @@
 
   
 
+
+
+### shell config
+
+
+
+* `~/.profile`
+
+  read by login shell，但是：
+
+  * This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login exists
+
+  * Zsh runs `~/.zprofile`, not `~/.profile`, when it is invoked as a login shell. The reason is that zsh has enough incompatibilities with standard shells to break scripts.
+
+    要使得zsh运行该文件的最简单方式：
+
+    ```sh
+    # 在 ~/.zprofile 中
+    emulate sh
+    . ~/.profile
+    emulate zsh
+    ```
+
+    还有一种更迂回的方式：
+
+    1. 设置`/bin/sh` 为login shell（这样会加载`~/.profile`）
+
+    2. 在该文件中加入 `export SHELL=/bin/zsh` （效果类似在其中 `exec zsh`）
+
+       有些终端不遵守`SHELL`，可能行为不一致
+
+  
+
+
+
+![/images/BashStartupFiles1.png](_pics/shell_yonka/BashStartupFiles1.png)
+
+
+
+https://medium.com/@rajsek/zsh-bash-startup-files-loading-order-bashrc-zshrc-etc-e30045652f2e
+
+
+
+```
+/bin/bash
+       The bash executable
+/etc/profile
+       The systemwide initialization file, executed for login shells
+~/.bash_profile
+       The personal initialization file, executed for login shells
+~/.bashrc
+       The individual per-interactive-shell startup file
+~/.bash_logout
+       The individual login shell cleanup file, executed when a login shell exits
+~/.inputrc
+       Individual readline initialization file
+       
+       
++----------------+-----------+-----------+------+
+|                |Interactive|Interactive|Script|
+|                |login      |non-login  |      |
++----------------+-----------+-----------+------+
+|/etc/zshenv     |    A      |    A      |  A   |
++----------------+-----------+-----------+------+
+|~/.zshenv       |    B      |    B      |  B   |
++----------------+-----------+-----------+------+
+|/etc/zprofile   |    C      |           |      |
++----------------+-----------+-----------+------+
+|~/.zprofile     |    D      |           |      |
++----------------+-----------+-----------+------+
+|/etc/zshrc      |    E      |    C      |      |
++----------------+-----------+-----------+------+
+|~/.zshrc        |    F      |    D      |      |
++----------------+-----------+-----------+------+
+|/etc/zlogin     |    G      |           |      |
++----------------+-----------+-----------+------+
+|~/.zlogin       |    H      |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|                |           |           |      |
++----------------+-----------+-----------+------+
+|~/.zlogout      |    I      |           |      |
++----------------+-----------+-----------+------+
+|/etc/zlogout    |    J      |           |      |
++----------------+-----------+-----------+------+       
+```
+
+
+
+
+
+
+

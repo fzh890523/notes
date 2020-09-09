@@ -5,6 +5,10 @@ ref:
 
 * [如何在 Linux 上使用网络配置工具 Netplan](https://linux.cn/article-10095-1.html?pr)
 
+* [netplan.io/reference](https://netplan.io/reference/)
+
+
+
 
 
 [Netplan](https://netplan.io/) —— **抽象网络配置生成器** ，是一个用于配置 Linux 网络的简单工具。 通过 Netplan ，你只需用一个 YAML 文件描述每个网络接口需要配置成啥样即可。 根据这个配置描述， Netplan 便可帮你生成所有需要的配置，不管你选用的底层管理工具是啥。
@@ -187,10 +191,6 @@ netplan apply
 ```
 
 Only the command 'cloud-init clean' will regenerate the 50...yaml file, but I dont think you want that. That would reset everything, including hostname en machine-id (resulting in a new max-address and a new dhcp ip address).
-
-y
-
-
 
 
 

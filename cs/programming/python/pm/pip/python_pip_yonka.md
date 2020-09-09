@@ -16,8 +16,6 @@ pip search ${name}
 
 
 
-##
-
 ## install
 
 
@@ -35,6 +33,16 @@ pip install ${name}==${version}
 
 
 
+
+# 一些好用的库
+
+
+
+## 媒体
+
+
+
+### you-get 下载网络视频等媒体
 
 
 

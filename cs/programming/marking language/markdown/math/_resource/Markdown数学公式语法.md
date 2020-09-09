@@ -19,6 +19,18 @@
 2. 下标符号，符号：`_`，如：$x_1$
 3. 组合符号，符号：`{}`，如：${16}_{8}O{2+}_{2}$
 
+
+
+## 顶/底符号
+
+1. 顶部符号： `\overset`，如 $\overset{over}{text}$
+
+2. 底部符号： `\underset`，如 $\underset{under}{text}$
+
+   这两个可以组合使用，同时存在 顶和底
+
+
+
 ## 汉字、字体与格式
 
 1. 汉字形式，符号：`\mbox{}`，如：$V_{\mbox{初始}}$
@@ -28,6 +40,7 @@
 5. 上大括号，符号：`\overbrace{算式}`，如：$\overbrace{a+b+c+d}^{2.0}$
 6. 下大括号，符号：`\underbrace{算式}`，如：$a+\underbrace{b+c}_{1.0}+d$
 7. 上位符号，符号：`\stacrel{上位符号}{基位符号}`，如：$\vec{x}\stackrel{\mathrm{def}}{=}{x_1,\dots,x_n}$
+8. 加粗，符号 `\pmb`，如： $a\pmb{b}c$ 
 
 ## 占位符
 
