@@ -37,6 +37,48 @@ graph TD;
 
 
 
+```mermaid
+graph TD
+  A[Christmas] -->|Get money| B(Go shopping)
+  B --> C{Let me think}
+  C -->|One| D[Laptop]
+  C -->|Two| E[iPhone]
+  C -->|Three| F[fa:fa-car Car]
+```
+
+
+
+
+
+### 脑图（基于流程图，by yonka）
+
+ref：
+
+* ![](http://img.go0s.cn/summer/1586970265787.png)
+
+```mermaid
+graph LR
+style e fill:orange,color:white
+
+b(Java)
+c(Spring)
+f(Go)
+
+%%java
+a(Backend) --> b --> c
+b --> d(Hibernate)
+b --> e(Dubbo)
+
+%%go
+a --> f
+f --> g(Beego)
+
+```
+
+
+
+
+
 ### **时序图**
 
 语法解释：`->>` 代表实线箭头，`-->>` 则代表虚线。
@@ -45,6 +87,14 @@ graph TD;
 sequenceDiagram
     Alice->>John: Hello John, how are you?
     John-->>Alice: Great!
+```
+
+```mermaid
+sequenceDiagram
+    Alice->>+John: Hello John, how are you?
+    Alice->>+John: John, can you hear me?
+    John-->>-Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
 ```
 
 
@@ -57,6 +107,17 @@ sequenceDiagram
 stateDiagram
     [*] --> s1
     s1 --> [*]
+```
+
+```mermaid
+stateDiagram
+    [*] --> Still
+    Still --> [*]
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]
+            
 ```
 
 
@@ -126,6 +187,27 @@ pie
 
 
 
+### ER图
+
+```mermaid
+erDiagram
+          CUSTOMER }|..|{ DELIVERY-ADDRESS : has
+          CUSTOMER ||--o{ ORDER : places
+          CUSTOMER ||--o{ INVOICE : "liable for"
+          DELIVERY-ADDRESS ||--o{ ORDER : receives
+          INVOICE ||--|{ ORDER : covers
+          ORDER ||--|{ ORDER-ITEM : includes
+          PRODUCT-CATEGORY ||--|{ PRODUCT : contains
+          PRODUCT ||--o{ ORDER-ITEM : "ordered in"
+            
+```
+
+
+
+
+
+
+
 ### **导出**
 
 绘制好的图片可以选择菜单/文件/导出，导出为图片或者网页格式。在网页中图片是以 SVG 格式渲染的，你可以复制 SVG 内容，导入到 SVG 的图片编辑器中进一步操作。
@@ -151,4 +233,6 @@ Mermaid 官方有一个在线的工具，可以导出 SVG 和 PNG。
 [1] 
 
 Mermaid: *[https://mermaid-js.github.io/mermaid/#/](https://link.zhihu.com/?target=https%3A//mermaid-js.github.io/mermaid/%23/)*
+
+
 
