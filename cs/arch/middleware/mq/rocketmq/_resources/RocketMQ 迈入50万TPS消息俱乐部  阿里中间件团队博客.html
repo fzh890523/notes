@@ -1,0 +1,960 @@
+
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="RocketMQ,">
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="阿里中间件团队博客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="前言消息团队一直致力于RocketMQ的性能优化，双十一前进行了低延时（毛刺）优化，保障了双十一万亿消息的流转如丝般顺滑，在2016年双十一种，MetaQ以接近万亿的消息总量支撑着全集团数千个应用，在系统解耦、削峰填谷、数据库同步、位点回滚消费等多种业务场景中，MetaQ都有精彩、稳定的表现。高可用低延迟，高并发抗堆积，2016双11的MetaQ真正做到了如丝般顺滑。 而最近通过对性能的持续优化，">
+<meta name="keywords" content="RocketMQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ 迈入50万TPS消息俱乐部">
+<meta property="og:url" content="http://jm.taobao.org/2017/03/23/20170323/index.html">
+<meta property="og:site_name" content="阿里中间件团队博客">
+<meta property="og:description" content="前言消息团队一直致力于RocketMQ的性能优化，双十一前进行了低延时（毛刺）优化，保障了双十一万亿消息的流转如丝般顺滑，在2016年双十一种，MetaQ以接近万亿的消息总量支撑着全集团数千个应用，在系统解耦、削峰填谷、数据库同步、位点回滚消费等多种业务场景中，MetaQ都有精彩、稳定的表现。高可用低延迟，高并发抗堆积，2016双11的MetaQ真正做到了如丝般顺滑。 而最近通过对性能的持续优化，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1ZJY8QXXXXXazXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1_2z3QXXXXXaRXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1XVzJQXXXXXbfaXXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Z6H.QXXXXXXmXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1p7DwQXXXXXbgapXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1C4v5QXXXXXawXpXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Pvn4QXXXXXX9XFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB11sYSQXXXXXaWXVXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1Pd2WQXXXXXbPXFXXXXXXXXXX">
+<meta property="og:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1lzLvQXXXXXaiaFXXXXXXXXXX">
+<meta property="og:updated_time" content="2019-04-01T02:49:53.682Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RocketMQ 迈入50万TPS消息俱乐部">
+<meta name="twitter:description" content="前言消息团队一直致力于RocketMQ的性能优化，双十一前进行了低延时（毛刺）优化，保障了双十一万亿消息的流转如丝般顺滑，在2016年双十一种，MetaQ以接近万亿的消息总量支撑着全集团数千个应用，在系统解耦、削峰填谷、数据库同步、位点回滚消费等多种业务场景中，MetaQ都有精彩、稳定的表现。高可用低延迟，高并发抗堆积，2016双11的MetaQ真正做到了如丝般顺滑。 而最近通过对性能的持续优化，">
+<meta name="twitter:image" content="http://img3.tbcdn.cn/5476e8b07b923/TB1ZJY8QXXXXXazXpXXXXXXXXXX">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> RocketMQ 迈入50万TPS消息俱乐部 | 阿里中间件团队博客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?61b03a33c851aa3649c77f43702743b3";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title"><i class="iconfont icon-aliware"></i> 阿里中间件团队博客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">致力于成为中国第一，世界一流的中间件技术团队</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-hire">
+          <a href="/hire" rel="section">
+            
+              <i class="menu-item-icon fa fa-fire fa-fw"></i> <br>
+            
+            招聘
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-users fa-fw"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                RocketMQ 迈入50万TPS消息俱乐部
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-03-23T10:13:50+08:00" content="2017-03-23">
+              2017-03-23
+            </time>
+          </span>
+
+          
+          <span class="post-time">
+            &nbsp; | &nbsp;
+            <span class="post-meta-item-text">
+              作者 &nbsp;
+            </span>
+            
+              
+                尘央 
+              &nbsp;
+            
+          </span>
+          
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/消息中间件/" itemprop="url" rel="index">
+                    <span itemprop="name">消息中间件</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/23/20170323/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/03/23/20170323/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>消息团队一直致力于RocketMQ的性能优化，双十一前进行了低延时（毛刺）优化，保障了双十一万亿消息的流转如丝般顺滑，在2016年双十一种，MetaQ以接近万亿的消息总量支撑着全集团数千个应用，在系统解耦、削峰填谷、数据库同步、位点回滚消费等多种业务场景中，MetaQ都有精彩、稳定的表现。高可用低延迟，高并发抗堆积，2016双11的MetaQ真正做到了如丝般顺滑。</p>
+<p>而最近通过对性能的持续优化，在RocketMQ最新的中小消息TPS已达47万，本人在F43机型上自测时TPS峰值为57万TPS，所以取了这么一个标题。</p>
+<a id="more"></a>
+<h2 id="RocketMQ高性能优化探索"><a href="#RocketMQ高性能优化探索" class="headerlink" title="RocketMQ高性能优化探索"></a>RocketMQ高性能优化探索</h2><p>本章节简单介绍下在优化RocketMQ过程中用到的方法和技巧。部分方法在消息领域提升不明显却带来了编码和运维的复杂度，这类方法虽然最终没有利用起来，也在下面做了介绍供大家参考。</p>
+<h3 id="Java篇"><a href="#Java篇" class="headerlink" title="Java篇"></a>Java篇</h3><p>在接触到内核层面的性能优化之前，Java层面的优化需要先做起来。有时候灵机一动的优化方法需要实现Java程序来进行测试，注意测试的时候需要在排除其他干扰的同时充分利用JVM的预热(JIT)特性。推荐使OpenJDK开发的基准测试(Benchmark)工具<a href="http://hg.openjdk.java.net/code-tools/jmh" target="_blank" rel="noopener">JMH</a>。</p>
+<h4 id="JVM停顿"><a href="#JVM停顿" class="headerlink" title="JVM停顿"></a>JVM停顿</h4><p>影响Java应用性能的头号大敌便是JVM停顿，说起停顿，大家耳熟能详的便是GC阶段的STW(Stop the World)，除了GC，还有很多其他原因，如下图所示。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1ZJY8QXXXXXazXpXXXXXXXXXX" alt></p>
+<p>当怀疑我们的Java应用受停顿影响较大时，首先需要找出停顿的类型，下面一组JVM参数可以输出详细的安全点信息：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">-XX:+LogVMOutput -XX:LogFile=/dev/shm/vm.log </span><br><span class="line">-XX:+PrintGCApplicationStoppedTime -XX:+PrintSafepointStatistics  </span><br><span class="line">-XX:PrintSafepointStatisticsCount=<span class="number">1</span> -XX:+PrintGCApplicationConcurrentTime</span><br></pre></td></tr></table></figure>
+<p>在RocketMQ的性能测试中，发现存在大量的RevokeBias停顿，偏向锁主要是消除无竞争情况下的同步原语以提高性能，但考虑到RocketMQ中该场景比较少，便通过-XX:-UseBiasedLocking关闭了偏向锁特性。</p>
+<p>停顿有时候会让我们的StopWatch变得很不精确，有一段时间经常被StopWatch误导，观察到一段代码耗时异常，结果花时间去优化也没效果，其实不是这段代码耗时，只是在执行这段代码时发生了停顿。停顿和动态编译往往是性能测试的两大陷阱。</p>
+<h4 id="GC"><a href="#GC" class="headerlink" title="GC"></a>GC</h4><p>GC将Java程序员从内存管理中解救了出来，但也对开发低延时的Java应用带来了更多的挑战。对GC的优化个人认为是一项调整参数的工作，垃圾收集方面最值得关注的两个性能属性为吞吐量和延迟，对GC进行优化往往是寻求吞吐量和延迟上的折衷，没办法鱼和熊掌兼得。</p>
+<p>RocketMQ通过GC调优后最终采取的GC参数如下所示，供大家参考。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">-server -Xms8g -Xmx8g -Xmn4g</span><br><span class="line">-XX:+UseG1GC -XX:G1HeapRegionSize=<span class="number">16</span>m -XX:G1ReservePercent=<span class="number">25</span> </span><br><span class="line">-XX:InitiatingHeapOccupancyPercent=<span class="number">30</span> -XX:SoftRefLRUPolicyMSPerMB=<span class="number">0</span> </span><br><span class="line">-XX:SurvivorRatio=<span class="number">8</span> -XX:+DisableExplicitGC</span><br><span class="line">-verbose:gc -Xloggc:/dev/shm/mq_gc_%p.log -XX:+PrintGCDetails </span><br><span class="line">-XX:+PrintGCDateStamps -XX:+PrintGCApplicationStoppedTime</span><br><span class="line">-XX:+PrintAdaptiveSizePolicy</span><br><span class="line">-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=<span class="number">5</span> -XX:GCLogFileSize=<span class="number">30</span>m</span><br></pre></td></tr></table></figure>
+<p>可以看出，我们最终全部切换到了G1，16年双十一线上MetaQ集群采用的也是这一组参数，基本上GC时间能控制在20ms以内（一些超大的共享集群除外）。</p>
+<p>对于G1，官方推荐使用该-XX:MaxGCPauseMillis设置目标暂停时间，不要手动指定-Xmn和-XX:NewRatio，但我们在实测中发现，如果指定过小的目标停顿时间(10ms)，G1会将新生代调整为很小，导致YGC更加频繁，老年代用得更快，所有还是手动指定了-Xmn为4g，在GC频率不高的情况下完成了10ms的目标停顿时间，这里也说明有时候一些通用的调优经验并不适用于所有的产品场景，需要更多的测试才能找到最合适的调优方法，往往需要另辟蹊径。</p>
+<p>同时也分享下我们在使用CMS时遇到的一个坑，-XX:UseConcMarkSweepGC在使用CMS收集器的同时默认在新生代使用ParNew， ParNew并行收集垃圾使用的线程数默认值更机器cpu数(&lt;8时)或者8+(ncpus-8)*5/8，大量垃圾收集线程同时运行会带来大量的停顿导致毛刺，可以使用-XX:ParallelGCThreads指定并行线程数。</p>
+<p>还有避免使用<code>finalize()</code>方法来进行资源回收，除了不靠谱以为，会加重GC的压力，原因就不赘述了。</p>
+<p>另外，我们也尝试了Azul公司的商业虚拟机<a href="https://www.azul.com/products/zing/" target="_blank" rel="noopener">Zing</a>，Zing采用了C4垃圾收集器，但Zing的长处在于GC的停顿时间不随堆的增长而变长，特别适合于超大堆的应用场景，但RocketMQ使用的堆其实较小，大多数的内存需要留给PageCache，所以没有采用Zing。我这里有一份MetaQ在Zing下的测试报告，感兴趣的可以联系我，性能确实不错。</p>
+<h4 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h4><p>Java应用里面总会有各式各样的线程池，运用线程池最需要考虑的两个因素便是：</p>
+<ol>
+<li>线程池的个数，避免设置过多或过少的线程池数，过少会导致CPU资源利用率不够吞吐量低，过多的线程池会带来更多的同步原语、上下文切换、调度等方面的性能损失。</li>
+<li>线程池的划分，需要根据具体的业务或者模块做详细的规划，线程池往往也起到了资源隔离的作用，RocketMQ中曾有一个重要模块和一个非重要模块共享一个线程池，在去年双十一的压测中，非重要模块因压力大占据了大部分的线程池资源，导致重要模块的业务发生饥饿，最终导致了无法恢复的密集FGC。</li>
+</ol>
+<p>关于线程池个数的设置，可以参考《<a href="http://jcip.net/" target="_blank" rel="noopener">Java Concurrency in Practice</a>》一书中的介绍：</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1_2z3QXXXXXaRXFXXXXXXXXXX" alt></p>
+<p>需要注意的是，增加线程数并非提升性能的万能药，且不说多线程带来的额外性能损耗，大多数业务本质上都是串行的，由一系列并行工作和串行工作组合而成，我们需要对其进行合适的切分，找出潜在的并行能力。并发是不能突破串行的限制，需遵循<a href="https://en.wikipedia.org/wiki/Amdahl%27s_law" target="_blank" rel="noopener">Amdahl 定律</a>。</p>
+<p>如果线程数设置不合理或者线程池划分不合理，可能会观察到虚假竞争，CPU资源利用不高的同时业务吞吐量也上不去。这种情况也很难通过性能分析工具找出瓶颈，需要对线程模型仔细分析，找出不合理和短板的地方。</p>
+<p>事实上，对RocketMQ现存的线程模型进行梳理后，发现了一些不合理的线程数设置，通过对其调优，带来的性能提升非常可观。</p>
+<h3 id="CPU篇"><a href="#CPU篇" class="headerlink" title="CPU篇"></a>CPU篇</h3><p>CPU方面的调优尝试，主要在于亲和性和NUMA。</p>
+<h4 id="CPU亲和性"><a href="#CPU亲和性" class="headerlink" title="CPU亲和性"></a>CPU亲和性</h4><p>CPU亲和性是一种调度属性，可以将一个线程”绑定” 到某个CPU上，避免其在处理器之间频繁迁移。有一篇IBM的技术文章介绍得比较详细，<a href="http://www.ibm.com/developerworks/cn/linux/l-affinity.html" target="_blank" rel="noopener">可供参考</a>。</p>
+<p>同时，有一个开源的Java库可以支持在Java语言层面调用API完成CPU亲和性绑定。参见<a href="https://github.com/OpenHFT/Java-Thread-Affinity" target="_blank" rel="noopener">Java-Thread-Affinity</a>。该库给出了Thread如何绑定CPU，如果需要对线程池里面的线程进行CPU绑定，可以自定义ThreadFactory来完成。</p>
+<p>我们通过对RocketMQ中核心线程进行CPU绑定发现效果不明显，考虑到会引入第三方库便放弃了此方法。推测效果不明显的原因是我们在核心链路上已经使用了无锁编程，避免上下文切换带来的毛刺现象。</p>
+<p>上下文切换确实是比较耗时的，同时也具有毛刺现象，下图是我们通过LockSupport.unpark/park来模拟上下文切换的测试，可以看出切换平均耗时是微妙级，但偶尔也会出现毫秒级的毛刺。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1XVzJQXXXXXbfaXXXXXXXXXXX" alt></p>
+<p>通过Perf也观察到unpark/park也确实能产生上下文切换。<br><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Z6H.QXXXXXXmXpXXXXXXXXXX" alt></p>
+<p>此外有一个内核配置项isolcpus，可以将一组CPU在系统中孤立出来，默认是不会被使用的，该参数在GRUB中配置重启即可。CPU被隔离出来后可以通过CPU亲和性绑定或者taskset/numactl来分配任务到这些CPU以达到最优性能的效果。</p>
+<h4 id="NUMA"><a href="#NUMA" class="headerlink" title="NUMA"></a>NUMA</h4><p>对于NUMA，大家的态度是褒贬不一，在数据库的场景忠告一般是关掉NUMA，但通过了解了NUMA的原理，觉得理论上NUMA对RocketMQ的性能提升是有帮助的。</p>
+<p>前文提到了并发的调优是不能突破Amdahl 定律的，总会有串行的部分形成短板，对于CPU来讲也是同样的道理。随着CPU的核数越来越多，但CPU的利用率却越来越低，在64核的物理机上，RocketMQ只能跑到2500%左右。这是因为，所有的CPU都需要通过北桥来读取内存，对于CPU来说内存是共享的，这里的内存访问便是短板所在。为了解决这个短板，NUMA架构的CPU应运而生。</p>
+<p>如下图所示，是两个NUMA节点的架构图，每个NUMA节点有自己的本地内存，整个系统的内存分布在NUMA节点的内部，某NUMA节点访问本地内存的速度(Local Access)比访问其它节点内存的速度(Remote Access)快三倍&lt;忘记该数据的出处了⊙▽⊙&gt;。<br><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1p7DwQXXXXXbgapXXXXXXXXXX" alt></p>
+<p>RocketMQ通过在NUMA架构上的测试发现有20%的性能提升，还是比较可观的。特别是线上物理机大都支持NUMA架构，对于两个节点的双路CPU，可以考虑按NUMA的物理划分虚拟出两个Docker进行RocketMQ部署，最大化机器的性能价值。</p>
+<p>感兴趣的同学可以测试下NUMA对自家应用的性能影响，集团机器都从BIOS层面关闭了NUMA，如果需要测试，按如下步骤打开NUMA即可：</p>
+<ol>
+<li><p>打开BIOS开关：</p>
+<p>打开方式跟服务器相关。</p>
+</li>
+<li><p>在GRUB中配置开启NUMA</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vi /boot/grub/grub.conf</span><br><span class="line">添加boot参数：numa=on</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启</p>
+</li>
+<li><p>查看numa node个数</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">numactl --hardware</span><br><span class="line">如果看到了&gt;1个节点，即为支持NUMA</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="内存篇"><a href="#内存篇" class="headerlink" title="内存篇"></a>内存篇</h3><p>可以将Linux内存分为以下三类：<br><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1C4v5QXXXXXawXpXXXXXXXXXX" alt></p>
+<p>《如丝般顺滑—METAQ2016双11总结》一文中比较详细地介绍了访存过程中需要注意的地方，同时给出了消除访问匿名内存和PageCache的方法。本章节介绍一些其它需要注意的地方。</p>
+<h4 id="页错误"><a href="#页错误" class="headerlink" title="页错误"></a>页错误</h4><p>我们知道，为了使用更多的内存地址空间切更加有效地管理存储器，操作系统提供了一种对主存的抽象概念——虚拟存储器(VM)，有了虚拟存储器，就必然需要有从虚拟到物理的寻址。进程在分配内存时，实际上是通过VM系统分配了一系列虚拟页，此时并未涉及到真正的物理页的分配。当进程真正地开始访问虚拟内存时，如果没有对应的物理页则会触发缺页异常，然后调用内核中的缺页异常处理程序进行的内存回收和分配。</p>
+<p>页错误分为两种：</p>
+<ol>
+<li>Major Fault, 当需要访问的内存被swap到磁盘上了，这个时候首先需要分配一块内存，然后进行disk io将磁盘上的内容读回道内存中，这是一系列代价比较昂贵的操作。</li>
+<li>Minor Fault, 常见的页错误，只涉及页分配。</li>
+</ol>
+<p>为了提高访存的高效性，需要观察进程的页错误信息，以下命令都可以达到该目的：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1. ps -o min_flt,maj_flt &lt;PID&gt;</span><br><span class="line">2. sar -B</span><br></pre></td></tr></table></figure>
+<p>如果观察到Major Fault比较高，首先要确认系统参数<code>vm.swappiness</code>是否设置恰当，建议在机器内存充足的情况下，设置一个较小的值(0或者1)，来告诉内核尽可能地不要利用磁盘上的swap区域，0和1的选择原则如下：</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Pvn4QXXXXXX9XFXXXXXXXXXX" alt></p>
+<p>切记不要在2.6.32以后设置为0，这样会导致内核关闭swap特性，内存不足时不惜OOM也不会发生swap，前端时间也碰到过因swap设置不当导致的故障。</p>
+<p>另一方面，避免触发页错误，内存频繁的换入换出，还有以下手段可以采用：</p>
+<ol>
+<li>-XX:+AlwaysPreTouch，顾名思义，该参数为让JVM启动时将所有的内存访问一遍，达到启动后所有内存到位的目的，避免页错误。</li>
+<li>对于我们自行分配的堆外内存，或者mmap从文件映射的内存，我们可以自行对内存进行预热，有以下四种预热手段，第一种不可取，后两种是最快的。<br><img src="http://img3.tbcdn.cn/5476e8b07b923/TB11sYSQXXXXXaWXVXXXXXXXXXX" alt></li>
+<li><p>即使对内存进行了预热，当内存不够时，后续还是会有一定的概率被换出，如果希望某一段内存一直常驻，可以通过mlock/mlockall系统调用来将内存锁住，推荐使用JNA来调用这两个接口。不过需要注意的是内核一般不允许锁定大量的内存，可通过以下命令来增加可锁定内存的上限。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo '* hard memlock      unlimited' &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo '* soft memlock      unlimited' &gt;&gt; /etc/security/limits.conf</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="Huge-Page"><a href="#Huge-Page" class="headerlink" title="Huge Page"></a>Huge Page</h4><p>大家都知道，操作系统的内存4k为一页，前文说到Linux有虚拟存储器，那么必然需要有页表(Page Table)来存储物理页和虚拟页之间的映射关系，CPU访问存时首先查找页表来找到物理页，然后进行访存，为了提高寻址的速度，CPU里有一块高速缓存名为ranslation Lookaside Buffer (TLB)，包含部分的页表信息，用于快速实现虚拟地址到物理地址的转换。</p>
+<p>但TLB大小是固定的，只能存下小部分页表信息，对于超大页表的加速效果一般，对于4K内存页，如果分配了10GB的内存，那么页表会有两百多万个Entry，TLB是远远放不下这么多Entry的。可通过<code>cpuid</code>查询TLB Entry的个数，4K的Entry一般仅有上千个，加速效果有限。</p>
+<p>为了提高TLB的命中率，大多数CPU支持大页，大页分为2MB和1GB，1GB大页是超大内存的不二选择，可通过<code>grep pdpe1gb /proc/cpuinfo | uniq</code>查看CPU是否支持1GB的大页。</p>
+<p>开启大页需要配置内核启动参数，<code>hugepagesz=1GB hugepages=10</code>，设置大页数量可通过内核启动参数hugepages或者/proc/sys/vm/nr_hugepages进行设置。</p>
+<p>内核开启大页过后，Java应用程序使用大页有以下方法：</p>
+<ul>
+<li>对于堆内存，有JVM参数可以用：-XX:+UseLargePages</li>
+<li>如果需要堆外内存，可以通过mount挂载hugetlbfs，<code>mount -t hugetlbfs hugetlbfs /hugepages</code>，然后通过mmap分配大页内存。</li>
+</ul>
+<p>可以看出使用大页比较繁琐的，Linux提供透明超大页面 (THP)。THP 是可自动创建、管理和使用超大页面。可通过修改文件<code>/sys/kernel/mm/transparent_hugepage/enabled</code>来关闭或者打开THP。</p>
+<p>但大页有一个弊端，如果内存压力大，需要换出时，大页会先拆分成小页进行换出，需要换入时再合并为大页，该过程会加重CPU的压力。LinkedIn有位工程师有一个比较有趣的尝试，在内存压力小的时候启用THP，在内存压力大的时候关闭THP，通过这种动态调整达到最优性能，可以看看他的论文：<a href="https://drive.google.com/file/d/0B6ezBSY-K72zUVVDMzZUb1RrY0k/edit" target="_blank" rel="noopener">Ensuring High-performance of Mission-critical Java Applications in Multi-tenant Cloud Platforms</a>。</p>
+<h3 id="网卡篇"><a href="#网卡篇" class="headerlink" title="网卡篇"></a>网卡篇</h3><p>网卡性能诊断工具是比较多的，有ethtool, ip, dropwatch, netstat等，RocketMQ尝试了网卡中断和中断聚合两方面的优化手段。</p>
+<h4 id="网卡中断"><a href="#网卡中断" class="headerlink" title="网卡中断"></a>网卡中断</h4><p>这方面的优化首先便是要考虑是否需要关闭irqbalance，它用于优化中断分配，通过自动收集系统数据来进行中断负载，同时还会综合考虑节能等因素。但irqbalance有个缺点是会导致中断自动漂移，造成不稳定的现象，在高性能的场合建议关闭。</p>
+<p>关闭irqbalance后，需要对网卡的所有队列进行CPU绑定，目前的网卡都是由多队列组成，如果所有队列的中断仅有一个CPU进行处理，难以利用多核的优势，所以可以对这些网卡队列进行CPU一一绑定。</p>
+<p>这部分优化对RocketMQ的小消息性能提升有很大的帮助。</p>
+<h4 id="中断聚合"><a href="#中断聚合" class="headerlink" title="中断聚合"></a>中断聚合</h4><p>中断聚合的思想类似于Group Commit，避免每一帧的到来都触发一次中断，RocketMQ在跑到最大性能时，每秒会触发近20000次的中断，如果可以聚合一部分，对性能还是有一定的提升的。</p>
+<p>可以通过ethtool设置网卡的rx-frames-irq和rx-usecs参数来决定凑齐多少帧或者多少时间过后才触发一次中断，需要注意的是中断聚合会带来一定的延迟。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>目前RocketMQ最新的性能基准测试中，128字节小消息TPS已达47W，如下图所示：<br><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1Pd2WQXXXXXbPXFXXXXXXXXXX" alt></p>
+<p>高性能的RocketMQ可应用于更多的场景，能接管和替代Kafka更多的生态，同时可以更大程度上承受热点问题，在保持高性能的同时，RocketMQ在低延迟方面依然具有领先地位，如下图所示，RocketMQ仅有少量10～50ms的毛刺延迟，Kafka则有不少500～1s的毛刺。</p>
+<p><img src="http://img3.tbcdn.cn/5476e8b07b923/TB1lzLvQXXXXXaiaFXXXXXXXXXX" alt></p>
+<h2 id="广告时间"><a href="#广告时间" class="headerlink" title="广告时间"></a>广告时间</h2><p>RocketMQ目前正在Apache基金会孵化，募集开源爱好者共同参与进来，发展RocketMQ社区，为RocketMQ成为顶级项目添砖加瓦。</p>
+<ol>
+<li><a href="http://rocketmq.apache.org/" target="_blank" rel="noopener">http://rocketmq.apache.org/</a></li>
+<li><a href="https://github.com/apache/incubator-rocketmq/" target="_blank" rel="noopener">https://github.com/apache/incubator-rocketmq/</a></li>
+</ol>
+
+        <blockquote>
+          <p>企业级互联网架构Aliware，让您的业务能力云化：<a href="https://www.aliyun.com/aliware" target="_blank" rel="external">https://www.aliyun.com/aliware</a></p>
+        </blockquote>
+      
+    </div>
+    
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RocketMQ/" rel="tag">#RocketMQ</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/16/20170316/" rel="next" title="如何快速实现一个基于Nginx的网站监控场景">
+                <i class="fa fa-chevron-left"></i> 如何快速实现一个基于Nginx的网站监控场景
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/30/20170330/" rel="prev" title="全链路压测-大促备战核武器">
+                全链路压测-大促备战核武器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/03/23/20170323/" data-title="RocketMQ 迈入50万TPS消息俱乐部" data-content data-url="http://jm.taobao.org/2017/03/23/20170323/">
+  <div class="ds-share-inline">
+    <ul class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/03/23/20170323/" data-title="RocketMQ 迈入50万TPS消息俱乐部" data-url="http://jm.taobao.org/2017/03/23/20170323/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/aliware.png" alt="阿里中间件">
+          <p class="site-author-name" itemprop="name">阿里中间件</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">454</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">84</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">203</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        <div class="links-of-blogroll motion-element">
+          
+            <div class="links-of-blogroll-title">友情链接</div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.aliyun.com/aliware" target="_blank">企业级互联网架构Aliware</a>
+                </li>
+              
+            </ul>
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RocketMQ高性能优化探索"><span class="nav-number">2.</span> <span class="nav-text">RocketMQ高性能优化探索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java篇"><span class="nav-number">2.1.</span> <span class="nav-text">Java篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JVM停顿"><span class="nav-number">2.1.1.</span> <span class="nav-text">JVM停顿</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GC"><span class="nav-number">2.1.2.</span> <span class="nav-text">GC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#线程池"><span class="nav-number">2.1.3.</span> <span class="nav-text">线程池</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU篇"><span class="nav-number">2.2.</span> <span class="nav-text">CPU篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU亲和性"><span class="nav-number">2.2.1.</span> <span class="nav-text">CPU亲和性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NUMA"><span class="nav-number">2.2.2.</span> <span class="nav-text">NUMA</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存篇"><span class="nav-number">2.3.</span> <span class="nav-text">内存篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#页错误"><span class="nav-number">2.3.1.</span> <span class="nav-text">页错误</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Huge-Page"><span class="nav-number">2.3.2.</span> <span class="nav-text">Huge Page</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网卡篇"><span class="nav-number">2.4.</span> <span class="nav-text">网卡篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#网卡中断"><span class="nav-number">2.4.1.</span> <span class="nav-text">网卡中断</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中断聚合"><span class="nav-number">2.4.2.</span> <span class="nav-text">中断聚合</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#广告时间"><span class="nav-number">4.</span> <span class="nav-text">广告时间</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">阿里中间件</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"aliware"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+
+  
+
+  
+<script type="text/javascript" async src="//push.zhanzhang.baidu.com/push.js">
+</script>
+
+
+</body>
+</html>

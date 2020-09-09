@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8" />
+<title>C++ exception handling internals | An infinite monkey - Nicolas Brailovsky&#039;s blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="https://monoinfinito.wordpress.com/xmlrpc.php" />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel="alternate" type="application/rss+xml" title="An infinite monkey - Nicolas Brailovsky&#039;s blog &raquo; Feed" href="https://monoinfinito.wordpress.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="An infinite monkey - Nicolas Brailovsky&#039;s blog &raquo; Comments Feed" href="https://monoinfinito.wordpress.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="An infinite monkey - Nicolas Brailovsky&#039;s blog &raquo; C++ exception handling&nbsp;internals Comments Feed" href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+			<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s1.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1488818651h&ver=4.7.4"}};
+			!function(a,b,c){function d(a){var b,c,d,e,f=String.fromCharCode;if(!k||!k.fillText)return!1;switch(k.clearRect(0,0,j.width,j.height),k.textBaseline="top",k.font="600 32px Arial",a){case"flag":return k.fillText(f(55356,56826,55356,56819),0,0),!(j.toDataURL().length<3e3)&&(k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57331,65039,8205,55356,57096),0,0),b=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55356,57331,55356,57096),0,0),c=j.toDataURL(),b!==c);case"emoji4":return k.fillText(f(55357,56425,55356,57341,8205,55357,56507),0,0),d=j.toDataURL(),k.clearRect(0,0,j.width,j.height),k.fillText(f(55357,56425,55356,57341,55357,56507),0,0),e=j.toDataURL(),d!==e}return!1}function e(a){var c=b.createElement("script");c.src=a,c.defer=c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i,j=b.createElement("canvas"),k=j.getContext&&j.getContext("2d");for(i=Array("flag","emoji4"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel='stylesheet' id='all-css-0-1' href='https://s1.wp.com/_static/??-eJx9jtEOgjAMRX/I2qBo5MH4LWM2Mli3hm4h/D1D4osaXpr25pzc4iRgY0gUEnIG8fnlguIkNjIoO0/z13W0qgf8r3k3kGJPSYwd4H3t4TaOVHIWk1aC6ekMeeKC7Wks14+1rl3p2q3Z3m9bGUkVymSXGVJXin69LUbJLVpPJkAXmVDT7GllH3yv6ktzqqvmfOsXHoN2cA==' type='text/css' media='all' />
+<!--[if IE]>
+<link rel='stylesheet' id='cleanhome-ie-css'  href='https://s0.wp.com/wp-content/themes/pub/clean-home/ie.css?m=1291819101h&#038;ver=4.7.4' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='all-css-2-1' href='https://s2.wp.com/_static/??-eJx9jNEKwjAMRX/IGAYV9UH8li7ELpImZe0Y+3srgswX3+7lnnNxLUBuja1hmzhzxbKMSMrRYPLMKEZY26YMayHPR6r1gILmTbpYv+Ez7O7yAkWXJJ1J7KBOsYnbT4GHRpn/qTOP6qnHhJ3a1bd0z7chnK4hXM5DeL4As8dLTQ==' type='text/css' media='all' />
+<link rel='stylesheet' id='print-css-3-1' href='https://s0.wp.com/wp-content/mu-plugins/global-print/global-print.css?m=1465851035h' type='text/css' media='print' />
+<link rel='stylesheet' id='all-css-4-1' href='https://s2.wp.com/_static/??-eJx9i9EKwjAMRX/IGoVN54P4LVnp2kialCbD3xcfRGTi0z0XzoFHC1HFkzjUNTReM4kBRieVGfuH9tFsB7/1puZhYaQOVrCT5Pf+q0wjIQfWrN9nE3lJNRmUATLrjPwSbvV6HC6H83Qap/H+BMWZScE=' type='text/css' media='all' />
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJyFztEKwjAMBdAfsquTiXsRv6XWOFKXtDbphn69HeiDMBQCgdzDJXZOBtmP5QJiQ517gfx4rybIxv4ChnDITqEh5A/2kRVYF0vxjCOYIpDdUG+16BpXXIqiBCIVraTfLyFPCPNfFkCT8zeTQfC5tJ7o2Hb9Yde3+24bXjRNW9I='></script>
+<link rel='stylesheet' id='all-css-0-2' href='https://s1.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1377793621h' type='text/css' media='all' />
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='https://s1.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563h&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://monoinfinito.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/" />
+<link rel='shortlink' href='http://wp.me/P2Hgwx-zR' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&amp;url=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&amp;url=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="C++ exception handling internals" />
+<meta property="og:url" content="https://monoinfinito.wordpress.com/series/exception-handling-in-c/" />
+<meta property="og:description" content="C++ exceptions under the hood Everyone knows that good exception handling is hard. Reasons for this abound, in every single layer of an exception &#8220;lifetime&#8221;: it&#8217;s hard to write ex…" />
+<meta property="article:published_time" content="2012-12-31T13:16:05+00:00" />
+<meta property="article:modified_time" content="2016-08-12T14:59:42+00:00" />
+<meta property="og:site_name" content="An infinite monkey - Nicolas Brailovsky&#039;s blog" />
+<meta property="og:image" content="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=640" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:site" content="@NicolasBrailo" />
+<meta name="twitter:image" content="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=240" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:creator" content="@NicolasBrailo" />
+<meta property="fb:app_id" content="249643311490" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<link rel="shortcut icon" type="image/x-icon" href="https://s2.wp.com/i/favicon.ico" sizes="16x16 24x24 32x32 48x48" />
+<link rel="icon" type="image/x-icon" href="https://s2.wp.com/i/favicon.ico" sizes="16x16 24x24 32x32 48x48" />
+<link rel="apple-touch-icon-precomposed" href="https://s0.wp.com/i/webclip.png" />
+<link rel='openid.server' href='https://monoinfinito.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://monoinfinito.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://monoinfinito.wordpress.com/osd.xml" title="An infinite monkey - Nicolas Brailovsky&#039;s blog" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+<meta name="theme-color" content="#2d2d2d" />
+		<style type="text/css">
+			.recentcomments a {
+				display: inline !important;
+				padding: 0 !important;
+				margin: 0 !important;
+			}
+
+			table.recentcommentsavatartop img.avatar, table.recentcommentsavatarend img.avatar {
+				border: 0px;
+				margin: 0;
+			}
+
+			table.recentcommentsavatartop a, table.recentcommentsavatarend a {
+				border: 0px !important;
+				background-color: transparent !important;
+			}
+
+			td.recentcommentsavatarend, td.recentcommentsavatartop {
+				padding: 0px 0px 1px 0px;
+				margin: 0px;
+			}
+
+			td.recentcommentstextend {
+				border: none !important;
+				padding: 0px 0px 2px 10px;
+			}
+
+			.rtl td.recentcommentstextend {
+				padding: 0px 10px 2px 0px;
+			}
+
+			td.recentcommentstexttop {
+				border: none;
+				padding: 0px 0px 0px 10px;
+			}
+
+			.rtl td.recentcommentstexttop {
+				padding: 0px 10px 0px 0px;
+			}
+		</style>
+		<meta name="application-name" content="An infinite monkey - Nicolas Brailovsky&#039;s blog" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="&quot;Training a monkey would be easier&quot;" /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://monoinfinito.wordpress.com/feed/;icon-uri=https://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s2.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s2.wp.com/i/favicon.ico" /><meta name="title" content="C++ exception handling&nbsp;internals | An infinite monkey - Nicolas Brailovsky&#039;s blog on WordPress.com" />
+<meta name="description" content="C++ exceptions under the hood Everyone knows that good exception handling is hard. Reasons for this abound, in every single layer of an exception &quot;lifetime&quot;: it&#039;s hard to write exception safe code, an exception might be thrown from unexpected places (pun intended!), it&#039;s can be complicated to understand badly designed exception hierarchies, it&#039;s slow because&hellip;" />
+	<style type="text/css">
+			#logo h1 a,
+		#logo h2 {
+			color: #725900 !important;
+		}
+		</style>
+	<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #2d2d2d; }
+</style>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+</head>
+
+<body class="page-template-default page page-id-2223 page-child parent-pageid-1409 custom-background mp6 customizer-styles-applied color-light highlander-enabled highlander-light">
+
+<div id="wrapper">
+
+	<div class="header">
+		<div id="logo">
+		<h1><a href="https://monoinfinito.wordpress.com">An infinite monkey &#8211; Nicolas Brailovsky&#039;s blog</a></h1>
+		<h2>&quot;Training a monkey would be easier&quot;</h2>
+		</div>
+
+		<div id="nav">
+			<ul>
+	<li class="page_item page-item-2935"><a href="https://monoinfinito.wordpress.com/my-open-source-projects/">My open-source projects</a></li>
+<li class="page_item page-item-1409 page_item_has_children current_page_ancestor current_page_parent"><a href="https://monoinfinito.wordpress.com/series/">Series, articles and&nbsp;presentations</a></li>
+<li class="page_item page-item-2104"><a href="https://monoinfinito.wordpress.com/about-me/">About me</a></li>
+</ul>
+		</div>
+
+			</div>
+
+	
+	<div class="content">
+	
+		
+		<div class="post-2223 page type-page status-publish hentry" id="post-2223">
+			<h1>C++ exception handling&nbsp;internals</h1>
+			<small class="post-meta"></small>
+			<h2>C++ exceptions under the hood</h2>
+<p>Everyone knows that good exception handling is hard. Reasons for this abound, in every single layer of an exception &#8220;lifetime&#8221;: it&#8217;s hard to write exception safe code, an exception might be thrown from unexpected places (pun intended!), it&#8217;s can be complicated to understand badly designed exception hierarchies, it&#8217;s slow because a lot of voodoo is happening under the hood, it&#8217;s dangerous because improperly throwing an exception might call the unforgiving std::terminate. And although anyone who might have had to battle an &#8220;exceptional&#8221; program might know this, the reasons for this mess are not widespread knowledge.</p>
+<p>The first question we need to ask ourselves is then, how does it all work. This is the first article on a long series, in which I&#8217;ll be writing about how exceptions are implemented under the hood in c++ (actually, c++ compiled with gcc on x86 platforms but this might apply to other platforms too). On these articles the process of throwing and catching an exception will be explained with quite a lot of detail, but for the impatient people here is a small brief of all the articles that will follow: how is an exception thrown in gcc/x86:</p>
+<ol>
+<li>When we write a throw statement, the compiler will translate it into a pair of calls into libstdc++ functions that allocate the exception and then start the stack unwinding process by calling libstdc.</li>
+<li>For each catch statement, the compiler will write some special information after the method&#8217;s body, a table of exceptions this method can catch and a cleanup table (more on the cleanup table later).</li>
+<li>As the unwinder goes through the stack it will call a special function provided by libstdc++ (called personality routine) that checks for each function in the stack which exceptions can be caught.</li>
+<li> If no matching catch is found for the exception, std::terminate is called.</li>
+<li>If a matching catch is found, the unwinder now starts again on the top of the stack.</li>
+<li>As the unwinder goes through the stack a second time it will ask the personality routine to perform a cleanup for this method.</li>
+<li>The personality routine will check the cleanup table on the current method. If there are any cleanup actions to be run, it will &#8220;jump&#8221; into the current stack frame and run the cleanup code. This will run the destructor for each object allocated at the current scope.</li>
+<li>Once the unwinder reaches the frame in the stack that can handle the exception it will jump into the proper catch statement.</li>
+<li>Upon finishing the execution of the catch statement, a cleanup function will be called to release the memory held for the exception.</li>
+</ol>
+<p>This already looks quite complicated and we haven&#8217;t even started; that was but a short and inaccurate description of all the complexities needed to handle an exception.</p>
+<p>To learn about all the details that happen under the hood on the next article we will start to implement our own mini libstdlibc++. Not all of it though, only the part that handles exceptions. Actually not even all of that, only the bare minimum we need to make a simple throw/catch statement work. Some assembly will be needed, but nothing too fancy. A lot of patience will be required, I&#8217;m afraid.</p>
+<p>If you are too curious and want to start reading about exception handling implementation then you can start <a href="http://mentorembedded.github.com/cxx-abi/">here</a>, for a full specification of what we are going to implement on the next few articles. I&#8217;ll try to make these articles a bit more didactic and easier to follow though, so see you next time to start our ABI!</p>
+<h6>** Disclaimer note: I&#8217;m in no way versed on the magic going on when an exception is thrown. These series will be about trying to demystify the stuff going on under the hood and learning something in the process, and while I hope some of it will be correct I have no doubts there will be a lot of subtleties not quite right. Let me know if you think I should correct something **</h6>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: a tiny ABI</h2>
+<p>If we are going to try and understand why exceptions are complex and how do they work, we can either read a lot of manuals or we can try to write something to handle the exceptions ourselves. Actually, I was surprised by the lack of good information on this topic: pretty much everything I found is either incredibly detailed or very basic, with one exception or two. Of course there are some specifications to implement (most notably the <a href="http://mentorembedded.github.com/cxx-abi/">ABI for c++</a> but we also have <a href="http://www.logix.cz/michal/devel/gas-cfi/">CFI</a>, <a href="http://www.logix.cz/michal/devel/gas-cfi/dwarf-2.0.0.pdf">DWARF</a> and libstdc) but reading the specification alone is not enough to really learn what&#8217;s going on under the hood.</p>
+<p>Let&#8217;s start with the obvious then: wheel reinvention! We know for a fact that plain C doesn&#8217;t handle exceptions, so let&#8217;s try to link a throwing C++ program with a plain C linker and see what happens. I came up with something simple like this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &quot;throw.h&quot;
+extern &quot;C&quot; {
+    void seppuku() {
+        throw Exception();
+    }
+}
+</pre>
+<p>Don&#8217;t forget the extern stuff, otherwise g++ will helpfully mangle our little function&#8217;s name and we won&#8217;t be able to link it with our plain C program. Of course, we need a header file to &#8220;link&#8221; (no pun intended) the C++ world with the C world:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct Exception {};
+
+#ifdef __cplusplus
+extern &quot;C&quot; {
+#endif
+
+    void seppuku();
+
+#ifdef __cplusplus
+}
+#endif
+</pre>
+<p>And a very simple main:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &quot;throw.h&quot;
+
+int main()
+{
+    seppuku();
+    return 0;
+}
+</pre>
+<p>What happens now if we try to compile and link together this frankencode?</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+&gt; g++ -c -o throw.o -O0 -ggdb throw.cpp
+&gt; gcc -c -o main.o -O0 -ggdb main.c
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v01">in my github repo</a>.</p>
+<p>So far so good. Both g++ and gcc are happy in their little world. Chaos will ensue once we try to link them, though:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+&gt; gcc main.o throw.o -o app
+throw.o: In function `foo()':
+throw.cpp:4: undefined reference to `__cxa_allocate_exception'
+throw.cpp:4: undefined reference to `__cxa_throw'
+throw.o:(.rodata._ZTI9Exception[typeinfo for Exception]+0x0): undefined reference to `vtable for __cxxabiv1::__class_type_info'
+collect2: ld returned 1 exit status
+</pre>
+<p>And sure enough, gcc complains about missing C++ symbols. Those are very special C++ symbols, though. Check the last error line: a vtable for cxxabiv1 is missing. cxxabi, defined in libstdc++, refers to the application binary interface for C++. So now we have learned that the exception handling is done with some help of the standard C++ library with an interface defined by C++&#8217;s ABI.</p>
+<p>The C++ ABI defines a standard binary format so we can link objects together in a single program; if we compile a .o file with two different compilers, and those compilers use a different ABI, we won&#8217;t be able to link the .o objects into an application. The ABI will also define some other formats, like for example the interface to perform stack unwinding or the throwing of an exception. In this case, the ABI defines an interface (not necessarily a binary format, just an interface) between C++ and some other library in our program which will handle the stack unwinding, ie the ABI defines C++ specific stuff so it can talk to non-C++ libraries: this is what would enable exceptions thrown from other languages to be caught in C++, amongst other things.</p>
+<p>In any case, the linker errors are pointing us to the first layer into exception handling under the hood: an interface we&#8217;ll have to implement ourselves, the cxxabi. For the next article we&#8217;ll be starting our own mini ABI, as defined in the <a href="http://mentorembedded.github.com/cxx-abi/">C++ ABI</a>.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: an ABI to appease the linker</h2>
+<p>On our journey to understand exceptions we discovered that the heavy-lifting is done in libstdc++ as specified by the C++ ABI. Reading some linker errors we deduced last time that for handling exceptions we need help from the C++ ABI; we created a throwing C++ program, linked it together with a plain C program and found that the compiler somehow translated our throw instruction into something that is now calling a few libstd++ functions to actually throw an exception. Lost already? You can check the sourcode for this project so far <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v01">in my github repo</a>.</p>
+<p>Anyway, we want to understand exactly how an exception is thrown, so we will try to implement our own mini-ABI, capable of throwing an exception. To do this, a lot of <a href="http://mentorembedded.github.com/cxx-abi/abi-eh.html">RTFM</a> is needed, but a full ABI interface can be found <a href="http://libcxxabi.llvm.org/spec.html">here, for LLVM</a>. Let&#8217;s start by remembering what those missing functions are:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+&gt; gcc main.o throw.o -o app
+throw.o: In function `foo()':
+throw.cpp:4: undefined reference to `__cxa_allocate_exception'
+throw.cpp:4: undefined reference to `__cxa_throw'
+throw.o:(.rodata._ZTI9Exception[typeinfo for Exception]+0x0): undefined reference to `vtable for __cxxabiv1::__class_type_info'
+collect2: ld returned 1 exit status
+</pre>
+<h3>__cxa_allocate_exception</h3>
+<p>The name is quite self explanatory, I guess. <b>__cxa_allocate_exception</b> receives a size_t and allocates enough memory to hold the exception being thrown. There is more to this that what you would expect: when an exception is being thrown some magic will be happening with the stack, so allocating stuff here is not a good idea. Allocating memory on the heap might also not be a good idea, though, because we might have to throw if we&#8217;re out of memory. A static allocation is also not a good idea, since we need this to be thread safe (otherwise two throwing threads at the same time would equal disaster). Given these constraints, most implementations seem to allocate memory on a local thread storage (heap) but resort to an emergency storage (presumably static) if out of memory. We, of course, don&#8217;t want to worry about the ugly details so we can just have a static buffer if we want to.</p>
+<h3>__cxa_throw</h3>
+<p>The function doing all the throw-magic! According to the ABI reference, once the exception has been created <b>__cxa_throw</b> will be called. This function will be responsible of starting the stack unwinding. An important effect of this: <b>__cxa_throw</b> is never supposed to return. It either delegates execution to the correct catch block to handle the exception or calls (by default) <b>std::terminate</b>, but it never ever returns.</p>
+<h3>vtable for __cxxabiv1::__class_type_info</h3>
+<p>A weird one&#8230; __class_type_info is clearly some sort of RTTI, but what exactly? It&#8217;s not easy to answer this one now and it&#8217;s not terribly important for our mini ABI; we&#8217;ll leave it to an appendix for after we are done analyzing the process of throwing exceptions, for now let&#8217;s just say this is the entry point the ABI defines to know (in runtime) whether two types are the same or not. This is the function that gets called to determine whether a catch(Parent) can handle a throw Child. For now we&#8217;ll focus on the basics: we need to give it an address for the linker (ie defining it won&#8217;t be enough, we need to instantiate it) and it has to have a vtable (that is, it must have a virtual method).</p>
+<p>Lot&#8217;s of stuff happen on these functions, but let&#8217;s try to implement the simplest exception thrower possible: one that will call exit when an exception is thrown. Our application was almost OK but missing some ABI-stuff, so let&#8217;s create a mycppabi.cpp. Reading <a href="http://mentorembedded.github.com/cxx-abi/abi-eh.html">our ABI specification</a> we can figure out the signatures for <b>__cxa_allocate_exception</b> and <b>__cxa_throw</b>:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+namespace __cxxabiv1 {
+    struct __class_type_info {
+        virtual void foo() {}
+    } ti;
+}
+
+#define EXCEPTION_BUFF_SIZE 255
+char exception_buff[EXCEPTION_BUFF_SIZE];
+
+extern &quot;C&quot; {
+
+void* __cxa_allocate_exception(size_t thrown_size)
+{
+    printf(&quot;alloc ex %i\n&quot;, thrown_size);
+    if (thrown_size &gt; EXCEPTION_BUFF_SIZE) printf(&quot;Exception too big&quot;);
+    return &amp;exception_buff;
+}
+
+void __cxa_free_exception(void *thrown_exception);
+
+#include &lt;unwind.h&gt;
+void __cxa_throw(
+          void* thrown_exception,
+          struct type_info *tinfo,
+          void (*dest)(void*))
+{
+    printf(&quot;throw\n&quot;);
+    // __cxa_throw never returns
+    exit(0);
+}
+
+} // extern &quot;C&quot;
+
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v01">in my github repo</a>.</p>
+<p>If we now compile mycppabi.cpp and link it with the other two .o files, we&#8217;ll get a working binary which should print &#8220;alloc ex 1\nthrow&#8221; and then exit. Pretty simple, but an amazing feat nonetheless: we&#8217;ve managed to throw an exception without calling libc++. We&#8217;ve written a (very small) part of a C++ ABI!</p>
+<p>Another important bit of wisdom we gained by creating our own mini ABI: the throw keyword is compiled into two function calls to libstdc++. No voodoo there, it&#8217;s actually a pretty simple transformation. We can even disassemble our throwing function to verify it. Let&#8217;s run this command &#8220;g++ -S throw.cpp&#8221;.</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+seppuku:
+.LFB3:
+    [...]
+	call	__cxa_allocate_exception
+	movl	$0, 8(%esp)
+	movl	$_ZTI9Exception, 4(%esp)
+	movl	%eax, (%esp)
+	call	__cxa_throw
+    [...]
+</pre>
+<p>Even more magic happening: when the throw keyword gets translated into these two calls, the compiler doesn&#8217;t even know how the exception is going to be handled. Since libstdc++ is the one defining __cxa_throw and friends, and libstdc++ is dynamically linked on runtime, the exception handling method could be chosen when we first run our executable.</p>
+<p>We are now seeing some progress but we still have a long way to go. Our ABI can only throw exceptions right now. Can we extend it to handle a catch as well? We&#8217;ll see how next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: catching what you throw</h2>
+<p>In this series about exception handling, we have discovered quite a bit about exception throwing by looking at compiler and linker errors but we have so far not learned anything yet about exception catching. Let&#8217;s sum up the few things we learned about exception throwing:</p>
+<ul>
+<li>A throw statement will be translated by the compiler into two calls, <strong>__cxa_allocate_exception</strong> and <strong>__cxa_throw</strong>.</li>
+<li><strong>__cxa_allocate_exception</strong> and <strong>__cxa_throw</strong> &#8220;live&#8221; on libstdc++</li>
+<li><strong>__cxa_allocate_exception</strong> will allocate memory for the new exception.</li>
+<li><strong>__cxa_throw</strong> will prepare a bunch of stuff and forward this exception to <strong>_Unwind_</strong>, a set of functions that live in libstdc and perform the real stack unwinding (<a href="http://mentorembedded.github.com/cxx-abi/abi-eh.html">the ABI</a> defines the interface for these functions).</li>
+</ul>
+<p>Quite simple so far, but exception catching is a bit more complicated, specially because it requires certain degree of reflexion (that is, the ability of a program to analyze its own source code). Let&#8217;s keep on trying our same old method, let&#8217;s add some catch statements throughout our code, compile it and see what happens:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &quot;throw.h&quot;
+#include &lt;stdio.h&gt;
+
+// Notice we're adding a second exception type
+struct Fake_Exception {};
+
+void raise() {
+    throw Exception();
+}
+
+// We will analyze what happens if a try block doesn't catch an exception
+void try_but_dont_catch() {
+    try {
+        raise();
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Running try_but_dont_catch::catch(Fake_Exception)\n&quot;);
+    }
+
+    printf(&quot;try_but_dont_catch handled an exception and resumed execution&quot;);
+}
+
+// And also what happens when it does
+void catchit() {
+    try {
+        try_but_dont_catch();
+    } catch(Exception&amp;) {
+        printf(&quot;Running try_but_dont_catch::catch(Exception)\n&quot;);
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Running try_but_dont_catch::catch(Fake_Exception)\n&quot;);
+    }
+
+    printf(&quot;catchit handled an exception and resumed execution&quot;);
+}
+
+extern &quot;C&quot; {
+    void seppuku() {
+        catchit();
+    }
+}
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v02">in my github repo</a>.</p>
+<p>Just like before, we have our seppuku function linking the C world with the C++ world, only this time we have added some more function calls to make our stack more interesting, plus we have added a bunch of try/catch blocks so we can analyze how does libstdc++ handles them.</p>
+<p>And just like before, we get some linker errors about missing ABI functions:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+&gt; g++ -c -o throw.o -O0 -ggdb throw.cpp
+&gt; gcc main.o throw.o mycppabi.o -O0 -ggdb -o app
+throw.o: In function `try_but_dont_catch()':
+throw.cpp:12: undefined reference to `__cxa_begin_catch'
+throw.cpp:12: undefined reference to `__cxa_end_catch'
+
+throw.o: In function `catchit()':
+throw.cpp:20: undefined reference to `__cxa_begin_catch'
+throw.cpp:20: undefined reference to `__cxa_end_catch'
+
+throw.o:(.eh_frame+0x47): undefined reference to `__gxx_personality_v0'
+
+collect2: ld returned 1 exit status
+</pre>
+<p>Again we see a lot of interesting stuff going on here. The calls to <strong>__cxa_begin_catch</strong> and <strong>__cxa_end_catch</strong> are probably something we could have expected: we don&#8217;t know what they are yet, but we can presume they are the equivalent of the <strong>throw/__cxa_allocate/throw</strong> conversions (you do remember that our throw keyword got translated to a pair of <strong>__cxa_allocate_exception</strong> and <strong>__cxa_throw functions</strong>, right?). The <strong>__gxx_personality_v0</strong> thing is new, though, and the central piece of the next few articles.</p>
+<p>What does the personality function do? We already said something about it on the introduction to this series but we will be looking into it with some more detail next time, together with our new two friends, <strong>__cxa_begin_catch</strong> and <strong>__cxa_end_catch</strong>.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: magic around __cxa_begin_catch and __cxa_end_catch</h2>
+<p>After learning how exceptions are thrown we are now on our way to learn how they are caught. Last time we added to our example application a bunch of try/catch statements to see what they did, and sure enough we got a bunch of linker errors, just like we did when we were trying to find out what does the throw statement do. This is what the linker says when trying to process throw.o:</p>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v02">in my github repo</a>.</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+&gt; g++ -c -o throw.o -O0 -ggdb throw.cpp
+&gt; gcc main.o throw.o mycppabi.o -O0 -ggdb -o app
+throw.o: In function `try_but_dont_catch()':
+throw.cpp:12: undefined reference to `__cxa_begin_catch'
+throw.cpp:12: undefined reference to `__cxa_end_catch'
+
+throw.o: In function `catchit()':
+throw.cpp:20: undefined reference to `__cxa_begin_catch'
+throw.cpp:20: undefined reference to `__cxa_end_catch'
+
+throw.o:(.eh_frame+0x47): undefined reference to `__gxx_personality_v0'
+
+collect2: ld returned 1 exit status
+</pre>
+<p>And our theory, of course, is that a catch statement is translated by the compiler into a pair of <strong>__cxa_begin_catch/end_catch</strong> calls into libstdc++, plus something new called <strong>the personality function</strong> of which we know nothing yet.</p>
+<p>Let&#8217;s begin by checking if our theory about <strong>__cxa_begin_catch</strong> and <strong>__cxa_end_catch holds</strong>. Let&#8217;s compile throw.cpp with -S and analyze the assembly. There is a lot to see but if I strip it to the bare minimum this is what I get:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+_Z5raisev:
+	call	__cxa_allocate_exception
+	call	__cxa_throw
+</pre>
+<p>So far so good: the same old definition we got for raise(), just throw an exception.</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+_Z18try_but_dont_catchv:
+	.cfi_startproc
+	.cfi_personality 0,__gxx_personality_v0
+	.cfi_lsda 0,.LLSDA1
+</pre>
+<p>The definition for try_but_dont_catch(), mangled by the compiler. There is something new, though: a reference to <strong>__gxx_personality_v0</strong> and to something else called <strong>LSDA</strong>. These are seemingly innocent declarations but they are actually quite important:</p>
+<ul>
+<li>The linker will use these according to a CFI specification; CFI stands for call frame information, and <a href="http://www.logix.cz/michal/devel/gas-cfi/">here</a> there is a full spec for it. It will be used, mostly, to unwind the stack.</li>
+<li><strong>LSDA</strong> on the other hand means language specific data area, and it will be used by the personality function to know which exceptions can be handled by this function</li>
+</ul>
+<p>We&#8217;ll be talking a lot more about CFI and LSDA in the next articles; don&#8217;t forget about them, but for now let&#8217;s move on:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+    [...]
+	call	_Z5raisev
+	jmp	.L8
+</pre>
+<p>Another easy one: just call &#8220;raise&#8221;, and then jump to L8; L8 will return normally from this function. If raise didn&#8217;t execute properly then the execution (somehow, we don&#8217;t know how yet!) shouldn&#8217;t resume in the next instruction but in the exception handlers (which in ABI-speak are called landing pads. More on that later).</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+	cmpl	$1, %edx
+	je	.L5
+
+.LEHB1:
+	call	_Unwind_Resume
+.LEHE1:
+
+.L5:
+	call	__cxa_begin_catch
+	call	__cxa_end_catch
+</pre>
+<p>This is quite difficult to follow but it&#8217;s actually quite straight forward. Here most of the magic will happen: first we check if this is an exception we can handle, if we can&#8217;t then we say so by calling _Unwind_Resume, if it is then we call __cxa_begin_catch and __cxa_end_catch; after calling these functions the execution should resume normally and thus L8 will be executed (that is, L8 is right below our catch block):</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.L8:
+	leave
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+	.cfi_endproc
+</pre>
+<p>Just a normal return from our function&#8230; with some CFI stuff on it.</p>
+<p>So this is it for exception catching, although we don&#8217;t know yet how <strong>__cxa_begin/end_catch</strong> work, we have an idea that these pair forms what&#8217;s called a landing pad, a place in the function to handle the raised exception. What we don&#8217;t know yet is how the landing pads are found. _Unwind_ must somehow go through all the calls in the stack, check if any call (stack frame, to be precise) has a valid try block with a landing pad that can catch the exception, and then resume the execution there.</p>
+<p>This is no small feat, and we&#8217;ll see how that works next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: gcc_except_table and the personality function</h2>
+<p>We learned last time that, just as a throw statement is translated into a pair of <strong>__cxa_allocate_exception/throw</strong> calls, a catch block is translated into a pair of <strong>__cxa_begin/end_catch</strong> calls, plus something called CFI (call frame information) to find the landing pads, the points on a function where an exception can be handled.</p>
+<p>What we don&#8217;t yet know is how does _Unwind_* know where the landing pads are. When an exception is thrown there are a bunch of functions in the stack; all the CFI stuff will let Unwind know which functions these are but it&#8217;s also necessary to know which landing pads each function provides so we can call each one and check if it wants to handle the exception (and we&#8217;re ignoring functions with multiple try/catch blocks!).</p>
+<p>To know where the landing pads are, something called gcc_except_table is used. This can be found (with a bunch of CFI stuff) after the function&#8217;s end:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.LFE1:
+	.globl	__gxx_personality_v0
+	.section	.gcc_except_table,&quot;a&quot;,@progbits
+    [...]
+.LLSDACSE1:
+	.long	_ZTI14Fake_Exception
+</pre>
+<p>The section .gcc_except_table is where all information to locate a landing pad is stored, and we&#8217;ll see more about it once we get to analyzing the personality function; for now, we&#8217;ll just say that LSDA means language specific data area and it&#8217;s the place where the personality function will check if there are any landing pads for a function (it is also used to run the destructors when unwinding the stack).</p>
+<p>To wrap it up: for every function where at least a catch is found, the compiler will translate this statement into a pair of <strong>__cxa_begin_catch/__cxa_end_catch</strong> calls and then the personality function, which will be called by <strong>__cxa_throw</strong>, will read the gcc_except_table for every method in the stack, to find something call LSDA. The personality function will then check in the LSDA whether a catch can handle an exception and if there is any cleanup code to run (this is what triggers the destructors when needed).</p>
+<p>We can also draw an interesting conclusion here: if we use the nothrow specifier (or the empty throw specifier) then the compiler can omit the gcc_except_table for this method. The way gcc implements exceptions, that won&#8217;t have a great impact on performance but it will indeed reduce code size. What&#8217;s the catch? If an exception is thrown when nothrow was specified the LSDA won&#8217;t be there and the personality function won&#8217;t know what to do. When the personality function doesn&#8217;t know what to do it will invoke the default exception handler, meaning that in most cases throwing from a nothrow method will end up calling std::terminate.</p>
+<p>Now that we have an idea of what the personality function does, can we implement one? We&#8217;ll see how next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: a nice personality</h2>
+<p>On our journey to learn about exceptions we have learned so far how a throw is done, that something called &#8220;call frame information&#8221; helps a library called Unwind to do the stack unwinding, and that the compiler writes something called LSDA, language specific data area, to know which exceptions can a method handle. And we know by now that a lot of magic is done on the personality function; we&#8217;ve never seen it in action though. Let&#8217;s recap in a bit more of detail about how an exception will be thrown and catched (or, more precisely, how we know so far it will be thrown catched):</p>
+<ul>
+<li>The compiler will translate our throw statement into a pair of <strong>__cxa_allocate_exception/__cxa_throw</strong></li>
+<li><strong>__cxa_allocate_exception</strong> will create the exception in memory</li>
+<li><strong>__cxa_throw</strong> will initialize a bunch of stuff and forward this exception to a lower-level unwind library by calling <strong>_Unwind_RaiseException</strong></li>
+<li>Unwind will use CFI to know which functions are on the stack (ie to know how to start the stack unwinding)</li>
+<li>Each function will have an LSDA (language specific data area) part, added into something called <strong>&#8220;.gcc_except_table&#8221;</strong></li>
+<li>Unwind will invoke the personality function with the current stack frame and the LSDA; this function should reply to unwind whether this stack can handle the exception or not</li>
+</ul>
+<p>Knowing this, it&#8217;s about time we implement our own personality function. Our ABI used to print this when an exception was thrown:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+alloc ex 1
+__cxa_throw called
+no one handled __cxa_throw, terminate!
+</pre>
+<p>Let&#8217;s go back to our mycppabi and let&#8217;s add something like this (link to full mycppabi.cpp file):</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void __gxx_personality_v0()
+{
+    printf(&quot;Personality function FTW\n&quot;);
+}
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v02">in my github repo</a>.</p>
+<p>And sure enough, when we run it we should see our personality function being called. We know we&#8217;re on the right track and now we have an idea of what we want for our personality function; let&#8217;s start using the proper definition for this function:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+_Unwind_Reason_Code __gxx_personality_v0 (
+                     int version, _Unwind_Action actions, uint64_t exceptionClass,
+                     _Unwind_Exception* unwind_exception, _Unwind_Context* context);
+</pre>
+<p>If we put that into our mycppabi.cpp file we get:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdint.h&gt;
+
+namespace __cxxabiv1 {
+    struct __class_type_info {
+        virtual void foo() {}
+    } ti;
+}
+
+#define EXCEPTION_BUFF_SIZE 255
+char exception_buff[EXCEPTION_BUFF_SIZE];
+
+extern &quot;C&quot; {
+
+void* __cxa_allocate_exception(size_t thrown_size)
+{
+    printf(&quot;alloc ex %i\n&quot;, thrown_size);
+    if (thrown_size &gt; EXCEPTION_BUFF_SIZE) printf(&quot;Exception too big&quot;);
+    return &amp;exception_buff;
+}
+
+void __cxa_free_exception(void *thrown_exception);
+
+#include &lt;unwind.h&gt;
+
+typedef void (*unexpected_handler)(void);
+typedef void (*terminate_handler)(void);
+
+struct __cxa_exception {
+	std::type_info *	exceptionType;
+	void (*exceptionDestructor) (void *);
+	unexpected_handler	unexpectedHandler;
+	terminate_handler	terminateHandler;
+	__cxa_exception *	nextException;
+
+	int			handlerCount;
+	int			handlerSwitchValue;
+	const char *		actionRecord;
+	const char *		languageSpecificData;
+	void *			catchTemp;
+	void *			adjustedPtr;
+
+	_Unwind_Exception	unwindHeader;
+};
+
+void __cxa_throw(void* thrown_exception, struct type_info *tinfo, void (*dest)(void*))
+{
+    printf(&quot;__cxa_throw called\n&quot;);
+
+    __cxa_exception *header = ((__cxa_exception *) thrown_exception - 1);
+    _Unwind_RaiseException(&amp;header-&gt;unwindHeader);
+
+    // __cxa_throw never returns
+    printf(&quot;no one handled __cxa_throw, terminate!\n&quot;);
+    exit(0);
+}
+
+void __cxa_begin_catch()
+{
+    printf(&quot;begin FTW\n&quot;);
+}
+
+void __cxa_end_catch()
+{
+    printf(&quot;end FTW\n&quot;);
+}
+
+_Unwind_Reason_Code __gxx_personality_v0 (
+                     int version, _Unwind_Action actions, uint64_t exceptionClass,
+                     _Unwind_Exception* unwind_exception, _Unwind_Context* context)
+{
+    printf(&quot;Personality function FTW!\n&quot;);
+}
+
+}
+</pre>
+<p>Code @ <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v02">my github repo</a>.</p>
+<p>Let&#8217;s compile and link everything, then run it and start by analyzing each param to this function with some help of gdb:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+Breakpoint 1, __gxx_personality_v0 (version=1, actions=1, exceptionClass=134514792, unwind_exception=0x804a060, context=0xbffff0f0)
+</pre>
+<ul>
+<li>The version and the exceptionClass are related to language/ABI/compiler toolchain/native or non-native exception, etc. We don&#8217;t need to worry about it for our mini ABI, we&#8217;ll just handle all the exceptions.</li>
+<li>Actions: this is what _Unwind_ uses to tell the personality function what it should do (more on that later)</li>
+<li>unwind_exception: the exception allocated by __cxa_allocate_exception (kind of&#8230; there&#8217;s a lot of pointer arithmetic going on but that pointer can be used to access our original exception anyway)</li>
+<li>context: this holds all the information regarding the current stack frame, for example the language specific data area (LSDA). This is what we will be using to detect whether this stack can handle the thrown exception (and also to detect whether we need to run any destructors)</li>
+</ul>
+<p>So there we have it, a working (well, linkeable) personality function. Doesn&#8217;t do much, though, so next time we&#8217;ll start adding some real behavior and try to make it handle an exception.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: two-phase handling</h2>
+<p>We finished last chapter on the series about C++ exceptions by adding a personality function that _Unwind_ was able to call. It didn&#8217;t do much but there it was. The ABI we have been implementing can now throw exceptions and the catch is already halfway implemented, but the personality function needed to properly choose the catch block (landing pad) is bit dumb so far. Let&#8217;s start this new chapter by trying to understand what are the parameters that the personality function receives and next time we&#8217;ll begin adding some real behavior to __gxx_personality_v0: when __gxx_personality_v0 is called we should say &#8220;yes, this stack frame can indeed handle this exception&#8221;.</p>
+<p>We already said we won&#8217;t care for the version or the exceptionClass for our mini ABI. Let&#8217;s ignore the context too, for now: we&#8217;ll just handle every exception with the first stack frame above the function throwing; note this implies there must be a try/catch block on the function immediately above the throwing function, otherwise everything will break. This also implies the catch will ignore its exception specification, effectively turning it into a catch(&#8230;). How do we let _Unwind_ know we want to handle the current exception?</p>
+<p>_Unwind_Reason_Code is the return value from the personality functions; this tells _Unwind_ whether we found a landing pad to handle the exception or not. Let&#8217;s implement our personality function to return _URC_HANDLER_FOUND then, and see what happens:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+alloc ex 1
+__cxa_throw called
+Personality function FTW
+Personality function FTW
+no one handled __cxa_throw, terminate!
+</pre>
+<p>See that? We told _Unwind_ we found a handler, and it called the personality function yet again! What is going on there?</p>
+<p>Remember the action parameter? That&#8217;s how _Unwind_ tells us what he is expecting, and that is because the exception catching is handled in two phases: lookup and cleanup (or _UA_SEARCH_PHASE and _UA_CLEANUP_PHASE). Let&#8217;s go again over our exception throwing and catching recipe:</p>
+<ul>
+<li>__cxa_throw/__cxa_allocate_exception will create an exception and forward it to a lower-level unwind library by calling _Unwind_RaiseException</li>
+<li>Unwind will use CFI to know which functions are on the stack (ie to know how to start the stack unwinding)</li>
+<li>Each function has have an LSDA (language specific data area) part, added into something called &#8220;.gcc_except_table&#8221;</li>
+<li>Unwind will try to locate a landing pad for the exception:
+<ul>
+<li>Unwind will call the personality function with the action _UA_SEARCH_PHASE and a context pointing to the current stack frame.</li>
+<li>The personality function will check if the current stack frame can handle the exception being thrown by analyzing the LSDA.</li>
+<li>If the exception can be handled it will return _URC_HANDLER_FOUND.</li>
+<li>If the exception can not be handled it will return _URC_CONTINUE_UNWIND and Unwind will then try the next stack frame.</li>
+</ul>
+</li>
+<li>If no landing pad was found, the default exception handler will be called (normally std::terminate).</li>
+<li>If a landing pad was found:
+<ul>
+<li>Unwind will iterate the stack again, calling the personality function with the action _UA_CLEANUP_PHASE.</li>
+<li>The personality function will check if it can handle the current exception again:</li>
+<li>If this frame can&#8217;t handle the exception it will then run a cleanup function described by the LSDA and tell Unwind to continue with the next frame (this is actually a very important step: the cleanup function will run the destructor of all the objects allocated in this stack frame!)</li>
+<li>If this frame can handle the exception, don&#8217;t run any cleanup code: tell Unwind we want to resume execution on this landing pad.</li>
+</ul>
+</li>
+</ul>
+<p>There are two important bits of information to note here:</p>
+<ol>
+<li>Running a two-phase exception handling procedure means that in case no handler was found then the default exception handler can get the original exception&#8217;s stack trace (if we were to unwind the stack as we go it would get no stack trace, or we would need to keep a copy of it somehow!).</li>
+<li>Running a _UA_CLEANUP_PHASE and calling a second time each frame, even though we already know the frame that will handle the exception, is also really important: the personality function will take this chance to run all the destructors for objects built on this scope. It is what makes RAII an exception safe idiom!</li>
+</ol>
+<p>Now that we understand how the catch lookup phase works we can continue our personality function implementation. The next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: catching our first exception</h2>
+<p>We finished last chapter on the series about C++ exceptions by adding a personality function that _Unwind_ was able to call and then analyzing the parameters that the personality function receives. Now it&#8217;s time to begin adding some real behavior to __gxx_personality_v0: when __gxx_personality_v0 is called we should say &#8220;yes, this stack frame can indeed handle this exception&#8221;.</p>
+<p>We have been building up to this point quite a bit: the time where we can implement for the first time a personality function capable of detecting when an exception is thrown, and then saying &#8220;yes, I will handle this exception&#8221;. For that we had to learn how the two-phase lookup work, so we can now reimplement our personality function and our throw test file:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;stdio.h&gt;
+#include &quot;throw.h&quot;
+
+struct Fake_Exception {};
+
+void raise() {
+    throw Exception();
+}
+
+void try_but_dont_catch() {
+    try {
+        raise();
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Caught a Fake_Exception!\n&quot;);
+    }
+
+    printf(&quot;try_but_dont_catch handled the exception\n&quot;);
+}
+
+void catchit() {
+    try {
+        try_but_dont_catch();
+    } catch(Exception&amp;) {
+        printf(&quot;Caught an Exception!\n&quot;);
+    }
+
+    printf(&quot;catchit handled the exception\n&quot;);
+}
+
+extern &quot;C&quot; {
+    void seppuku() {
+        catchit();
+    }
+}
+
+</pre>
+<p>And our personality function:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+_Unwind_Reason_Code __gxx_personality_v0 (
+                     int version, _Unwind_Action actions, uint64_t exceptionClass,
+                     _Unwind_Exception* unwind_exception, _Unwind_Context* context)
+{
+    if (actions &amp; _UA_SEARCH_PHASE)
+    {
+        printf(&quot;Personality function, lookup phase\n&quot;);
+        return _URC_HANDLER_FOUND;
+    } else if (actions &amp; _UA_CLEANUP_PHASE) {
+        printf(&quot;Personality function, cleanup\n&quot;);
+        return _URC_INSTALL_CONTEXT;
+    } else {
+        printf(&quot;Personality function, error\n&quot;);
+        return _URC_FATAL_PHASE1_ERROR;
+    }
+}
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v03">in my github repo</a>.</p>
+<p>Let&#8217;s run it, see what happens:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+alloc ex 1
+__cxa_throw called
+Personality function, lookup phase
+Personality function, cleanup
+try_but_dont_catch handled the exception
+catchit handled the exception
+</pre>
+<p>It works, but something is missing: the catch inside the catch/try block is not being executed! This is happening because the personality function tells Unwind to &#8220;install a context&#8221; (ie to resume execution) but it never says which context. In this case it&#8217;s probably resuming executing from after the landing pad, but I&#8217;d bet this is actually undefined behavior. We&#8217;ll see next time how we can specify we want to resume executing from a specific landing pad using the information available on .gcc_except_table (our old friend, the LSDA).</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: _Unwind_ and call frame info</h2>
+<p>We left our mini-ABI project (<a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v03">link</a>) capable of throwing exceptions, and we are now working on catching them; we implemented a personality function last time which was capable of detecting and handling exceptions but it was still a bit incomplete: even though it can properly notify the stack unwinder when it should stop but our version of __gxx_personality_v0 can&#8217;t run the code inside a catch block. It&#8217;s better than a coredump one might argue, but still a long way from a useful exception handling ABI. Can we improve it?</p>
+<p>How can we tell _Unwind_ where is our landing pad, so we can execute the code inside the catch statement? If we go back to the <a href="http://mentorembedded.github.com/cxx-abi/abi-eh.html#base-om">ABI specification</a>, there are a few context management functions which might help us:</p>
+<ul>
+<li>_Unwind_GetLanguageSpecificData, to get the LSDA for this stack frame. We should be able to find the landing pads and the destructors to run using it.</li>
+<li>_Unwind_GetRegionStart, to get the instruction pointer for the beginning of the function for stack frame currently under analysis by the personality function (that is, the function pointer for the current stack frame).</li>
+<li>_Unwind_GetIP, to get the instruction pointer inside the current stack frame (a pointer to the place where the function call to the next stack frame was done. It should be clearer with the example below).</li>
+</ul>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v04">in my github repo</a>.</p>
+<p>Let&#8217;s check these functions with gdb. On my machine:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+Breakpoint 1, __gxx_personality_v0 (version=1, actions=6, exceptionClass=134515400, unwind_exception=0x804a060, context=0xbffff0f0)
+    at mycppabi.cpp:77
+
+84	        const uint8_t* lsda = (const uint8_t*)_Unwind_GetLanguageSpecificData(context);
+85	        uintptr_t ip = _Unwind_GetIP(context) - 1;
+86	        uintptr_t funcStart = _Unwind_GetRegionStart(context);
+87	        uintptr_t ipOffset = ip - funcStart;
+</pre>
+<p>If we inspect those variables we can see that indeed _Unwind_GetRegionStart points to the current stack frame (try_but_dont_catch) and that _Unwind_GetIP is the IP for the position where the call to the next stack frame was done. The _Unwind_GetRegionStart is pointing us to the place where the exception was first thrown; it&#8217;s a bit complicated to explain and we&#8217;ll use that later, not now. Also, we don&#8217;t see the LSDA here, but we can deduce it&#8217;s after the function&#8217;s code since _Unwind_GetLanguageSpecificData points directly after the function&#8217;s end:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+_Unwind_GetIP = (void *) 0x804861d
+_Unwind_GetRegionStart = (void *) 0x8048612
+_Unwind_GetLanguageSpecificData = (void *) 0x8048e3c
+function pointer to try_but_dont_catch = 0x8048612 &lt;try_but_dont_catch()&gt;
+
+(gdb) disassemble /m try_but_dont_catch
+Dump of assembler code for function try_but_dont_catch():
+10	void try_but_dont_catch() {
+        [...]
+11	    try {
+12	        raise();
+   0x08048619 &lt;+7&gt;:	call   0x80485e8 &lt;raise()&gt;
+
+13	    } catch(Fake_Exception&amp;) {
+   0x08048651 &lt;+63&gt;:	call   0x804874a &lt;__cxa_begin_catch()&gt;
+   0x08048665 &lt;+83&gt;:	call   0x804875e &lt;__cxa_end_catch()&gt;
+   0x0804866a &lt;+88&gt;:	jmp    0x804861e &lt;try_but_dont_catch()+12&gt;
+
+14	        printf(&quot;Caught a Fake_Exception!\n&quot;);
+   0x08048659 &lt;+71&gt;:	movl   $0x8048971,(%esp)
+   0x08048660 &lt;+78&gt;:	call   0x80484c0 &lt;puts@plt&gt;
+
+15	    }
+16
+17	    printf(&quot;try_but_dont_catch handled the exception\n&quot;);
+   0x0804861e &lt;+12&gt;:	movl   $0x8048948,(%esp)
+   0x08048625 &lt;+19&gt;:	call   0x80484c0 &lt;puts@plt&gt;
+
+18	}
+   0x0804862a &lt;+24&gt;:	add    $0x24,%esp
+</pre>
+<p>With the help of _Unwind_ we are now able to get enough information about the current stack frame to decide whether we can or not handle an exception, an also how should we handle it. One more step is needed before we can detect the landing pad we want: we will need to interpret the CFI (call frame information) at the end of the function. This is part of the DWARF spec, the same gdb uses for debugging purposes, and it&#8217;s not an easy spec to implement. Like we are doing with our ABI, we&#8217;ll keep this to the bare minimum.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: reading a CFI table</h2>
+<p>To properly handle exceptions from within the personality function we&#8217;ve been implementing for our ABI, we need to read the LSDA (language specific data area) to know which call frame (ie which function) can handle which exception, and to know where a landing pad (catch block) can be found). The LSDA table is in CFI format, and we&#8217;ll see in this chapter how to read it.</p>
+<p>Reading the CFI data can be rather straight forward, but there are a few pitfalls we need to consider first. Two, actually:</p>
+<ol>
+<li>There is very little documentation about the .gcc_except_table format (actually, I only found some mails about it) so we&#8217;ll need to read a lot of source code and disassembles to understand it.</li>
+<li>Although the format itself is not terribly complicated, it uses a LEB encoding that makes reading this table not quite straightforward.</li>
+</ol>
+<p>As far as I know most DWARF data is encoded like this, using a <a href="http://en.wikipedia.org/wiki/LEB128">LEB format</a>, which seems to be great for confusing programmers and to save code space while encoding arbitrary length ints. Luckily, we can cheat a bit in here: most of the time the LEB encoded numbers will readble with a plain uint8_t, because we won&#8217;t be dealing with large exception tables or anything like that.</p>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v04">in my github repo</a>.</p>
+<p>Let&#8217;s start by analyzing the CFI data directly from the disassembly, we&#8217;ll then see if we can build something to read it on our personality function. I&#8217;ll rename the labels to make them a bit more human-friendly. The LSDA will have three sections, try to spot them below:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_frame_entry:
+	.globl	__gxx_personality_v0
+	.section	.gcc_except_table,&quot;a&quot;,@progbits
+	.align 4
+</pre>
+<p>This one is very easy: it&#8217;s just a header to declare we&#8217;re going to use __gxx_personality_v0 as a global and to let the linker know we&#8217;re going to be declaring stuff for the .gcc_except_table section. Moving on:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_lsda_1:
+    # This declares the encoding type. We don't care.
+	.byte	0xff
+
+    # This specifies the landing pads start; if zero, the func's ptr is
+    # assumed (_Unwind_GetRegionStart)
+	.byte	0
+
+    # Length of the LSDA area: check that LLSDATT1 and LLSDATTD1 point to the
+    # end and the beginning of the LSDA, respectively
+	.uleb128 .local_lsda_end - .local_lsda_call_site_table_header
+</pre>
+<p>This now has some more info. Those labels are quite obscure but they do follow a pattern. LSDA means language specific data area, the L in front means local, so this is the local (to the translation unit, the .o file) language specific data area number one. Other labels follow similar patterns but I haven&#8217;t taken the job of figuring them out. We don&#8217;t really need to, anyway.</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_lsda_call_site_table_header:
+    # Encoding of items in the landing pad table. Again, we don't care.
+	.byte	0x1.
+
+    # The length of the call site table (ie the landing pads)
+	.uleb128 .local_lsda_call_site_table_end - .local_lsda_call_site_table
+</pre>
+<p>Another boring header. Moving on:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_lsda_call_site_table:
+	.uleb128 .LEHB0-.LFB1
+	.uleb128 .LEHE0-.LEHB0
+	.uleb128 .L8-.LFB1
+	.uleb128 0x1
+
+	.uleb128 .LEHB1-.LFB1
+	.uleb128 .LEHE1-.LEHB1
+	.uleb128 0
+	.uleb128 0
+
+    .uleb128 .LEHB2-.LFB1
+	.uleb128 .LEHE2-.LEHB2
+	.uleb128 .L9-.LFB1
+	.uleb128 0
+.local_lsda_call_site_table_end:
+</pre>
+<p>This is much more interesting, now we&#8217;re seeing the call site table itself. Somehow, in all these entries, we should be able to find our landing pad. According to some random internet page, the format for each call site entry should be:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct lsda_call_site_entry {
+    // Start of the IP range
+    size_t cs_start;
+
+    // Length of the IP range
+    size_t cs_len;
+
+    // Landing pad address
+    size_t cs_lp;
+
+    // Offset into action table
+    size_t cs_action;
+};
+</pre>
+<p>So we seem to be on the right track, though we don&#8217;t know yet why there are 3 call site entries when we only defined a single landing pad. In any case, we can cheat a little: by looking at the disassembly we can deduce that all the values on the CFI will be less than 128 and this means that in LEB encoding they can be read as plain uchars. This makes our CFI reading code so much easier, and we will see how to use it in our personality function next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: and suddenly, reflexion in C++</h2>
+<p>We left our mini-ABI project (<a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v03">link</a>) capable of throwing exceptions, and we are now working on catching them; we implemented a personality function last time which was capable of detecting and handling exceptions but it was still a bit incomplete: even though it can properly notify the stack unwinder when it should stop but our version of __gxx_personality_v0 can&#8217;t run the code inside a catch block. We learned last time how to read the LSDA, so now it&#8217;s only a problem of putting all the pieces together to read the .gcc_except_table from within our personality function.</p>
+<p>Let&#8217;s recap a bit: we figured out last time that our LSDA for the function which has the catch we want to run has the following call site table (that is, the following landing pads [that is, the following catch blocks]):</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_lsda_call_site_table:
+	.uleb128 .LEHB0-.LFB1
+	.uleb128 .LEHE0-.LEHB0
+	.uleb128 .L8-.LFB1
+	.uleb128 0x1
+
+	.uleb128 .LEHB1-.LFB1
+	.uleb128 .LEHE1-.LEHB1
+	.uleb128 0
+	.uleb128 0
+
+    .uleb128 .LEHB2-.LFB1
+	.uleb128 .LEHE2-.LEHB2
+	.uleb128 .L9-.LFB1
+	.uleb128 0
+.local_lsda_call_site_table_end:
+</pre>
+<p>All those labels can be mapped to different places in the assembly of our function, but it&#8217;s a bit too messy for a blog post (I do recommend you to disassemble the function yourself and try to match each label, a lot can be learned from doing it). Also, thanks to some random Internet page, we learned the format for this table.</p>
+<p>Let&#8217;s do something like this to see if we&#8217;re on the right track (beware of read-alignment issues and keep in mind that defining CFI structures like this will only work for uint8&#8217;s and is probably not portable):</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct LSDA_Header {
+    uint8_t lsda_start_encoding;
+    uint8_t lsda_type_encoding;
+    uint8_t lsda_call_site_table_length;
+};
+
+struct LSDA_Call_Site_Header {
+    uint8_t encoding;
+    uint8_t length;
+};
+
+struct LSDA_Call_Site {
+
+    LSDA_Call_Site(const uint8_t *ptr) {
+        cs_start = ptr[0];
+        cs_len = ptr[1];
+        cs_lp = ptr[2];
+        cs_action = ptr[3];
+    }
+
+    uint8_t cs_start;
+    uint8_t cs_len;
+    uint8_t cs_lp;
+    uint8_t cs_action;
+};
+
+_Unwind_Reason_Code __gxx_personality_v0 (
+                     int version, _Unwind_Action actions, uint64_t exceptionClass,
+                     _Unwind_Exception* unwind_exception, _Unwind_Context* context)
+{
+    if (actions &amp; _UA_SEARCH_PHASE)
+    {
+        printf(&quot;Personality function, lookup phase\n&quot;);
+        return _URC_HANDLER_FOUND;
+    } else if (actions &amp; _UA_CLEANUP_PHASE) {
+        printf(&quot;Personality function, cleanup\n&quot;);
+
+        const uint8_t* lsda = (const uint8_t*)
+                                    _Unwind_GetLanguageSpecificData(context);
+
+        LSDA_Header *header = (LSDA_Header*)(lsda);
+        LSDA_Call_Site_Header *cs_header = (LSDA_Call_Site_Header*)
+                                                (lsda + sizeof(LSDA_Header));
+
+        size_t cs_in_table = cs_header-&gt;length / sizeof(LSDA_Call_Site);
+
+        // We must declare cs_table_base as uint8, otherwise we risk an
+        // unaligned access
+        const uint8_t *cs_table_base = lsda + sizeof(LSDA_Header)
+                                            + sizeof(LSDA_Call_Site_Header);
+
+        // Go through every entry on the call site table
+        for (size_t i=0; i &lt; cs_in_table; ++i)
+        {
+            const uint8_t *offset = &amp;cs_table_base[i * sizeof(LSDA_Call_Site)];
+            LSDA_Call_Site cs(offset);
+            printf(&quot;Found a CS:\n&quot;);
+            printf(&quot;\tcs_start: %i\n&quot;, cs.cs_start);
+            printf(&quot;\tcs_len: %i\n&quot;, cs.cs_len);
+            printf(&quot;\tcs_lp: %i\n&quot;, cs.cs_lp);
+            printf(&quot;\tcs_action: %i\n&quot;, cs.cs_action);
+        }
+
+        uintptr_t ip = _Unwind_GetIP(context);
+        uintptr_t funcStart = _Unwind_GetRegionStart(context);
+        uintptr_t ipOffset = ip - funcStart;
+
+        return _URC_INSTALL_CONTEXT;
+    } else {
+        printf(&quot;Personality function, error\n&quot;);
+        return _URC_FATAL_PHASE1_ERROR;
+    }
+}
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v05">in my github repo</a>.</p>
+<p>As you can see if you run this code, all entries in the call site table are relative. Relative to what? To the start of function. That means that if we want to get the EIP for a specific landing pad all we have to do is _Unwind_GetRegionStart + LSDA_Call_Site.cs_lp!</p>
+<p>We should now be able to solve our exceptional problem: let&#8217;s try to modify our personality function to run the correct landing pad. We&#8217;ll now need to use another _Unwind_ function to specify where we want to resume execution: _Unwind_SetIP. Let&#8217;s change the personality function again to run the first landing pad available, which by inspecting the assembly we already know is the one we want:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+        ...
+        const uint8_t *cs_table_base = lsda + sizeof(LSDA_Header)
+                                            + sizeof(LSDA_Call_Site_Header);
+        for (size_t i=0; i &lt; cs_in_table; ++i)
+        {
+            const uint8_t *offset = &amp;cs_table_base[i * sizeof(LSDA_Call_Site)];
+            LSDA_Call_Site cs(offset);
+
+            if (cs.cs_lp)
+            {
+                uintptr_t func_start = _Unwind_GetRegionStart(context);
+                _Unwind_SetIP(context, func_start + cs.cs_lp);
+                break;
+            }
+        }
+
+        return _URC_INSTALL_CONTEXT;
+</pre>
+<p>Try to run it, and watch a beautiful infinite loop. Can you guess what went wrong? The answer on the next article.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: setting the context for a landing pad</h2>
+<p>Last time we finally wrote an almost working personality function. We can detect for each stack frame which landing pads are available and then tell _Unwind_ we want to run a specific landing pad. We hit a small issue, though: although we set the context for _Unwind_ to continue executing on the correct landing pad we didn&#8217;t set the current exception on the register. This, in turn, means that the landing pad won&#8217;t know which exception should be handling, so it will say &#8220;I can&#8217;t handle this&#8221;. _Unwind_ will then say &#8220;please try the next landing pad&#8221; but our ABI is so simple that it has no idea how it should find another landing pad and just tries the same. Over and over again. We have probably invented the most contrived example for a while(true)!</p>
+<p>Let&#8217;s set the correct context for the landing pad and clean up a bit our ABI:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdint.h&gt;
+
+namespace __cxxabiv1 {
+    struct __class_type_info {
+        virtual void foo() {}
+    } ti;
+}
+
+#define EXCEPTION_BUFF_SIZE 255
+char exception_buff[EXCEPTION_BUFF_SIZE];
+
+extern &quot;C&quot; {
+
+void* __cxa_allocate_exception(size_t thrown_size)
+{
+    printf(&quot;alloc ex %i\n&quot;, thrown_size);
+    if (thrown_size &gt; EXCEPTION_BUFF_SIZE) printf(&quot;Exception too big&quot;);
+    return &amp;exception_buff;
+}
+
+void __cxa_free_exception(void *thrown_exception);
+
+#include &lt;unwind.h&gt;
+
+typedef void (*unexpected_handler)(void);
+typedef void (*terminate_handler)(void);
+
+struct __cxa_exception {
+	std::type_info *	exceptionType;
+	void (*exceptionDestructor) (void *);
+	unexpected_handler	unexpectedHandler;
+	terminate_handler	terminateHandler;
+	__cxa_exception *	nextException;
+
+	int			handlerCount;
+	int			handlerSwitchValue;
+	const char *		actionRecord;
+	const char *		languageSpecificData;
+	void *			catchTemp;
+	void *			adjustedPtr;
+
+	_Unwind_Exception	unwindHeader;
+};
+
+void __cxa_throw(void* thrown_exception,
+                 struct type_info *tinfo,
+                 void (*dest)(void*))
+{
+    printf(&quot;__cxa_throw called\n&quot;);
+
+    __cxa_exception *header = ((__cxa_exception *) thrown_exception - 1);
+    _Unwind_RaiseException(&amp;header-&gt;unwindHeader);
+
+    // __cxa_throw never returns
+    printf(&quot;no one handled __cxa_throw, terminate!\n&quot;);
+    exit(0);
+}
+
+void __cxa_begin_catch()
+{
+    printf(&quot;begin FTW\n&quot;);
+}
+
+void __cxa_end_catch()
+{
+    printf(&quot;end FTW\n&quot;);
+}
+
+/***********************************************************************/
+
+/**
+ * The LSDA is a read only place in memory; we'll create a typedef for
+ * this to avoid a const mess later on; LSDA_ptr refers to readonly and
+ * &amp;LSDA_ptr will be a non-const pointer to a const place in memory
+ */
+typedef const uint8_t* LSDA_ptr;
+
+struct LSDA_Header {
+    /**
+     * Read the LSDA table into a struct; advances the lsda pointer
+     * as many bytes as read
+     */
+    LSDA_Header(LSDA_ptr *lsda) {
+        LSDA_ptr read_ptr = *lsda;
+
+        // Copy the LSDA fields
+        start_encoding = read_ptr[0];
+        type_encoding = read_ptr[1];
+        ttype = read_ptr[2];
+
+        // Advance the lsda pointer
+        *lsda = read_ptr + sizeof(LSDA_Header);
+    }
+
+    uint8_t start_encoding;
+    uint8_t type_encoding;
+    uint8_t ttype;
+};
+
+struct LSDA_CS_Header {
+    // Same as other LSDA constructors
+    LSDA_CS_Header(LSDA_ptr *lsda) {
+        LSDA_ptr read_ptr = *lsda;
+        encoding = read_ptr[0];
+        length = read_ptr[1];
+        *lsda = read_ptr + sizeof(LSDA_CS_Header);
+    }
+
+    uint8_t encoding;
+    uint8_t length;
+};
+
+struct LSDA_CS {
+    // Same as other LSDA constructors
+    LSDA_CS(LSDA_ptr *lsda) {
+        LSDA_ptr read_ptr = *lsda;
+        start = read_ptr[0];
+        len = read_ptr[1];
+        lp = read_ptr[2];
+        action = read_ptr[3];
+        *lsda = read_ptr + sizeof(LSDA_CS);
+    }
+
+    // Note start, len and lp would be void*'s, but they are actually relative
+    // addresses: start and lp are relative to the start of the function, len
+    // is relative to start
+
+    // Offset into function from which we could handle a throw
+    uint8_t start;
+    // Length of the block that might throw
+    uint8_t len;
+    // Landing pad
+    uint8_t lp;
+    // Offset into action table + 1 (0 means no action)
+    // Used to run destructors
+    uint8_t action;
+};
+
+/*********************************************************************/
+
+_Unwind_Reason_Code __gxx_personality_v0 (
+                             int version,
+                             _Unwind_Action actions,
+                             uint64_t exceptionClass,
+                             _Unwind_Exception* unwind_exception,
+                             _Unwind_Context* context)
+{
+    if (actions &amp; _UA_SEARCH_PHASE)
+    {
+        printf(&quot;Personality function, lookup phase\n&quot;);
+        return _URC_HANDLER_FOUND;
+    } else if (actions &amp; _UA_CLEANUP_PHASE) {
+        printf(&quot;Personality function, cleanup\n&quot;);
+
+        // Pointer to the beginning of the raw LSDA
+        LSDA_ptr lsda = (uint8_t*)_Unwind_GetLanguageSpecificData(context);
+
+        // Read LSDA headerfor the LSDA
+        LSDA_Header header(&amp;lsda);
+
+        // Read the LSDA CS header
+        LSDA_CS_Header cs_header(&amp;lsda);
+
+        // Calculate where the end of the LSDA CS table is
+        const LSDA_ptr lsda_cs_table_end = lsda + cs_header.length;
+
+        // Loop through each entry in the CS table
+        while (lsda &lt; lsda_cs_table_end)
+        {
+            LSDA_CS cs(&amp;lsda);
+
+            if (cs.lp)
+            {
+                int r0 = __builtin_eh_return_data_regno(0);
+                int r1 = __builtin_eh_return_data_regno(1);
+
+                _Unwind_SetGR(context, r0, (uintptr_t)(unwind_exception));
+                // Note the following code hardcodes the exception type;
+                // we'll fix that later on
+                _Unwind_SetGR(context, r1, (uintptr_t)(1));
+
+                uintptr_t func_start = _Unwind_GetRegionStart(context);
+                _Unwind_SetIP(context, func_start + cs.lp);
+                break;
+            }
+        }
+
+        return _URC_INSTALL_CONTEXT;
+    } else {
+        printf(&quot;Personality function, error\n&quot;);
+        return _URC_FATAL_PHASE1_ERROR;
+    }
+}
+
+}
+</pre>
+<p>Note: For a more detailed description of the LSDA tables check <a href="http://mentorembedded.github.com/cxx-abi/exceptions.pdf">here</a> and for the full source code <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v06">check my github repo</a>.</p>
+<p>Finally, it worked. You should see something like this if you run it:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+./app
+alloc ex 1
+__cxa_throw called
+Personality function, lookup phase
+Personality function, cleanup
+begin FTW
+Caught a Fake_Exception!
+end FTW
+try_but_dont_catch handled the exception
+catchit handled the exception
+</pre>
+<p>Of course we are lying a bit to _Unwind_: we are saying here that we will handle every exception, no mater what. This turns our catch(Exception&amp;) into a catch(&#8230;), and all hell will break loose if the first function up in the call frame doesn&#8217;t have a catch statement. But still, we reached the first milestone for a very simple ABI.</p>
+<p>Can we now improve it and make it handle the correct exception on the correct frame? May be next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: multiple landing pads &amp; the teachings of the guru</h2>
+<p>After a lot of hard work, last time we finally got a working personality function capable of handling exceptions without help of libstdc++. It will indiscriminately handle all exceptions, but it does work. There is a big question we haven&#8217;t answered yet: if we go back to the LSDA (language specific data area) we&#8217;ll see something like this:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+.local_lsda_call_site_table:
+	.uleb128 .LEHB0-.LFB1
+	.uleb128 .LEHE0-.LEHB0
+	.uleb128 .L8-.LFB1
+	.uleb128 0x1
+
+	.uleb128 .LEHB1-.LFB1
+	.uleb128 .LEHE1-.LEHB1
+	.uleb128 0
+	.uleb128 0
+
+    .uleb128 .LEHB2-.LFB1
+	.uleb128 .LEHE2-.LEHB2
+	.uleb128 .L9-.LFB1
+	.uleb128 0
+.local_lsda_call_site_table_end:
+</pre>
+<p>There are 3 landing pads defined there, even though we wrote a single try/catch statement. What is going on there?</p>
+<p>If you read carefully the last entry on this topic maybe you noticed I added some comments to the definition of struct LSDA_CS:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct LSDA_CS {
+    // Note start, len and lp would be void*'s, but they are actually relative
+    // addresses: start and lp are relative to the start of the function, len
+    // is relative to start
+
+    // Offset into function from which we could handle a throw
+    uint8_t start;
+    // Length of the block that might throw
+    uint8_t len;
+    // Landing pad
+    uint8_t lp;
+    // Offset into action table + 1 (0 means no action)
+    // Used to run destructors
+    uint8_t action;
+};
+</pre>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v06">in my github repo</a>.</p>
+<p>Something very interesting is going on here, but lets first analyze this struct field by field with the following example:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void foo() {
+    L0:
+        try {
+            do_something();
+    L1:
+        } catch (const Exception1&amp; ex) {
+            ...
+        } catch (const Exception2&amp; ex) {
+            ...
+        } catch (const ExceptionN&amp; ex) {
+            ...
+        } catch (...) {
+        }
+    L2:
+}
+</pre>
+<ul>
+<li>lp: the offset from the start of the function where the landing pad starts. The value of lp for the following example would be L1 &#8211; addr_of(foo)</li>
+<li>action: an offset into an action table. This is used to run the cleanup actions while unwinding the stack. We haven&#8217;t reached this point yet, we can ignore it for now.</li>
+<li>start: the offset from the start of the function where the try block begins: in the example this would be L0 &#8211; addr_of(foo)</li>
+<li>len: the length of the try block. On the example this would be L1 &#8211; L0</li>
+</ul>
+<p>The interesting fields now are start and len: in a function with multiple try/catch blocks we can know whether we should handle an exception by checking if the instruction pointer for the current frame is between start and start + len.</p>
+<p>That solves the mystery of how a function with multiple try/catch blocks can handle an exception but we still have another question: why are there three call sites when we only specified a single landing pad? The other three are places where an exception might be thrown so they get added as a possible place for cleanup actions or landing pads. If we learned anything from GOTW us anything it should be that exceptions can be thrown in the places we least expect. There is an entry in the call site table for our throw because it&#8217;s a block that might throw; the compiler also detected another three.</p>
+<p>Now that we know what the start and len fields do, let&#8217;s change our personality function so the correct landing pad can handle the exception being thrown. Go ahead. My implementation for the next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: finding the right landing pad</h2>
+<p>This is now the 15th installment in what&#8217;s becoming the longest series I&#8217;ve written for this blog; we have so far learned how exceptions are thrown and we have written a personality function capable of, with some sort of reflexion, detecting where the catch-blocks are (landing pads, in exception speak). In the last article we wrote a personality function that can handle exceptions, but it does so only with the first landing pad of the first call frame in the stack. Let&#8217;s improve that a little bit, let&#8217;s make our personality function capable of choosing the right landing pad in a function with multiple landing pads.</p>
+<p>In a TDD fashion we can first build a test for our ABI. Let&#8217;s modify our test program, throw.cpp, to have two try/catch blocks:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;stdio.h&gt;
+#include &quot;throw.h&quot;
+
+struct Fake_Exception {};
+
+void raise() {
+    throw Exception();
+}
+
+void try_but_dont_catch() {
+    try {
+        printf(&quot;Running a try which will never throw.\n&quot;);
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Exception caught... with the wrong catch!\n&quot;);
+    }
+
+    try {
+        raise();
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Caught a Fake_Exception!\n&quot;);
+    }
+
+    printf(&quot;try_but_dont_catch handled the exception\n&quot;);
+}
+
+void catchit() {
+    try {
+        try_but_dont_catch();
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Caught a Fake_Exception!\n&quot;);
+    } catch(Exception&amp;) {
+        printf(&quot;Caught an Exception!\n&quot;);
+    }
+
+    printf(&quot;catchit handled the exception\n&quot;);
+}
+
+extern &quot;C&quot; {
+    void seppuku() {
+        catchit();
+    }
+}
+</pre>
+<p>Before you test it, try to think about what will happen upon running this test. Focus on the try_but_dont_catch function: the first try/catch block will not throw, then the second block will throw. Since our ABI is quite dumb the first block will handle the second block&#8217;s exception. What will happen after the first block has finished handling the exception? The execution will resume from where the catch/try ends, thus entering again on the second try/catch block. Infinite loop! We have reinvented yet again a very complicated while(true).</p>
+<p>Let&#8217;s use our knowledge of the start/length fields in the call site table (LSDA) to properly choose our landing pad. For this we will need to know what the instruction pointer was when the exception was thrown, and we can do this with an _Unwind_ function we already know: _Unwind_GetIP. To understand what _Unwind_GetIP will return let&#8217;s see an example:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+
+void f1() {}
+void f2() { throw 1; }
+void f3() {}
+
+void foo() {
+L1:
+    try{ f1(); } catch(...) {}
+L2:
+    try{ f2(); } catch(...) {}
+L3:
+    try{ f3(); } catch(...) {}
+}
+</pre>
+<p>In this case our personality function would be called for the catch block for f2 and the stack would be like this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
++------------------------------+
+|   IP: f2  stack frame: f2    |
++------------------------------+
+|   IP: L3  stack frame: foo   |
++------------------------------+
+</pre>
+<p>Note that IP will be at L3 but the exception will be thrown in L2; this is because the IP will point to the next instruction to execute. This also means we need to substract one if we need to find the IP where an exception was thrown, otherwise the result from _Unwind_GetIP would not be in the range of our landing pad. Back to our personality function:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+_Unwind_Reason_Code __gxx_personality_v0 (
+                             int version,
+                             _Unwind_Action actions,
+                             uint64_t exceptionClass,
+                             _Unwind_Exception* unwind_exception,
+                             _Unwind_Context* context)
+{
+    if (actions &amp; _UA_SEARCH_PHASE)
+    {
+        printf(&quot;Personality function, lookup phase\n&quot;);
+        return _URC_HANDLER_FOUND;
+    } else if (actions &amp; _UA_CLEANUP_PHASE) {
+        printf(&quot;Personality function, cleanup\n&quot;);
+
+        // Calculate what the instruction pointer was just before the
+        // exception was thrown for this stack frame
+        uintptr_t throw_ip = _Unwind_GetIP(context) - 1;
+
+        // Pointer to the beginning of the raw LSDA
+        LSDA_ptr lsda = (uint8_t*)_Unwind_GetLanguageSpecificData(context);
+
+        // Read LSDA headerfor the LSDA
+        LSDA_Header header(&amp;lsda);
+
+        // Read the LSDA CS header
+        LSDA_CS_Header cs_header(&amp;lsda);
+
+        // Calculate where the end of the LSDA CS table is
+        const LSDA_ptr lsda_cs_table_end = lsda + cs_header.length;
+
+        // Loop through each entry in the CS table
+        while (lsda &lt; lsda_cs_table_end)
+        {
+            LSDA_CS cs(&amp;lsda);
+
+            // If there's no LP we can't handle this exception; move on
+            if (not cs.lp) continue;
+
+            uintptr_t func_start = _Unwind_GetRegionStart(context);
+
+            // Calculate the range of the instruction pointer valid for this
+            // landing pad; if this LP can handle the current exception then
+            // the IP for this stack frame must be in this range
+            uintptr_t try_start = func_start + cs.start;
+            uintptr_t try_end = func_start + cs.start + cs.len;
+
+            // Check if this is the correct LP for the current try block
+            if (throw_ip &lt; try_start) continue;
+            if (throw_ip &gt; try_end) continue;
+
+            // We found a landing pad for this exception; resume execution
+            int r0 = __builtin_eh_return_data_regno(0);
+            int r1 = __builtin_eh_return_data_regno(1);
+
+            _Unwind_SetGR(context, r0, (uintptr_t)(unwind_exception));
+            // Note the following code hardcodes the exception type;
+            // we'll fix that later on
+            _Unwind_SetGR(context, r1, (uintptr_t)(1));
+
+            _Unwind_SetIP(context, func_start + cs.lp);
+            break;
+        }
+
+        return _URC_INSTALL_CONTEXT;
+    } else {
+        printf(&quot;Personality function, error\n&quot;);
+        return _URC_FATAL_PHASE1_ERROR;
+    }
+}
+</pre>
+<p>As usual: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v07">in my github repo</a>.</p>
+<p>Try the example again and voila, no more infinite loop! That was a simple change and we can now choose the correct landing pad. Next time we&#8217;ll try to make our personality function also pick the correct stack frame instead of choosing the first one.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: finding the right catch in a landing pad</h2>
+<p>16th chapter on our quest to implement a mini-ABI capable of handling exceptions; last time we implemented our personality function so it would be able to handle functions with more than one landing pad. We are now trying to make it recognize whether a certain landing pad can handle a specific exception, so we can use the exception specification on the catch statement.</p>
+<p>Of course, to know whether a landing pad can handle a throw is a difficult task. Would you expect anything else? The biggest problems to overcome right now will be:</p>
+<ul>
+<li>First and foremost: how can we find the accepted types for a catch block?</li>
+<li>Assuming we can find the types for a catch, how can we handle a catch(&#8230;)?</li>
+<li>For a landing pad with multiple catch statements, how can we know all possibly catch types?</li>
+<li>Take the following example:
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct Base {};
+struct Child : public Base {};
+void foo() { throw Child; }
+
+void bar()
+{
+    try { foo(); }
+    catch(const Base&amp;){ ... }
+}
+        </pre>
+<p>Not only we&#8217;ll have to check whether the landing pad accepts the current exception, we&#8217;ll have to check if it accepts any of the current exception&#8217;s parents!</li>
+</ul>
+<p>To make our work a bit easier let&#8217;s say for now we work only with landing pads that have a single catch and no inheritance exists on our program. Still, how do we find out the accepted types for a landing pad?</p>
+<p>Turns there is a place in .gcc_except_table we haven&#8217;t analyzed yet: the action table. Let&#8217;s dissasemble our throw.cpp object and see what&#8217;s in there, right after the call site table is finished, for our &#8220;try but don&#8217;t catch&#8221; function:</p>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v07">in my github repo</a>.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+.LLSDACSE1:
+	.byte	0x1
+	.byte	0
+	.align 4
+	.long	_ZTI14Fake_Exception
+.LLSDATT1:
+</pre>
+<p>Doesn&#8217;t look like much, but there&#8217;s a promising pointer (both a proverbial and a real pointer) to something that has our exception&#8217;s name. Let&#8217;s go to the definition of _ZTI14Fake_Exception:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+_ZTI14Fake_Exception:
+	.long	_ZTVN10__cxxabiv117__class_type_infoE+8
+	.long	_ZTS14Fake_Exception
+	.weak	_ZTS9Exception
+	.section	.rodata._ZTS9Exception,&quot;aG&quot;,@progbits,_ZTS9Exception,comdat
+	.type	_ZTS9Exception, @object
+	.size	_ZTS9Exception, 11
+</pre>
+<p>And we reached something very interesting. Can you recognize it? This is the std::type_info for struct Fake_Exception!</p>
+<p>Now we know there is indeed a way to get a pointer to some kind of reflexion information for our exception. Can we programmatically find it? We&#8217;ll see next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: reflecting on an exception type and reading .gcc_except_table</h2>
+<p>By now we know that when an exception is thrown we can get a lot of reflexion information by reading the local data storage area AKA .gcc_except_table; reading this table we have been able to implement a personality function capable of deciding which landing pad to run when an exception is thrown. We also know how to read the action table part of the LSDA, so we should be able to modify our personality function to pick the correct catch statement inside a landing pad with multiple catches.</p>
+<p>We left our ABI implementation last time, and dedicated some time to analyze the assembly for .gcc_except_table to discover how can we find the types a catch can handle. We found that indeed there is a part of this table that holds a list of types where this information can be found. Let&#8217;s try to read it on the cleanup phase, but first let&#8217;s remember the definition for our LSDA header:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct LSDA_Header {
+    uint8_t start_encoding;
+    uint8_t type_encoding;
+
+    // This is the offset, from the end of the header, to the types table
+    uint8_t type_table_offset;
+};
+</pre>
+<p>That last field is new (for us): it&#8217;s giving us an offset into table of types. Let&#8217;s also remember the definition of each call site:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct LSDA_CS {
+    // Offset into function from which we could handle a throw
+    uint8_t start;
+    // Length of the block that might throw
+    uint8_t len;
+    // Landing pad
+    uint8_t lp;
+    // Offset into action table + 1 (0 means no action)
+    uint8_t action;
+};
+</pre>
+<p>Check that last field, &#8220;action&#8221;. That gives us an offset into the action table. That means we can find the action for a specific CS. The trick here is that for landing pads where a catch exists, the action will hold an offset for the types table; we can then use the offset into the types table pointer, which we can get from the header. Quite a mouthful: let&#8217;s better talk code:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+// Pointer to the beginning of the raw LSDA
+LSDA_ptr lsda = (uint8_t*)_Unwind_GetLanguageSpecificData(context);
+
+// Read LSDA headerfor the LSDA
+LSDA_Header header(&amp;lsda);
+
+const LSDA_ptr types_table_start = lsda + header.type_table_offset;
+
+// Read the LSDA CS header
+LSDA_CS_Header cs_header(&amp;lsda);
+
+// Calculate where the end of the LSDA CS table is
+const LSDA_ptr lsda_cs_table_end = lsda + cs_header.length;
+
+// Get the start of action tables
+const LSDA_ptr action_tbl_start = lsda_cs_table_end;
+
+// Get the first call site
+LSDA_CS cs(&amp;lsda);
+
+// cs.action is the offset + 1; that way cs.action == 0
+// means there is no associated entry in the action table
+const size_t action_offset = cs.action - 1;
+const LSDA_ptr action = action_tbl_start + action_offset;
+
+// For a landing pad with a catch the action table will
+// hold an index to a list of types
+int type_index = action[0];
+
+// types_table_start actually points to the end of the table, so
+// we need to invert the type_index. There we'll find a ptr to
+// the std::type_info for the specification in our catch
+const void* catch_type_info = types_table_start[ -1 * type_index ];
+const std::type_info *catch_ti = (const std::type_info *) catch_type_info;
+
+// If everything went OK, this should print something like Fake_Exception
+printf(&quot;%s\n&quot;, catch_ti-&gt;name());
+</pre>
+<p>The code looks complicated because there are several layers of indirection before actually reaching the struct type_info, but it&#8217;s not really doing anything complicated: it only reads the .gcc_except_table we found on the disassembly.</p>
+<p>Printing the name of the type is already a big step in the right direction. Also, our personality function is getting a bit messy. Most of the complexity of reading the LSDA can be hidden under the rug for almost no cost at all. You can check my <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v08">implementation here</a></p>
+<p>Next time we&#8217;ll see if we can match our newly found type to our original exception.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: getting the right stack frame</h2>
+<p>Our latest personality function knows whether it can handle an exception or not (assuming there is only one catch statement per try block and assuming no inheritance is used) but to make this knowledge useful, we have first to check if the exception we can handle matches the exception being thrown. Let&#8217;s try to do this.</p>
+<p>Of course, we need first to know the exception type. To do this we need to save the exception type when <b>__cxa_throw</b> is called (this is the chance the ABI gives us to set all our custom data):</p>
+<p>Note: You can download the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v09">in my github repo</a>.</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void __cxa_throw(void* thrown_exception,
+                 std::type_info *tinfo,
+                 void (*dest)(void*))
+{
+    __cxa_exception *header = ((__cxa_exception *) thrown_exception - 1);
+
+    // We need to save the type info in the exception header _Unwind_ will
+    // receive, otherwise we won't be able to know it when unwinding
+    header-&gt;exceptionType = tinfo;
+
+    _Unwind_RaiseException(&amp;header-&gt;unwindHeader);
+}
+</pre>
+<p>And now we can read the exception type in our personality function and easily check if the exception types match (the exception names are C++ strings, so doing a == is enough to check this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+// Get the type of the exception we can handle
+const void* catch_type_info = lsda.types_table_start[ -1 * type_index ];
+const std::type_info *catch_ti = (const std::type_info *) catch_type_info;
+
+// Get the type of the original exception being thrown
+__cxa_exception* exception_header = (__cxa_exception*)(unwind_exception+1) - 1;
+std::type_info *org_ex_type = exception_header-&gt;exceptionType;
+
+printf(&quot;%s thrown, catch handles %s\n&quot;,
+            org_ex_type-&gt;name(),
+            catch_ti-&gt;name());
+
+// Check if the exception being thrown is of the same type
+// than the exception we can handle
+if (org_ex_type-&gt;name() != catch_ti-&gt;name())
+    continue;
+</pre>
+<p>Check <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v09">here</a> for the full source with the new changes.</p>
+<p>Of course there would be a problem if we add that (can you see it?). If the exception is thrown in two phases and we said in the first one we would handle it, then we can&#8217;t say on the second one we don&#8217;t want it anymore. I don&#8217;t know if _Unwind_ handles this case according to any documentation but this is most likely calling upon undefined behavior, so just saying we&#8217;ll handle everything is no longer enough.</p>
+<p>Since we gave our personality function the ability to know if the landing pad can handle the exception being thrown we have been lying to _Unwind_ about which exceptions we can handle; even though we said we handle all of them on <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v09">our ABI 9</a>, the truth is that we didn&#8217;t know whether we would be able to handle it. That&#8217;s easy to change, we can do something like this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+_Unwind_Reason_Code __gxx_personality_v0 (...)
+{
+    printf(&quot;Personality function, searching for handler\n&quot;);
+
+    // ...
+
+    foreach (call site entry in lsda)
+    {
+        if (call site entry.not_good()) continue;
+
+        // We found a landing pad for this exception; resume execution
+
+        // If we are on search phase, tell _Unwind_ we can handle this one
+        if (actions &amp; _UA_SEARCH_PHASE) return _URC_HANDLER_FOUND;
+
+        // If we are not on search phase then we are on _UA_CLEANUP_PHASE
+        /* set everything so the landing pad can run */
+
+        return _URC_INSTALL_CONTEXT;
+    }
+
+    return _URC_CONTINUE_UNWIND;
+}
+</pre>
+<p>As usual, check the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v10">in my github repo</a>.</p>
+<p>So, what would we get if we run the personality function with this change? Fail, that&#8217;s what we&#8217;d get! Remember our throwing functions? This one should catch our exception:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void catchit() {
+    try {
+        try_but_dont_catch();
+    } catch(Fake_Exception&amp;) {
+        printf(&quot;Caught a Fake_Exception!\n&quot;);
+    } catch(Exception&amp;) {
+        printf(&quot;Caught an Exception!\n&quot;);
+    }
+
+    printf(&quot;catchit handled the exception\n&quot;);
+}
+</pre>
+<p>Unfortunately, our personality function only checks for the first type the landing pad can handle. If we delete the Fake_Exception catch block and try it again, though, we&#8217;d get a different story: finally, success! Our personality function can now select the correct catch in the correct frame, provided there&#8217;s no try block with multiple catches.</p>
+<p>Next time we&#8217;ll be further improving this.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: getting the right catch in a landing pad</h2>
+<p>19th entry about C++ exception handling: we have written a personality function that can so far, by reading the LSDA, choose the right landing pad on the right stack frame to handle a thrown exception, but it was having some difficulties finding the right catch inside a landing pad. To finally get a decently working personality function we&#8217;ll need to check all the types an exception can handle by going through all the actions table in the .gcc_except_table.</p>
+<p>Remember the action table? Let&#8217;s check it again but this time for a try with multiple catch blocks.</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+# Call site table
+.LLSDACSB2:
+    # Call site 1
+	.uleb128 ip_range_start
+	.uleb128 ip_range_len
+	.uleb128 landing_pad_ip
+	.uleb128 (action_offset+1) =&gt; 0x3
+
+    # Rest of call site table
+
+# Action table start
+.LLSDACSE2:
+    # Action 1
+	.byte	0x2
+	.byte	0
+
+    # Action 2
+	.byte	0x1
+	.byte	0x7d
+
+	.align 4
+	.long	_ZTI9Exception
+	.long	_ZTI14Fake_Exception
+.LLSDATT2:
+# Types table start
+</pre>
+<p>If we intend to read the exceptions supported by the landing pad 1 in the example above (that LSDA is for the catchit function, by the way) we need to do something like this:</p>
+<ul>
+<li>Get the action offset from the call site table, 2: remember you&#8217;ll actually read the offset plus 1, so 0 means no action.</li>
+<li>Go to action offset 2, get type index 1. The types table is indexed in reverse order (ie we have a pointer to its end and we need to access each element by using -1 * index).</li>
+<li>Go to types_table[-1]; you&#8217;ll get a pointer to the type_info for Fake_Exception</li>
+<li>Fake_Exception is not the current exception being thrown; get the next action offset for our current action (0x7d)</li>
+<li>Reading 0x7d in uleb128 will actually yield -3; from the position where we read the offset move back 3 bytes to find the next action</li>
+<li>Read type index 2</li>
+<li>Get the type_info for Exception this time; it matches the current exception being thrown, so we can install the landing pad!</li>
+</ul>
+<p>It sounds complicated because there&#8217;s, again, a lot of indirection for each step but you can check the full sourcecode for this project <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v11">in my github repo</a>.</p>
+<p>In the link above you will also see a bonus: a change to the personality function to correctly detect and use catch(&#8230;) blocks. That&#8217;s an easy change once the personality functions knows how to read the types table: a type with a null pointer (ie a position in the table that instead of a valid pointer to an std::type_info holds null) represents a catch all block. This has an interesting side effect: a catch(T) will be able to handle only native (ie coming from C++) exceptions, whereas a catch(&#8230;) would catch also exceptions not thrown from within C++.</p>
+<p>We finally know how exceptions are thrown, how the stack is unwinded, how a personality function selects the correct stack frame to handle an exception and how the right catch inside a landing pad is selected, but we still have on more problem to solve: running destructors. We&#8217;ll change our personality function to support RAII objects next time.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: running destructors while unwinding</h2>
+<p>The <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v11">mini ABI version 11</a> we have written last time was able to handle pretty much all the basics to handle an exception: we have an (almost working) ABI capable of throwing and catching exceptions, but it is still unable to properly run destructors. That&#8217;s quite important if we want to write exception safe code. With what we know about .gcc_except_table running destructors is a piece of cake, we only need to see a bit of assembly:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+# Call site table
+.LLSDACSB2:
+    # Call site 1
+	.uleb128 ip_range_start
+	.uleb128 ip_range_len
+	.uleb128 landing_pad_ip
+	.uleb128 (action_offset+1) =&gt; 0x3
+
+    # Rest of call site table
+
+# Action table start
+.LLSDACSE2:
+    # Action 1
+	.byte	0
+	.byte	0
+
+    # Action 2
+	.byte	0x1
+	.byte	0x7d
+
+	.align 4
+	.long	_ZTI14Fake_Exception
+.LLSDATT2:
+# Types table start
+</pre>
+<p>On a regular landing pad, when an action has a type index greater than 0 it means we&#8217;re seeing an index to a type tables, and we can use that to know which types the catch can handle; for a type index with a value of 0 it means we are instead seeing a cleanup block and we should run it anyway. Although the landing pad can&#8217;t handle the exception it will still be able to perform the cleanup that&#8217;s supposed to happen while unwinding. Of course the landing pad will call _Unwind_Resume when the cleanup is done and that will continue the regular stack unwinding process.</p>
+<p>I&#8217;ve uploaded this <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v12">latest and last version to my github repo</a>, but there are some bad news: remember how we cheated by saying that a uleb128 == char? As soon as we start adding blocks to run destructors the .gcc_except_table starts to get quite big (where &#8220;big&#8221; means we have offsets over 127 bytes long) and that assumption no longer holds.</p>
+<p>For the next version of this ABI we would have to rewrite our LSDA reading functions to read proper uleb128 code. Not a major change, but at this point we wouldn&#8217;t gain much, we have already achieved our goal: a working minimal ABI capable of handling exceptions without the help of libcxxabi.</p>
+<p>There are parts we haven&#8217;t covered, like handling non-native exceptions, catching derived types or interoperability between compilers and linkers. Maybe some other time, in this rather long series of articles we already learned quite a bit about low level exception handling in C++.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood: a summary and some final thoughts</h2>
+<p>After writing twenty some articles about C++ low level exception handling, it&#8217;s time for a recap and some final thoughts. What did we learn, how is an exception thrown and how is it caught?</p>
+<p>Leaving aside the ugly details of reading the .gcc_except_table, which were probably the biggest part of these articles, we could summarize the whole process like this:</p>
+<ol>
+<li>The C++ compiler actually does rather little to handle an exception, most of the magic actually happens in libstdc++.</li>
+<li>There are a few things the compiler does, though. Namely:
+<ul>
+<li>It creates the CFI information to unwind the stack.</li>
+<li>It creates something called .gcc_except_table with information about landing pads (try/catch blocks). Kind of like reflexion info.</li>
+<li>When we write a throw statement, the compiler will translate it into a pair of calls into libstdc++ functions that allocate the exception and then start the stack unwinding process by calling libstdc.</li>
+</ul>
+</li>
+<li>When an exception is thrown at runtime __cxa_throw will be called, which will delegate the stack unwinding to libstdc.</li>
+<li>As the unwinder goes through the stack it will call a special function provided by libstdc++ (called personality routine) that checks for each function in the stack which exceptions can be caught.</li>
+<li> If no matching catch is found for the exception, std::terminate is called.</li>
+<li>If a matching catch is found, the unwinder now starts again on the top of the stack.</li>
+<li>As the unwinder goes through the stack a second time it will ask the personality routine to perform a cleanup for this method.</li>
+<li>The personality routine will check the .gcc_except_table for the current method. If there are any cleanup actions to be run, it will &#8220;jump&#8221; into the current stack frame and run the cleanup code. This will run the destructor for each object allocated at the current scope.</li>
+<li>Once the unwinder reaches the frame in the stack that can handle the exception it will jump into the proper catch statement.</li>
+<li>Upon finishing the execution of the catch statement, a cleanup function will be called to release the memory held for the exception.</li>
+</ol>
+<p>Having learned how exceptions work we are now in a position to better answer why it&#8217;s hard to write exception safe code.</p>
+<p>Exceptions, while conceptually clean, are pretty much &#8220;spooky action at a distance&#8221;. Throwing and catching an exception involves a certain degree of reflexion (in the sense that a program must analyze itself) which is not common for C++ applications.</p>
+<p>Even if we talk about higher level languages, throwing an exception means we cannot rely on our understanding of how a normal program execution flow should work anymore: we are used to a pretty much linear execution flow with some conditional operators branching or calling other functions. With an exception, this no longer holds true: an entity which is not the code of our application is in control of the execution, and it goes around the program executing certain blocks of code here and there without following any of the normal rules. The instruction pointer gets changed by each landing pad, the stack is unwinded in ways we can&#8217;t control and, ultimately, a lot of magic happens under the hood.</p>
+<p>To summarize it even more: exceptions are hard simply because they break the natural flow of a program as we understand it. This does not mean they are intrinsically bad as properly used exceptions can surely lead to cleaner code, but they should always be used with care.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood appendix: the true cost of an exception</h2>
+<p>Remember a long way back, when the series on exception handling was just started, that I mentioned these articles would only apply for gcc/x86? There is a reason for that since not all compilers implement exception handling the same way. In particular, there are two major ways of doing it:</p>
+<ul>
+<li>With a lookup table and some metadata, like the Itanium ABI specifies; this is what we talked about.</li>
+<li>Sj/Lj (ARM): Registering exception handling information upon entering or exiting a method.</li>
+</ul>
+<p>The way gcc (and many other compilers) implement this ABI on x86 is by using metadata (the .gcc_except_table and the CFI). Although it&#8217;s rather difficult to parse, and it might take a long time to parse this on runtime when an exception is thrown, it has a great upside: if no exceptions are thrown then there&#8217;s no setup cost to be paid. This is called &#8220;Zero-cost exception handling&#8221; because a normal execution, where no exceptions are thrown, no penalty ispaid. The performance is exactly the same we would have as if we had specified nothrow. That&#8217;s right, leaving code locality &amp; caching issues aside, using exceptions or not has no performance penalty unless an exception is actually thrown. This is a great advantage and it goes in line with C++ philosophy of having no-cost for non used features.</p>
+<p>When using the noexcept specification while declaring a method (or an empty throw specifier, pre C++11) in the setup used for these articles the compiler would omit the creation of the .gcc_except_table. This will make the code more compact and it will improve the cache usage, but it&#8217;s very unlikely that will have a noticeable impact on the performance of the application.</p>
+<p>If we talk about ARM, Sj/Lj seems to be the default option (I&#8217;m sure there&#8217;s a good reason for that but I don&#8217;t have enough experience with ARM to know it). This exception handling method is based on registering exception handling information upon entering or exiting a method which either uses exceptions or requires a cleanup if an exception is thrown. This will result in a quicker exception handling, but the setup cost is paid whether an exception is thrown or not.</p>
+<p>If you&#8217;re interested on reading more about sjlj and zero cost exception handling <a href="http://llvm.org/docs/ExceptionHandling.html">LLVM has great documentation</a>.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood appendix: metaclasses and RTTI on C++</h2>
+<p>A long time ago, when we where just starting to write our mini ABI to handle exceptions without libstdc++&#8217;s help, we had to add an empty class to appease the linker:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+namespace __cxxabiv1 {
+    struct __class_type_info {
+        virtual void foo() {}
+    } ti;
+}
+</pre>
+<p>I mentioned this class is used to check whether a catch can handle a subtype of the exception thrown, but what does that exactly mean? Let&#8217;s change a bit our throwing functions to see what happens when we start dealing with inheritance. You may want to check <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v12">the source code for these examples.</a></p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+struct Derived_Exception : public Exception {};
+
+void raise() {
+    throw Derived_Exception();
+}
+
+void catchit() {
+    try {
+        raise();
+    } catch(Exception&amp;) {
+        printf(&quot;Caught an Exception!\n&quot;);
+    } catch(Derived_Exception&amp;) {
+        printf(&quot;Caught a Derived_Exception!\n&quot;);
+    }
+
+    printf(&quot;catchit handled the exception\n&quot;);
+}
+</pre>
+<p>What should happen in this example is crystal clear: it should print &#8220;Caught an Exception&#8221;, because that catch block should be able to handle both types, Exception and Derived_Exception. Not only that, if we compile throw.cpp we&#8217;ll get a warning to let us know that the second catch is dead code:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+throw.cpp: In function -F¡void catchit()¢:
+throw.cpp:15:7: warning: exception of type ¡Derived_Exception¢ will be caught [enabled by default]
+throw.cpp:13:7: warning:    by earlier handler for ¡Exception¢ [enabled by default]
+</pre>
+<p>Luckily a warning won&#8217;t stop compilation; we can continue and try to link the resulting .o; we&#8217;ll find a linker error:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+throw.o:(.rodata._ZTI17Derived_Exception[typeinfo for Derived_Exception]+0x0): undefined reference to `vtable for __cxxabiv1::__si_class_type_info'
+</pre>
+<p>And again we start seeing __type_info errors. If we create a fake __si_class_type_info to workaround this problem we we&#8217;ll finally see our ABI breaks down when dealing with inheritance, in a rather funny way: the compiler will warn us about dead code and then we see that same code being executed by our ABI!</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+g++ -c -o throw.o -O0 -ggdb throw.cpp
+throw.cpp: In function ¡void catchit()¢:
+throw.cpp:15:7: warning: exception of type ¡Derived_Exception¢ will be caught [enabled by default]
+throw.cpp:13:7: warning:    by earlier handler for ¡Exception¢ [enabled by default]
+gcc main.o throw.o mycppabi.o -O0 -ggdb -o app
+./app
+begin FTW
+Caught a Derived_Exception!
+end FTW
+catchit handled the exception
+</pre>
+<p>Clearly there&#8217;s something wrong with our ABI, and it&#8217;s very easy to trace this problem back to the definition of &#8220;can_handle&#8221;, the part of the code that checks whether an exception can by caught by a catch block:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+bool can_handle(const std::type_info *thrown_exception,
+                const std::type_info *catch_type)
+{
+    // If the catch has no type specifier we're dealing with a catch(...)
+    // and we can handle this exception regardless of what it is
+    if (not catch_type) return true;
+
+    // Naive type comparisson: only check if the type name is the same
+    // This won't work with any kind of inheritance
+    if (thrown_exception-&gt;name() == catch_type-&gt;name())
+        return true;
+
+    // If types don't match just don't handle the exception
+    return false;
+}
+</pre>
+<p>Our ABI gets the std::type_info for the exception being thrown and for the type which can be handled, and then compares if the names for these types is the same. This is fine as long as no inheritance is involved, but in the example above we already found a case where an exception should be handled even though a name is not shared.</p>
+<p>The same problem will arise when trying to catch a pointer to an exception: the names won&#8217;t match. Even more interesting, if you try and link throw.cpp but change the catch to receive a pointer instead, you&#8217;ll get a new linker error. If you fix it you should end up with something like this:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+namespace __cxxabiv1 {
+    struct __class_type_info    { virtual void foo() {} } ti;
+    struct __si_class_type_info { virtual void foo() {} } si;
+    struct __pointer_type_info  { virtual void foo() {} } ptr;
+}
+</pre>
+<p>A very interesting pattern is starting to emerge: there is a different *_type_info for each possible catch type used. In fact the compiler will generate a different structure for each throw style. For example, for these throws:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+throw new Exception;
+throw Exception;
+</pre>
+<p>the compiler would generate something like:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+__cxa_throw(_Struct_Type_Info__Ptr__Exception);
+__cxa_throw(_Struct_Type_Info__Class__Exception);
+</pre>
+<p>In fact, even for this simple example, the inheritance web (not tree, web) is quite complex (note that I&#8217;m kind of inventing the mangling here, it&#8217;s not what gcc uses):</p>
+<p><a href="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png"><img data-attachment-id="2464" data-permalink="https://monoinfinito.wordpress.com/2013/06/13/c-exceptions-under-the-hood-appendix-ii-metaclasses-and-rtti-on-c/type_info_inheritance/" data-orig-file="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png" data-orig-size="677,363" data-comments-opened="1" data-image-meta="{&quot;aperture&quot;:&quot;0&quot;,&quot;credit&quot;:&quot;&quot;,&quot;camera&quot;:&quot;&quot;,&quot;caption&quot;:&quot;&quot;,&quot;created_timestamp&quot;:&quot;0&quot;,&quot;copyright&quot;:&quot;&quot;,&quot;focal_length&quot;:&quot;0&quot;,&quot;iso&quot;:&quot;0&quot;,&quot;shutter_speed&quot;:&quot;0&quot;,&quot;title&quot;:&quot;&quot;}" data-image-title="type_info_inheritance" data-image-description="" data-medium-file="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=300" data-large-file="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=590" class="aligncenter size-large wp-image-2464" src="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=590&#038;h=316" alt="type_info_inheritance" srcset="C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=590&amp;h=316 590w, C++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png?w=150&amp;h=80 150w, C++ exception handling internals | An infinite monkey - NicolaC++ exception handling internals | An infinite monkey - Nicolas Brailovsky's blog_files/type_info_inheritance.png 677w" sizes="(max-width: 590px) 100vw, 590px"   /></a></p>
+<p>All these classes are generated by the compiler to specify precisely which type is being thrown, and how. For example, if an exception of type &#8220;Ptr__Type_Info__Derived_Exception&#8221; is thrown then a catch can handle it if:</p>
+<ol>
+<ul>The catch type equals the thrown type exactly (this is the only check our ABI does).</ul>
+<ul>If the catch type is a pointer (ie inherits from cxxabi::ponter_type_info), and said pointer can be casted to the exception type.</ul>
+<ul>If the thrown type is a derived type, then we need to check if the catch type is a parent type</ul>
+</ol>
+<p>And this list is still missing lots of possibilities, but for the full list is better to check a real C++ ABI. <a href="http://libcxxabi.llvm.org/">LLVM</a> has very clear and easy to understand ABI, you can check these details in the file &#8220;private_typeinfo.cpp&#8221;. If you check LLVM&#8217;s implementation of run time type information, you&#8217;ll soon realize why we didn&#8217;t implement this on our ABI: the amount of rules to determine whether two types are the same or not is incredibly complex.</p>
+<p>&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-</p>
+<h2>C++ exceptions under the hood appendix: RTTI and exceptions orthogonality</h2>
+<p>Exception handling on C++ requires a lot of reflexion. I don&#8217;t mean the programmer should be reflecting on exception handling (though that&#8217;s probably not a bad idea), I mean that a piece of C++ code should be able to understand things about itself. This looks a lot like run-time type information, RTTI. Are they the same? If they are, does exception handling work without RTTI?</p>
+<p>We might be able to get a clue about the difference between RTTI and exception handling by using -fno-rtti on gcc when compiling our ABI project. Let&#8217;s use the <a href="https://github.com/nicolasbrailo/cpp_exception_handling_abi/blob/master/abi_v12/throw.cpp">throw.cpp</a> file:</p>
+<pre class="brush: bash; title: ; notranslate" title="">
+g++ -fno-rtti -S throw.cpp -o throw.nortti.s
+g++ -S throw.cpp -o throw.s
+diff throw.s throw.nortti.s
+</pre>
+<p>If you try that yourself you should see there&#8217;s no difference between the RTTI and the No-RTTI version. Can we conclude then that gcc&#8217;s exception handling is done with a mechanism different to RTTI? Not yet, let&#8217;s see what happens if we try to use RTTI ourselves:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+void raise() {
+    Exception ex;
+    typeid(ex);
+    throw Exception();
+}
+</pre>
+<p>If you try and compile that, gcc will complain: you can&#8217;t use typeid with -fno-rtti specified. Which makes sense. Let&#8217;s see what typeid does with a simple test:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+#include &lt;typeinfo&gt;
+
+class Bar {};
+const std::type_info&amp; foo()
+{
+        Bar bar;
+        return typeid(bar);
+}
+</pre>
+<p>If we compile this with &#8220;g++ -O0 -S&#8221;, you will see foo compiled into something like this:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+_Z3foov:
+.LFB19:
+    # Prologue stuff...
+
+    subl    $16, %esp
+    # Bar bar
+
+    movl    $_ZTI3Bar, %eax
+    # typeid(bar)
+
+    leave
+    # Epilogue stuff...
+
+_ZTS3Bar:
+    # Definition for _ZTS3Bar...
+
+_ZTI3Bar:
+    .long   _ZTVN10__cxxabiv117__class_type_infoE+8
+    .long   _ZTS3Bar
+    .ident  &quot;GCC: (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3&quot;
+    .section    .note.GNU-stack,&quot;&quot;,@progbits
+</pre>
+<p>Does that look familiar? If it doesn&#8217;t, then try changing the sample code to this one:</p>
+<pre class="brush: cpp; title: ; notranslate" title="">
+class Bar {};
+void foo() { throw Bar(); }
+</pre>
+<p>Compile it like &#8220;g++ -O0 -fno-rtti -S test.cpp&#8221; and see the resulting file. You should see something like this now:</p>
+<pre class="brush: plain; title: ; notranslate" title="">
+_Z3foov:
+    # Prologue stuff...
+
+    # Initialize exception
+    subl    $24, %esp
+    movl    $1, (%esp)
+    call    __cxa_allocate_exception
+    movl    $0, 8(%esp)
+
+    # Specify Bar as exception thrown
+    movl    $_ZTI3Bar, 4(%esp)
+    movl    %eax, (%esp)
+
+    # Handle exception
+    call    __cxa_throw
+
+    # Epilogue stuff...
+
+_ZTS3Bar:
+    # Definition for _ZTS3Bar...
+
+_ZTI3Bar:
+    .long   _ZTVN10__cxxabiv117__class_type_infoE+8
+    .long   _ZTS3Bar
+    .ident  &quot;GCC: (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3&quot;
+    .section    .note.GNU-stack,&quot;&quot;,@progbits
+</pre>
+<p>That should indeed look familiar: the class being thrown is exactly the same as the class that was used for typeid!</p>
+<p>We can now conclude what&#8217;s going on: <b>the implementation for exception throwing type information, which needs reflexion and relies on RTTI info for it, is exactly the same as the underlying implementation for typeid and other RTTI friends</b>. Specifying -fno-rtti on g++ only disables the &#8220;frontend&#8221; functions for RTTI: that means you won&#8217;t be able to use typeid, and no RTTI classes will be generated&#8230; unless an exception is thrown, in which case the needed RTTI classes will be generated regardless of -fno-rtti being present (you still won&#8217;t be able to access the RTTI information of this class via typeid, though).</p>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-twitter"><a rel="nofollow" data-shared="sharing-twitter-2223" class="share-twitter sd-button share-icon" href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/?share=twitter" target="_blank" title="Click to share on Twitter"><span>Twitter</span></a></li><li class="share-linkedin"><a rel="nofollow" data-shared="sharing-linkedin-2223" class="share-linkedin sd-button share-icon" href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/?share=linkedin" target="_blank" title="Click to share on LinkedIn"><span>LinkedIn</span></a></li><li><a href="#" class="sharing-anchor sd-button share-more"><span>More</span></a></li><li class="share-end"></li></ul><div class="sharing-hidden"><div class="inner" style="display: none;width:150px;"><ul style="background-image:none;"><li class="share-facebook"><a rel="nofollow" data-shared="sharing-facebook-2223" class="share-facebook sd-button share-icon" href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/?share=facebook" target="_blank" title="Share on Facebook"><span>Facebook</span></a></li><li class="share-end"></li></ul></div></div></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-39864297-2223-58fc371d45473' data-src='//widgets.wp.com/likes/#blog_id=39864297&amp;post_id=2223&amp;origin=monoinfinito.wordpress.com&amp;obj_id=39864297-2223-58fc371d45473' data-name='like-post-frame-39864297-2223-58fc371d45473'><h3 class='sd-title'>Like this:</h3><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height: 55px;'><span class='button'><span>Like</span></span> <span class="loading">Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div></div>						<hr/>
+		</div>
+
+		
+		<div class="navigation">
+			<div class="alignleft"></div>
+			<div class="alignright"></div>
+		</div>
+
+		
+<div id="comments">
+
+
+	<h3>9 Comments on &#8220;C++ exception handling&nbsp;internals&#8221;</h3>
+
+	<div class="navigation">
+			</div>
+
+	<ol class="commentlist">
+				<li class="comment even thread-even depth-1 highlander-comment" id="comment-391">
+				<div id="div-comment-391" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/eaa4b1a593150721d476011ff9137f27?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='http://man.as' rel='external nofollow' class='url'>Juan Wajnerman</a></cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-391">
+			August 9, 2013 at 12:57 am</a>		</div>
+
+		<p>Hola Nicolás, quería agradecerte por haber escrito estos posts. Son realmente geniales.<br />
+Actualmente estamos desarrollando un lenguaje nuevo y estamos encarando el manejo de excepciones. Estos artículos me vienen al pelo ;-). Como bien decís, hay muy poca info o es que es difícil de encontrar. Y que sorpresa ver que fue escrito por un argentino, o al menos estudiaste en Buenos Aires como veo en tus presentaciones.<br />
+Te dejo el link a la home de nuestro lenguaje: <a href="http://crystal-lang.org" rel="nofollow">http://crystal-lang.org</a> y el repo oficial: <a href="https://github.com/manastech/crystal" rel="nofollow">https://github.com/manastech/crystal</a>.</p>
+<p>Saludos y gracias nuevamente!<br />
+&#8211; Juan</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=391#respond' onclick='return addComment.moveForm( "div-comment-391", "391", "respond", "2223" )' aria-label='Reply to Juan Wajnerman'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-nicolasbrailo bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="comment-392">
+				<div id="div-comment-392" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/8c8ff9d1873bc775159ce1fa5cd347d7?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='https://monoinfinito.wordpress.com' rel='external nofollow' class='url'>nicolasbrailo</a></cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-392">
+			August 11, 2013 at 4:17 pm</a>		</div>
+
+		<p>Buenisimo saber que a alguien le sirvio! Gracias!</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=392#respond' onclick='return addComment.moveForm( "div-comment-392", "392", "respond", "2223" )' aria-label='Reply to nicolasbrailo'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 parent highlander-comment" id="comment-990">
+				<div id="div-comment-990" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://0.gravatar.com/avatar/ccaf47221c9ad44d1e52e590696db0d6?s=26&#038;d=https%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">Johnk197</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-990">
+			August 27, 2014 at 12:44 pm</a>		</div>
+
+		<p>Hmm it looks like your site ate my first comment it was extremely kgddddfegkcg</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=990#respond' onclick='return addComment.moveForm( "div-comment-990", "990", "respond", "2223" )' aria-label='Reply to Johnk197'>Reply</a></div>
+				</div>
+		<ul class="children">
+		<li class="comment byuser comment-author-nicolasbrailo bypostauthor odd alt depth-2 highlander-comment" id="comment-992">
+				<div id="div-comment-992" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/8c8ff9d1873bc775159ce1fa5cd347d7?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='https://monoinfinito.wordpress.com' rel='external nofollow' class='url'>nicolasbrailo</a></cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-992">
+			August 27, 2014 at 12:46 pm</a>		</div>
+
+		<p>It must be hungry, I haven&#8217;t fed it in a while. Sorry about that.</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=992#respond' onclick='return addComment.moveForm( "div-comment-992", "992", "respond", "2223" )' aria-label='Reply to nicolasbrailo'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="comment-1226">
+				<div id="div-comment-1226" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://i1.wp.com/lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg?resize=26%2C26&#038;ssl=1' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='https://plus.google.com/111969903933192530561' rel='external nofollow' class='url'>Max de Bayser</a></cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-1226">
+			July 19, 2015 at 11:24 pm</a>		</div>
+
+		<p>Hi Nicolás,</p>
+<p>this was an awesome series of articles. I had already explored the internals of exception handling quite a bit but never at this level of detail.</p>
+<p>I wrote a library that helps to organize exception handling and debugging by making the demangled stack trace available to the programmer. I had to wrap cxa_throw and navigate the __class_type_info hierarchy to be able to present the stack trace from the point where the exception was thrown. The code is here <a href="https://github.com/CPTI/Exception" rel="nofollow">https://github.com/CPTI/Exception</a></p>
+<p>Another library that I wrote is for reflection in C++11 <a href="https://github.com/maxdebayser/SelfPortrait" rel="nofollow">https://github.com/maxdebayser/SelfPortrait</a> (yeah, I know it sounds lunatic, but its intended for dependency injection and generation of scripting language bindings. There are trade-off, of course). I used throw and catch to determine the type of &#8220;things&#8221;, since type_info gives no hierarchy information and dynamic_cast only works for virtual class hierarchies. The first version of the library was intended to use only standard C++11 features but this ends up abusing the compiler quite a lot, so now I&#8217;m adding platform-specific code to speed things up.</p>
+<p>Your article gave me lots of insight and new ideas. Thanks a lot and keep up the good work,</p>
+<p>Max</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=1226#respond' onclick='return addComment.moveForm( "div-comment-1226", "1226", "respond", "2223" )' aria-label='Reply to Max de Bayser'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 parent highlander-comment" id="comment-1253">
+				<div id="div-comment-1253" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/bea5114db18b6cc29a8bfc4e27af467e?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">Todd Zhang</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-1253">
+			September 8, 2015 at 1:58 pm</a>		</div>
+
+		<p>this is the best series on c++ exception mechanism I have read !  Thanks a lot for your work so that we can see this series!</p>
+<p>I tried the code on windows using mingw32 and  There are two problems before it runs correctly :</p>
+<p>1, an &#8220;#include &#8221; is needed for &#8220;myappabi.cpp&#8221; for the using of &#8220;std::typeinfo&#8221;</p>
+<p>2,__cxa_exception *header = ((__cxa_exception *) thrown_exception &#8211; 1);<br />
+I wonder if it should be &#8220;__cxa_exception *header = (__cxa_exception *) thrown_exception;&#8221; Because the vaule of &#8220;thrown_exception&#8221; is just the address of &#8220;exception_buff&#8221; on my machine.</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=1253#respond' onclick='return addComment.moveForm( "div-comment-1253", "1253", "respond", "2223" )' aria-label='Reply to Todd Zhang'>Reply</a></div>
+				</div>
+		<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="comment-1254">
+				<div id="div-comment-1254" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/bea5114db18b6cc29a8bfc4e27af467e?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">Todd Zhang</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-1254">
+			September 8, 2015 at 2:00 pm</a>		</div>
+
+		<p>1, #include &#8220;typeinfo&#8221;</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=1254#respond' onclick='return addComment.moveForm( "div-comment-1254", "1254", "respond", "2223" )' aria-label='Reply to Todd Zhang'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-nicolasbrailo bypostauthor odd alt depth-2 highlander-comment" id="comment-1269">
+				<div id="div-comment-1269" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://2.gravatar.com/avatar/8c8ff9d1873bc775159ce1fa5cd347d7?s=26&#038;d=https%3A%2F%2F2.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn"><a href='https://monoinfinito.wordpress.com' rel='external nofollow' class='url'>nicolasbrailo</a></cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-1269">
+			October 9, 2015 at 10:36 am</a>		</div>
+
+		<p>Thanks Todd, I&#8217;m happy you find it useful!<br />
+To be honest, I&#8217;m surprised these examples work at all in mingw. All this stuff is highly platform dependent and I never really tested it anywhere but in my own machine. I&#8217;m glad it (kind of) works for you.</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=1269#respond' onclick='return addComment.moveForm( "div-comment-1269", "1269", "respond", "2223" )' aria-label='Reply to nicolasbrailo'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="comment-1693">
+				<div id="div-comment-1693" class="comment-body">
+				<div class="comment-author vcard">
+			<img alt='' src='https://0.gravatar.com/avatar/fed72b30329f1c6d835607120985d922?s=26&#038;d=https%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D26&#038;r=G' class='avatar avatar-26' height='26' width='26' />			<cite class="fn">Daniel G</cite> <span class="says">says:</span>		</div>
+		
+		<div class="comment-meta commentmetadata"><a href="https://monoinfinito.wordpress.com/series/exception-handling-in-c/#comment-1693">
+			August 18, 2016 at 3:36 pm</a>		</div>
+
+		<p>Mirá vos qué sorpresa ver esto&#8230; 🙂 Ya te vamos a pingear</p>
+
+		<div class="reply"><a rel='nofollow' class='comment-reply-link' href='https://monoinfinito.wordpress.com/series/exception-handling-in-c/?replytocom=1693#respond' onclick='return addComment.moveForm( "div-comment-1693", "1693", "respond", "2223" )' aria-label='Reply to Daniel G'>Reply</a></div>
+				</div>
+		</li><!-- #comment-## -->
+	</ol>
+
+	<div class="navigation">
+			</div>
+
+	
+
+
+<hr/>
+
+	<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/series/exception-handling-in-c/#respond" style="display:none;">Cancel reply</a></small></h3>			<form action="https://monoinfinito.wordpress.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+				<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="aa829d948b" /><input type="hidden" name="_wp_http_referer" value="/series/exception-handling-in-c/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+			<iframe id="googleplus-sign-in" name="googleplus-sign-in" src="https://public-api.wordpress.com/connect/?googleplus-sign-in=https%3A%2F%2Fmonoinfinito.wordpress.com" width="24" height="24" scrolling="no" allowtransparency="true" seamless="seamless" frameborder="0"></iframe>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name</label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25" alt="Google+ photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="" />
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="" />
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='2223' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c39d1c432c" /></p>
+<input type="hidden" name="genseq" value="1492924189" />
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="187"/></p>			</form>
+			</div><!-- #respond -->
+	<div style="clear: both"></div>
+
+</div>
+
+	
+	</div>
+
+	<div id="sidebar">
+		<div id="search-2" class="widget block widget_search sidebar-box"><form role="search" method="get" id="searchform" class="searchform" action="https://monoinfinito.wordpress.com/">
+				<div>
+					<label class="screen-reader-text" for="s">Search for:</label>
+					<input type="text" value="" name="s" id="s" />
+					<input type="submit" id="searchsubmit" value="Search" />
+				</div>
+			</form></div><div id="rss_links-2" class="widget block widget_rss_links sidebar-box"><p class="size-small"><a class="feed-image-link" href="https://monoinfinito.wordpress.com/feed/" title="Subscribe to Posts"><img src="https://monoinfinito.wordpress.com/i/rss/orange-small.png?m=1391188133h" alt="RSS Feed" /></a>&nbsp;<a href="https://monoinfinito.wordpress.com/feed/" title="Subscribe to Posts">RSS - Posts</a></p>
+</div><div id="categories-2" class="widget block widget_categories sidebar-box"><h3>Categories</h3>		<ul>
+	<li class="cat-item cat-item-641922"><a href="https://monoinfinito.wordpress.com/category/programming/android/" >Android</a>
+</li>
+	<li class="cat-item cat-item-2426"><a href="https://monoinfinito.wordpress.com/category/programming/c/" >C++</a>
+</li>
+	<li class="cat-item cat-item-1068504"><a href="https://monoinfinito.wordpress.com/category/programming/c/c0x/" >C++0x</a>
+</li>
+	<li class="cat-item cat-item-2611"><a href="https://monoinfinito.wordpress.com/category/linux/console/" >Console</a>
+</li>
+	<li class="cat-item cat-item-449693"><a href="https://monoinfinito.wordpress.com/category/programming/c/exceptions/" >Exceptions</a>
+</li>
+	<li class="cat-item cat-item-684"><a href="https://monoinfinito.wordpress.com/category/wtf/funny/" >Funny</a>
+</li>
+	<li class="cat-item cat-item-320749"><a href="https://monoinfinito.wordpress.com/category/programming/gdb/" >gdb</a>
+</li>
+	<li class="cat-item cat-item-870"><a href="https://monoinfinito.wordpress.com/category/linux/gnome/" >Gnome</a>
+</li>
+	<li class="cat-item cat-item-50631"><a href="https://monoinfinito.wordpress.com/category/grumpy/" >Grumpy</a>
+</li>
+	<li class="cat-item cat-item-8800"><a href="https://monoinfinito.wordpress.com/category/latex/" >LaTeX</a>
+</li>
+	<li class="cat-item cat-item-610"><a href="https://monoinfinito.wordpress.com/category/linux/" >Linux</a>
+</li>
+	<li class="cat-item cat-item-806090"><a href="https://monoinfinito.wordpress.com/category/programming/makefiles/" >Makefiles</a>
+</li>
+	<li class="cat-item cat-item-64561"><a href="https://monoinfinito.wordpress.com/category/meta-post/" >Meta-post</a>
+</li>
+	<li class="cat-item cat-item-277"><a href="https://monoinfinito.wordpress.com/category/misc/" >Misc</a>
+</li>
+	<li class="cat-item cat-item-101242"><a href="https://monoinfinito.wordpress.com/category/my-articles/" >My Articles</a>
+</li>
+	<li class="cat-item cat-item-7426"><a href="https://monoinfinito.wordpress.com/category/linux/networking/" >Networking</a>
+</li>
+	<li class="cat-item cat-item-196"><a href="https://monoinfinito.wordpress.com/category/programming/" >Programming</a>
+</li>
+	<li class="cat-item cat-item-4872"><a href="https://monoinfinito.wordpress.com/category/ruby/" >Ruby</a>
+</li>
+	<li class="cat-item cat-item-1663"><a href="https://monoinfinito.wordpress.com/category/programming/c/templates/" >Templates</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://monoinfinito.wordpress.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-18060"><a href="https://monoinfinito.wordpress.com/category/vim/" >Vim</a>
+</li>
+	<li class="cat-item cat-item-26443844"><a href="https://monoinfinito.wordpress.com/category/vim/vim-tips/" >Vim Tips</a>
+</li>
+	<li class="cat-item cat-item-1046"><a href="https://monoinfinito.wordpress.com/category/wtf/" >WTF</a>
+</li>
+		</ul>
+</div><div id="archives-2" class="widget block widget_archive sidebar-box"><h3>Archives</h3>		<ul>
+			<li><a href='https://monoinfinito.wordpress.com/2017/04/'>April 2017</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2017/01/'>January 2017</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/12/'>December 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/11/'>November 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/08/'>August 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/07/'>July 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/06/'>June 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/05/'>May 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/04/'>April 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/03/'>March 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/02/'>February 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2016/01/'>January 2016</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2015/06/'>June 2015</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2015/05/'>May 2015</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2015/04/'>April 2015</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2015/03/'>March 2015</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2014/11/'>November 2014</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2014/01/'>January 2014</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/12/'>December 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/11/'>November 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/10/'>October 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/09/'>September 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/08/'>August 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/07/'>July 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/06/'>June 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/05/'>May 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/04/'>April 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/03/'>March 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/02/'>February 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2013/01/'>January 2013</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2012/12/'>December 2012</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2012/11/'>November 2012</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2012/10/'>October 2012</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/12/'>December 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/11/'>November 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/10/'>October 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/09/'>September 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/08/'>August 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/07/'>July 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/06/'>June 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/05/'>May 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/04/'>April 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/03/'>March 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2011/02/'>February 2011</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/12/'>December 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/11/'>November 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/10/'>October 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/09/'>September 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/08/'>August 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/07/'>July 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/06/'>June 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/05/'>May 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/04/'>April 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/03/'>March 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2010/02/'>February 2010</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/11/'>November 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/10/'>October 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/09/'>September 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/08/'>August 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/07/'>July 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/06/'>June 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/05/'>May 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/04/'>April 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/03/'>March 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2009/01/'>January 2009</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2008/12/'>December 2008</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2008/11/'>November 2008</a></li>
+	<li><a href='https://monoinfinito.wordpress.com/2008/10/'>October 2008</a></li>
+		</ul>
+		</div>	</div>
+			<div id="footer">
+				<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com.</a>
+				Mid Mo Design.			</div><!-- #footer -->
+			<!--  -->
+<script type='text/javascript' src='//0.gravatar.com/js/gprofiles.js?ver=201716y'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1380573781h'></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-eaa4b1a593150721d476011ff9137f27">
+	</div>
+	<div class="grofile-hash-map-8c8ff9d1873bc775159ce1fa5cd347d7">
+	</div>
+	<div class="grofile-hash-map-ccaf47221c9ad44d1e52e590696db0d6">
+	</div>
+	<div class="grofile-hash-map-febb85f48e6daa38725293f7ea8b0f1d">
+	</div>
+	<div class="grofile-hash-map-bea5114db18b6cc29a8bfc4e27af467e">
+	</div>
+	<div class="grofile-hash-map-fed72b30329f1c6d835607120985d922">
+	</div>
+	</div>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/monoinfinito.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/monoinfinito.wordpress.com\/wp-login.php?action=logout&_wpnonce=82f7ce57cd","homeURL":"https:\/\/monoinfinito.wordpress.com\/","postID":"2223","gravDefault":"mystery","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0","text_direction":"ltr"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s2.wp.com/_static/??/wp-content/js/jquery/jquery.autoresize.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1479964158j'></script>
+
+	<div id="carousel-reblog-box">
+		<form action="#" name="carousel-reblog">
+			<textarea id="carousel-reblog-content" name="carousel-reblog-content" placeholder="Add your thoughts here... (optional)"></textarea>
+			<label for="carousel-reblog-to-blog-id" id="carousel-reblog-lblogid">Post to</label>
+			<select name="carousel-reblog-to-blog-id" id="carousel-reblog-to-blog-id">
+						</select>
+
+			<div class="submit">
+				<span class="canceltext"><a href="#" class="cancel">Cancel</a></span>
+				<input type="submit" name="carousel-reblog-submit" class="button" id="carousel-reblog-submit" value="Reblog Post" />
+				<input type="hidden" id="carousel-reblog-blog-id" value="39864297" />
+				<input type="hidden" id="carousel-reblog-blog-url" value="https://monoinfinito.wordpress.com" />
+				<input type="hidden" id="carousel-reblog-blog-title" value="An infinite monkey - Nicolas Brailovsky&#039;s blog" />
+				<input type="hidden" id="carousel-reblog-post-url" value="" />
+				<input type="hidden" id="carousel-reblog-post-title" value="" />
+			</div>
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="3672338c4a" /><input type="hidden" name="_wp_http_referer" value="/series/exception-handling-in-c/" />		</form>
+
+		<div class="arrow"></div>
+	</div>
+
+	<script type="text/javascript">
+		window.WPCOM_sharing_counts = {"https:\/\/monoinfinito.wordpress.com\/series\/exception-handling-in-c\/":2223};
+	</script>
+		<script type="text/javascript">
+			var windowOpen;
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				if ( 'undefined' !== typeof windowOpen ){ // If there's another sharing window open, close it.
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+			var windowOpen;
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-linkedin' ).on( 'click', function() {
+				if ( 'undefined' !== typeof windowOpen ){ // If there's another sharing window open, close it.
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery(this).attr( 'href' ), 'wpcomlinkedin', 'menubar=1,resizable=1,width=580,height=450' );
+				return false;
+			});
+		});
+		</script>
+				<script type="text/javascript">
+			var windowOpen;
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-facebook' ).on( 'click', function() {
+				if ( 'undefined' !== typeof windowOpen ){ // If there's another sharing window open, close it.
+					windowOpen.close();
+				}
+				windowOpen = window.open( jQuery(this).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+		});
+		</script>
+		<script type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/akismet-3.0/_inc/form.js?m=1404442431h'></script>
+<script type='text/javascript' src='https://s1.wp.com/_static/??-eJytzEEKgCAQheELVUPqNgK7QFeQkFRsGpyJ6va5b1mLt/l5fHBSu+woHgUoH2tEBr5R3BXiGnKd+PIuGngpkaSew7QX3yVu4Dtly1E9oj856zj86c3ZRazguA29UUob1WuTHuqiftw='></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "https://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "https://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414h&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+
+// Infinite scroll support
+jQuery( function( $ ) {
+	$( document.body ).on( 'post-load', function() {
+		SyntaxHighlighter.highlight();
+	} );
+} );
+</script>
+<link rel='stylesheet' id='all-css-0-3' href='https://s1.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel.css?m=1481571546h' type='text/css' media='all' />
+<!--[if lte IE 8]>
+<link rel='stylesheet' id='jetpack-carousel-ie8fix-css'  href='https://s1.wp.com/wp-content/mu-plugins/carousel/jetpack-carousel-ie8fix.css?m=1412618825h&#038;ver=20121024' type='text/css' media='all' />
+<![endif]-->
+<script type='text/javascript'>
+/* <![CDATA[ */
+var actionbardata = {"siteID":"39864297","siteName":"An infinite monkey - Nicolas Brailovsky's blog","siteURL":"http:\/\/monoinfinito.wordpress.com","icon":"<img alt='' src='https:\/\/s1.wp.com\/i\/logo\/wpcom-gray-white.png' class='avatar avatar-50' height='50' width='50' \/>","canManageOptions":"","canCustomizeSite":"","isFollowing":"","themeSlug":"pub\/clean-home","signupURL":"https:\/\/wordpress.com\/start\/","loginURL":"https:\/\/monoinfinito.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F","themeURL":"","xhrURL":"https:\/\/monoinfinito.wordpress.com\/wp-admin\/admin-ajax.php","nonce":"56cc00f8fa","isSingular":"1","isFolded":"","isLoggedIn":"","isMobile":"","subscribeNonce":"<input type=\"hidden\" id=\"_wpnonce\" name=\"_wpnonce\" value=\"cd657f6c20\" \/>","referer":"https:\/\/monoinfinito.wordpress.com\/series\/exception-handling-in-c\/","canFollow":"1","statusMessage":"","customizeLink":"https:\/\/monoinfinito.wordpress.com\/wp-admin\/customize.php?url=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F","postID":"2223","shortlink":"http:\/\/wp.me\/P2Hgwx-zR","canEditPost":"","editLink":"https:\/\/wordpress.com\/page\/monoinfinito.wordpress.com\/2223","statsLink":"https:\/\/wordpress.com\/stats\/post\/2223\/monoinfinito.wordpress.com","i18n":{"view":"View site","follow":"Follow","following":"Following","edit":"Edit","login":"Log in","signup":"Sign up","customize":"Customize","report":"Report this content","themeInfo":"Get theme: Clean Home","shortlink":"Copy shortlink","copied":"Copied","followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","editSubs":"Manage subscriptions","viewReader":"View site in the Reader","subscribe":"Sign me up","enterEmail":"Enter your email address","followers":"Join 109 other followers","alreadyUser":"Already have a WordPress.com account? <a href=\"https:\/\/monoinfinito.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F\">Log in now.<\/a>","stats":"Stats"}};
+/* ]]> */
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var jetpackCarouselStrings = {"widths":[370,700,1000,1200,1400,2000],"is_logged_in":"","lang":"en","ajaxurl":"https:\/\/monoinfinito.wordpress.com\/wp-admin\/admin-ajax.php","nonce":"d3e1fce61a","display_exif":"1","display_geo":"1","single_image_gallery":"1","single_image_gallery_media_file":"","background_color":"black","comment":"Comment","post_comment":"Post Comment","write_comment":"Write a Comment...","loading_comments":"Loading Comments...","download_original":"View full size <span class=\"photo-size\">{0}<span class=\"photo-size-times\">\u00d7<\/span>{1}<\/span>","no_comment_text":"Please be sure to submit some text with your comment.","no_comment_email":"Please provide an email address to comment.","no_comment_author":"Please provide your name to comment.","comment_post_error":"Sorry, but there was an error posting your comment. Please try again later.","comment_approved":"Your comment was approved.","comment_unapproved":"Your comment is in moderation.","camera":"Camera","aperture":"Aperture","shutter_speed":"Shutter Speed","focal_length":"Focal Length","comment_registration":"0","require_name_email":"0","login_url":"https:\/\/monoinfinito.wordpress.com\/wp-login.php?redirect_to=https%3A%2F%2Fmonoinfinito.wordpress.com%2Fseries%2Fexception-handling-in-c%2F","blog_id":"39864297","local_comments_commenting_as":"<fieldset><label for=\"email\">Email<\/label> <input type=\"text\" name=\"email\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-email-field\" \/><\/fieldset><fieldset><label for=\"author\">Name<\/label> <input type=\"text\" name=\"author\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-author-field\" \/><\/fieldset><fieldset><label for=\"url\">Website<\/label> <input type=\"text\" name=\"url\" class=\"jp-carousel-comment-form-field jp-carousel-comment-form-text-field\" id=\"jp-carousel-comment-form-url-field\" \/><\/fieldset>","reblog":"Reblog","reblogged":"Reblogged","reblog_add_thoughts":"Add your thoughts here... (optional)","reblogging":"Reblogging...","post_reblog":"Post Reblog","stats_query_args":"blog=39864297&v=wpcom&tz=0&user_id=0&subd=monoinfinito","is_public":"1","reblog_enabled":""};
+/* ]]> */
+</script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var sharing_js_options = {"lang":"en","counts":"1"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='https://s2.wp.com/_static/??-eJx9j0sOwjAMRC9E6oIQiAXiLCE14JAfdlLo7QkSLV2grmzNeJ5teCZlYsgYMliBDnsymF6NlRXMLF9UcuVKQcDRHQUeBQvedOgc8jhMwbjSVbOCTPS+BhVjckPjKSwQdVd9ddYMXktGrp2KPTLTBzZpSwSTKYYPYer+HSXpd8dct/UbHr6lmU/92WU0xyLowGJO2tzVKCxkUpSsLk4Tg9w0U7iOtYZO/rjeHjZtu1tv9vYN8xKV8g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>		<iframe src='https://widgets.wp.com/likes/master.html?ver=20170206#ver=20170206' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+		<div id='likes-other-gravatars'><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script>
+			var _comscore = _comscore || [];
+			_comscore.push({
+				c1: "2",
+				c2: "7518284"
+			});
+			(function() {
+				var s = document.createElement("script"),
+					el = document.getElementsByTagName("script")[0];
+				s.defer = true;
+				s.src = (document.location.protocol == "https:" ? "https://sb" : "http://b") + ".scorecardresearch.com/beacon.js";
+				el.parentNode.insertBefore(s, el);
+			})();
+		</script>
+		<noscript>
+			<p class="robots-nocontent"><img src="https://sb.scorecardresearch.com/p?c1=2&c2=7518284&c3=&c4=&c5=&c6=&c15=&cv=2.0&cj=1" alt="" style="display:none;" width="1" height="1" /></p>
+		</noscript><script src="//stats.wp.com/w.js?56" type="text/javascript" async defer></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'39864297','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'39864297','v':'wpcom','tz':'0','user_id':'0','post':'2223','subd':'monoinfinito'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1LVmwrVi5vQS5fVFtfdHBbPyw1VXIrU3hWLHhzVndTdktBX0ddJnpXRjVaOTd6fj1YMX4ydzR4NTB6Qz9YLFBRWTFdSG15X0JwdmxMUk1fTi9EMXEmcUZCJVAvR3dBbE13eltwQi0udV1HQUdIQy5hJnpiaERzN0YxUDBUVCVBNUd6TmRFMmJtcU8rbit4TWlxRWsxJS90eSx1eXkrUUFJPWNWfFFJcEZJUl1qNzZRUVBzMzduZWp1SW1RUlZqd1t2dDREWW1FRVNhVWVhTGhFSGFDTn5Qdm0vTmJRQ1tVeThRdllnVzJdSzM1WGkldF83XzUzL3k3Xz9uNDhBLjJwVW1CMlhZb0dKW1REX2VHWQ=='}]);
+_stq.push([ 'clickTrackerInit', '39864297', '2223' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>		</div>
+	</body>
+</html>

@@ -24,6 +24,22 @@
 
 
 
+#### usb设备默认连接到哪台虚拟机
+
+没办法直接编辑设置，而是在“新插入usb设备”时，选择并且记忆。 很麻烦。
+
+fusion好像可以编辑设置。 virtualbox也可以。
+
+
+
+参见： https://docs.vmware.com/en/VMware-Workstation-Pro/15.0/com.vmware.ws.using.doc/GUID-06E14969-21F2-4AB1-9E48-1974C28894BE.html#GUID-06E14969-21F2-4AB1-9E48-1974C28894BE
+
+
+
+该“记忆”可以删除，参见： https://docs.vmware.com/en/VMware-Workstation-Pro/15.0/com.vmware.ws.using.doc/GUID-A2D17720-C0CA-4636-BAFB-6DBC21F7FAC8.html#GUID-A2D17720-C0CA-4636-BAFB-6DBC21F7FAC8
+
+
+
 # network
 
 ## 一些问题
