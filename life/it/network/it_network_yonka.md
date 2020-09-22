@@ -17,4 +17,20 @@
   此时，LEDE那边应该对该接口指定只使用路由ip这一个dns server，否则可能发生循环（-> primary解析失败 -> secondary也即本地 -> ...）？  但实测没异常。
   这个可以在LEDE的网页的interfaces里配置。
 
+  > **注意**： 不同系统（或者说dns client）的解析策略有差异，尤其在secondary dns server上。 似乎windows和macos都是把secondary当作primary的冷备份，只有当服务器不可用（解析请求超时等，甚至可能要多次超时。。）才使用，而不是解析失败无结果再尝试secondary。 
+  >
+  > 所以表现为该方案在win/macos上无效， 但对于linux有效。。。
+  >
+  > ref：
+  >
+  > * https://support.microsoft.com/en-us/help/2834226/net-dns-dns-client-resolution-timeouts
+  > * https://www.cnet.com/news/os-x-10-6-3-and-dns-server-priority-changes/
+
 * 其实如果电信光猫支持的话，还可以在最外的光猫那配置，但看了下，没有。。。
+
+
+
+
+
+
+
