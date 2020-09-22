@@ -237,6 +237,17 @@ smbmount \\\\172.16.1.3\\c$ /mnt/thumb -o username=jwhittal
 # Smbumount is the command used to unmount the Windows share. In fact, smbmount and smbumount are just synonyms for the mount and umount commands in Linux. An alternative to the smbmount command above is:
 
 mount -t smbfs -o username=jwhittal \\\\172.16.1.3\\c$ /mnt/thumb
+# 有密码的情况下： -o username=xxx,password=yyy
+# 新的linux内核，可能是cifs
+# 对于windows linux subsystem不可用。详见下面。  还是只能在windows里map为盘符然后用 mount -t drvfs
+```
+
+
+
+```
+In WSL (I'm using Ubuntu) it looks like that when you install the cifs-utils it doesn't create the module file that cifs needs when mounting. Type: "modinfo cifs" and you will see. Anyway, the work-around is to map a drive letter in Windows and then mount to that, as mentioned above. Thanks gabuzo.
+
+Maybe its that cifs-utils is looking in the wrong place for the module file. Or MS intentionally disabled it. They don't want WSL to be too useful.
 ```
 
 
