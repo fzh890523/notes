@@ -150,23 +150,23 @@ check_permission()
 ref： https://www.cnblogs.com/zhangjiansheng/p/8318042.html
 
 1. `$$`
-  Shell本身的PID（ProcessID）
+    Shell本身的PID（ProcessID）
 2. `$!`
-  Shell最后运行的后台Process的PID
+    Shell最后运行的后台Process的PID
 3. `$?`
-  最后运行的命令的结束代码（返回值）
+    最后运行的命令的结束代码（返回值）
 4. `$-`
-  使用Set命令设定的Flag一览
+    使用Set命令设定的Flag一览
 5. `$*`
-  所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
+    所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
 6. `$@`
-  所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
+    所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
 7. `$#`
-  添加到Shell的参数个数
+    添加到Shell的参数个数
 8. `$0`
-  Shell本身的文件名
+    Shell本身的文件名
 9. `$1～$n`
-  添加到Shell的各参数值。$1是第1参数、$2是第2参数…。
+    添加到Shell的各参数值。$1是第1参数、$2是第2参数…。
 
 
 ### default value
@@ -726,6 +726,45 @@ function watch_cpu() {
     done    
 }
 ```
+
+
+
+
+
+#### 命令执行输出作为参数
+
+
+
+```sh
+for f in `ls`; do
+  rm "$f"
+fi
+
+# 这个脚本的问题在于： 如果f有空格的话会有问题，如
+
+touch {1,"2 2","3 3 3",4,"5 5"}.txt
+
+for f in `ls`; do echo "$f"; done
+1.txt
+2
+2.txt
+3
+3
+3.txt
+4.txt
+5
+5.txt
+
+for f in "`ls`"; do echo "$f"; done
+1.txt
+2 2.txt
+3 3 3.txt
+4.txt
+5 5.txt
+# 这个也不对，实际变成了一个包含多个换行的字符串
+```
+
+
 
 
 
