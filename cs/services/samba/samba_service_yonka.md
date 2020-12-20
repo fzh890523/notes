@@ -252,7 +252,40 @@ Maybe its that cifs-utils is looking in the wrong place for the module file. Or 
 
 
 
+### on-boot/fstab
 
+
+
+```
+# 可能要先： sudo apt-get install cifs-utils
+# /etc/fstab 里
+//server/share /pathto/mountpoint cifs credentials=/home/username/.smbcredentials,uid=shareuser,gid=sharegroup 0 0
+```
+
+
+
+smbcredentials文件（这个文件`chmod 0600`）里：
+
+```
+username=shareuser
+password=sharepassword
+domain=domain_or_workgroupname
+```
+
+
+
+
+
+## access windows share
+
+
+
+1. windows上开用户
+
+   用已有用户也行，如果想用单独用户的话，暂时没看到单独创建samba user的地方，可以单独开个类似`smb-xxx`的windows user
+
+2. 目录设置共享，可以搜索需要允许访问的用户，加入访问的权限（只读、读写等）
+3. 在高级共享选项里可以设置共享名，默认为目录名
 
 
 

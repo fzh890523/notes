@@ -45,3 +45,47 @@ mac -> vm -> docker
 
 
 
+
+
+## 安装
+
+docker for mac
+
+http://mirrors.aliyun.com/docker-toolbox/mac/docker-for-mac/stable/
+
+
+
+
+
+
+
+## 访问
+
+
+
+运行在vm中，暴露出tty文件，可以通过screen来访问。
+
+
+
+```sh
+# 直接开screen并且attach过去
+screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty
+
+# 开screen并且命名为docker，但不attach过去
+screen -AmdS docker ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty
+# 回到docker这个screen
+screen -r docker
+
+# 看起来是干掉这个screen
+screen -S docker -X quit
+
+# list screens
+screen -ls
+```
+
+
+
+
+
+
+

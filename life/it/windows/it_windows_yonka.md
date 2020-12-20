@@ -160,3 +160,16 @@ https://answers.microsoft.com/en-us/windows/forum/all/disable-windows-10-automat
   ```
 
   
+
+
+
+## hyper-v
+
+
+
+* ` bcdedit /set hypervisorlaunchtype off`
+
+  `auto`为启用
+
+
+

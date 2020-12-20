@@ -66,6 +66,14 @@ Y: /mnt/y drvfs defaults 0 0
 
 
 
+## 网络
+
+也可参考 《windows命令行环境》 那篇。
+
+wsl2之后用的是端口映射，不太一样了。
+
+
+
 ## wsl2
 
 

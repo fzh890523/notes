@@ -189,7 +189,7 @@ nslookup iMac.localdomain  # 即可
   * netplan方案
 
     ```yaml
-    # 接口级别：
+    # 接口级别： 如 network - ethernets - ens33
     dhcp4-overrides:
     	route-mertic: 99  # 默认100
     ```
