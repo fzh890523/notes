@@ -1,5 +1,36 @@
 
 
+## process 进程管理
+
+
+
+### 环境变量
+
+
+
+* 命令行设置
+
+  *  `setx <key> <value>` 写回注册表但不是当前生效
+
+    > 大约等于 echo k=v >> ~/.bashrc 吧
+
+    * `/S <system>`
+    * `/U <user>` 默认为当前用户，也即加到当前用户的env
+      * `/M` 设置为系统级别（而不是用户级别）
+
+  * `set <key>=<value>` 当前生效（类似`export`吧）
+
+* 查看
+
+  * `set <key>`
+  * `echo %key%`
+
+* 删除
+  * `set <key>=` 当前生效
+  * `setx <key> ""` 保存（但不当前生效）
+
+
+
 ## 软件
 
 
@@ -49,6 +80,89 @@
 
 
 #### 文本编辑
+
+
+
+### 进程管理
+
+
+
+* tasklist
+
+  ```sh
+  C:\Documents and Settings\Administrator>tasklist /?
+  
+  TASKLIST [/S system [/U username [/P [password]]]]
+           [/M [module] | /SVC | /V] [/FI filter] [/FO format] [/NH]
+  
+  Description:
+      This command line tool displays a list of application(s) and
+      associated task(s)/process(es) currently running on either a local or
+      remote system.
+  
+  Parameter List:
+     /S     system           Specifies the remote system to connect to.
+  
+     /U     [domain\]user    Specifies the user context under which
+                             the command should execute.
+  
+     /P     [password]       Specifies the password for the given
+                             user context. Prompts for input if omitted.
+  
+     /M     [module]         Lists all tasks that have DLL modules loaded
+                             in them that match the given pattern name.
+                             If the module name is not specified,
+                             displays all modules loaded by each task.
+  
+     /SVC                    Displays services in each process.
+  
+     /V                      Specifies that the verbose information
+                             is to be displayed.
+  
+     /FI    filter           Displays a set of tasks that match a
+                             given criteria specified by the filter.
+  
+     /FO    format           Specifies the output format.
+                             Valid values: "TABLE", "LIST", "CSV".
+  
+     /NH                     Specifies that the "Column Header" should
+                             not be displayed in the output.
+                             Valid only for "TABLE" and "CSV" formats.
+  
+     /?                      Displays this help/usage.
+  
+  Filters:
+      Filter Name     Valid Operators           Valid Value(s)
+      -----------     ---------------           --------------
+      STATUS          eq, ne                    RUNNING | NOT RESPONDING
+      IMAGENAME       eq, ne                    Image name
+      PID             eq, ne, gt, lt, ge, le    PID value
+      SESSION         eq, ne, gt, lt, ge, le    Session number
+      SESSIONNAME     eq, ne                    Session name
+      CPUTIME         eq, ne, gt, lt, ge, le    CPU time in the format
+                                                of hh:mm:ss.
+                                                hh - hours,
+                                                mm - minutes, ss - seconds
+      MEMUSAGE        eq, ne, gt, lt, ge, le    Memory usage in KB
+      USERNAME        eq, ne                    User name in [domain\]user
+                                                format
+      SERVICES        eq, ne                    Service name
+      WINDOWTITLE     eq, ne                    Window title
+      MODULES         eq, ne                    DLL name
+  
+  Examples:
+      TASKLIST
+      TASKLIST /M
+      TASKLIST /V
+      TASKLIST /SVC
+      TASKLIST /M wbem*
+      TASKLIST /S system /FO LIST
+      TASKLIST /S system /U domain\username /FO CSV /NH
+      TASKLIST /S system /U username /P password /FO TABLE /NH
+      TASKLIST /FI "USERNAME ne NT AUTHORITY\SYSTEM" /FI "STATUS eq running"
+  ```
+
+  
 
 
 
