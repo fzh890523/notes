@@ -15,6 +15,12 @@ go get ./...
 
 
 
+## 代理访问： GOPROXY
+
+国内访问github或者google的repo比较慢的话，可以用proxy。
+
+如：`export GOPROXY=https://mirrors.aliyun.com/goproxy/`
+
 
 
 # 包管理工具

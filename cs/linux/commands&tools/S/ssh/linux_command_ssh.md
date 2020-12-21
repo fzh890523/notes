@@ -168,6 +168,8 @@ ssh -L local_port:remote_address:remote_port username@server.com
 # local_port: 本地proxy端口
 # remote_address: targetServer地址； remote_port: targetServer端口
 # username/server.com: jumper/proxy的用户名和地址
+# 也即：
+ssh -L local_port:target_address:target_port username@proxy.com
 
 # 如：
 ssh -L 8888:192.168.1.111:1234 bob@ssh.youroffice.com
@@ -377,6 +379,18 @@ W - Requests that standard input and output on the client be forwarded to HOST o
 ```
 
 
+
+
+
+# 问题
+
+
+
+## 有些ssh client只支持pem（rsa）格式私钥
+
+
+
+如果私钥是openssh格式的话，需要转为pem格式或者重新创建pem格式的
 
 
 

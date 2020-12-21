@@ -38,7 +38,17 @@ tar tzf xx.tar.gz
 
 
 
+* output to pipe： `-f -`
 
+  如： `tar -cf - something > xx.tar`
+
+  对于解压 `-O`/`--to-stdout`：
+
+  `tar xzf xx.tar -O > something` or `tar -O -xzf xx.tar > something`
+
+  也能串联：
+
+  `tar -cf - something | tar xzf - -O > something1`
 
 
 
