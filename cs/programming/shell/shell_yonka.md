@@ -111,6 +111,34 @@ if [ ! -e /tmp/111 -a -z "$a" ]; then ll ;fi   ## 不存在111文件 且a变量�
 
 
 
+### case
+
+
+
+```sh
+case 值 in
+模式1)
+    command1
+    command2
+    command3
+    ;;
+模式2）
+    command1
+    command2
+    command3
+    ;;
+*)
+    command1
+    command2
+    command3
+    ;;
+esac
+```
+
+
+
+
+
 ### 多条件
 
 
@@ -150,23 +178,23 @@ check_permission()
 ref： https://www.cnblogs.com/zhangjiansheng/p/8318042.html
 
 1. `$$`
-  Shell本身的PID（ProcessID）
+    Shell本身的PID（ProcessID）
 2. `$!`
-  Shell最后运行的后台Process的PID
+    Shell最后运行的后台Process的PID
 3. `$?`
-  最后运行的命令的结束代码（返回值）
+    最后运行的命令的结束代码（返回值）
 4. `$-`
-  使用Set命令设定的Flag一览
+    使用Set命令设定的Flag一览
 5. `$*`
-  所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
+    所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
 6. `$@`
-  所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
+    所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
 7. `$#`
-  添加到Shell的参数个数
+    添加到Shell的参数个数
 8. `$0`
-  Shell本身的文件名
+    Shell本身的文件名
 9. `$1～$n`
-  添加到Shell的各参数值。$1是第1参数、$2是第2参数…。
+    添加到Shell的各参数值。$1是第1参数、$2是第2参数…。
 
 
 ### default value
@@ -420,7 +448,7 @@ rnd=$(rand 100 500)
 
 
 
-### 数组
+### 数组array/map
 
 Bash array的索引<del>从1开始</del>>。。。
 
@@ -430,18 +458,26 @@ Bash array的索引<del>从1开始</del>>。。。
 
   ```sh
   local pids=()
+  
+  # map需要声明，array可以不用
+  declare -A items
+  items=(["key1"]="value1" ["key2"]="value2")
   ```
 
 * 增加元素
 
   ```sh
   pids+=(${pid_item})  # append
+  
+  items["key3"]="value3"
   ```
 
 * 数组长度
 
   ```sh
   ${#pids[@]}
+  
+  # map也一样
   ```
 
 * 取元素
@@ -501,6 +537,20 @@ Bash array的索引<del>从1开始</del>>。。。
   # 囧。。。 这会儿又不支持了。。。
   ```
 
+* 输出全部value
+
+  ```sh
+  echo ${pids[@]}
+  
+  # map也一样
+  ```
+
+* 输出全部keys
+
+  ```sh
+  echo ${!items[@]}  # 比values多一个 !
+  ```
+
 * 全部传参
 
   ```sh
@@ -524,7 +574,23 @@ Bash array的索引<del>从1开始</del>>。。。
   "b c"
   ```
 
+
+* 遍历
+
+  ```sh
+  for key in ${!items[@]}; do
+    echo $key
+    echo ${items[$key]}
+  done
   
+  for value in ${items[@]}; do
+    echo $value
+  done
+  ```
+
+
+
+
 
 #### 转换（为数组)： 使用`()` 来做eval
 
@@ -565,6 +631,14 @@ arr=($a)
 
 
 ### 参数
+
+
+
+#### shift
+
+类似出队，按照访问（排列）顺序弹出参数。
+
+* `shift 2` 弹出2个参数，则第三个变为第一个
 
 
 
@@ -625,7 +699,7 @@ bash a.sh "$@"
 
 output:
 
-```
+```sh
 # $*
 "a"
 "b"
@@ -658,6 +732,92 @@ output:
 ""
 ""
 ```
+
+
+
+```sh
+bash c.sh "1" "2.1   2.2" "3"  # 2.1 2.2中间三个空格
+$@
+1: 1
+2: 2.1
+3: 2.2
+4: 3
+
+"$@"
+1: 1
+2: 2.1   2.2
+3: 3
+4:
+$*
+1: 1
+2: 2.1
+3: 2.2
+4: 3
+
+"$*"
+1: 1 2.1   2.2 3
+2:
+3:
+4:
+```
+
+打开`-x`看下：
+
+```sh
+bash c.sh "1" "2.1   2.2" "3"
++ echo '$@'
+$@
++ p 1 2.1 2.2 3  # 和$*一样（？）。 拼接 - 分割 - 重排
++ echo '1: 1'
+1: 1
++ echo '2: 2.1'
+2: 2.1
++ echo '3: 2.2'
+3: 2.2
++ echo '4: 3'
+4: 3
++ echo -e '\n"$@"'
+
+"$@"
++ p 1 '2.1   2.2' 3  # 原貌/本色传递，参数个数、参数内容都不变
++ echo '1: 1'
+1: 1
++ echo '2: 2.1   2.2'
+2: 2.1   2.2
++ echo '3: 3'
+3: 3
++ echo '4: '
+4:
++ echo '$*'
+$*
++ p 1 2.1 2.2 3  # 先拼接； 再根据IFS分割参数； 再用IFS重拍参数 --- 所以参数个数可能变化，并且中间都是标准IFS
++ echo '1: 1'
+1: 1
++ echo '2: 2.1'
+2: 2.1
++ echo '3: 2.2'
+3: 2.2
++ echo '4: 3'
+4: 3
++ echo -e '\n"$*"'
+
+"$*"
++ p '1 2.1   2.2 3'  # 只拼接
++ echo '1: 1 2.1   2.2 3'
+1: 1 2.1   2.2 3
++ echo '2: '
+2:
++ echo '3: '
+3:
++ echo '4: '
+4:
+```
+
+
+
+
+
+
 
 
 
@@ -735,7 +895,53 @@ function watch_cpu() {
 
 
 
-可以： `if func arg; then do_sth; fi` 这样。
+* 可以： `if func arg; then do_sth; fi` 这样。
+
+* 返回值的传递/有效期
+
+  * 前一条命令/函数的返回值可以传递给（跟随其后的）下一个函数（当然了是第一行）
+
+    ```sh
+    b() {
+      return 1
+    }
+    
+    c() {
+      echo $?
+    }
+    
+    a() {
+      b
+      c  # print了1
+    }
+    
+    a
+    ```
+
+    
+
+  * if判断会产生返回值，所以会覆盖原有结果
+
+    ```sh
+    if [[ $? -ne 0 ]]; then
+      echo $?  # 这个只可能输出0了
+    else
+      echo $?  # 这里只能输出1
+    fi
+    # 以上两个输出都是if产生的
+    
+    # 如果要如预期的print，要用变量保存
+    local r=$?
+    if [[ $r -ne 0 ]]; then
+      echo $r
+    fi
+    ```
+
+    
+
+* 返回值的产生
+  
+  * 会用函数内最后一条语句的返回值作为函数返回值，有些时候可能需要显式`return 0`来覆盖
 
 
 
@@ -762,7 +968,96 @@ fi
 
 
 
+
+
 ### 执行脚本内的函数
+
+
+
+```sh
+if [[ "$1" = "call_func" ]]; then
+    declare -f -F "$2" &> /dev/null
+    if [[ $? -eq 0 ]]; then
+        shift
+        "$@"
+    fi
+fi
+```
+
+
+
+
+
+### namespace/scope
+
+* 会shadow掉source的内容
+* 支持“dynamic dispath”，也即调用函数时是事实查找的，so...
+
+
+
+如下：
+
+a.sh
+
+```sh
+source b.sh
+
+tt() {
+  echo "tt in a"
+}
+
+tt
+b
+```
+
+
+
+b.sh
+
+```sh
+tt() {
+  echo "tt in b"
+}
+
+b() {
+  echo "b in b"
+}
+```
+
+
+
+* a.sh中有tt函数时：
+
+  ```sh
+  tt in a
+  b in b: tt in a
+  ```
+
+* a.sh中没有tt函数时
+
+  ```sh
+  tt in b
+  b in b: tt in b
+  ```
+
+  
+
+### 判断函数是否存在
+
+```sh
+declare -f a  # exit code: 1
+a() { do_nothing; } 
+declare -f a  # exit code: 0. 这里会打印出函数内容
+
+# 更合适的做法：
+declare -f -F a &> /dev/null  # -F 只返回函数名
+```
+
+
+
+### 空函数体： 不允许
+
+可以 `a() { : }` or `b() { return }`
 
 
 
