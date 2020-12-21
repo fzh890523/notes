@@ -2,9 +2,11 @@
 
 
 
+# 部署
 
 
-# 单机部署
+
+## 单机部署
 
 
 
@@ -35,5 +37,48 @@ ref: [在本地运行Kubernetes的3种主流方式](https://www.jianshu.com/p/b8
 * k3s
 
   > 
+
+
+
+
+
+## 生产部署
+
+
+
+* [kubespray](https://github.com/kubernetes-incubator/kubespray)
+* 
+
+
+
+
+
+# 资源
+
+
+
+## 实验平台
+
+* [magic sandbox]( https://console.magicsandbox.com) 需要fq
+* 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

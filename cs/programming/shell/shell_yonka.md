@@ -891,6 +891,45 @@ function watch_cpu() {
 
 
 
+#### 命令执行输出作为参数
+
+
+
+```sh
+for f in `ls`; do
+  rm "$f"
+fi
+
+# 这个脚本的问题在于： 如果f有空格的话会有问题，如
+
+touch {1,"2 2","3 3 3",4,"5 5"}.txt
+
+for f in `ls`; do echo "$f"; done
+1.txt
+2
+2.txt
+3
+3
+3.txt
+4.txt
+5
+5.txt
+
+for f in "`ls`"; do echo "$f"; done
+1.txt
+2 2.txt
+3 3 3.txt
+4.txt
+5 5.txt
+# 这个也不对，实际变成了一个包含多个换行的字符串
+```
+
+
+
+
+
+
+
 ### 返回值
 
 

@@ -231,7 +231,7 @@ https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_i
 
 可以直接把sshd binary加进去： `C:\Windows\System32\OpenSSH\sshd.exe`
 
-z
+
 
 #### linux子系统ubuntu openssh
 
