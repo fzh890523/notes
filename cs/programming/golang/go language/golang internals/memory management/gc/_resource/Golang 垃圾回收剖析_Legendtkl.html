@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)http://legendtkl.com/2017/04/28/golang-gc/ -->
+<html lang="zh-Hans"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="http://legendtkl.com/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="http://legendtkl.com/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="http://legendtkl.com/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="http://legendtkl.com/images/logo.svg" color="#222">
+  <link rel="alternate" href="http://legendtkl.com/atom.xml" title="Legendtkl" type="application/atom+xml">
+
+<link rel="stylesheet" href="./Golang 垃圾回收剖析_Legendtkl_files/main.css">
+
+
+<link rel="stylesheet" href="./Golang 垃圾回收剖析_Legendtkl_files/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"always","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="1. Golang GC 发展Golang 从第一个版本以来，GC 一直是大家诟病最多的。但是每一个版本的发布基本都伴随着 GC 的改进。下面列出一些比较重要的改动。  v1.1 STW v1.3 Mark STW, Sweep 并行 v1.5 三色标记法 v1.8 hybrid write barrier">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Golang 垃圾回收剖析">
+<meta property="og:url" content="http://yoursite.com/2017/04/28/golang-gc/index.html">
+<meta property="og:site_name" content="Legendtkl">
+<meta property="og:description" content="1. Golang GC 发展Golang 从第一个版本以来，GC 一直是大家诟病最多的。但是每一个版本的发布基本都伴随着 GC 的改进。下面列出一些比较重要的改动。  v1.1 STW v1.3 Mark STW, Sweep 并行 v1.5 三色标记法 v1.8 hybrid write barrier">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/4/4a/Animation_of_the_Naive_Mark_and_Sweep_Garbage_Collector_Algorithm.gif">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/1/1d/Animation_of_tri-color_garbage_collection.gif">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/gc.png">
+<meta property="og:updated_time" content="2019-11-08T03:09:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/4/4a/Animation_of_the_Naive_Mark_and_Sweep_Garbage_Collector_Algorithm.gif">
+
+<link rel="canonical" href="http://yoursite.com/2017/04/28/golang-gc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Golang 垃圾回收剖析 | Legendtkl</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" style="padding-right: 320px;">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="http://legendtkl.com/" class="brand" rel="start" style="opacity: 1;">
+        <span class="logo-line-before"><i class="" style="transform: translateX(100%);"></i></span>
+        <span class="site-title" style="opacity: 1; top: 0px;">Legendtkl</span>
+        <span class="logo-line-after"><i class="" style="transform: translateX(-100%);"></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle" style="opacity: 1; top: 0px;">abc</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-archives" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-booklist" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/booklist/" rel="section"><i class="fa fa-fw fa-book"></i>booklist</a>
+
+  </li>
+        <li class="menu-item menu-item-about" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans" style="opacity: 1; display: block;">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/28/golang-gc/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/avatar.jpg">
+      <meta itemprop="name" content="legendtkl">
+      <meta itemprop="description" content="Do not go gentle into that good night.">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Legendtkl">
+    </span>
+      <header class="post-header" style="opacity: 1; display: block; transform: translateY(0px);">
+        <h1 class="post-title" itemprop="name headline">
+          Golang 垃圾回收剖析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-04-28 00:56:09" itemprop="dateCreated datePublished" datetime="2017-04-28T00:56:09+08:00">2017-04-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-08 11:09:26" itemprop="dateModified" datetime="2019-11-08T11:09:26+08:00">2019-11-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="http://legendtkl.com/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody" style="opacity: 1; display: block; transform: translateY(0px);">
+
+      
+        <h2 id="1-Golang-GC-发展"><a href="http://legendtkl.com/2017/04/28/golang-gc/#1-Golang-GC-%E5%8F%91%E5%B1%95" class="headerlink" title="1. Golang GC 发展"></a>1. Golang GC 发展</h2><p>Golang 从第一个版本以来，GC 一直是大家诟病最多的。但是每一个版本的发布基本都伴随着 GC 的改进。下面列出一些比较重要的改动。</p>
+<ul>
+<li>v1.1 STW</li>
+<li>v1.3 Mark STW, Sweep 并行</li>
+<li>v1.5 三色标记法</li>
+<li>v1.8 hybrid write barrier</li>
+</ul>
+<a id="more"></a>
+<h2 id="2-GC-算法简介"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-GC-%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B" class="headerlink" title="2. GC 算法简介"></a>2. GC 算法简介</h2><p>这一小节介绍三种经典的 GC 算法：引用计数（reference counting）、标记-清扫（mark &amp; sweep）、节点复制（Copying Garbage Collection），分代收集（Generational Garbage Collection）。</p>
+<h3 id="2-1-引用计数"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0" class="headerlink" title="2.1 引用计数"></a>2.1 引用计数</h3><p>引用计数的思想非常简单：每个单元维护一个域，保存其它单元指向它的引用数量（类似有向图的入度）。当引用数量为 0 时，将其回收。引用计数是渐进式的，能够将内存管理的开销分布到整个程序之中。C++ 的 share_ptr 使用的就是引用计算方法。</p>
+<p>引用计数算法实现一般是把所有的单元放在一个单元池里，比如类似 free list。这样所有的单元就被串起来了，就可以进行引用计数了。新分配的单元计数值被设置为 1（注意不是 0，因为申请一般都说  ptr = new object 这种）。每次有一个指针被设为指向该单元时，该单元的计数值加 1；而每次删除某个指向它的指针时，它的计数值减 1。当其引用计数为 0 的时候，该单元会被进行回收。虽然这里说的比较简单，实现的时候还是有很多细节需要考虑，比如删除某个单元的时候，那么它指向的所有单元都需要对引用计数减 1。那么如果这个时候，发现其中某个指向的单元的引用计数又为 0，那么是递归的进行还是采用其他的策略呢？递归处理的话会导致系统颠簸。关于这些细节这里就不讨论了，可以参考文章后面的给的参考资料。</p>
+<h5 id="优点"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>渐进式。内存管理与用户程序的执行交织在一起，将 GC 的代价分散到整个程序。不像标记-清扫算法需要 STW (Stop The World，GC 的时候挂起用户程序)。</li>
+<li>算法易于实现。</li>
+<li>内存单元能够很快被回收。相比于其他垃圾回收算法，堆被耗尽或者达到某个阈值才会进行垃圾回收。</li>
+</ol>
+<h5 id="缺点"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>原始的引用计数不能处理循环引用。大概这是被诟病最多的缺点了。不过针对这个问题，也除了很多解决方案，比如强引用等。</li>
+<li>维护引用计数降低运行效率。内存单元的更新删除等都需要维护相关的内存单元的引用计数，相比于一些追踪式的垃圾回收算法并不需要这些代价。</li>
+<li>单元池 free list 实现的话不是 cache-friendly 的，这样会导致频繁的 cache miss，降低程序运行效率。</li>
+</ol>
+<h3 id="2-2-标记-清扫"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-2-%E6%A0%87%E8%AE%B0-%E6%B8%85%E6%89%AB" class="headerlink" title="2.2 标记-清扫"></a>2.2 标记-清扫</h3><p>标记-清扫算法是第一种自动内存管理，基于追踪的垃圾收集算法。算法思想在 70 年代就提出了，是一种非常古老的算法。内存单元并不会在变成垃圾立刻回收，而是保持不可达状态，直到到达某个阈值或者固定时间长度。这个时候系统会挂起用户程序，也就是 STW，转而执行垃圾回收程序。垃圾回收程序对所有的存活单元进行一次全局遍历确定哪些单元可以回收。算法分两个部分：标记（mark）和清扫（sweep）。标记阶段表明所有的存活单元，清扫阶段将垃圾单元回收。可视化可以参考下图。</p>
+<p><img src="./Golang 垃圾回收剖析_Legendtkl_files/Animation_of_the_Naive_Mark_and_Sweep_Garbage_Collector_Algorithm.gif" alt=""></p>
+<p>标记-清扫算法的优点也就是基于追踪的垃圾回收算法具有的优点：避免了引用计数算法的缺点（不能处理循环引用，需要维护指针）。缺点也很明显，需要 STW。</p>
+<h5 id="三色标记算法"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E7%AE%97%E6%B3%95" class="headerlink" title="三色标记算法"></a>三色标记算法</h5><p>三色标记算法是对标记阶段的改进，原理如下：</p>
+<ol>
+<li>起初所有对象都是白色。</li>
+<li>从根出发扫描所有可达对象，标记为灰色，放入待处理队列。</li>
+<li>从队列取出灰色对象，将其引用对象标记为灰色放入队列，自身标记为黑色。</li>
+<li>重复 3，直到灰色对象队列为空。此时白色对象即为垃圾，进行回收。</li>
+</ol>
+<p>可视化如下。<br><img src="./Golang 垃圾回收剖析_Legendtkl_files/Animation_of_tri-color_garbage_collection.gif" alt=""></p>
+<p>三色标记的一个明显好处是能够让用户程序和 mark 并发的进行，具体可以参考论文：《On-the-fly garbage collection: an exercise in cooperation.》。Golang 的 GC 实现也是基于这篇论文，后面再具体说明。</p>
+<h3 id="2-3-节点复制"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-3-%E8%8A%82%E7%82%B9%E5%A4%8D%E5%88%B6" class="headerlink" title="2.3 节点复制"></a>2.3 节点复制</h3><p>节点复制也是基于追踪的算法。其将整个堆等分为两个半区（semi-space），一个包含现有数据，另一个包含已被废弃的数据。节点复制式垃圾收集从切换（flip）两个半区的角色开始，然后收集器在老的半区，也就是 Fromspace 中遍历存活的数据结构，在第一次访问某个单元时把它复制到新半区，也就是 Tospace 中去。在 Fromspace 中所有存活单元都被访问过之后，收集器在 Tospace 中建立一个存活数据结构的副本，用户程序可以重新开始运行了。</p>
+<h5 id="优点-1"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9-1" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>所有存活的数据结构都缩并地排列在 Tospace 的底部，这样就不会存在内存碎片的问题。</li>
+<li>获取新内存可以简单地通过递增自由空间指针来实现。</li>
+</ol>
+<h5 id="缺点-1"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9-1" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>内存得不到充分利用，总有一半的内存空间处于浪费状态。</li>
+</ol>
+<h3 id="2-4-分代收集"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-4-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86" class="headerlink" title="2.4 分代收集"></a>2.4 分代收集</h3><p>基于追踪的垃圾回收算法（标记-清扫、节点复制）一个主要问题是在生命周期较长的对象上浪费时间（长生命周期的对象是不需要频繁扫描的）。同时，内存分配存在这么一个事实 “most object die young”。基于这两点，分代垃圾回收算法将对象按生命周期长短存放到堆上的两个（或者更多）区域，这些区域就是分代（generation）。对于新生代的区域的垃圾回收频率要明显高于老年代区域。</p>
+<p>分配对象的时候从新生代里面分配，如果后面发现对象的生命周期较长，则将其移到老年代，这个过程叫做 promote。随着不断 promote，最后新生代的大小在整个堆的占用比例不会特别大。收集的时候集中主要精力在新生代就会相对来说效率更高，STW 时间也会更短。</p>
+<h5 id="优点-2"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9-2" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>性能更优。</li>
+</ol>
+<h5 id="缺点-2"><a href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9-2" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>实现复杂</li>
+</ol>
+<h2 id="3-Golang-GC"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-Golang-GC" class="headerlink" title="3. Golang GC"></a>3. Golang GC</h2><h3 id="3-1-Overview"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-1-Overview" class="headerlink" title="3.1 Overview"></a>3.1 Overview</h3><p>在说 Golang 的具体垃圾回收流程时，我们先来看一下几个基本的问题。</p>
+<h5 id="1-何时触发-GC"><a href="http://legendtkl.com/2017/04/28/golang-gc/#1-%E4%BD%95%E6%97%B6%E8%A7%A6%E5%8F%91-GC" class="headerlink" title="1. 何时触发 GC"></a>1. 何时触发 GC</h5><p>在堆上分配大于 32K byte 对象的时候进行检测此时是否满足垃圾回收条件，如果满足则进行垃圾回收。</p>
+<figure class="highlight golang"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">mallocgc</span><span class="params">(size <span class="keyword">uintptr</span>, typ *_type, needzero <span class="keyword">bool</span>)</span> <span class="title">unsafe</span>.<span class="title">Pointer</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    shouldhelpgc := <span class="literal">false</span></span><br><span class="line">    <span class="comment">// 分配的对象小于 32K byte</span></span><br><span class="line">    <span class="keyword">if</span> size &lt;= maxSmallSize {</span><br><span class="line">        ...</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shouldhelpgc = <span class="literal">true</span></span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// gcShouldStart() 函数进行触发条件检测</span></span><br><span class="line">    <span class="keyword">if</span> shouldhelpgc &amp;&amp; gcShouldStart(<span class="literal">false</span>) {</span><br><span class="line">        <span class="comment">// gcStart() 函数进行垃圾回收</span></span><br><span class="line">        gcStart(gcBackgroundMode, <span class="literal">false</span>)</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+<p>上面是自动垃圾回收，还有一种是主动垃圾回收，通过调用 runtime.GC()，这是阻塞式的。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GC runs a garbage collection and blocks the caller until the</span></span><br><span class="line"><span class="comment">// garbage collection is complete. It may also block the entire</span></span><br><span class="line"><span class="comment">// program.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GC</span><span class="params">()</span></span> {</span><br><span class="line">    gcStart(gcForceBlockMode, <span class="literal">false</span>)</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="2-GC-触发条件"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-GC-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6" class="headerlink" title="2. GC 触发条件"></a>2. GC 触发条件</h5><p>触发条件主要关注下面代码中的中间部分：<code>forceTrigger || memstats.heap_live &gt;= memstats.gc_trigger</code> 。forceTrigger 是 forceGC 的标志；后面半句的意思是当前堆上的活跃对象大于我们初始化时候设置的 GC 触发阈值。在 malloc 以及 free 的时候 heap_live 会一直进行更新，这里就不再展开了。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcShouldStart returns true if the exit condition for the _GCoff</span></span><br><span class="line"><span class="comment">// phase has been met. The exit condition should be tested when</span></span><br><span class="line"><span class="comment">// allocating.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// If forceTrigger is true, it ignores the current heap size, but</span></span><br><span class="line"><span class="comment">// checks all other conditions. In general this should be false.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcShouldStart</span><span class="params">(forceTrigger <span class="keyword">bool</span>)</span> <span class="title">bool</span></span> {</span><br><span class="line">    <span class="keyword">return</span> gcphase == _GCoff &amp;&amp; (forceTrigger || memstats.heap_live &gt;= memstats.gc_trigger) &amp;&amp; memstats.enablegc &amp;&amp; panicking == <span class="number">0</span> &amp;&amp; gcpercent &gt;= <span class="number">0</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">//初始化的时候设置 GC 的触发阈值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcinit</span><span class="params">()</span></span> {</span><br><span class="line">    _ = setGCPercent(readgogc())</span><br><span class="line">    memstats.gc_trigger = heapminimum</span><br><span class="line">    ...</span><br><span class="line">}</span><br><span class="line"><span class="comment">// 启动的时候通过 GOGC 传递百分比 x</span></span><br><span class="line"><span class="comment">// 触发阈值等于 x * defaultHeapMinimum (defaultHeapMinimum 默认是 4M)</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readgogc</span><span class="params">()</span> <span class="title">int32</span></span> {</span><br><span class="line">    p := gogetenv(<span class="string">"GOGC"</span>)</span><br><span class="line">    <span class="keyword">if</span> p == <span class="string">"off"</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span></span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">if</span> n, ok := atoi32(p); ok {</span><br><span class="line">        <span class="keyword">return</span> n</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> <span class="number">100</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="3-垃圾回收的主要流程"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9A%84%E4%B8%BB%E8%A6%81%E6%B5%81%E7%A8%8B" class="headerlink" title="3. 垃圾回收的主要流程"></a>3. 垃圾回收的主要流程</h5><p>三色标记法，主要流程如下：</p>
+<ul>
+<li>所有对象最开始都是白色。</li>
+<li>从 root 开始找到所有可达对象，标记为灰色，放入待处理队列。</li>
+<li>遍历灰色对象队列，将其引用对象标记为灰色放入待处理队列，自身标记为黑色。</li>
+<li>处理完灰色对象队列，执行清扫工作。</li>
+</ul>
+<p>详细的过程如下图所示，具体可参考 [9]。<br><img src="./Golang 垃圾回收剖析_Legendtkl_files/gc.png" alt=""></p>
+<p>关于上图有几点需要说明的是。</p>
+<ol>
+<li>首先从 root 开始遍历，root 包括全局指针和 goroutine 栈上的指针。</li>
+<li>mark 有两个过程。<ol>
+<li>从 root 开始遍历，标记为灰色。遍历灰色队列。</li>
+<li>re-scan 全局指针和栈。因为 mark 和用户程序是并行的，所以在过程 1 的时候可能会有新的对象分配，这个时候就需要通过写屏障（write barrier）记录下来。re-scan 再完成检查一下。</li>
+</ol>
+</li>
+<li>Stop The World 有两个过程。<ol>
+<li>第一个是 GC 将要开始的时候，这个时候主要是一些准备工作，比如 enable write barrier。</li>
+<li>第二个过程就是上面提到的 re-scan 过程。如果这个时候没有 stw，那么 mark 将无休止。</li>
+</ol>
+</li>
+</ol>
+<p>另外针对上图各个阶段对应 GCPhase 如下：</p>
+<ul>
+<li>Off:    _GCoff</li>
+<li>Stack scan ~ Mark: _GCmark</li>
+<li>Mark termination: _GCmarktermination </li>
+</ul>
+<h3 id="3-2-写屏障-write-barrier"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-2-%E5%86%99%E5%B1%8F%E9%9A%9C-write-barrier" class="headerlink" title="3.2 写屏障 (write barrier)"></a>3.2 写屏障 (write barrier)</h3><p>关于 write barrier，完全可以另外写成一篇文章，所以这里只简单介绍一下，这篇文章的重点还是 Golang 的 GC。垃圾回收中的 write barrier 可以理解为编译器在写操作时特意插入的一段代码，对应的还有 read barrier。</p>
+<p>为什么需要 write barrier，很简单，对于和用户程序并发运行的垃圾回收算法，用户程序会一直修改内存，所以需要记录下来。</p>
+<p>Golang 1.7 之前的 write barrier 使用的经典的 Dijkstra-style insertion write barrier [Dijkstra ‘78]， STW 的主要耗时就在 stack re-scan 的过程。自 1.8 之后采用一种混合的 write barrier 方式 （Yuasa-style deletion write barrier [Yuasa ‘90] 和 Dijkstra-style insertion write barrier [Dijkstra ‘78]）来避免 re-scan。具体的可以参考 <a href="https://github.com/golang/proposal/blob/master/design/17503-eliminate-rescan.md" target="_blank" rel="noopener">17503-eliminate-rescan</a>。</p>
+<h3 id="3-3-标记"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-3-%E6%A0%87%E8%AE%B0" class="headerlink" title="3.3 标记"></a>3.3 标记</h3><p>下面的源码还是基于 go1.8rc3。这个版本的 GC 代码相比之前改动还是挺大的，我们下面尽量只关注主流程。垃圾回收的代码主要集中在函数 <code>gcStart()</code> 中。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcStart 是 GC 的入口函数，根据 gcMode 做处理。</span></span><br><span class="line"><span class="comment">// 1. gcMode == gcBackgroundMode（后台运行，也就是并行）, _GCoff -&gt; _GCmark</span></span><br><span class="line"><span class="comment">// 2. 否则 GCoff -&gt; _GCmarktermination，这个时候就是主动 GC </span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcStart</span><span class="params">(mode gcMode, forceTrigger <span class="keyword">bool</span>)</span></span> {</span><br><span class="line">    ...</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="1-STW-phase-1"><a href="http://legendtkl.com/2017/04/28/golang-gc/#1-STW-phase-1" class="headerlink" title="1. STW phase 1"></a>1. STW phase 1</h5><p>在 GC 开始之前的准备工作。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcStart</span><span class="params">(mode gcMode, forceTrigger <span class="keyword">bool</span>)</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//在后台启动 mark worker </span></span><br><span class="line">    <span class="keyword">if</span> mode == gcBackgroundMode {</span><br><span class="line">        gcBgMarkStartWorkers()</span><br><span class="line">    }</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// Stop The World</span></span><br><span class="line">    systemstack(stopTheWorldWithSema)</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> mode == gcBackgroundMode {</span><br><span class="line">        <span class="comment">// GC 开始前的准备工作</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//处理设置 GCPhase，setGCPhase 还会 enable write barrier</span></span><br><span class="line">        setGCPhase(_GCmark)</span><br><span class="line">      	</span><br><span class="line">        gcBgMarkPrepare() <span class="comment">// Must happen before assist enable.</span></span><br><span class="line">        gcMarkRootPrepare()</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Mark all active tinyalloc blocks. Since we're</span></span><br><span class="line">        <span class="comment">// allocating from these, they need to be black like</span></span><br><span class="line">        <span class="comment">// other allocations. The alternative is to blacken</span></span><br><span class="line">        <span class="comment">// the tiny block on every allocation from it, which</span></span><br><span class="line">        <span class="comment">// would slow down the tiny allocator.</span></span><br><span class="line">        gcMarkTinyAllocs()</span><br><span class="line">      	</span><br><span class="line">        <span class="comment">// Start The World</span></span><br><span class="line">        systemstack(startTheWorldWithSema)</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="2-Mark"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-Mark" class="headerlink" title="2. Mark"></a>2. Mark</h5><p>Mark 阶段是并行的运行，通过在后台一直运行 mark worker 来实现。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcStart</span><span class="params">(mode gcMode, forceTrigger <span class="keyword">bool</span>)</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//在后台启动 mark worker </span></span><br><span class="line">    <span class="keyword">if</span> mode == gcBackgroundMode {</span><br><span class="line">        gcBgMarkStartWorkers()</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcBgMarkStartWorkers</span><span class="params">()</span></span> {</span><br><span class="line">    <span class="comment">// Background marking is performed by per-P G's. Ensure that</span></span><br><span class="line">    <span class="comment">// each P has a background GC G.</span></span><br><span class="line">    <span class="keyword">for</span> _, p := <span class="keyword">range</span> &amp;allp {</span><br><span class="line">        <span class="keyword">if</span> p == <span class="literal">nil</span> || p.status == _Pdead {</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> p.gcBgMarkWorker == <span class="number">0</span> {</span><br><span class="line">            <span class="keyword">go</span> gcBgMarkWorker(p)</span><br><span class="line">            notetsleepg(&amp;work.bgMarkReady, <span class="number">-1</span>)</span><br><span class="line">            noteclear(&amp;work.bgMarkReady)</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="comment">// gcBgMarkWorker 是一直在后台运行的，大部分时候是休眠状态，通过 gcController 来调度</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcBgMarkWorker</span><span class="params">(_p_ *p)</span></span> {</span><br><span class="line">    <span class="keyword">for</span> {</span><br><span class="line">        <span class="comment">// 将当前 goroutine 休眠，直到满足某些条件</span></span><br><span class="line">        gopark(...)</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// mark 过程</span></span><br><span class="line">        systemstack(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> {</span><br><span class="line">        <span class="comment">// Mark our goroutine preemptible so its stack</span></span><br><span class="line">        <span class="comment">// can be scanned. This lets two mark workers</span></span><br><span class="line">        <span class="comment">// scan each other (otherwise, they would</span></span><br><span class="line">        <span class="comment">// deadlock). We must not modify anything on</span></span><br><span class="line">        <span class="comment">// the G stack. However, stack shrinking is</span></span><br><span class="line">        <span class="comment">// disabled for mark workers, so it is safe to</span></span><br><span class="line">        <span class="comment">// read from the G stack.</span></span><br><span class="line">        casgstatus(gp, _Grunning, _Gwaiting)</span><br><span class="line">        <span class="keyword">switch</span> _p_.gcMarkWorkerMode {</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            throw(<span class="string">"gcBgMarkWorker: unexpected gcMarkWorkerMode"</span>)</span><br><span class="line">        <span class="keyword">case</span> gcMarkWorkerDedicatedMode:</span><br><span class="line">            gcDrain(&amp;_p_.gcw, gcDrainNoBlock|gcDrainFlushBgCredit)</span><br><span class="line">        <span class="keyword">case</span> gcMarkWorkerFractionalMode:</span><br><span class="line">            gcDrain(&amp;_p_.gcw, gcDrainUntilPreempt|gcDrainFlushBgCredit)</span><br><span class="line">        <span class="keyword">case</span> gcMarkWorkerIdleMode:</span><br><span class="line">            gcDrain(&amp;_p_.gcw, gcDrainIdle|gcDrainUntilPreempt|gcDrainFlushBgCredit)</span><br><span class="line">        }</span><br><span class="line">        casgstatus(gp, _Gwaiting, _Grunning)</span><br><span class="line">        })</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+<p>Mark 阶段的标记代码主要在函数 gcDrain() 中实现。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcDrain scans roots and objects in work buffers, blackening grey</span></span><br><span class="line"><span class="comment">// objects until all roots and work buffers have been drained.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcDrain</span><span class="params">(gcw *gcWork, flags gcDrainFlags)</span></span> {</span><br><span class="line">    ...	</span><br><span class="line">    <span class="comment">// Drain root marking jobs.</span></span><br><span class="line">    <span class="keyword">if</span> work.markrootNext &lt; work.markrootJobs {</span><br><span class="line">        <span class="keyword">for</span> !(preemptible &amp;&amp; gp.preempt) {</span><br><span class="line">            job := atomic.Xadd(&amp;work.markrootNext, +<span class="number">1</span>) - <span class="number">1</span></span><br><span class="line">            <span class="keyword">if</span> job &gt;= work.markrootJobs {</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            }</span><br><span class="line">            markroot(gcw, job)</span><br><span class="line">            <span class="keyword">if</span> idle &amp;&amp; pollWork() {</span><br><span class="line">                <span class="keyword">goto</span> done</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">  	</span><br><span class="line">    <span class="comment">// 处理 heap 标记</span></span><br><span class="line">    <span class="comment">// Drain heap marking jobs.</span></span><br><span class="line">    <span class="keyword">for</span> !(preemptible &amp;&amp; gp.preempt) {</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">//从灰色列队中取出对象</span></span><br><span class="line">        <span class="keyword">var</span> b <span class="keyword">uintptr</span></span><br><span class="line">        <span class="keyword">if</span> blocking {</span><br><span class="line">            b = gcw.get()</span><br><span class="line">        } <span class="keyword">else</span> {</span><br><span class="line">            b = gcw.tryGetFast()</span><br><span class="line">            <span class="keyword">if</span> b == <span class="number">0</span> {</span><br><span class="line">                b = gcw.tryGet()</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> b == <span class="number">0</span> {</span><br><span class="line">            <span class="comment">// work barrier reached or tryGet failed.</span></span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        }</span><br><span class="line">        <span class="comment">//扫描灰色对象的引用对象，标记为灰色，入灰色队列</span></span><br><span class="line">        scanobject(b, gcw)</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="3-Mark-termination-STW-phase-2"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-Mark-termination-STW-phase-2" class="headerlink" title="3. Mark termination (STW phase 2)"></a>3. Mark termination (STW phase 2)</h5><p>mark termination 阶段会 stop the world。函数实现在 <code>gcMarkTermination()</code>。1.8 版本已经不会再对 goroutine stack 进行 re-scan 了。细节有点多，这里不细说了。 </p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcMarkTermination</span><span class="params">()</span></span> {</span><br><span class="line">    <span class="comment">// World is stopped.</span></span><br><span class="line">    <span class="comment">// Run gc on the g0 stack. We do this so that the g stack</span></span><br><span class="line">    <span class="comment">// we're currently running on will no longer change. Cuts</span></span><br><span class="line">    <span class="comment">// the root set down a bit (g0 stacks are not scanned, and</span></span><br><span class="line">    <span class="comment">// we don't need to scan gc's internal state).  We also</span></span><br><span class="line">    <span class="comment">// need to switch to g0 so we can shrink the stack.</span></span><br><span class="line">    systemstack(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> {</span><br><span class="line">        gcMark(startTime)</span><br><span class="line">        <span class="comment">// Must return immediately.</span></span><br><span class="line">        <span class="comment">// The outer function's stack may have moved</span></span><br><span class="line">        <span class="comment">// during gcMark (it shrinks stacks, including the</span></span><br><span class="line">        <span class="comment">// outer function's stack), so we must not refer</span></span><br><span class="line">        <span class="comment">// to any of its variables. Return back to the</span></span><br><span class="line">        <span class="comment">// non-system stack to pick up the new addresses</span></span><br><span class="line">        <span class="comment">// before continuing.</span></span><br><span class="line">    })</span><br><span class="line">    ...</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h3 id="3-4-清扫"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-4-%E6%B8%85%E6%89%AB" class="headerlink" title="3.4 清扫"></a>3.4 清扫</h3><p>清扫相对来说就简单很多了。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gcSweep</span><span class="params">(mode gcMode)</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//阻塞式</span></span><br><span class="line">    <span class="keyword">if</span> !_ConcurrentSweep || mode == gcForceBlockMode {</span><br><span class="line">        <span class="comment">// Special case synchronous sweep.</span></span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// Sweep all spans eagerly.</span></span><br><span class="line">        <span class="keyword">for</span> sweepone() != ^<span class="keyword">uintptr</span>(<span class="number">0</span>) {</span><br><span class="line">            sweep.npausesweep++</span><br><span class="line">        }</span><br><span class="line">        <span class="comment">// Do an additional mProf_GC, because all 'free' events are now real as well.</span></span><br><span class="line">        mProf_GC()</span><br><span class="line">        mProf_GC()</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    }</span><br><span class="line">  	</span><br><span class="line">    <span class="comment">// 并行式</span></span><br><span class="line">    <span class="comment">// Background sweep.</span></span><br><span class="line">    lock(&amp;sweep.lock)</span><br><span class="line">    <span class="keyword">if</span> sweep.parked {</span><br><span class="line">        sweep.parked = <span class="literal">false</span></span><br><span class="line">        ready(sweep.g, <span class="number">0</span>, <span class="literal">true</span>)</span><br><span class="line">    }</span><br><span class="line">    unlock(&amp;sweep.lock)</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+<p>对于并行式清扫，在 GC 初始化的时候就会启动 <code>bgsweep()</code>，然后在后台一直循环。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">bgsweep</span><span class="params">(c <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span> {</span><br><span class="line">    sweep.g = getg()</span><br><span class="line"></span><br><span class="line">    lock(&amp;sweep.lock)</span><br><span class="line">    sweep.parked = <span class="literal">true</span></span><br><span class="line">    c &lt;- <span class="number">1</span></span><br><span class="line">    goparkunlock(&amp;sweep.lock, <span class="string">"GC sweep wait"</span>, traceEvGoBlock, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> {</span><br><span class="line">        <span class="keyword">for</span> gosweepone() != ^<span class="keyword">uintptr</span>(<span class="number">0</span>) {</span><br><span class="line">            sweep.nbgsweep++</span><br><span class="line">            Gosched()</span><br><span class="line">        }</span><br><span class="line">        lock(&amp;sweep.lock)</span><br><span class="line">        <span class="keyword">if</span> !gosweepdone() {</span><br><span class="line">            <span class="comment">// This can happen if a GC runs between</span></span><br><span class="line">            <span class="comment">// gosweepone returning ^0 above</span></span><br><span class="line">            <span class="comment">// and the lock being acquired.</span></span><br><span class="line">            unlock(&amp;sweep.lock)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        }</span><br><span class="line">        sweep.parked = <span class="literal">true</span></span><br><span class="line">        goparkunlock(&amp;sweep.lock, <span class="string">"GC sweep wait"</span>, traceEvGoBlock, <span class="number">1</span>)</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">gosweepone</span><span class="params">()</span> <span class="title">uintptr</span></span> {</span><br><span class="line">    <span class="keyword">var</span> ret <span class="keyword">uintptr</span></span><br><span class="line">    systemstack(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> {</span><br><span class="line">        ret = sweepone()</span><br><span class="line">    })</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+<p>不管是阻塞式还是并行式，都是通过 <code>sweepone()</code>函数来做清扫工作的。如果对于上篇文章 <a href="http://legendtkl.com/2017/04/02/golang-alloc/" target="_blank" rel="noopener">Golang 内存管理</a> 熟悉的话，这个地方就很好理解。内存管理都是基于 span 的，mheap_ 是一个全局的变量，所有分配的对象都会记录在 mheap_ 中。在标记的时候，我们只要找到对对象对应的 span 进行标记，清扫的时候扫描 span，没有标记的 span 就可以回收了。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sweeps one span</span></span><br><span class="line"><span class="comment">// returns number of pages returned to heap, or ^uintptr(0) if there is nothing to sweep</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sweepone</span><span class="params">()</span> <span class="title">uintptr</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">for</span> {</span><br><span class="line">        s := mheap_.sweepSpans[<span class="number">1</span>-sg/<span class="number">2</span>%<span class="number">2</span>].pop()</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">if</span> !s.sweep(<span class="literal">false</span>) {</span><br><span class="line">            <span class="comment">// Span is still in-use, so this returned no</span></span><br><span class="line">            <span class="comment">// pages to the heap and the span needs to</span></span><br><span class="line">            <span class="comment">// move to the swept in-use list.</span></span><br><span class="line">            npages = <span class="number">0</span></span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// Sweep frees or collects finalizers for blocks not marked in the mark phase.</span></span><br><span class="line"><span class="comment">// It clears the mark bits in preparation for the next GC round.</span></span><br><span class="line"><span class="comment">// Returns true if the span was returned to heap.</span></span><br><span class="line"><span class="comment">// If preserve=true, don't return it to heap nor relink in MCentral lists;</span></span><br><span class="line"><span class="comment">// caller takes care of it.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *mspan)</span> <span class="title">sweep</span><span class="params">(preserve <span class="keyword">bool</span>)</span> <span class="title">bool</span></span> {</span><br><span class="line">    ...</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h3 id="3-5-其他"><a href="http://legendtkl.com/2017/04/28/golang-gc/#3-5-%E5%85%B6%E4%BB%96" class="headerlink" title="3.5 其他"></a>3.5 其他</h3><h5 id="1-gcWork"><a href="http://legendtkl.com/2017/04/28/golang-gc/#1-gcWork" class="headerlink" title="1. gcWork"></a>1. gcWork</h5><p>这里介绍一下任务队列，或者说灰色对象管理。每个 P 上都有一个 gcw 用来管理灰色对象（get 和 put），gcw 的结构就是 gcWork。gcWork 中的核心是 wbuf1 和 wbuf2，里面存储就是灰色对象，或者说是 work（下面就全部统一叫做 work）。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> p <span class="keyword">struct</span> {</span><br><span class="line">    ...</span><br><span class="line">    gcw gcWork</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> gcWork <span class="keyword">struct</span> {</span><br><span class="line">    <span class="comment">// wbuf1 and wbuf2 are the primary and secondary work buffers.</span></span><br><span class="line">    wbuf1, wbuf2 wbufptr</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// Bytes marked (blackened) on this gcWork. This is aggregated</span></span><br><span class="line">    <span class="comment">// into work.bytesMarked by dispose.</span></span><br><span class="line">    bytesMarked <span class="keyword">uint64</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Scan work performed on this gcWork. This is aggregated into</span></span><br><span class="line">    <span class="comment">// gcController by dispose and may also be flushed by callers.</span></span><br><span class="line">    scanWork <span class="keyword">int64</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<p>既然每个 P 上有一个 work buffer，那么是不是还有一个全局的 work list 呢？是的。通过在每个 P 上绑定一个 work buffer 的好处和 cache 一样，不需要加锁。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> work <span class="keyword">struct</span> {</span><br><span class="line">    full  <span class="keyword">uint64</span>                   <span class="comment">// lock-free list of full blocks workbuf</span></span><br><span class="line">    empty <span class="keyword">uint64</span>                   <span class="comment">// lock-free list of empty blocks workbuf</span></span><br><span class="line">    pad0  [sys.CacheLineSize]<span class="keyword">uint8</span> <span class="comment">// prevents false-sharing between full/empty and nproc/nwait</span></span><br><span class="line">    ...</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+<p>那么为什么使用两个 work buffer （wbuf1 和 wbuf2）呢？我下面举个例子。比如我现在要 get 一个 work 出来，先从 wbuf1 中取，wbuf1 为空的话则与 wbuf2 swap 再 get。在其他时间将 work buffer 中的 full 或者 empty buffer 移到 global 的 work 中。这样的好处在于，在 get 的时候去全局的 work 里面取（多个 goroutine 去取会有竞争）。这里有趣的是 global 的 work list 是 lock-free 的，通过原子操作 cas 等实现。下面列举几个函数看一下 gcWrok。</p>
+<p>初始化。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *gcWork)</span> <span class="title">init</span><span class="params">()</span></span> {</span><br><span class="line">    w.wbuf1 = wbufptrOf(getempty())</span><br><span class="line">    wbuf2 := trygetfull()</span><br><span class="line">    <span class="keyword">if</span> wbuf2 == <span class="literal">nil</span> {</span><br><span class="line">        wbuf2 = getempty()</span><br><span class="line">    }</span><br><span class="line">    w.wbuf2 = wbufptrOf(wbuf2)</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<p>put。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// put enqueues a pointer for the garbage collector to trace.</span></span><br><span class="line"><span class="comment">// obj must point to the beginning of a heap object or an oblet.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *gcWork)</span> <span class="title">put</span><span class="params">(obj <span class="keyword">uintptr</span>)</span></span> {</span><br><span class="line">    wbuf := w.wbuf1.ptr()</span><br><span class="line">    <span class="keyword">if</span> wbuf == <span class="literal">nil</span> {</span><br><span class="line">        w.init()</span><br><span class="line">        wbuf = w.wbuf1.ptr()</span><br><span class="line">        <span class="comment">// wbuf is empty at this point.</span></span><br><span class="line">    } <span class="keyword">else</span> <span class="keyword">if</span> wbuf.nobj == <span class="built_in">len</span>(wbuf.obj) {</span><br><span class="line">        w.wbuf1, w.wbuf2 = w.wbuf2, w.wbuf1</span><br><span class="line">        wbuf = w.wbuf1.ptr()</span><br><span class="line">        <span class="keyword">if</span> wbuf.nobj == <span class="built_in">len</span>(wbuf.obj) {</span><br><span class="line">            putfull(wbuf)</span><br><span class="line">            wbuf = getempty()</span><br><span class="line">            w.wbuf1 = wbufptrOf(wbuf)</span><br><span class="line">            flushed = <span class="literal">true</span></span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    wbuf.obj[wbuf.nobj] = obj</span><br><span class="line">    wbuf.nobj++</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<p>get。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// get dequeues a pointer for the garbage collector to trace, blocking</span></span><br><span class="line"><span class="comment">// if necessary to ensure all pointers from all queues and caches have</span></span><br><span class="line"><span class="comment">// been retrieved.  get returns 0 if there are no pointers remaining.</span></span><br><span class="line"><span class="comment">//go:nowritebarrier</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *gcWork)</span> <span class="title">get</span><span class="params">()</span> <span class="title">uintptr</span></span> {</span><br><span class="line">    wbuf := w.wbuf1.ptr()</span><br><span class="line">    <span class="keyword">if</span> wbuf == <span class="literal">nil</span> {</span><br><span class="line">        w.init()</span><br><span class="line">        wbuf = w.wbuf1.ptr()</span><br><span class="line">        <span class="comment">// wbuf is empty at this point.</span></span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">if</span> wbuf.nobj == <span class="number">0</span> {</span><br><span class="line">        w.wbuf1, w.wbuf2 = w.wbuf2, w.wbuf1</span><br><span class="line">        wbuf = w.wbuf1.ptr()</span><br><span class="line">        <span class="keyword">if</span> wbuf.nobj == <span class="number">0</span> {</span><br><span class="line">            owbuf := wbuf</span><br><span class="line">            wbuf = getfull()</span><br><span class="line">            <span class="keyword">if</span> wbuf == <span class="literal">nil</span> {</span><br><span class="line">                <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">            }</span><br><span class="line">            putempty(owbuf)</span><br><span class="line">            w.wbuf1 = wbufptrOf(wbuf)</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> This might be a good place to add prefetch code</span></span><br><span class="line"></span><br><span class="line">    wbuf.nobj--</span><br><span class="line">    <span class="keyword">return</span> wbuf.obj[wbuf.nobj]</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h5 id="2-forcegc"><a href="http://legendtkl.com/2017/04/28/golang-gc/#2-forcegc" class="headerlink" title="2. forcegc"></a>2. forcegc</h5><p>我们上面讲了两种 GC 触发方式：自动检测和用户主动调用。除此之后 Golang 本身还会对运行状态进行监控，如果超过两分钟没有 GC，则触发 GC。监控函数是 <code>sysmon()</code>，在主 goroutine 中启动。</p>
+<figure class="highlight go"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// The main goroutine</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    systemstack(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> {</span><br><span class="line">      	newm(sysmon, <span class="literal">nil</span>)</span><br><span class="line">    })</span><br><span class="line">}</span><br><span class="line"><span class="comment">// Always runs without a P, so write barriers are not allowed.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sysmon</span><span class="params">()</span></span> {</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">for</span> {</span><br><span class="line">        now := nanotime()</span><br><span class="line">        unixnow := unixnanotime()</span><br><span class="line">      	</span><br><span class="line">        lastgc := <span class="keyword">int64</span>(atomic.Load64(&amp;memstats.last_gc))</span><br><span class="line">        <span class="keyword">if</span> gcphase == _GCoff &amp;&amp; lastgc != <span class="number">0</span> &amp;&amp; unixnow-lastgc &gt; forcegcperiod &amp;&amp; atomic.Load(&amp;forcegc.idle) != <span class="number">0</span> {</span><br><span class="line">            lock(&amp;forcegc.lock)</span><br><span class="line">            forcegc.idle = <span class="number">0</span></span><br><span class="line">            forcegc.g.schedlink = <span class="number">0</span></span><br><span class="line">            injectglist(forcegc.g)	<span class="comment">// 将 forcegc goroutine 加入 runnable queue</span></span><br><span class="line">            unlock(&amp;forcegc.lock)</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> forcegcperiod <span class="keyword">int64</span> = <span class="number">2</span> * <span class="number">60</span> *<span class="number">1e9</span>	<span class="comment">//两分钟</span></span><br></pre></td></tr></tbody></table></div></figure>
+
+<h2 id="4-参考资料"><a href="http://legendtkl.com/2017/04/28/golang-gc/#4-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99" class="headerlink" title="4.参考资料"></a>4.参考资料</h2><ol>
+<li>《Go 语言学习笔记》</li>
+<li><a href="https://book.douban.com/subject/1157908/" target="_blank" rel="noopener">《垃圾收集》 - 豆瓣</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Tracing_garbage_collection#Na.C3.AFve_mark-and-sweep" target="_blank" rel="noopener">Tracing Garbage Collection - wikipedia</a></li>
+<li>《On-the-fly garbage collection: an exercise in cooperation.》 — Edsger W. Dijkstra, Leslie Lamport, A. J. Martin</li>
+<li><a href="https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)" target="_blank" rel="noopener">Garbage Collection</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Tracing_garbage_collection" target="_blank" rel="noopener">Tracing Garbage Collection</a></li>
+<li><a href="https://www.youtube.com/watch?v=P1rU_9IB414" target="_blank" rel="noopener">Copying Garbage Collection – youtube</a></li>
+<li><a href="https://www.youtube.com/watch?v=pJHISaOW6Vc" target="_blank" rel="noopener">Generational Garbage Collection – youtube</a></li>
+<li><a href="https://talks.golang.org/2015/go-gc.pdf" target="_blank" rel="noopener">golang gc talk</a></li>
+<li><a href="https://github.com/golang/proposal/blob/master/design/17503-eliminate-rescan.md" target="_blank" rel="noopener">17503-eliminate-rescan</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="http://legendtkl.com/2017/04/02/golang-alloc/" rel="next" title="Golang 内存管理">
+                  <i class="fa fa-chevron-left"></i> Golang 内存管理
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="http://legendtkl.com/2017/06/12/understanding-golang-interface/" rel="prev" title="深入理解 Go Interface">
+                  深入理解 Go Interface <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle toggle-close">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar sidebar-active">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+        <li class="sidebar-nav-toc sidebar-nav-active">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel sidebar-panel-active" style="max-height: 485px; opacity: 1;">
+          <div class="post-toc motion-element" style="opacity: 1; display: block; transform: translateX(0px);"><ol class="nav"><li class="nav-item nav-level-2 active active-current"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#1-Golang-GC-%E5%8F%91%E5%B1%95"><span class="nav-number">1.</span> <span class="nav-text">1. Golang GC 发展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-GC-%E7%AE%97%E6%B3%95%E7%AE%80%E4%BB%8B"><span class="nav-number">2.</span> <span class="nav-text">2. GC 算法简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 引用计数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9"><span class="nav-number">2.1.0.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9"><span class="nav-number">2.1.0.2.</span> <span class="nav-text">缺点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-2-%E6%A0%87%E8%AE%B0-%E6%B8%85%E6%89%AB"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 标记-清扫</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E7%AE%97%E6%B3%95"><span class="nav-number">2.2.0.1.</span> <span class="nav-text">三色标记算法</span></a></li></ol></li></ol><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-3-%E8%8A%82%E7%82%B9%E5%A4%8D%E5%88%B6"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 节点复制</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9-1"><span class="nav-number">2.3.0.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9-1"><span class="nav-number">2.3.0.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-4-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 分代收集</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E4%BC%98%E7%82%B9-2"><span class="nav-number">2.4.0.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#%E7%BC%BA%E7%82%B9-2"><span class="nav-number">2.4.0.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-Golang-GC"><span class="nav-number">3.</span> <span class="nav-text">3. Golang GC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-1-Overview"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#1-%E4%BD%95%E6%97%B6%E8%A7%A6%E5%8F%91-GC"><span class="nav-number">3.1.0.1.</span> <span class="nav-text">1. 何时触发 GC</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-GC-%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="nav-number">3.1.0.2.</span> <span class="nav-text">2. GC 触发条件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9A%84%E4%B8%BB%E8%A6%81%E6%B5%81%E7%A8%8B"><span class="nav-number">3.1.0.3.</span> <span class="nav-text">3. 垃圾回收的主要流程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-2-%E5%86%99%E5%B1%8F%E9%9A%9C-write-barrier"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 写屏障 (write barrier)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-3-%E6%A0%87%E8%AE%B0"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 标记</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#1-STW-phase-1"><span class="nav-number">3.3.0.1.</span> <span class="nav-text">1. STW phase 1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-Mark"><span class="nav-number">3.3.0.2.</span> <span class="nav-text">2. Mark</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-Mark-termination-STW-phase-2"><span class="nav-number">3.3.0.3.</span> <span class="nav-text">3. Mark termination (STW phase 2)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-4-%E6%B8%85%E6%89%AB"><span class="nav-number">3.4.</span> <span class="nav-text">3.4 清扫</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#3-5-%E5%85%B6%E4%BB%96"><span class="nav-number">3.5.</span> <span class="nav-text">3.5 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#1-gcWork"><span class="nav-number">3.5.0.1.</span> <span class="nav-text">1. gcWork</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#2-forcegc"><span class="nav-number">3.5.0.2.</span> <span class="nav-text">2. forcegc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/04/28/golang-gc/#4-%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">4.参考资料</span></a></li></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel" style="max-height: 485px; opacity: 0;">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person" style="opacity: 1; display: block; transform: translateX(0px);">
+  <img class="site-author-image" itemprop="image" alt="legendtkl" src="./Golang 垃圾回收剖析_Legendtkl_files/avatar.jpg">
+  <p class="site-author-name" itemprop="name">legendtkl</p>
+  <div class="site-description" itemprop="description">Do not go gentle into that good night.</div>
+</div>
+<div class="site-state-wrap motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="http://legendtkl.com/archives/">
+        
+          <span class="site-state-item-count">113</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="http://legendtkl.com/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="http://legendtkl.com/tags/">
+        <span class="site-state-item-count">87</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+    <a href="http://legendtkl.com/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+      <span class="links-of-author-item">
+        <a href="https://github.com/legendtkl" title="Github &amp;rarr; https://github.com/legendtkl" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="http://weibo.com/HIT_Achilles" title="Weibo &amp;rarr; http://weibo.com/HIT_Achilles" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="http://www.zhihu.com/people/legendtkl" title="Zhihu &amp;rarr; http://www.zhihu.com/people/legendtkl" rel="noopener" target="_blank"><i class="fa fa-fw fa-zhihu"></i>Zhihu</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">legendtkl</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="./Golang 垃圾回收剖析_Legendtkl_files/anime.min.js.下载"></script>
+  <script src="./Golang 垃圾回收剖析_Legendtkl_files/velocity.min.js.下载"></script>
+  <script src="./Golang 垃圾回收剖析_Legendtkl_files/velocity.ui.min.js.下载"></script>
+<script src="./Golang 垃圾回收剖析_Legendtkl_files/utils.js.下载"></script><script src="./Golang 垃圾回收剖析_Legendtkl_files/motion.js.下载"></script>
+<script src="./Golang 垃圾回收剖析_Legendtkl_files/muse.js.下载"></script>
+<script src="./Golang 垃圾回收剖析_Legendtkl_files/next-boot.js.下载"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+</body></html>
