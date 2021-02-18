@@ -3,8 +3,18 @@
 
 
 ```sh
+# goland用的测试方式
+
+# -c 先编译出binary，不执行
 go test -c -o ${output_file} ${full_package} #gosetup
+# 实际执行
 go tool test2json -t ${output_file} -test.v -test.run ^${test_case_func_name}$ #gosetup
+
+# 如：
+go test -c -mod=vendor -o /tmp/xxx.exe istio.io/istio/pilot/pkg/proxy/envoy/v2
+go tool test2json -t /tmp/xxx.exe -test.v -test.run ^\QTestAdsPushScoping\E$
+# 这个 \Q \E 似乎多余
+go tool test2json -t /tmp/xxx.exe -test.v -test.run ^TestAdsPushScoping$
 ```
 
 

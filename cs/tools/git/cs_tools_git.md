@@ -354,6 +354,63 @@ git checkout --theirs -- <paths>
 
 *  `git push origin v1.0.0`/`git push origin --tags`
 
+
+
+```sh
+ git show-ref --tags
+89cdb55df2d556bc63317630cce23c9768eb9734 refs/tags/0.1.0
+5a25a62cf322518b196fc8fb44b7e9c104ddd07e refs/tags/0.1.1
+...
+```
+
+
+
+显示日期：
+
+```sh
+ git log --tags --simplify-by-decoration  --pretty="format:%ai %d"
+2021-01-15 15:35:10 -0700  (tag: 1.9.0-beta.0, origin/release-1.9)
+2021-01-12 17:06:23 -0600  (tag: 1.8.2)
+2020-12-07 13:31:30 -0800  (tag: 1.8.1)
+...
+```
+
+> There is no date information attached to a lightweight tag. Therefore, this answer is incorrect. The dates in the output of `git log --tags --simplify-by-decoration --pretty="format:%ai %d"` are the dates of the *objects* to which the tags point, *not* the dates when the tags themselves were created.
+
+```sh
+git log --date-order --graph --tags --simplify-by-decoration --pretty=format:'%ai %h %d'
+
+* 2021-01-15 15:35:10 -0700 5dd20445f2  (tag: 1.9.0-beta.0, origin/release-1.9)
+| * 2021-01-12 17:06:23 -0600 bfa8bcbc11  (tag: 1.8.2)
+| * 2020-12-07 13:31:30 -0800 806fb24bc1  (tag: 1.8.1)
+| | * 2020-12-07 20:40:53 +0800 74a8d16a80  (tag: 1.7.6)
+| | * 2020-12-04 15:53:29 -0800 35ffee31de  (release-1.7)
+| | | * 2020-11-20 13:43:48 -0600 3ddc57b6d1  (tag: 1.6.14, origin/release-1.6)
+| * | | 2020-11-18 14:44:33 -0800 c87a4c874d  (tag: 1.8.0-rc.1, tag: 1.8.0)
+# graph样式
+```
+
+
+
+```sh
+git tag -l --format='%(refname)   %(taggerdate)'
+refs/tags/0.1.0
+refs/tags/0.1.1   Wed May 10 22:49:45 2017 -0700
+refs/tags/0.1.2   Sun May 14 22:51:04 2017 -0700
+refs/tags/0.1.3   Mon May 15 21:18:57 2017 -0700
+...
+
+ git tag -l --sort=-creatordate --format='%(creatordate:short):  %(refname:short)'
+2021-01-15:  1.9.0-beta.0
+2021-01-14:  1.8.2
+2020-12-10:  1.7.6
+...
+```
+
+
+
+
+
 ## show(detail)
 
 
