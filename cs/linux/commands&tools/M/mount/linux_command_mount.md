@@ -57,6 +57,43 @@ mount --bind /mnt/target /tmp/test/
 
 
 
+### mount samba
+
+
+
+### mount nfs
+
+> 可能需要安装对应的支持，否则可能没有 `mount.nfs`。
+>
+> debian： sudo apt install -y nfs-common
+>
+> rh： yum -y install nfs-utils
+
+
+
+`mount [OPTIONS] NFS_SERVER:/PATH/TO/EXPORTED/DIR /MOUNT_POINT_ON_CLIENT`
+
+
+
+```sh
+mount -t nfs 10.43.138.1:/ISS /tmp/logs
+
+# 可以 -o 指定额外参数，如： -o nfsvers=3,rsize=<val>,wsize=<val>
+```
+
+
+
+fstab
+
+```
+# NFS_SERVER:/PATH/TO/EXPORTED/DIR    /MOUNT_POINT_ON_CLIENT    TYPE_OF_FS   OPTIONS   DUMP	PASS
+  10.10.0.10:/backups                 /var/backups              nfs          defaults    0       0
+```
+
+
+
+
+
 ## fstab
 
 

@@ -60,8 +60,12 @@
 
   * 在shell里执行脚本（所以是很常见的case了）
 
+  > `wsl xx.sh` 或者 `wsl zsh xx.sh`  或者 `wsl echo 123` 也都是这个
+>
+  > 似乎wsl对于命令的执行做了一点封装，但看 `$SHLVL` 又是1
+  
   **读取的配置文件**：
-
+  
   * bash： `BASH_ENV`指定的
   * zsh： `/etc/zshenv` 和 `~/.zshenv`
 

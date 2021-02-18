@@ -69,6 +69,10 @@ I'm not quite sure as to *why* you'd ever have to use the partition label, but a
 
 
 
+> 具体见《linux_command_mount.md》
+
+
+
 ## “安全移除”
 
 

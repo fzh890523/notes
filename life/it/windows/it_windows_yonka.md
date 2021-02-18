@@ -93,6 +93,71 @@ net use * /del
 
 
 
+# services
+
+
+
+## nfs
+
+> 不提供nfs server，可以用 hanewin_nfs_server_V1.1.69 
+>
+> 部分版本提供nfs client（需要开启）
+
+
+
+### client
+
+
+
+* `show -e <ip>` 查看指定nfs server的（shares）信息
+
+  ```
+  showmount -e [server]    显示 NFS 服务器导出的所有共享。
+  showmount -a [server]    列出客户端主机名或 IP 地址，以及使用“主机:目录”格式显示的安装目录。
+  showmount -d [server]    显示 NFS 服务器上当前由某些 NFS 客户端安装的目录。
+  ```
+
+  
+
+* GUI操作映射网络驱动器（如`G:`）为`\\<ip>\<share>` 即可（类似samba的操作）
+
+  > 需要**读写权限**的需要修改注册表
+  >  通过修改注册表将windows访问NFS时的UID和GID改成0即可，步骤如下
+  >  1、在运行中输入regedit，打开注册表编辑器；
+  >  2、进入HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ClientForNFS\CurrentVersion\Default条目；
+  >  3、选择新建----QWORD值，新建AnonymousUid，AnonymousGid两个值，值为0；
+  >  4、`重启电脑` 注册表才会生效；
+  >
+  > ref： https://blog.csdn.net/qq_34158598/article/details/81976063
+
+* 命令行方式挂载： `mount <ip>:<share> <盘符>` 
+
+  如： `mount 192.168.1.2:/public F:`
+
+  > 用cmd吧，psh好像有些莫名其妙的问题比如prompt让输入什么什么...
+
+* 卸载： 命令行的`umount <盘符>` 或者全部 `umount -f -a`
+
+  > **不要使用资源管理器的“断开网络驱动器”**
+  >
+  > > yonka: 这个好像经常卡顿，所以才不建议使用吧
+
+
+
+
+
+### hanewin nfs server
+
+几个注意点：
+
+* 入口在start menu里，而不是安装目录里
+
+* 需要管理员权限运行
+
+  > 配置修改处，如果不这样的话，可能导致reload失效，保存配置和加载配置不一致等
+
+
+
 # system admin
 
 

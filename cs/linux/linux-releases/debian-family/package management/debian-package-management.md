@@ -73,6 +73,8 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted unive
 
 ### install from deb file
 
+* `sudo apt install ./xxx.deb`
+
 
 
 ## what provides file
@@ -140,6 +142,16 @@ dpkg-deb -c ${package_name.deb}  # file
   if installed
 
 
+
+## 使用代理
+
+
+
+有时可能包含google等被q的源，这时可以考虑用代理：
+
+```sh
+sudo apt-get -o Acquire::http::proxy="http://127.0.0.1:8087" update  # 假设代理为 808 这个
+```
 
 
 

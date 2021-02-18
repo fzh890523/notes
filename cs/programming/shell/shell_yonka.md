@@ -320,6 +320,7 @@ echo $b  # should be before:middle:after
 ```sh
 s="abcd"
 echo ${s:1}  # bcd
+echo ${s:-3}  # a 去掉了后面3个
 echo ${s:2:1} # c
 echo ${s:2:}  # 空
 ```

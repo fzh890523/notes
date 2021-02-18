@@ -53,3 +53,10 @@ fusion好像可以编辑设置。 virtualbox也可以。
 
 
 ![image-20200605035144840](_pics/image-20200605035144840.png)
+
+
+
+
+
+# install
+
