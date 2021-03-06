@@ -1,5 +1,9 @@
 
 
+### 文件选择
+
+
+
 #### 排除一些内容
 
 
@@ -16,6 +20,12 @@ rsync -r --exclude=".git" ${git_dir} root@10.211.55.3:/tmp/
 rsync -r --exclude="*.tmp" ${git_dir} root@10.211.55.3:/tmp/
 # 排除指定后缀名的文件(支持递归，不只是顶层目录下的)
 ```
+
+
+
+#### 选择一些内容
+
+
 
 
 
@@ -104,7 +114,9 @@ rsync -avh dir1 dir0 --remove-source-files
 
 
 
-`-avP` or `-avzP`（多一个开启压缩）
+* `-avP` or `-avzP`（多一个开启压缩）
+
+* `--remove-source-files`
 
 
 

@@ -76,6 +76,16 @@ wsl2之后用的是端口映射，不太一样了。
 
 ## wsl2
 
+>Both your own WSL 2 distro and docker-desktop run on the same utility VM. They share the same Kernel, VFS cache etc. They just run in separate namespaces so that they have the illusion of running totally independently. Docker Desktop leverages that to handle bind mounts from a WSL 2 distro without involving any remote file sharing system. This means that when you mount your project files in a container (with `docker run -v ~/my-project:/sources <...>`), docker will propagate inotify events and share the same cache as your own distro to avoid reading file content from disk repeatedly.
+>
+>A little warning though: if you mount files that live in the Windows file system (such as with `docker run -v /mnt/c/Users/Simon/windows-project:/sources <...>`), you won’t get those performance benefits, as /mnt/c is actually a mountpoint exposing Windows files through a Plan9 file share. 
+>
+>from: https://www.docker.com/blog/docker-desktop-wsl-2-best-practices/
+
+
+
+### 安装、启用
+
 
 
 ref： https://docs.microsoft.com/zh-cn/windows/wsl/install-win10#update-to-wsl-2
@@ -129,4 +139,37 @@ Ths WSL 2 Linux kernel is now installed using a separate MSI update package ...
 ```
 
 正文里告知需要去 https://docs.microsoft.com/zh-cn/windows/wsl/wsl2-kernel 下载 linux kernel。
+
+
+
+## config
+
+* global级别
+* distro级别
+
+
+
+详见： [windows_wls_config_yonka.md](windows_wls_config_yonka.md)
+
+
+
+## vm管理
+
+好像wsl1是可以在hypervisor里管理虚拟机； wsl2只用了h的虚拟化底层功能但没映射为h vm，所以无法从h中看到...
+
+
+
+管理手段... 只有wsl命令（和相关配置）了...
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -91,17 +91,36 @@
 
 
 
-**区分**：
+#### **区分**
 
-* 按照惯例，在shell里`echo $0`，输出是类似`-$SHELL`如`-bash`则为login shell，`$SHELL`格式如`bash`则为non-login shell
+* login shell
+  * 按照惯例，在shell里`echo $0`，输出是类似`-$SHELL`如`-bash`则为login shell，`$SHELL`格式如`bash`则为non-login shell
 
-  `w`命令的输出的`WHAT`列也可以看到
+    `w`命令的输出的`WHAT`列也可以看到
 
-* `shopt -q login_shell`的返回值，如 
+  * `shopt -q login_shell`的返回值，如 
+
+    ```sh
+    shopt -q login_shell && echo login_shell || echo non_login_shell
+    login_shell
+    ```
+
+    
+
+* interactive
 
   ```sh
-  shopt -q login_shell && echo login_shell || echo non_login_shell
-  login_shell
+  # bash
+  [[ $- == *i* ]] && echo 'Interactive' || echo 'Not interactive'
+  # or
+  case $- in
+    *i*) echo "This shell is interactive";;
+    *) echo "This is a script";;
+  esac
+  
+  
+  # zsh
+  [[ -o interactive ]] && echo interactive || echo non-interactive
   ```
 
   
@@ -195,6 +214,19 @@ https://medium.com/@rajsek/zsh-bash-startup-files-loading-order-bashrc-zshrc-etc
 ```
 
 
+
+
+
+### change shell
+
+```bash
+chsh /bin/zsh
+
+sudo chsh /bin/zsh xxuser
+```
+
+> * 需要用shell path而不是name
+> * shell path需要在 /etc/shells 里 （一般装好shell就在了）
 
 
 

@@ -177,6 +177,21 @@ Samba services are implemented as two [daemons](https://en.wikipedia.org/wiki/Da
 
 ### smbclient （linux）
 
+```sh
+Usage: smbclient [-?EgqBVNkPeC] [-?|--help] [--usage] [-R|--name-resolve=NAME-RESOLVE-ORDER] [-M|--message=HOST]
+        [-I|--ip-address=IP] [-E|--stderr] [-L|--list=HOST] [-m|--max-protocol=LEVEL] [-T|--tar=<c|x>IXFqgbNan]
+        [-D|--directory=DIR] [-c|--command=STRING] [-b|--send-buffer=BYTES] [-t|--timeout=SECONDS] [-p|--port=PORT]
+        [-g|--grepable] [-q|--quiet] [-B|--browse] [-d|--debuglevel=DEBUGLEVEL] [-s|--configfile=CONFIGFILE]
+        [-l|--log-basename=LOGFILEBASE] [-V|--version] [--option=name=value] [-O|--socket-options=SOCKETOPTIONS]
+        [-n|--netbiosname=NETBIOSNAME] [-W|--workgroup=WORKGROUP] [-i|--scope=SCOPE] [-U|--user=USERNAME]
+        [-N|--no-pass] [-k|--kerberos] [-A|--authentication-file=FILE] [-S|--signing=on|off|required]
+        [-P|--machine-pass] [-e|--encrypt] [-C|--use-ccache] [--pw-nt-hash] service <password>
+```
+
+
+
+
+
 
 
 ```sh
@@ -187,6 +202,7 @@ smbclient \\\\127.0.0.1\\sharename  # \\ 转义了一份
 smbclient -L　\\\\127.0.0.1\\sharename
 
 # -U xx 指定用户（否则为当前登录用户）
+# -W xx 指定当前workgroup。 企业用户可能加入了域/wg，这时需要指定，否则会access denied
 ```
 
 

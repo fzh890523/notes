@@ -239,6 +239,12 @@ Ref: https://www.cnblogs.com/zafu/p/10000188.html
 
 
 
+### 指定发出流量的接口： --interface
+
+如： `--interface eth0`
+
+
+
 ## 场景
 
 

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://legendtkl.com/2017/03/21/malloc-os-knowledge/ -->
+<html lang="zh-Hans"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="http://legendtkl.com/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="http://legendtkl.com/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="http://legendtkl.com/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="http://legendtkl.com/images/logo.svg" color="#222">
+  <link rel="alternate" href="http://legendtkl.com/atom.xml" title="Legendtkl" type="application/atom+xml">
+
+<link rel="stylesheet" href="./malloc 背后的系统知识_Legendtkl_files/main.css">
+
+
+<link rel="stylesheet" href="./malloc 背后的系统知识_Legendtkl_files/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"right","display":"always","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="面试的时候经常会被问到 malloc 的实现。从操作系统层面来说，malloc 确实是考察面试者对操作系统底层的存储管理理解的一个很好的方式，涉及到虚拟内存、分页/分段等。下面逐个细说。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="malloc 背后的系统知识">
+<meta property="og:url" content="http://yoursite.com/2017/03/21/malloc-os-knowledge/index.html">
+<meta property="og:site_name" content="Legendtkl">
+<meta property="og:description" content="面试的时候经常会被问到 malloc 的实现。从操作系统层面来说，malloc 确实是考察面试者对操作系统底层的存储管理理解的一个很好的方式，涉及到虚拟内存、分页/分段等。下面逐个细说。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/physical_address.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/vm_address.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/page_table.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/2level_page_table.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/tlb_hit.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/tlb_miss.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/segment.png">
+<meta property="og:image" content="http://yoursite.com/img/uploads/2017/process_segment.png">
+<meta property="og:updated_time" content="2019-11-08T03:09:25.911Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/img/uploads/2017/physical_address.png">
+
+<link rel="canonical" href="http://yoursite.com/2017/03/21/malloc-os-knowledge/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>malloc 背后的系统知识 | Legendtkl</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" style="padding-right: 320px;">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="http://legendtkl.com/" class="brand" rel="start" style="opacity: 1;">
+        <span class="logo-line-before"><i class="" style="transform: translateX(100%);"></i></span>
+        <span class="site-title" style="opacity: 1; top: 0px;">Legendtkl</span>
+        <span class="logo-line-after"><i class="" style="transform: translateX(-100%);"></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle" style="opacity: 1; top: 0px;">abc</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-archives" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-categories" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/categories/" rel="section"><i class="fa fa-fw fa-th"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-booklist" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/booklist/" rel="section"><i class="fa fa-fw fa-book"></i>booklist</a>
+
+  </li>
+        <li class="menu-item menu-item-about" style="opacity: 1; transform: translateY(0px);">
+
+    <a href="http://legendtkl.com/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top back-to-top-on">
+    <i class="fa fa-arrow-up"></i>
+    <span>9%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope="" itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans" style="opacity: 1; display: block;">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/21/malloc-os-knowledge/">
+
+    <span hidden="" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/avatar.jpg">
+      <meta itemprop="name" content="legendtkl">
+      <meta itemprop="description" content="Do not go gentle into that good night.">
+    </span>
+
+    <span hidden="" itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Legendtkl">
+    </span>
+      <header class="post-header" style="opacity: 1; display: block; transform: translateY(0px);">
+        <h1 class="post-title" itemprop="name headline">
+          malloc 背后的系统知识
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-03-21 21:07:24" itemprop="dateCreated datePublished" datetime="2017-03-21T21:07:24+08:00">2017-03-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-08 11:09:25" itemprop="dateModified" datetime="2019-11-08T11:09:25+08:00">2019-11-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="http://legendtkl.com/categories/%E5%BA%95%E5%B1%82%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">底层技术</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody" style="opacity: 1; display: block; transform: translateY(0px);">
+
+      
+        <p>面试的时候经常会被问到 malloc 的实现。从操作系统层面来说，malloc 确实是考察面试者对操作系统底层的存储管理理解的一个很好的方式，涉及到虚拟内存、分页/分段等。下面逐个细说。</p>
+<a id="more"></a>
+
+<h2 id="1-虚拟内存"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98" class="headerlink" title="1. 虚拟内存"></a>1. 虚拟内存</h2><p>首先需要知道的是程序运行起来的话需要被加载的物理内存中，具体到计算机硬件就是内存条。操作系统启动的时候先把自己加载到物理内存的固定位置（一般为底部），物理内存的其他位置就用来运行用户程序。程序就是一堆指令，程序运行可以简单抽象为把指令加载到内存中，然后 CPU 将指令从内存载入执行。</p>
+<h4 id="1-为什么需要虚拟内存？"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F" class="headerlink" title="1. 为什么需要虚拟内存？"></a>1. 为什么需要虚拟内存？</h4><p>CPU 对内存的寻址最简单的方式就是直接使用物理内存地址，这种方式一般叫做物理寻址。早期的 PC 使用物理寻址，而且像数字信号处理器、嵌入式微控制器也使用物理寻址。物理寻址的好处是简单，坏处也有很多，比如：<br><strong>不安全</strong>：操作系统的地址直接暴露给用户程序，用户程序可以破坏操作系统。这种解决方案是采用特殊的硬件保护。<br><strong>同时运行多个程序比较困难</strong>：多个用户程序如果都直接引用物理地址，很容易互相干扰。那么是不是可以通过不断交换物理内存和磁盘来保证物理内存某一时间自由一个程序在运行呢？当时是可以的，但是这引入很多不必要和复杂的工作。<br><strong>用户程序大小受限</strong>：受制于物理内存大小。我们现在的错觉是应用程序大小都小于物理内存，这主要是因为现在 PC 的物理内存都比较大。实际上只有 1G 物理内存的 PC 是可以运行 2G 的应用程序的。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/physical_address.png" alt=""></p>
+<p>综合上面各种缺点，虚拟内存出现了。</p>
+<h4 id="2-虚拟内存概览"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%A6%82%E8%A7%88" class="headerlink" title="2. 虚拟内存概览"></a>2. 虚拟内存概览</h4><p>虚拟内存的基本思想是：每个程序拥有独立的地址空间（也就是虚拟内存地址，或者称作虚拟地址），互不干扰。地址空间被分割成多个块，每一块称作一页（page），每一页有连续的地址范围。虚拟地址的页被映射到物理内存（通过 MMU，Memory Management Unit），但是并不是所有的页都必须在内存中才能运行程序。当程序引用到一部分在物理内存中的地址空间时，由硬件立刻执行必要的映射。当程序引用到一部分不在物理内存中的地址空间时，由操作系统负责将确实的部分装入物理内存。虚拟地址寻址（也叫做虚拟寻址）的示意图如下。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/vm_address.png" alt=""></p>
+<h4 id="3-虚拟内存实现"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0" class="headerlink" title="3.虚拟内存实现"></a>3.虚拟内存实现</h4><h5 id="1-虚拟内存大小"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F" class="headerlink" title="1.虚拟内存大小"></a>1.虚拟内存大小</h5><p>一般是和 CPU 字长相关，比如 32 位对应的虚拟地址空间大小为：0 ~ 2^31。</p>
+<h5 id="2-MMU"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-MMU" class="headerlink" title="2. MMU"></a>2. MMU</h5><p>CPU 将虚拟地址发送给 MMU，然后 MMU 将虚拟地址翻译成物理地址，再寻址物理内存。那么虚拟地址和物理地址具体是怎么映射的呢？完成映射还需要另一个重要的数据结构的参与：<strong>页表</strong>（page table）。页表完成虚拟地址和物理地址的映射，MMU 每次翻译的时候都需要读取页表。页表的一种简单表示如下。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/page_table.png" alt=""></p>
+<p>这里页大小为 p 位。虚拟内存的页和物理内存的页大小一样。虚拟地址的高 n-p 位，又叫做虚拟页号（Virtual Page Number, VPN），用来索引物理页号（Physical Page Number，PPN），最后将 PPN 和低 p 位组合在一起就得到了物理地址。</p>
+<h5 id="3-页表的两个问题"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-%E9%A1%B5%E8%A1%A8%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98" class="headerlink" title="3. 页表的两个问题"></a>3. 页表的两个问题</h5><p>前面说到用 VPN 来做页表索引，也就是说页表的大小为虚拟地址位数 / 页的大小。比如 32 位机器，页大小一般为 4K ，则页表项有 2^32 / 2^12 = 2^20 条目。如果机器字长 64 位，页表项就更多了。那么怎么解决呢？一般有两种方法：</p>
+<ol>
+<li>倒排页表。物理页号做索引，映射到多个虚拟地址。通过虚拟地址查找的时候就需要通过虚拟地址的中间几位来做索引了。</li>
+<li>多级页表。以两级页表为例。一级页表中的每个 PTE （page table entry）映射虚拟地址空间的一个 4MB 的片，每一片由1024 个连续的页面组成。一级 PTE 指向二级页表的基址。这样 32 位地址空间使用 1024 个一级 PTE 就可以表示。需要的二级页表总条目还是 2^32 / 2^12 = 2^20 个。这里的关键在于如果一级 PTE i 中的页面都未被分配，一级 PTE 就为空。多级页面的一个简单示意图如下。</li>
+</ol>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/2level_page_table.png" alt=""></p>
+<p>多级页表减少内存占用的关键在于：</p>
+<ol>
+<li>如果一级页表中的一个 PTE 为空，那么相应的二级页表就根本不会存在。这是一种巨大的潜在节约。</li>
+<li>只有一级页表才需要常驻内存。虚拟内存系统可以在需要时创建、页面调入或者调出二级页表，从而减轻内存的压力。</li>
+</ol>
+<p><strong>第二个问题</strong>是页表是在内存中，而 MMU 位于 CPU 芯片中，这样每次地址翻译可能都需要先访问一次内存中的页表（CPU L1,L2,L3 Cache Miss 的时候访问内存），效率非常低下。对应的解决方案是引入页表的高速缓存：TLB（Translation Lookaside Buffer）。加入 TLB，整个虚拟地址翻译的过程如下两图所示。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/tlb_hit.png" alt=""></p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/tlb_miss.png" alt=""></p>
+<p>关于虚拟内存还有一些内容比如 page fault 处理，这里就不再赘述了。</p>
+<h2 id="2-分段"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E5%88%86%E6%AE%B5" class="headerlink" title="2. 分段"></a>2. 分段</h2><h4 id="1-分段概述"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E5%88%86%E6%AE%B5%E6%A6%82%E8%BF%B0" class="headerlink" title="1. 分段概述"></a>1. 分段概述</h4><p>前面介绍了分页内存管理，可以说通过多级页表，TLB 等，分页内存管理方法已经相当不错了。那么分页有什么缺点呢？</p>
+<ol>
+<li><strong>共享困难</strong>：通过共享页面来实现共享当然是可以的。这里的问题在于我们要保证页面上只包含可以共享的内容并不是一件容易的事儿，因为进程空间是直接映射到页面上的。这样一个页面上很可能包含不能共享的内容（比如既包含代码又包含数据，代码可以共享，而数据不能共享）。早期的 PDP-11 实现的一种解决方法是为指令和数据设置分离的地址空间，分别称为 I 空间和 D 空间（其实这已经和分段很像了）。</li>
+<li><strong>程序地址空间受限于虚拟地址</strong>：我们将程序全部映射到一个统一的虚拟地址的问题在于不好扩张。不如我们程序的地址按先代码放在一起，然后把数据放在一起，然后再放 XXX，这样其中某一部分的空间扩张起来都会影响到相邻的空间，非常不方便。</li>
+</ol>
+<p>上面的问题一个比较直观的解决方法是提供多个独立的地址空间，也就是段（segment）。每个段的长度视具体的段不同而不同，而且是可以在运行期动态改变的。因为每个段都构成了一个独立的地址空间，所以它们可以独立的增长或者减小而不会影响到其他的段。如果一个段比较大，把它整个保存到内存中可能很不方便甚至是不可能的，因此可以对段采用分页管理，只有那些真正需要的页面才会被调入内存。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/segment.png" alt=""></p>
+<p>采用分段和分页结合的方式管理内存，一个地址由两个部分组成：段和段内地址。段内地址又进一步分为页号和页偏移。在进行内存访问时，过程如下：</p>
+<ol>
+<li>根据段号找到段描述符（存放段基址）。</li>
+<li>检查该段的页表是否在内存中。如果在，则找到它的位置，如果不在，则产生段错误。</li>
+<li>检查所请求的虚拟页面的页表项，如果该页面不在内存中则产生缺页中断，如果在内存中就从页表项中取出这个页面在内存中的起始地址。</li>
+<li>将页面起始地址和偏移量进行拼接得到物理地址，然后完成读写。</li>
+</ol>
+<h4 id="2-进程的段"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%AE%B5" class="headerlink" title="2. 进程的段"></a>2. 进程的段</h4><p>每个 Linux 程序都有一个运行时内存映像，也就是各个段的布局，简单如下图所示。</p>
+<p><img src="./malloc 背后的系统知识_Legendtkl_files/process_segment.png" alt=""></p>
+<p>注意上图只是一个相对位置图，实际上这些段并不是相邻的。主要的段包括只读代码段、读写段、运行时堆、用户栈。在分配栈、堆段运行时地址的时候，链接器会使用空间地址空间布局随机化（ASLR），但是相对位置不会变。上图中 .data 等是对应进程中的不同数据的 section ，或者叫做节。简介如下。</p>
+<ul>
+<li>.text: 已编译程序的机器代码。</li>
+<li>.rodata: 只读数据。</li>
+<li>.data: 已初始化的全局和静态变量。局部变量保存在栈上。</li>
+<li>.bss: 未初始化的全局和静态变量，以及所有被初始化为 0 的全局或者静态变量。在目标文件中这个节不占据实际的空间，它仅仅是一个占位符。</li>
+</ul>
+<h2 id="3-malloc-实现"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-malloc-%E5%AE%9E%E7%8E%B0" class="headerlink" title="3. malloc 实现"></a>3. malloc 实现</h2><h4 id="1-堆内存管理"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E5%A0%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86" class="headerlink" title="1. 堆内存管理"></a>1. 堆内存管理</h4><p>我们常说的 malloc 函数是 glibc 提供的库函数。glibc 的内存管理使用的方法是 ptmalloc，除此之后还有很多其他内存管理方案，比如 tcmalloc （golang 使用的就是 tcmalloc）。</p>
+<p>ptmalloc 对于申请内存小于 128KB 时，分配是在堆段，使用系统调用 brk() 或者 sbrk()。如果大于 128 KB 的话，分配在映射区，使用系统调用 mmap()。</p>
+<h4 id="2-brk-sbrk"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-brk-sbrk" class="headerlink" title="2. brk, sbrk"></a>2. brk, sbrk</h4><p>在堆段申请的话，使用系统调用  <strong><em>brk</em></strong> 或者 <strong><em>sbrk</em></strong>。</p>
+<figure class="highlight c"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">brk</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *addr)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">sbrk</span><span class="params">(<span class="keyword">intptr_t</span> incr)</span></span>;</span><br></pre></td></tr></tbody></table></div></figure>
+
+<p><strong><em>brk</em></strong> 将 brk 指针放置到指定地址处，成功返回 0，否则返回 -1。<strong><em>sbrk</em></strong> 将 brk 指针向后移动指定字节，返回依赖于系统实现，或者返回移动前的 brk 位置，或者返回移动后的 brk 位置。下面使用 <strong><em>sbrk</em></strong> 实现一个巨简单的 malloc。</p>
+<figure class="highlight c"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">malloc</span><span class="params">(<span class="keyword">size_t</span> <span class="built_in">size</span>)</span> </span>{</span><br><span class="line">    <span class="keyword">void</span> *p = sbrk(<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">void</span> *request = sbrk(<span class="built_in">size</span>);</span><br><span class="line">    <span class="keyword">if</span> (request == (<span class="keyword">void</span>*) <span class="number">-1</span>) {</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>; <span class="comment">// sbrk failed.</span></span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        assert(p == request); <span class="comment">// Not thread safe.</span></span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></div></figure>
+
+<h4 id="3-mmap"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-mmap" class="headerlink" title="3. mmap"></a>3. mmap</h4><p>linux 系统调用 mmap 将一个文件或者其它对象映射进内存。</p>
+<figure class="highlight c"><div class="table-container"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">mmap</span><span class="params">(<span class="keyword">void</span> *addr, <span class="keyword">size_t</span> length, <span class="keyword">int</span> prot, <span class="keyword">int</span> flags, <span class="keyword">int</span> fd, <span class="keyword">off_t</span> offset)</span></span>;</span><br></pre></td></tr></tbody></table></div></figure>
+
+<p>mmap 的 flags 可选多种参数，当选择  <strong>MAP_ANONYMOUS</strong> 时，不需要传入文件描述符，malloc 使用的就是 <strong>MAP_ANONYMOUS</strong> 模式。mmap 申请的内存在操作系统的映射区。比如 32 位系统，映射区从 3G 虚拟地址粗向下生长，但是因为程序的其他段也会占用空间（比如代码段必须以特定的地址开始），所以并不能申请 3G 的大小。</p>
+<h4 id="4-malloc-和物理内存有关系吗？"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#4-malloc-%E5%92%8C%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E6%9C%89%E5%85%B3%E7%B3%BB%E5%90%97%EF%BC%9F" class="headerlink" title="4. malloc 和物理内存有关系吗？"></a>4. malloc 和物理内存有关系吗？</h4><p>可以说没关系，malloc 申请的地址是线性地址，申请的时候并没有进行映射。访问到的时候触发缺页异常，这个时候才会进行物理地址映射。</p>
+<h4 id="5-ptmalloc"><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#5-ptmalloc" class="headerlink" title="5. ptmalloc"></a>5. ptmalloc</h4><p>ptmalloc 只是 glibc 使用的内存管理策略，篇幅有限，这里就不细说了。我之前写了一篇 tcmalloc 的介绍，大家可以对比着看。</p>
+<h2 id="4-参考："><a href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#4-%E5%8F%82%E8%80%83%EF%BC%9A" class="headerlink" title="4. 参考："></a>4. 参考：</h2><ol>
+<li>《深入理解计算机系统》</li>
+<li>《现代操作系统》</li>
+<li>StackOverFlow</li>
+<li><a href="http://man7.org/linux/man-pages/man2/mmap.2.html" target="_blank" rel="noopener">mmap manpage</a></li>
+<li><a href="http://legendtkl.com/2015/12/11/go-memory/" target="_blank" rel="noopener">tcmalloc 介绍</a></li>
+<li><a href="http://www.inf.udec.cl/~leo/Malloc_tutorial.pdf" target="_blank" rel="noopener">a malloc tutorial</a></li>
+<li><a href="http://man7.org/linux/man-pages/man3/malloc.3.html" target="_blank" rel="noopener">malloc manpage</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/" target="_blank" rel="noopener">understanding glibc malloc</a></li>
+<li><a href="http://www.linuxjournal.com/article/6390" target="_blank" rel="noopener">advanced memory allocation</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="http://legendtkl.com/2016/12/31/git-good-practice-gitflow/" rel="next" title="git最佳实践: 分支管理">
+                  <i class="fa fa-chevron-left"></i> git最佳实践: 分支管理
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="http://legendtkl.com/2017/04/02/golang-alloc/" rel="prev" title="Golang 内存管理">
+                  Golang 内存管理 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle toggle-close">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar sidebar-active">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+        <li class="sidebar-nav-toc sidebar-nav-active">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel sidebar-panel-active" style="max-height: 485px; opacity: 1;">
+          <div class="post-toc motion-element" style="opacity: 1; display: block; transform: translateX(0px);"><ol class="nav"><li class="nav-item nav-level-2 active"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="nav-number">1.</span> <span class="nav-text">1. 虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4 active active-current"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">1.0.1.</span> <span class="nav-text">1. 为什么需要虚拟内存？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%A6%82%E8%A7%88"><span class="nav-number">1.0.2.</span> <span class="nav-text">2. 虚拟内存概览</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.0.3.</span> <span class="nav-text">3.虚拟内存实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">1.虚拟内存大小</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-MMU"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">2. MMU</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-%E9%A1%B5%E8%A1%A8%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="nav-number">1.0.3.3.</span> <span class="nav-text">3. 页表的两个问题</span></a></li></ol></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E5%88%86%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">2. 分段</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E5%88%86%E6%AE%B5%E6%A6%82%E8%BF%B0"><span class="nav-number">2.0.1.</span> <span class="nav-text">1. 分段概述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%AE%B5"><span class="nav-number">2.0.2.</span> <span class="nav-text">2. 进程的段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-malloc-%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">3. malloc 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#1-%E5%A0%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">3.0.1.</span> <span class="nav-text">1. 堆内存管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#2-brk-sbrk"><span class="nav-number">3.0.2.</span> <span class="nav-text">2. brk, sbrk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#3-mmap"><span class="nav-number">3.0.3.</span> <span class="nav-text">3. mmap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#4-malloc-%E5%92%8C%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E6%9C%89%E5%85%B3%E7%B3%BB%E5%90%97%EF%BC%9F"><span class="nav-number">3.0.4.</span> <span class="nav-text">4. malloc 和物理内存有关系吗？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#5-ptmalloc"><span class="nav-number">3.0.5.</span> <span class="nav-text">5. ptmalloc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="http://legendtkl.com/2017/03/21/malloc-os-knowledge/#4-%E5%8F%82%E8%80%83%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">4. 参考：</span></a></li></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel" style="max-height: 485px; opacity: 0;">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person" style="opacity: 1; display: block; transform: translateX(0px);">
+  <img class="site-author-image" itemprop="image" alt="legendtkl" src="./malloc 背后的系统知识_Legendtkl_files/avatar.jpg">
+  <p class="site-author-name" itemprop="name">legendtkl</p>
+  <div class="site-description" itemprop="description">Do not go gentle into that good night.</div>
+</div>
+<div class="site-state-wrap motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="http://legendtkl.com/archives/">
+        
+          <span class="site-state-item-count">113</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="http://legendtkl.com/categories/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="http://legendtkl.com/tags/">
+        <span class="site-state-item-count">87</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+    <a href="http://legendtkl.com/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element" style="opacity: 1; display: block; transform: translateX(0px);">
+      <span class="links-of-author-item">
+        <a href="https://github.com/legendtkl" title="Github &amp;rarr; https://github.com/legendtkl" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>Github</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="http://weibo.com/HIT_Achilles" title="Weibo &amp;rarr; http://weibo.com/HIT_Achilles" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="http://www.zhihu.com/people/legendtkl" title="Zhihu &amp;rarr; http://www.zhihu.com/people/legendtkl" rel="noopener" target="_blank"><i class="fa fa-fw fa-zhihu"></i>Zhihu</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  © 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">legendtkl</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="./malloc 背后的系统知识_Legendtkl_files/anime.min.js.下载"></script>
+  <script src="./malloc 背后的系统知识_Legendtkl_files/velocity.min.js.下载"></script>
+  <script src="./malloc 背后的系统知识_Legendtkl_files/velocity.ui.min.js.下载"></script>
+<script src="./malloc 背后的系统知识_Legendtkl_files/utils.js.下载"></script><script src="./malloc 背后的系统知识_Legendtkl_files/motion.js.下载"></script>
+<script src="./malloc 背后的系统知识_Legendtkl_files/muse.js.下载"></script>
+<script src="./malloc 背后的系统知识_Legendtkl_files/next-boot.js.下载"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+</body></html>

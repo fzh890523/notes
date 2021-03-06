@@ -440,6 +440,23 @@ git config --global merge.tool opendiff
 
 
 
+## win/linux file path不兼容问题
+
+git里记录了信息，只要文件系统支持都可以提交/还原，相应的如果不支持、还原失败的话就会变成`files deleted`，会造成：
+
+* `files deleted`自然很烦，即使不处理也会干扰正常的变更
+* 这样的文件一多，会使得git、sourcetree等很卡、非常卡
+
+
+
+应对方式： 在原来支持的平台上把file path修复成兼容各平台的格式（参照着出现问题平台上的信息），然后提交，在问题平台上拉取覆盖。
+
+
+
+其他问题： 批量处理的话，包含中文、特殊字符（`: ' " : ?`等）的部分会给脚本编写带来不小的麻烦。
+
+
+
 ## 公司内commit/push pub的repo
 
 

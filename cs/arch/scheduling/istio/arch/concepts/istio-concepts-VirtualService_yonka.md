@@ -77,7 +77,7 @@ spec:
 
 ## 细节
 
-### hosts
+### hosts: []string
 
 注意，这个hosts **don’t actually have to be part of the Istio service registry, they are simply virtual destinations**
 
@@ -93,11 +93,26 @@ spec:
 
 * short name
 
-  主要对于k8s，会在istio侧补充为完整FQDN，大约是 `${shortName}.svc.${namespace}`
+  主要对于k8s，会在istio侧补充为完整FQDN，大约是 `${shortName}.${namespace}.svc.${domainSuffix}`
+
+  > domainSuffix默认是`cluster.local`。 如：`a.default.svc.cluster.local`
 
 * 通配pattern（prefix)
 
-### gateways
+### gateways: []string
+
+格式：
+
+* `./<gw>` -> `<ns_from_configmeta>/<gw>`
+* `<ns>/<gw>` 直接用，表示`ns_from_configmeta`中定义的gw可以自描述为作用于`ns`
+* `<gw_shortname>` -> `<ns_from_configmeta>/<gw>` 老式，向下兼容
+* `<gw_FQDN>`(`<gw>.<ns>`) -> `<ns>/<gw>` 老式，向下兼容
+
+> yonka： 还好这个不支持通配。。。( ╯□╰ )
+
+
+
+解释：
 
 * 用于指示该VS apply到哪些gateways(没错，只是gateways)
 
@@ -107,13 +122,15 @@ spec:
 
 * 为空的话会自动填充为`[]string{"mesh"}`
 
-### exportTo
+### exportTo: []string
 
 export到哪些ns
 
 * `.`
-
 * `*`
+* 比较新的版本里支持了特定ns
+
+
 
 ## route rules
 

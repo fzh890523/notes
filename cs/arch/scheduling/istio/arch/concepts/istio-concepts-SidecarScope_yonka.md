@@ -1,6 +1,6 @@
 
 
-## sidecarScope 资源
+## sidecarScope 
 
 sidecarScope理解： 一组同类sidecar复用的resource scope
 
@@ -92,7 +92,7 @@ type SidecarScope struct {
 
 ### 初始化sidecarScope
 
-见 sidecar转为sidecarScope 节
+见 《istio-impl-item-PushContext_yonka.md》
 
 
 
@@ -112,14 +112,32 @@ type SidecarScope struct {
 
   * `Ingress`
 
-    * `Port`
+    * `Port *Port` listener bind到的端口（unix socket的话number为0）
 
-    * `Bind`
+      number+name+protocol 三元组
 
-    * `CaptureMode`
+    * `Bind string` listener bind到的地址，可以是ip、unix socket
 
-    * `DefaultEndpoint`
-  
+    * `CaptureMode enum CaptureMode`
+
+      描述当前方向上的流量（中匹配该流 （bind+port描述）的部分）是如何到proxy的。
+
+      > 考虑到实际上istio没做精细的流量劫持（比如到port级别），所以这个字段内容主要**影响对应的listener是否bindToPort**（而不是是否劫持） --- node的interceptionMode + listener的captureMode 共同决定
+
+      * `DEFAULT`  好像没啥特别的意义，留了个默认值好兼容未设置该值的低版本，表示 `!= NONE`
+
+      * `NONE`  不做流量劫持，那么需要bindToPort
+
+        因为unix socket不支持劫持，所以只能是none
+
+      * `IPTABLES` 使用iptables方式劫持（到proxy）
+
+    * `DefaultEndpoint string` 表示流量该转发给（local的）谁，可以是network endpoint（ip+port）或者unix socket endpoint
+
+      不支持指定特定的ip，只能是`127.0.0.1:PORT` 或者 `0.0.0.0:PORT`（会被替换为instance IP（估计是proxy IP的意思））
+
+      > 可能防止使用者做出再转发给外部的蠢事吧
+
   * `Egress`
 
     * `Port`
@@ -128,7 +146,7 @@ type SidecarScope struct {
 
     * `CaptureMode`
 
-    * `Hosts []string` 格式`namespace/dnsName`
+    * `Hosts []string` 格式`namespace/dnsName`，描述在这个listener/方向+流上提供的服务
 
       * `namespace` 
 
@@ -146,7 +164,14 @@ type SidecarScope struct {
         
         FQDN格式，允许左通配，比如`foo.example.com`， `*.example.com` 或 `*`
 
-  * `OutboundTrafficPolicy`
+  * `OutboundTrafficPolicy` 设置proxy处理outbound流量时的默认行为
+
+    默认行为apply to **unknown** traffic，实际可能在不同的层面（应用、网络）生效，具体见 《istio-impl-item-SidecarScope_yonka.md》
+
+    目前只定义了：
+
+    * `OutboundTrafficPolicy_REGISTRY_ONLY` 对应known traffic
+    * `OutboundTrafficPolicy_ALLOW_ANY` 对应unknown traffic 
 
 * 会convert to `SidecarScope`
 
@@ -287,71 +312,3 @@ type IstioIngressListener struct {
 }
 ```
 
-
-## sidecar转为sidecarScope： `ConvertToSidecarScope`
-
-
-
-* 预处理`EgressListers`: `convertIstioListenerToWrapper`
-
-  * 解析`Hosts`
-
-  * `selectServices` 
-
-    * 取export to current ns的所有服务 - service的“意愿”
-
-      目前只能是本ns的和export to public的（因为exportTo只能是private和public）
-
-    * apply本scope的“意愿” - `Host`规则
-    * 对实际选择的服务实例做去重： 如果从多个ns都导入了同一个服务实例，只选用第一个
-
-  * `selectVirtualServices`
-
-    思路与。。接近，细节后面再看
-
-* 合并所有egressListener所导入的服务，如有重复（多个ns导入同一个服务），只取第一个（ns）。 将最后的 `map[host.Name]string` 映射关系保存
-
-* 按同样的方式，正式导入服务实例。 同时记录依赖（实际使用到）的ns `namespaceDependencies`
-
-  > 感觉跟前一步可以合并进行
-  > 
-
-* 根据导入的服务实例，获取对应的destinationRule
-  
-* apply `OutboundTrafficPolicy`
-
-* apply `Ingress`
-
-  不为空则`HasCustomIngressListeners = true`
-
-### 理解
-
-* 因为convert过程需要获取、处理、缓存资源，所以如果资源发生变化，是要重新计算的
-
-  主要是服务发生变化
-
-## proxy所用sidecarScope的确定
-
-* `SetSidecarScope`
-
-  时机
-
-  * `initConnectionNode` 时会
-
-  * `pushConnection` 时如果是full-push会进行
-
-  细节
-
-  * 对于proxy： 根据`node.WorkloadLabels`选择 （`PushContext.getSidecarScope`）
-
-    * 取该proxy所在ns的全部sc，进行遍历
-
-      * 如果该sc有workloadSelector且能匹配该proxy，则选定
-
-      * 否则作为fallback的sc
-
-    * 如果有作为fallback的sc，则选定
-
-    * 否则使用该ns的默认sc
-
-  * 对于其他（gateway）： 取该ns的默认sidecarScope

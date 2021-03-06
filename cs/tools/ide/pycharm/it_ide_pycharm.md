@@ -1,3 +1,18 @@
+## 快捷键
+
+
+
+### 提示
+
+
+
+* completion
+  * basic: `alt+s` - 自定义的
+  * smart: `ctrl+alt+s` - 自定义的
+* view
+  * param info: `ctrl+p`
+  * type info: `ctrl+shift+p`
+
 
 
 

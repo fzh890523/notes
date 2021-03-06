@@ -20,9 +20,14 @@
 
   * `set <key>=<value>` 当前生效（类似`export`吧）
 
+    引用其他变量： `set key1=%key2%` （gui设置入口也支持）
+
 * 查看
 
   * `set <key>`
+
+    直接`set`查看全部
+
   * `echo %key%`
 
 * 删除
@@ -55,11 +60,23 @@
 * mobaxterm
 * conemu
 
+* `windows terminal` 官方软件（store里安装）
+
+  默认支持： ps,cmd,wsl ubuntu等
 
 
 
+### 集成git-bash方式
 
+默认git-bash是一个单独窗口，执行路径比如`D:\Program Files\Git\git-bash.exe`，在cmd里启动也是单独开窗口。
 
+不过`Git\bin\bash.exe`是可以在cmd内执行的，所以可以：
+
+1. 创建一个`bash.exe`快捷方式，比如名为`git_bash`（实际会带后缀名： `git_bash.lnk`）
+2. 快捷方式丢到`PATH`中的某目录下
+3. `PATHEXT` env中加入`.LNK`
+
+这样可以在cmd里执行`git_bash`进入git-bash console。
 
 
 

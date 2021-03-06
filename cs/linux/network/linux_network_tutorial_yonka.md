@@ -90,7 +90,11 @@ cat /etc/dhcp/dhclient.conf | grep send
 
 
 
-### register hostname
+一般还要修改`/etc/hosts`中`127.0.0.1`对应条目内容
+
+
+
+### register/broadcast hostname
 
 
 
@@ -99,6 +103,10 @@ cat /etc/dhcp/dhclient.conf | grep send
 > dhcp支持`send hostname`特性，也即在流程中将本机hostname告知dhcp server。 而如果dhcp server支持该特性且跟dns server打通的话，会自动加入该host条目
 >
 > 而一般常见场景，dhcp server往往是local dns server
+
+> 这个因为是在dhcp流程里的，所以要**立即让新host同步**到dhcp server/dns server的话，要重新发起dhcp流程。
+>
+> 比如： 重启网络服务、接口关闭+开启、人工出发dhcpclient操作等
 
 
 
@@ -197,6 +205,40 @@ nslookup iMac.localdomain  # 即可
     要生效的话见netplan命令 tutorial。
 
 
+
+## tcp 
+
+
+
+### kill conn
+
+https://unix.stackexchange.com/questions/71940/killing-tcp-connection-in-linux
+
+On linux kernel >= 4.9 you can use the `ss` command from iproute2 with key `-K`
+
+```
+ss -K dst 192.168.1.214 dport = 49029
+```
+
+the kernel have to be compiled with `CONFIG_INET_DIAG_DESTROY` option enabled.
+
+
+
+以及
+
+
+
+`tcpkill` might do it for you. In Ubuntu it is in the `dsniff` package.
+
+Something like:
+
+```
+$ sudo tcpkill -i wlan0 host 192.168.1.214
+```
+
+(or some other `tcpdump` like expression for what connection to kill).
+
+> This works only if the connection is transmitting anything. It will not work for hanged/idle TCP connections (see my answer for details) 
 
 
 
