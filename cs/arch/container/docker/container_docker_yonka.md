@@ -24,108 +24,91 @@
 
 
 
+### run mode
+
+* docker容器本身的运行方式： dockerd（or sth else）执行的 受限进程
+* 那么显然，运行的镜像理论上需要同样的os支持
+* 但从inspect镜像中可以看到，只限定了arch、os信息，如`linux` + `amd64`，所以校验应该是到此为止
+
+* 那么运行时，实际遇到需要的能力（syscall等）kernel不支持的话，只能是报错了
+
+
+
+#### 如何支持不同内核的镜像
+
+这里的不同是指host os与image：
+
+* 同一种系统（比如linux）的不同版本
+
+  尤其host os版本更低呢？
+
+  > 从上面可知，应该没有这个层面的强校验，只能运行时报错
+
+* 不同操作系统，比如win上跑linux镜像
+
+  > 从上面可知，直接执行是不支持的，会校验报错
+  >
+  > 只能另开os（虚机物理机都ok）运行docker再执行
+  >
+  > * 程序调度： 如docker desktop for windows
+  > * 调度框架： k8s
 
 
 
 
 
+### entrypoint vs cmd
+
+
+
+* entrypoint
+
+  * 选择： 按照以下顺序
+
+    1. `--entrypoint`参数指定
+
+       **一旦覆盖了ep，dockerfile中的`CMD`也将失效**。 此时执行的命令等于 `--entrypoint` + `cmd`
+
+       `docker run --entrypoint="" <img>  # 后面没cmd部分了` 这样等于没有任何执行内容（无论dockerfile内容如何），会报错
+
+    2. 镜像的dockerfile中`ENTRYPOINT`设置内容（如果有）
+
+    3. 如果1、2都没有，则用默认的`/bin/sh -c`
+
+  **暂时不知道**`--entrypoint`怎么传递多个元素，比如还原默认行为的`/bin/sh -c`，直接`--entrypoint="/bin/sh -c"`是不行的
+
+* cmd
+
+  run命令的`<img>`后面的部分就是作为对dockerfile中`CMD`的覆盖
+
+  如：`docker run --entrypoint /bin/logwrap myservice /bin/service -e`表示
+
+  * `ENTRYPOINT`覆盖为`/bin/logwrap`
+  * `CMD`覆盖为`/bin/service -e`
+
+
+
+实际执行的内容是： entrypoint + cmd
+
+* `ENTRYPOINT ["/bin/chamber", "exec", "production", "--"]` + `CMD ["/bin/service", "-d"]` = `["/bin/chamber", "exec", "production", "--", "/bin/service", "-d"]`
+
+* `ENTRYPOINT null`（也即没有） + `CMD ["/bin/service", "-d"]` = `["/bin/sh", "-c", /bin/service", "-d"]`
+
+
+
+dockerfile中对二者的定义见 [container_docker_dockerfile_yonka.md](container_docker_dockerfile_yonka.md) 
+
+
+
+## dockerfile
+
+见 [container_docker_dockerfile_yonka.md](container_docker_dockerfile_yonka.md)
 
 
 
 ## image
 
-
-
-### image url
-
-
-
-如：
-
-* `docker pull ubuntu`
-* `docker push samalba/hipache`
-* `docker push localhost.localdomain:5000/ubuntu`
-
-
-
-url表示：
-
-* 无hostname则用默认域名
-
-  该默认值为docker官方的repo，但可覆盖
-
-* 有hostname则访问该repo
-
-  有特殊参数可以replace特定域名下的images为其他域名
-
-  > 这个功能其实可以（但没有）做成通用参数，如 --replace xxx.com --replace-to yyy.com，甚至 --replace xxx.com/xx --replace-to yyy.com/xx
-
-
-
-### 镜像源 repository
-
-ref： https://www.cnblogs.com/doraman/p/9570891.html
-
-
-
-**官方docker hub**
-
-官方：https://hub.docker.com/explore/
-
-**常用docker 国内镜像源：**
-
-网易镜像中心：http://hub-mirror.c.163.com
-
-阿里镜像中心：https://dev.aliyun.com
-
-Docker 官方中国区：https://registry.docker-cn.com
-
-ustc： https://docker.mirrors.ustc.edu.cn
-
-daocloud：https://hub.daocloud.io/
-
-**docker国内免费加速器：**
-
-daocloud：`https://***(自己注册的私有账号).m.daocloud.io`
-
-aliyun：`https://***(自己注册的私有账号).mirror.aliyuncs.com`
-
-**修改方法**
-
-- - 直接设置 `–registry-mirror` 参数，仅对当前的命令有效 
-    `docker run hello-world --registry-mirror=https://docker.mirrors.ustc.edu.cn`
-  - 修改 `/etc/default/docker`，加入 `DOCKER_OPTS=”镜像地址”`，可以有多个 
-    `DOCKER_OPTS="--registry-mirror=https://docker.mirrors.ustc.edu.cn"`
-  - 支持 `systemctl` 的系统，通过 `sudo systemctl edit docker.service`，会生成  `/etc/systemd/system/docker.service.d/override.conf` 覆盖默认的参数，在该文件中加入如下内容： 
-    `[Service] ExecStart= ExecStart=/usr/bin/docker -d -H fd:// --registry-mirror=https://docker.mirrors.ustc.edu.cn`
-  - 新版的 Docker 推荐使用 json 配置文件的方式，默认为` /etc/docker/daemon.json`，非默认路径需要修改 dockerd 的 `–config-file`，在该文件中加入如下内容： 
-    `{ "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"] }`
-
-
-
-
-
-
-
-
-
-### 其他
-
-
-
-#### `--registry-mirror` 和 `--image-repository` 的区别？
-
-
-
-* `registry-mirror` 影响的是public user images拉取策略，也即没有域名的image url
-
-  默认从docker。。。拉取，而设置该参数可以覆盖该行为，从指定repo拉取public images
-
-* `image-repository` 影响的是`gcr.io/google_containers` 下面的images
-
-  这个属于特定功能了，可能主要针对无法访问`gcr.io`的场景，比如企业内网、中国大陆等
-
-
+见 [container_docker_image_yonka.md](container_docker_image_yonka.md)
 
 
 
@@ -176,11 +159,81 @@ builder  buildkit  containers  image  network  overlay2  plugins  runtimes  swar
 
 
 
+## moby
+
+见 [docker_moby_yonka.md](docker_moby_yonka.md)
+
+
+
 # 生态
 
 
 
 * Docker Compose： 管理多个容器的联动，详见 [docker compose_yonka.md](docker compose/docker compose_yonka.md)
+
+* 管理工具
+
+  * [portainer](https://documentation.portainer.io/v2.0/deploy/ceinstalldocker/)： 基于web的功能全面的管理平台（服务形式，`-d`）
+
+    详见链接，简单运行样例如下：
+
+    ```sh
+    # linux/windows wsl
+    docker volume create portainer_data
+    
+    docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+    
+    # 老版本没用这个volume，而是创建了目录挂载进去
+    # win ps的话： -v C:\ProgramData\Portainer:/data
+    ## win docker能同时识别 /var/run/docker.sock 和 C:\ProgramData\Portainer 也是神奇，不知道是不是代码做了特殊处理
+    # wsl ubuntu的话： -v /mnt/c/ProgramData/Portainer:/data
+    ```
+
+    
+
+  * lazyDocker： 基于console的管理工具（没有`-d`），及时退出
+
+    ```sh
+    docker run --rm -it -v \
+    /var/run/docker.sock:/var/run/docker.sock \
+    -v ~/.config/lazydocker:/.config/jesseduffield/lazydocker \
+    lazyteam/lazydocker
+    
+    alias lzd='docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock -v ~/.config/lazydocker:/.config/jesseduffield/lazydocker lazyteam/lazydocker'
+    ```
+
+    
+
+    也还比较好用
+
+    ![5-min_(1)-min.gif](http://dockone.io/uploads/article/20200526/dacac961ca91840ebf78a0308b2918db.gif)
+  
+  * [`tomastomecek/sen`](https://github.com/TomasTomecek/sen)： 查看容器、镜像
+  
+    ```sh
+    docker run -v /var/run/docker.sock:/run/docker.sock -ti -e TERM tomastomecek/sen
+    ```
+  
+  * [dive](https://github.com/wagoodman/dive)： 查看镜像，**可以方便的看每个commit layer的内容变化，实用**
+  
+    ```sh
+    wget https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb
+    sudo apt install ./dive_0.9.2_linux_amd64.deb
+    # 安装报错，最后用的docker方式运行
+    ```
+  
+    
+  
+    ```sh
+    dive <your-image> --source <source>
+    
+    docker run --rm -it \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        wagoodman/dive:latest <dive arguments...>
+        # 参数比如镜像名
+    ```
+  
+    > console可能因为不够宽而显示功能不全，可以尝试拉宽
 
 
 

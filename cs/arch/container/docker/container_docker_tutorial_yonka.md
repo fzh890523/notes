@@ -20,6 +20,79 @@
 
 
 
+### build时使用proxy
+
+ref： https://stackoverflow.com/questions/27749193/how-to-build-docker-images-with-dockerfile-behind-http-proxy-by-jenkins
+
+> **实在太麻烦了**
+>
+> 意思是：
+>
+> * 拉取镜像用`--build-arg`
+> * RUN命令里的网络访问用`ENV`
+> * config里配置proxy，但应该是对daemon生效而不是client
+>
+> **RUN apk add时，proxy怎么设置都不生效，即使RUN echo都打出来了**
+
+
+
+Docker has multiple ways to set proxies that take effect at different times.
+
+------
+
+If your `docker build` has to **retrieve a base image through a proxy**, you'll want to specify `build-arg`s:
+
+```xml
+docker build --build-arg HTTP_PROXY=$http_proxy \
+--build-arg HTTPS_PROXY=$http_proxy --build-arg NO_PROXY="$no_proxy" \
+--build-arg http_proxy=$http_proxy --build-arg https_proxy=$http_proxy \
+--build-arg no_proxy="$no_proxy" -t myContainer /path/to/Dockerfile/directory
+```
+
+where `$http_proxy` and `$no_proxy` were set in my bashrc. I used both `HTTP_PROXY` and `http_proxy` because different utilities will check different variables (`curl` checks both, `wget` only checks the lowercase ones, etc).
+
+------
+
+If your `docker build` has a **`RUN curl/wget/etc` command that has to go through the proxy**, you'll need to specify an environment variable inside your docker image:
+
+```xml
+ENV https_proxy=http://proxy-us02.company.com:8080
+ENV http_proxy=http://proxy-us02.company.com:8080
+ENV HTTP_PROXY=http://proxy-us02.company.com:8080
+ENV HTTPS_PROXY=http://proxy-us02.company.com:8080
+ENV no_proxy="localhost,localdomain,127.0.0.1,etc"
+ENV NO_PROXY="localhost,localdomain,127.0.0.1,etc"
+```
+
+If you don't want this environment variable inside your image at runtime, you can remove all these at the end:
+
+```xml
+RUN unset http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY
+```
+
+
+
+
+
+```json
+{
+ "proxies":
+ {
+   "default":
+   {
+     "httpProxy": "http://127.0.0.1:3001",
+     "httpsProxy": "http://127.0.0.1:3001",
+     "ftpProxy": "http://127.0.0.1:3001",
+     "noProxy": "*.test.example.com,.example2.com"
+   }
+ }
+}
+```
+
+
+
+
+
 ## tag
 
 ```sh
@@ -140,7 +213,7 @@ docker run -d <image>  # run in detach(from stdout/stdin) mode
 
 * `--name <name>` 容器的名字叫
 
-* `--env <name>=<value>` 传入环境变量，可以多次指定
+* `--env <name>=<value>`/`-e` 传入环境变量，可以多次指定
 
 * `-v`/`--volume <local_path>:<container_path>` 将目录映射到容器的目录
 
@@ -150,6 +223,20 @@ docker run -d <image>  # run in detach(from stdout/stdin) mode
 
   * 通信方式可以通过容器名或者这里的别名来dns解析到ip然后访问，实际是更新了hosts文件
   * 环境变量是以： `<alias>_NAME` 的名字继承过来
+
+* `--entrypoint` 覆盖原来entrypoint
+
+  清空的话，`--entrypoint=''` 
+
+* `--cap-add` 为容器增加能力支持
+
+  如要能正常运行iptables需要`--cap-add=NET_ADMIN`，否则报错类似
+
+  ```sh
+  can't initialize iptables table `filter': Permission denied (you must be root)
+  ```
+
+  
 
 
 
@@ -199,6 +286,39 @@ docker cp foo.txt mycontainer:/foo.txt
 docker cp mycontainer:/foo.txt foo.txt
 ```
 
+> 对于image，见下面 image tutorial 部分
+
+
+
+## diff
+
+```sh
+Usage:  docker diff CONTAINER
+
+Inspect changes to files or directories on a container's filesystem
+```
+
+
+
+```sh
+docker diff 425xxx
+C /var
+C /var/run
+A /var/run/secrets
+A /var/run/secrets/kubernetes.io
+A /var/run/secrets/kubernetes.io/serviceaccount
+```
+
+
+
+## context： 多个remote
+
+
+
+```sh
+docker context create home-dev --description "home dev node via tunnel" --docker "host=tcp://localhost:2376"
+```
+
 
 
 
@@ -209,7 +329,112 @@ docker cp mycontainer:/foo.txt foo.txt
 
 
 
+## config
+
+
+
+## server/connect
+
+### **监听方式的配置**
+
+* `/etc/default/docker` 中加入： `DOCKER_OPTS="-H tcp://127.0.0.1:5000 -H unix:///var/run/docker.sock"`
+
+* `system/docker.service`中启动命令里的`-H`同样的方式加入
+
+* `/etc/docker/daemon.json`里`hosts`参数配置
+
+  ```json
+  {
+    "debug": true,
+    "hosts": ["tcp://127.0.0.1:2375", "unix:///var/run/docker.sock"]
+  }
+  ```
+
+  
+
+不过，dockerd不允许多处同时配置同一个hosts参数，而默认的`docker.service`配置了`-H fd://`，所以可以把这里的删掉统一从配置文件里配置：
+
+```sh
+sudo cp /lib/systemd/system/docker.service /etc/systemd/system/
+sudo sed -i 's/\ -H\ fd:\/\///g' /etc/systemd/system/docker.service
+sudo systemctl daemon-reload
+sudo service docker restart
+```
+
+
+
+### 连接多个/指定daemon
+
+* `docker --config <configPath>` 指定client config
+
+* `docker --host <host>` 指定连接方式
+
+  host支持：
+
+  * `unix socket path`
+
+  * `network`
+
+    * `tcp://`
+
+    * `ssh://`
+
+      这里可以叠加ssh config里的proxy command来实现多层tunnel
+
+* `docker context`
+
+  * 通过`use`来切换当前context
+
+    `docker context use home-dev && docker ps`
+
+  * 通过`--context <context>`来实时指定
+
+    `docker --context home-dev ps`
+
+
+
+### 访问远端不直接可达docker
+
+* 建立tunnel + 访问tunnel的本端端点
+* 通过ssh proxy来访问+docker context ssh
+
+
+
 ## image
+
+### 镜像拉取
+
+
+
+#### 被墙镜像拉取问题
+
+
+
+* 用mirror
+
+  但mirror里不一定全，尤其是一些按天/commit号出的镜像
+
+* proxy
+
+  * 修改daemon配置，reload
+
+    用完改回来，不然所有镜像都走http proxy了太慢。
+
+    所以比较麻烦
+
+* 找第三方镜像
+
+  如果第三方有，那么：
+
+  ```sh
+  
+  ```
+
+  
+
+* 借第三方镜像服务来build
+
+  
 
 
 
@@ -217,7 +442,11 @@ docker cp mycontainer:/foo.txt foo.txt
 
 有时不方便设置全局proxy（如`https_proxy` env），比如还要做其他事情等等。
 
+> docker命令的env proxy作用在client而实际拉取似乎是通过daemon，所以env无效...
 
+
+
+> ubuntu下 /lib/systemd/system/docker.service
 
 ```sh
 Here is a link to the official Docker documentation for proxy HTTP: https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
@@ -310,7 +539,33 @@ $ sudo systemctl restart docker
 
 
 
+### 从image拷贝文件
+
+* 运行为container然后用`docker cp`
+* `docker run --rm --entrypoint cat yourimage  /path/to/file > path/to/destination`
+
+
+
+### "进入"镜像查看
+
+
+
+```sh
+docker run --rm -it --entrypoint=/bin/bash ${image}
+# 或者 /bin/sh
+```
+
+
+
+
+
 ## container
+
+
+
+### run
+
+
 
 
 
@@ -323,6 +578,16 @@ $ sudo systemctl restart docker
 * docker run的`--net`参数
 * 系统调用setns
 
+* `nsenter`
+
+  ```sh
+  docker ps | grep <img-name>
+  docker inspect --format='{{  .State.Pid }}' <container_id>
+  nsenter -t <pid> -n <cmd>  # 如： nsenter -t 29619 ip addr; nsenter -t 29619 bash:q
+  ```
+
+  
+
 
 
 # docker on Mac
@@ -333,57 +598,17 @@ $ sudo systemctl restart docker
 
 
 
+# docker on windows
+
+见： [docker_windows_yonka.md](mac/docker_windows_yonka.md)
+
+
+
 # 在screen里
 `ctrl+a` 进入命令模式
 然后：
 * `d` detach
 * `k` kill
-
-
-
-
-
-# info
-
-
-
-## image location
-
-
-
-* mac
-
-  docker在虚拟机里，所以镜像也在，o(╯□╰)o
-
-  ```sh
-  ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/Docker.qcow2
-
-  screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty  # ctrl-c 退出，会引起终端显示配置的一些变化 = =
-  ```
-
-* linux
-
-  The contents of the `/var/lib/docker` directory vary depending on the [driver Docker is using for storage](https://github.com/docker/docker/blob/990a3e30fa66e7bd3df3c78c873c97c5b1310486/daemon/graphdriver/driver.go#L37-L43).
-
-  By default this will be `aufs` but can fall back to `overlay`, `overlay2`, `btrfs`, `devicemapper`or `zfs` depending on your kernel support. In most places this will be `aufs` but the [RedHats went with `devicemapper`](http://developerblog.redhat.com/2014/09/30/overview-storage-scalability-docker/).
-
-  You can manually set the storage driver with the [`-s` or `--storage-driver=`](https://docs.docker.com/engine/reference/commandline/dockerd/#/daemon-storage-driver-option) option to the [Docker daemon](https://docs.docker.com/engine/reference/commandline/dockerd/).
-
-  - `/var/lib/docker/{driver-name}` will contain the driver specific storage for contents of the images.
-  - `/var/lib/docker/graph/<id>` now only contains metadata about the image, in the `json`and `layersize` files.
-
-  In the case of `aufs`:
-
-  - `/var/lib/docker/aufs/diff/<id>` has the file contents of the images.
-  - `/var/lib/docker/repositories-aufs` is a JSON file containing local image information. This can be viewed with the command `docker images`.
-
-  In the case of `devicemapper`:
-
-  - `/var/lib/docker/devicemapper/devicemapper/data` stores the images
-  - `/var/lib/docker/devicemapper/devicemapper/metadata` the metadata
-  - Note these files are thin provisioned "sparse" files so aren't as big as they seem.
-
-  
 
 
 

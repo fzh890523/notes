@@ -238,3 +238,92 @@ https://answers.microsoft.com/en-us/windows/forum/all/disable-windows-10-automat
 
 
 
+# remote desktop
+
+
+
+## items
+
+
+
+### 不允许用保存的凭据登陆
+
+```
+Your system administrator does not allow the use of saved credentials to log on to the remote computer
+```
+
+https://serverfault.com/questions/396722/your-system-administrator-does-not-allow-the-use-of-saved-credentials-to-log-on
+
+
+
+可以用下面方法之一
+
+* 在 控制面板 - 凭据管理器 里把凭据从windows凭据 移到 普通凭据（删除、再添加）
+
+* 在组策略里改... 
+
+  ```
+  Enable the each shown policy and then click on the “Show” button to get to the server list and add “TERMSRV/* to the server. In my case it’s ‘*’ which indicates that cached credentials will be allowed to all servers.
+  ```
+
+* 直接用注册表脚本
+
+  ```reg
+  Windows Registry Editor Version 5.00
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation] "AllowDefCredentialsWhenNTLMOnly"=dword:00000001 "ConcatenateDefaults_AllowDefNTLMOnly"=dword:00000001 "AllowDefaultCredentials"=dword:00000001 "ConcatenateDefaults_AllowDefault"=dword:00000001 "AllowSavedCredentialsWhenNTLMOnly"=dword:00000001 "ConcatenateDefaults_AllowSavedNTLMOnly"=dword:00000001 "AllowSavedCredentials"=dword:00000001 "ConcatenateDefaults_AllowSaved"=dword:00000001
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowDefaultCredentials] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowDefCredentialsWhenNTLMOnly] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowSavedCredentials] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowSavedCredentialsWhenNTLMOnly] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\CredentialsDelegation] "AllowDefCredentialsWhenNTLMOnly"=dword:00000001 "ConcatenateDefaults_AllowDefNTLMOnly"=dword:00000001 "AllowDefaultCredentials"=dword:00000001 "ConcatenateDefaults_AllowDefault"=dword:00000001 "AllowSavedCredentialsWhenNTLMOnly"=dword:00000001 "ConcatenateDefaults_AllowSavedNTLMOnly"=dword:00000001 "AllowSavedCredentials"=dword:00000001 "ConcatenateDefaults_AllowSaved"=dword:00000001
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\CredentialsDelegation\AllowDefaultCredentials] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\CredentialsDelegation\AllowDefCredentialsWhenNTLMOnly] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\CredentialsDelegation\AllowSavedCredentials] "1"="TERMSRV/*"
+  
+  [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\CredentialsDelegation\AllowSavedCredentialsWhenNTLMOnly] "1"="TERMSRV/*"
+  ```
+
+  
+
+### 部分快捷键无效，如 `ctrl-alt-arrow` 
+
+> windows的 设置-易用-键盘 里可以打开屏幕键盘，可以测试按键
+>
+> microsoft store的这个rdp版本相比原来那个有点卡（延迟），不知道是实现的不好还是默认参数差异
+
+
+
+ref： https://superuser.com/questions/327866/remote-desktop-sending-ctrl-alt-left-arrow-ctrl-alt-right-arrow-to-the-remote-p
+
+
+
+The hotkeys Ctrl+Alt+Left Arrow and Ctrl+Alt+Right Arrow are eaten up by the Remote Desktop Client. Their only effect is to switch you to back to the host computer.
+
+It looks like this was some intended feature that was never fully programmed and completed, but there is no way to turn it off. These hotkeys are not even listed by Microsoft in its official documentation at [Remote Desktop Services Shortcut Keys](https://docs.microsoft.com/en-us/windows/win32/termserv/terminal-services-shortcut-keys?redirectedfrom=MSDN).
+
+**Solution 1 : Use the Microsoft Store version**
+
+Another version of RDP can be found in the Microsoft Store at [Microsoft Remote Desktop](https://www.microsoft.com/en-us/p/microsoft-remote-desktop/9wzdncrfj3ps?activetab=pivot:overviewtab#).
+
+This version does not have this semi-implemented feature, so it lets through these hotkeys without a problem. This was verified on Windows 10 version 1903.
+
+**Solution 2 : Translate the hotkeys on both client and server**
+
+This solution will use [AutoHotkey](https://www.autohotkey.com/) installed on both client and server, to:
+
+- On the client, translate the above hotkeys to others that are not intercepted by RDP
+- On the server, translate these keys back to the above hotkeys.
+
+
+
+
+

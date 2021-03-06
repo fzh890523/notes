@@ -32,6 +32,35 @@ grep多个文件时，默认会带上 `xxx.txt:` 这样的行前缀
 
 
 
+#### 特殊字符
+
+
+
+##### tab `\t`
+
+* 可以用pcre正则： 
+
+  ```sh
+  grep -P "\\t"
+  ```
+
+* 也可以“真的”传个tab字符过去
+
+  ```sh
+  grep $'\t' sample.txt
+  # $这个语法应该是当前shell支持的，解释转义。 可以用 `echo -n -E $"\t   "` 来查看，对照组： `echo -n -E "\t   "`
+  ```
+
+* 用printf来代替shell内建的`$''`： `grep "$(printf '\t')"`
+
+* 直接使用tab键： `grep "^V<tab>" <filename>` 
+
+  但可能依赖终端。 比如一些终端软件自己就支持了`ctrl-v`那就不行了
+
+
+
+
+
 #### binary file
 
 

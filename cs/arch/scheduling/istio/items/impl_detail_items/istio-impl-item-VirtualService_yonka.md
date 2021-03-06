@@ -514,6 +514,23 @@ type HTTPRouteDestination struct {
 
 
 
+# pilot主逻辑对vs的处理
+
+
+
+## 初始化push context中的vs
+
+详见 [istio-impl-item-PushContext_yonka.md](istio-impl-item-PushContext_yonka.md)
+
+
+
+## 确定要使用的vs（生成路由等）
+
+* sm（sidecar）：
+* gw： 
+
+
+
 # envoy提供的能力
 
 了解envoy提供的能力可以有助于理解istio服务治理的实现： 无论抽象层定义了多少概念，最终是要落到istio实现，然后落到envoy侧支持的。

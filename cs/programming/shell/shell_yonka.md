@@ -233,6 +233,76 @@ done
 
 
 
+### 嵌套变量/变量名（部分）取自变量
+
+叫： `Variable Indirection`
+
+
+
+```sh
+a1=1
+a2=2
+
+i=1
+echo ${!a$i}  # -bash: ${!a$i}: bad substitution
+# 不支持字面量
+
+v=a1
+echo ${!v}  # 1
+
+ar=(1 2 3)
+v=ar
+echo ${!v}  # 可以
+echo ${!v[2]}  # 不行... 
+# 比较新的bash支持 nameref，可以用于此
+declare -n v1=$v
+echo ${v1[2]}  # 可以
+```
+
+
+
+### 判空/set
+
+
+
+```sh
++--------------------+----------------------+-----------------+-----------------+
+|   Expression       |       parameter      |     parameter   |    parameter    |
+|   in script:       |   Set and Not Null   |   Set But Null  |      Unset      |
++--------------------+----------------------+-----------------+-----------------+
+| ${parameter:-word} | substitute parameter | substitute word | substitute word |
+| ${parameter-word}  | substitute parameter | substitute null | substitute word |
+| ${parameter:=word} | substitute parameter | assign word     | assign word     |
+| ${parameter=word}  | substitute parameter | substitute null | assign word     |
+| ${parameter:?word} | substitute parameter | error, exit     | error, exit     |
+| ${parameter?word}  | substitute parameter | substitute null | error, exit     |
+| ${parameter:+word} | substitute word      | substitute null | substitute null |
+| ${parameter+word}  | substitute word      | substitute word | substitute null |
++--------------------+----------------------+-----------------+-----------------+
+```
+
+Source: [POSIX: Parameter Expansion](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_02):
+
+
+
+```sh
++--------------------+----------------------+-----------------+-----------------+
+|   Expression       |  FOO="world"         |     FOO=""      |    unset FOO    |
+|   in script:       |  (Set and Not Null)  |  (Set But Null) |     (Unset)     |
++--------------------+----------------------+-----------------+-----------------+
+| ${FOO:-hello}      | world                | hello           | hello           |
+| ${FOO-hello}       | world                | ""              | hello           |
+| ${FOO:=hello}      | world                | FOO=hello       | FOO=hello       |
+| ${FOO=hello}       | world                | ""              | FOO=hello       |
+| ${FOO:?hello}      | world                | error, exit     | error, exit     |
+| ${FOO?hello}       | world                | ""              | error, exit     |
+| ${FOO:+hello}      | hello                | ""              | ""              |
+| ${FOO+hello}       | hello                | hello           | ""              |
++--------------------+----------------------+-----------------+-----------------+
+```
+
+
+
 
 
 ## 数据类型
@@ -261,7 +331,7 @@ done
 
 ```shell
 string='My long string'
-if [[ $string = *"My long"* ]]; then
+if [[ $string = *"My long"* ]]; then  # 不能用 [ ]
   echo "It's there!"
 fi
 ```
@@ -354,6 +424,84 @@ echo ${s:2:}  # 空
 
 * `tr "\0" "\n"`
 * `awk `
+
+
+
+
+
+#### 编码转换
+
+* str -> hex
+
+  `echo -n "Hello" | od -A n -t x1 | sed 's/ *//g'` 
+
+  sed的部分是去掉空格，也可以根据需要替换成`%`等等
+
+  还可以加上 `tr -d '\n'` 来去掉换行
+
+
+
+#### 特殊字符处理
+
+ascii可见字符以外的，尤其指不可见、不好输入的字符
+
+
+
+* 输入
+
+  * `echo -e`
+
+    ```
+                  \0nnn  the eight-bit character whose value is the octal value nnn (zero  to
+                         three octal digits)
+                  \xHH   the eight-bit character whose value is the hexadecimal value HH (one
+                         or two hex digits)
+                  \uHHHH the Unicode (ISO/IEC 10646) character whose value is the hexadecimal
+                         value HHHH (one to four hex digits)
+                  \UHHHHHHHH
+                         the Unicode (ISO/IEC 10646) character whose value is the hexadecimal
+                         value HHHHHHHH (one to eight hex digits)
+    ```
+
+    
+
+    examples：
+
+    ```sh
+    echo -e 'toto\010\010ti'   # OUTPUTS: toti
+    echo -e '\x41'             # OUTPUTS: A
+    echo -e '\u03B1'           # OUTPUTS: α
+    echo -e '\U1F413 <= \U1F1EB\U1F1F7' # OUTPUTS 🐓 <= 🇫🇷
+    ```
+
+  * `printf`
+
+    ```sh
+    printf "\u25ba"  # OUTPUTS: ►
+    ```
+
+    
+
+* 输出
+
+
+
+##### 一些工具
+
+* 输出完整unicode字符列表
+
+  ```sh
+  #!/bin/bash
+  for y in $(seq 0 524287); do
+    for x in $(seq 0 7); do
+      a=$(expr $y \* 8 + $x)
+      echo -ne "$a \\u$a "
+    done
+    echo
+  done
+  ```
+
+  
 
 
 
@@ -453,69 +601,78 @@ rnd=$(rand 100 500)
 
 Bash array的索引<del>从1开始</del>>。。。
 
+* array： indexed array
+* map： associative array
 
 
-* 声明
 
-  ```sh
-  local pids=()
-  
-  # map需要声明，array可以不用
-  declare -A items
-  items=(["key1"]="value1" ["key2"]="value2")
-  ```
+#### 声明
 
-* 增加元素
+```sh
+local pids=()
+pids=(1 2 3)
+declare -a pids=()  # cannot convert associative to indexed array. 二者之间不能互相转换
 
-  ```sh
-  pids+=(${pid_item})  # append
-  
-  items["key3"]="value3"
-  ```
+# map需要声明，array可以不用
+declare -A items
+items=(["key1"]="value1" ["key2"]="value2")
+```
 
-* 数组长度
+#### 增加元素
 
-  ```sh
-  ${#pids[@]}
-  
-  # map也一样
-  ```
+```sh
+pids+=(${pid_item})  # append
 
-* 取元素
+items["key3"]="value3"
+```
 
-  ```sh
-  $pids[1]  # starts from 1 ...
-  
-  local a=1
-  $pids[a]  # 囧...
-  ```
+#### 数组长度
 
-* 索引赋值
+```sh
+${#pids[@]}
 
-  ```sh
-  pids[2]=b
-  ```
+# map也一样
 
-* 索引删除
+# zsh里不要这个@也可以
+```
 
-  ```sh
-  # arr=(a b)
-  unset "arr[2]"
-  # echo $arr
-  ## will print: a
-  ```
+#### 取元素
 
-* 值删除
+```sh
+$pids[1]  # starts from 1 ...
 
-  ```sh
-  ${array[@]/$delete}  # new string
-  # array=(a b); delete=a; echo ${array[@]/$delete}  
-  ## will print: b
-  # echo arr
-  ## will print: a b
-  
-  array=( "${array[@]/$delete}" ) #Quotes when working with strings
-  ```
+local a=1
+$pids[a]  # 囧...
+
+local v=${items[$k]}  # bash支持 ${items["$k"]} 但zsh不支持
+```
+
+#### 索引赋值
+
+```sh
+pids[2]=b
+```
+
+#### 索引删除
+
+```sh
+# arr=(a b)
+unset "arr[2]"
+# echo $arr
+## will print: a
+```
+
+#### 值删除
+
+```sh
+${array[@]/$delete}  # new string
+# array=(a b); delete=a; echo ${array[@]/$delete}  
+## will print: b
+# echo arr
+## will print: a b
+
+array=( "${array[@]/$delete}" ) #Quotes when working with strings
+```
 
 * 索引传参： 数组
 
@@ -538,19 +695,7 @@ Bash array的索引<del>从1开始</del>>。。。
   # 囧。。。 这会儿又不支持了。。。
   ```
 
-* 输出全部value
-
-  ```sh
-  echo ${pids[@]}
   
-  # map也一样
-  ```
-
-* 输出全部keys
-
-  ```sh
-  echo ${!items[@]}  # 比values多一个 !
-  ```
 
 * 全部传参
 
@@ -576,18 +721,69 @@ Bash array的索引<del>从1开始</del>>。。。
   ```
 
 
-* 遍历
 
-  ```sh
-  for key in ${!items[@]}; do
-    echo $key
-    echo ${items[$key]}
-  done
-  
-  for value in ${items[@]}; do
-    echo $value
-  done
-  ```
+#### 遍历
+
+**bash**
+
+```sh
+for key in ${!items[@]}; do
+  echo $key
+  echo ${items[$key]}
+done
+
+for value in ${items[@]}; do
+  echo $value
+done
+```
+
+
+
+**zsh**
+
+```sh
+for k in ${(@k)items}; do
+  echo $k
+done
+
+for v in ${(@k)items}; do
+  echo $v
+done
+
+for k v in ${(@kv)items}; done
+  echo "$k -> $v"
+done
+
+# 似乎以上那个 @ 有没有没区别？
+#  @ inside quotes used to preserve empty elements
+```
+
+
+
+#### 赋值
+
+数组无法直接赋值，比如：
+
+```sh
+arr=(1 2 3)
+arr1=${arr}  # arr1为1，也即取了第一个元素
+arr1=( "${arr[@]}" )  # 可能有坑
+
+# 这个更稳妥
+declare -a arr2=()
+for i in ${!arr[@]}; do
+    arr2[$i]="${arr[$i]}"
+done
+
+# zsh的方式
+set -A arr2_zsh ${(kv)arr}
+# 如果直接： arr2_zsh=${arr} 的话，就变成全量kv拼接的字符串了
+declare -A arr2_zsh=(${(kv)arr})  # 直接=${(kv)arr}不行，会报错： inconsistent type for assignment
+
+# 还可以用nameref来实现 - bash
+declare -n arr3=arr
+
+```
 
 
 
@@ -623,6 +819,30 @@ arr=($a)
   ```
 
 
+
+#### 判空
+
+注意： 
+
+由于直接 `$arr` 取的是首元素，没元素则取到空字符，所以 `-z "$arr"` 无法区分 `()` 和 `("")` （显然可以区分`(1)`）
+
+> 以上是对于普通数组，如果是map还不一样。好像直接取都是拿到空。如：
+>
+> ```sh
+> declare -A arr=([a]=1)
+> echo $arr  # empty
+> echo ${arr[a]}  # 1
+> ```
+
+要保持统一的话，还是： 
+
+```sh
+if [[ ${#arr[@]} -eq 0 ]]; then
+# 对于array、map都有效
+# 对nameref有效
+```
+
+这样比较好。 对于unset的name，取数组长度也是得到0
 
 
 
@@ -1273,7 +1493,102 @@ function kill_and_wait() {
 
 
 
+## 终端颜色
 
+
+
+```sh
+Black        0;30     Dark Gray     1;30
+Red          0;31     Light Red     1;31
+Green        0;32     Light Green   1;32
+Brown/Orange 0;33     Yellow        1;33
+Blue         0;34     Light Blue    1;34
+Purple       0;35     Light Purple  1;35
+Cyan         0;36     Light Cyan    1;36
+Light Gray   0;37     White         1;37
+```
+
+
+
+```sh
+#    .---------- constant part!
+#    vvvv vvvv-- the code from above
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+printf "I ${RED}love${NC} Stack Overflow\n"
+
+# Continued from above example
+echo -e "I ${RED}love${NC} Stack Overflow"
+```
+
+
+
+
+
+```sh
+# Foreground & background colour commands
+tput setab [1-7] # Set the background colour using ANSI escape
+tput setaf [1-7] # Set the foreground colour using ANSI escape
+
+# Colours are as follows:
+Num  Colour    #define         R G B
+
+0    black     COLOR_BLACK     0,0,0
+1    red       COLOR_RED       1,0,0
+2    green     COLOR_GREEN     0,1,0
+3    yellow    COLOR_YELLOW    1,1,0
+4    blue      COLOR_BLUE      0,0,1
+5    magenta   COLOR_MAGENTA   1,0,1
+6    cyan      COLOR_CYAN      0,1,1
+7    white     COLOR_WHITE     1,1,1
+
+# Text mode commands
+tput bold    # Select bold mode
+tput dim     # Select dim (half-bright) mode
+tput smul    # Enable underline mode
+tput rmul    # Disable underline mode
+tput rev     # Turn on reverse video mode
+tput smso    # Enter standout (bold) mode
+tput rmso    # Exit standout mode
+
+# Cursor movement commands
+tput cup Y X # Move cursor to screen postion X,Y (top left is 0,0)
+tput cuf N   # Move N characters forward (right)
+tput cub N   # Move N characters back (left)
+tput cuu N   # Move N lines up
+tput ll      # Move to last line, first column (if no cup)
+tput sc      # Save the cursor position
+tput rc      # Restore the cursor position
+tput lines   # Output the number of lines of the terminal
+tput cols    # Output the number of columns of the terminal
+
+# Clear and insert commands
+tput ech N   # Erase N characters
+tput clear   # Clear screen and move the cursor to 0,0
+tput el 1    # Clear to beginning of line
+tput el      # Clear to end of line
+tput ed      # Clear to end of screen
+tput ich N   # Insert N characters (moves rest of line forward!)
+tput il N    # Insert N lines
+
+# Other commands
+tput sgr0    # Reset text format to the terminal's default
+tput bel     # Play a bell
+```
+
+
+
+```sh
+tput setaf 1; echo "this is red text"
+
+
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+echo "${red}red text ${green}green text${reset}"
+
+echo "$(tput setaf 1)Red text $(tput setab 7)and white background$(tput sgr 0)"
+```
 
 
 

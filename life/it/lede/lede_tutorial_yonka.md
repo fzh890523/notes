@@ -87,3 +87,16 @@ qemu-img convert -f raw -O vmdk ~/Downloads/openwrt-15.05-x86-64-combined-ext4.i
 详见链接。
 
 
+
+### 升级安装
+
+https://openwrt.org/docs/guide-user/installation/openwrt_x86
+
+
+
+`https://downloads.openwrt.org/releases/<version>/targets/x86/64` 下载 名如 `https://downloads.openwrt.org/releases/19.07.7/targets/x86/64/openwrt-19.07.7-x86-64-combined-squashfs.img.gz` 的那个
+
+
+
+ 
+

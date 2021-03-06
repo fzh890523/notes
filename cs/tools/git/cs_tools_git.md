@@ -572,9 +572,23 @@ git rm -f path/to/submodule
 
 
 
+# reset
 
 
 
+* `--hard` index（head自然也...）、working都退回到指定commit。 **等于这个commit的内容完全消失**
+
+* `--soft` 只改head，index、working都不变。 这时候 退回stage后**待commit状态**
+
+* `--mixed` **默认**。 改head和index，也即 退回unstage状态，**等于这个commit只剩下working内容的变化**
+
+  需要重新add和commit
+
+
+
+
+
+# revert
 
 
 

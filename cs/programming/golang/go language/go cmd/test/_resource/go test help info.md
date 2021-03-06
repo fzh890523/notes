@@ -1,5 +1,15 @@
 test [build/test flags][packages] [build/test flags & test binary flags]
 
+
+
+The 'go test' command takes **both flags that apply to 'go test' itself and flags that apply to the resulting test binary**.
+
+Several of the flags control profiling and write an execution profile suitable for "go tool pprof"; run "go tool pprof -h" for more information. The --alloc_space, --alloc_objects, and --show_bytes options of pprof control how the information is presented.
+
+
+
+
+
 In addition to the build flags, the flags handled by 'go test' itself are:
 
 ```sh
@@ -21,6 +31,10 @@ In addition to the build flags, the flags handled by 'go test' itself are:
 -i
     Install packages that are dependencies of the test.
     Do not run the test.
+
+-json
+	Convert test output to JSON suitable for automated processing.
+	See 'go doc test2json' for the encoding details.
 
 -o file
     Compile the test binary to the named file.

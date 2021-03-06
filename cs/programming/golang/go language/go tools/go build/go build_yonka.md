@@ -80,6 +80,27 @@ go build -tags 'main1'
 
 
 
+## 一些应用场景
+
+
+
+### 指定、排除平台
+
+* `// +build linux,386 darwin,!cgo`
+
+  等于： `(linux AND 386) OR (darwin AND (NOT cgo))`
+
+* ```
+  // +build linux darwin
+  // +build 386
+  ```
+
+  等于： `(linux OR darwin) AND 386`
+
+* `// +build !windows`
+
+  除windows以外的平台都...
+
 
 
 # flags

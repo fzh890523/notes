@@ -4,7 +4,28 @@
 
 
 
-## 设置了authorized_keys仍然要输入密码的问题
+## 免密登录
+
+
+
+### key登录+authorized_keys
+
+
+
+#### 自动“设置”authorized_keys： ssh-copy-id
+
+```sh
+ssh-copy-id xxx.com
+# 输出密码
+
+ssh xxx.com  # 自动key登录
+```
+
+
+
+
+
+#### 设置了authorized_keys仍然要输入密码的问题
 
 
 
@@ -60,7 +81,7 @@ Apr 24 13:42:58 ${host} sshd[12123]: pam_unix(sshd:session): session closed for 
 
 
 
-## 想不重复登录输入密码等验证： 连接复用
+### 想不重复登录输入密码等验证： 连接复用
 
 
 
@@ -79,7 +100,7 @@ Host xxx
 
 
 
-## 代理ssh
+## 代理ssh（ProxyCommand）
 
 Ref:
 
@@ -153,11 +174,37 @@ W - Requests that standard input and output on the client be forwarded to HOST o
 
 
 
+### win上的问题：posix_spawn: No such file or directory
+
+见： [ProxyCommand incorrectly requires an absolute path #1185](https://github.com/PowerShell/Win32-OpenSSH/issues/1185) 
+
+大概就是，一个bug导致win上ssh在执行`ProxyCommand`是search path不是`PATH`，导致搜不到`ssh`，而要用完整路径
+
+```sh
+where.exe ssh  # C:\Windows\System32\OpenSSH\ssh.exe
+# then
+ProxyCommand C:\Windows\System32\OpenSSH\ssh.exe -q -W %h:%p xxx
+# 为了git bash兼容性，写成如下更好
+ProxyCommand C:\\Windows\\System32\\OpenSSH\\ssh.exe -q -W %h:%p xxx
+```
+
+
+
+
+
 ## ssh tunnel
 
 
 
-**正向tunnel**
+### **正向tunnel**
+
+
+
+#### 基于命令参数： `-L` （实际是一个端口转发）
+
+> 这个实际是端口转发而不是tunnel
+
+
 
 主要用于远程机器不能直接访问（需要经过一个ssh跳板机），又需要稳定访问的场景，比如测试http服务等。
 
@@ -175,11 +222,66 @@ ssh -L local_port:target_address:target_port username@proxy.com
 ssh -L 8888:192.168.1.111:1234 bob@ssh.youroffice.com
 # 建立 本地 - ssh.youroffice.com 这个堡垒机 - 192.168.1.111:1234 的隧道
 # 然后可以通过 localHost:8888 访问 192.168.1.111:1234 的服务了
+
+ssh -L 192.168.1.100:8888:192.168.1.111:1234 bob@ssh.youroffice.com
+# local addr可以省略，默认127； remote addr好像不能省略，即使留空也会在连接时打印报错
 ```
 
 
 
-**反向tunnel**
+
+
+#### 基于命令参数： `-D` （真tunnel）
+
+
+
+可以在本地建立socks代理，请求会tunnel到remote ssh server然后转发出去。
+
+```sh
+ssh -D local_port username@server.com
+# 如：
+ssh -D 8888 bob@ssh.yourhome.com
+# 然后可以愉快地访问 localhost:8888 这个socks代理了
+```
+
+
+
+> 早夭的科学。。方式之一
+
+
+
+
+
+
+
+#### 基于配置 `LocalForward`
+
+如：
+
+```properties
+Host home
+    Hostname xx.com
+    port 1234
+    LocalForward 12345 192.168.1.100:2345
+```
+
+这个配置可以把当前 本地的`12345`端口 通过`本地-home之间的tunnel` 转发到远端 `192.168.1.100:2345`
+
+> 这个12345也可以写成`addr:port`格式来限定。
+>
+> 效果与`-D`类似。
+>
+> **这种方式需要ssh home来触发tunnel建立，生命周期也与这个ssh conn相同**，也显然了同时只能有一个tunnel（local port不同），所以第二个ssh conn会报错tunnel无法建立
+
+
+
+### **反向tunnel**
+
+
+
+#### 基于命令参数 `-R` （也是端口转发）
+
+
 
 ```sh
 ssh -R remote_port:local_address:local_port username@server.com
@@ -207,27 +309,6 @@ Note that if you use OpenSSH sshd server, the server's GatewayPorts option needs
 
 # 修改然后重启ssh服务
 ```
-
-
-
-
-
-## 动态socks代理
-
-
-
-可以在本地建立socks代理，请求会tunnel到remote ssh server然后转发出去。
-
-```sh
-ssh -D local_port username@server.com
-# 如：
-ssh -D 8888 bob@ssh.yourhome.com
-# 然后可以愉快地访问 localhost:8888 这个socks代理了
-```
-
-
-
-> 早夭的科学。。方式之一
 
 
 
@@ -306,79 +387,41 @@ ssh user@host 'bash -s' < /path/script.sh
 
 
 
-## 代理ssh
+## ssh命令的补全
 
-Ref:
+bash/zsh都提供了ssh的复杂的补全功能支持，这里不赘述。
 
-* https://stackoverflow.com/questions/19161960/connect-with-ssh-through-a-proxy
-* https://www.techrepublic.com/article/how-to-use-ssh-to-proxy-through-a-linux-jump-host/
+分别见：
 
-
-
-一个场景是： 指定的机器无法直接访问，需要通过某跳板机。
+* `/usr/share/zsh/functions/Completion/Unix/_ssh`
+* `/usr/share/bash-completion/completions/ssh`
 
 
 
-* 跳板机开的是nc之类的直接连接转发
+### ssh命令补全known_hosts内容
 
-  ```sh
-  ssh USER@FINAL_DEST -o "ProxyCommand=nc -X connect -x PROXYHOST:PROXYPORT %h %p"
-  ```
+这个本来都支持的（如果对应的sh安装了completion的话），但一些linux发行版，可能是为了安全考虑，对`~/.ssh/known_hosts`中内容做了hash处理，会导致无法读取hostname。
 
-* 跳板机开的是socks代理
+处理方式：
 
-  ```sh
-  ssh -o "ProxyCommand=./ncat --proxy-type socks4 --proxy 127.0.0.1:9150 %h %p" USERNAME@REMOTESERVER
-  ```
+1. 把如下内容加到`~/.ssh/config`
 
-* 跳板机开的是ssh
+   ```properties
+   Host *
+       HashKnownHosts no
+   ```
 
-  ```sh
-   ssh -v -o "ProxyCommand=ssh -q -W %h:%p ${user}@${proxyId}" ${user}@${destIp}
-  ```
+2. `rm ~/.ssh/known_hosts` （这一步非必须？）
 
-  
+3. 做ssh操作，让`~/.ssh/known_hosts`内容被填充
 
-```
-If you get this in OS X:
+   这一步不一定要现在做
 
- nc: invalid option -- X
- Try `nc --help' for more information.
-it may be that you're accidentally using the homebrew version of netcat (you can see by doing a which -a nc command--/usr/bin/nc should be listed first). If there are two then one workaround is to specify the full path to the nc you want, like ProxyCommand=/usr/bin/nc ...
+4. 重启shell（重新登陆等方式）
 
-For CentOS nc has the same problem of invalid option --X. connect-proxy is an alternative, easy to install using yum and works --
+   因为这个文件的读取似乎是shell init的时候一次性的，所以...
 
-ssh -o ProxyCommand="connect-proxy -S PROXYHOST:PROXYPORT %h %p" USER@FINAL_DEST
-```
-
-
-
-每次手动输入不方便的话，可以考虑加到配置（`~/.ssh/config`）里：
-
-```
-Host host-a
-        User USERNAME
-        Hostname 192.168.1.38
-
-Host host_b
-        User USERNAME
-        Hostname 192.168.1.221
-        Port 22
-        ProxyCommand ssh -q -W %h:%p host-a
-```
-
-
-
-```
-The options in the above config file are:
-
-q - Quiet mode (supresses all warning and diagnostic messages).
-W - Requests that standard input and output on the client be forwarded to HOST on PORT over the secure channel.
-%h - Host to connect to.
-%p - Port to connect to on the remote host.
-```
-
-
+   也意味着如果运行时增加的host，不能及时生效
 
 
 

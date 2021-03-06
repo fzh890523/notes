@@ -277,3 +277,23 @@ Using Go 1.13, `GO111MODULE`'s default (`auto`) changes:
 
 
 
+## go mod使用vendor
+
+
+
+```sh
+go build -mod=vendor 
+```
+
+> 似乎从某个版本开始需要这样还是？
+
+
+
+
+
+
+
+
+
+
+

@@ -94,6 +94,121 @@ On *most* **Linux** Distros, you can substitute:
 
 
 
+## 替换
+
+
+
+### 换行处理
+
+
+
+简而言之，要把 行首的`foo`换成
+
+```
+@bar
+foo
+```
+
+的话： `:s/^foo/@bar\rfoo/g`
+
+要所有行处理的话： `:%s ...`
+
+
+
+ref: https://stackoverflow.com/questions/71323/how-to-replace-a-character-by-a-newline-in-vim
+
+
+
+Here's the trick:
+
+First, set your Vi(m) session to allow pattern matching with special characters (i.e.: newline). It's probably worth putting this line in your .vimrc or .exrc file:
+
+```
+:set magic
+```
+
+Next, do:
+
+```
+:s/,/,^M/g
+```
+
+To get the `^M` character, type Ctrl + V and hit Enter. Under Windows, do Ctrl + Q, Enter. The only way I can remember these is by remembering how little sense they make:
+
+> A: *What would be the worst control-character to use to represent a newline?*
+>
+> B: *Either `q` (because it usually means "Quit") or `v` because it would be so easy to type Ctrl + C by mistake and kill the editor.*
+>
+> A: *Make it so.*
+
+
+
+
+
+In the syntax `s/foo/bar`, `\r` and `\n` have different meanings, depending on context.
+
+------
+
+**Short:**
+
+For `foo`:
+
+`\r` == "carriage return" (`CR` / `^M`)
+`\n` == matches "line feed" (`LF`) on Linux/Mac, and `CRLF` on Windows
+
+For `bar`:
+
+`\r` == produces `LF` on Linux/Mac, `CRLF` on Windows
+`\n` == "null byte" (`NUL` / `^@`)
+
+When editing files in linux (i.e. on a webserver) that were initially created in a windows environment and uploaded (i.e. FTP/SFTP) - all the `^M`'s you see in vim, are the `CR`'s which linux does not translate as it uses only `LF`'s to depict a line break.
+
+------
+
+**Longer (with ASCII numbers):**
+
+`NUL` == 0x00 == 0 == Ctrl + @ == `^@` shown in vim
+`LF` == 0x0A == 10 == Ctrl + J
+`CR` == 0x0D == 13 == Ctrl + M == `^M` shown in vim
+
+Here is a list of the [ASCII control characters](http://www.cs.tut.fi/~jkorpela/chars/c0.html). Insert them in Vim via Ctrl + V,Ctrl + ---key---.
+
+In Bash or the other Unix/Linux shells, just type Ctrl + ---key---.
+
+Try Ctrl + M in Bash. It's the same as hitting Enter, as the shell realizes what is meant, even though Linux systems use line feeds for line delimiting.
+
+To insert literal's in bash, prepending them with Ctrl + V will also work.
+
+Try in Bash:
+
+```
+echo ^[[33;1mcolored.^[[0mnot colored.
+```
+
+This uses [ANSI escape sequences](http://en.wikipedia.org/wiki/ANSI_escape_code). Insert the two `^[`'s via Ctrl + V, Esc.
+
+You might also try Ctrl + V,Ctrl + M, Enter, which will give you this:
+
+```
+bash: $'\r': command not found
+```
+
+Remember the `\r` from above? :>
+
+This [ASCII control characters](http://www.cs.tut.fi/~jkorpela/chars/c0.html) list is different from a complete [ASCII symbol table](http://ascii-code.com/), in that the control characters, which are inserted into a console/pseudoterminal/Vim via the Ctrl key (haha), can be found there.
+
+Whereas in C and most other languages, you usually use the octal codes to represent these 'characters'.
+
+If you really want to know where all this comes from: *[The TTY demystified](http://www.linusakesson.net/programming/tty/)*. This is the best link you will come across about this topic, but beware: There be dragons.
+
+------
+
+*TL;DR*
+
+Usually `foo` = `\n`, and `bar` = `\r`.
+
+
+
 
 
 # 跳转
