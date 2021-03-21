@@ -4,11 +4,33 @@
 
 
 
-## 源配置
+## 源
 
 
 
-### 改用国内源
+### 源访问
+
+
+
+#### 使用代理
+
+
+
+有时可能包含google等被q的源，这时可以考虑用代理：
+
+```sh
+sudo apt-get -o Acquire::http::proxy="http://127.0.0.1:8087" update  # 假设代理为 808 这个
+```
+
+
+
+
+
+### 源配置
+
+
+
+#### 改用国内源
 
 
 
@@ -20,6 +42,10 @@ cp source.list source.list.bak  # 备份
 :> source.list  # 清空
 vim source.list  # 加入需要的源，比如阿里的。 见下文
 apt-get update
+
+# 也可以直接改，如：
+cp source.list source.list.bak  # 备份
+sed -i 's/http.*ubuntu.com/http:\/\/mirrors.aliyun.com/g' sourece.list
 ```
 
 
@@ -69,6 +95,10 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted unive
 
 ## install
 
+### specify version
+
+`apt-get install <package>=<version>`
+
 
 
 ### install from deb file
@@ -104,7 +134,11 @@ libkf5wallet-dev: /usr/include/KF5/KWallet/kwallet.h
 
 ### website: [Ubuntu Packages Search](http://packages.ubuntu.com/)
 
-## package files
+
+
+## package info
+
+### package files
 
 ```sh
 apt-file list packagename  # for package not installed
@@ -122,7 +156,7 @@ dpkg-deb -c ${package_name.deb}  # file
 
 
 
-## package versions
+### package versions
 
 
 
@@ -143,15 +177,23 @@ dpkg-deb -c ${package_name.deb}  # file
 
 
 
-## 使用代理
+# tools
 
 
 
-有时可能包含google等被q的源，这时可以考虑用代理：
+## 同步其他机器上安装的包
+
+* 按目标版本安装
+* 已有的跳过
+
+
 
 ```sh
-sudo apt-get -o Acquire::http::proxy="http://127.0.0.1:8087" update  # 假设代理为 808 这个
+apt list --installed | awk -F/ '{print $1}' > /tmp/xx.log
+
 ```
+
+
 
 
 

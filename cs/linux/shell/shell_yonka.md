@@ -63,9 +63,9 @@
   > `wsl xx.sh` 或者 `wsl zsh xx.sh`  或者 `wsl echo 123` 也都是这个
 >
   > 似乎wsl对于命令的执行做了一点封装，但看 `$SHLVL` 又是1
-  
+
   **读取的配置文件**：
-  
+
   * bash： `BASH_ENV`指定的
   * zsh： `/etc/zshenv` 和 `~/.zshenv`
 
@@ -103,10 +103,11 @@
     ```sh
     shopt -q login_shell && echo login_shell || echo non_login_shell
     login_shell
-    ```
-
+    # bash ok; zsh的话，non-login shell里都没有shopt这个name，会报错... 虽然可以推断出...
+```
     
-
+  
+  
 * interactive
 
   ```sh

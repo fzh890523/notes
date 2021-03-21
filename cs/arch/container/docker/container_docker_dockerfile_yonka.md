@@ -63,3 +63,25 @@
 
 
 
+### 文件路径
+
+* 只能用rel path
+
+  `COPY /etc/xx.conf /etc/` 会报错找不到，需要：
+
+  ```sh
+  cp /etc/xx.conf ./
+  
+  # dockerfile里
+  COPY ./xx.conf /etc/
+  # 没有./也行
+  ```
+
+  
+
+* 不能超出当前目录，也即`../../xx.txt`不行
+
+
+
+
+

@@ -4,6 +4,37 @@
 
 
 
+## slient登录
+
+* 免密： 见下面免密登录部分
+
+* 免提示
+
+  * host key check提示
+
+    提示类似
+
+    ```
+    The authenticity of host 'xxx.com (x.x.x.x)' can't be established.
+    ECDSA key fingerprint is SHA256:xxx.
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    ```
+
+    处理： 加入`StrictHostKeyChecking=accept-new`选项（代替老的 `StrictHostKeyChecking no`）
+
+    * ssh命令里加入： `-o "StrictHostKeyChecking accept-new"`
+
+    * ssh config里加入（如`~/.ssh/confiog`）
+
+      ```properties
+      Host *
+        StrictHostKeyChecking accept-new
+      ```
+
+      
+
+
+
 ## 免密登录
 
 
@@ -193,6 +224,54 @@ ProxyCommand C:\\Windows\\System32\\OpenSSH\\ssh.exe -q -W %h:%p xxx
 
 
 ## ssh tunnel
+
+### 后台执行
+
+* `-N` 不触发登录动作
+
+  > **-N** Do not execute a remote command. This is useful for just forwarding ports (protocol version 2 only).
+
+* `-f` 后台执行
+
+  > **-f** Requests ssh to go to background just before command execution. This is useful if ssh is going to ask for passwords or passphrases, but the user wants it in the background. This implies **-n**.
+  >
+  > **-n** Redirects stdin from `/dev/null` (actually, prevents reading from stdin). This must be used when `ssh` is run in the background.
+
+
+
+#### 怎么关闭后台tunnel？
+
+`netstat -ltnp`根据端口找到pid再kill肯定是可以的，但太麻烦。 
+
+
+
+更好的方式是用master mode，类似： `-M -S /tmp/xxx` 启动， `-S /tmp/xxx -O exit <target>`关闭
+
+如：
+
+```sh
+# 启动tunnel
+ssh -f -N -M -S /tmp/ssh-socket-xx-com -D <ip>:<port> xxx.com
+
+# 关闭tunnel
+ssh -S /tmp/ssh-sock-xxx-com -O exit xxx.com  # sock文件有访问权限，要同user
+```
+
+
+
+### tunnel自动启动
+
+可以用os的自启动机制，如：
+
+* linux下
+  * 做成service
+  * supervisord管理
+  * shell启动脚本
+  * ...
+* windows
+  * 做成bat加到`C:\Users\<user>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup`
+
+
 
 
 

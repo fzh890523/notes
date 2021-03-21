@@ -8,11 +8,13 @@
 
 
 
-### windows调linux： `wsl {cmd}` 
+### windows调linux： `wsl {cmd}`/`wsl -- {cmd}` 
 
 
 
 如： `wsl ls -l`
+
+而`wsl {wsl_args} -- {cmd}`是更准确的方式，可以清晰的分割wsl自己的参数和要执行的命令
 
 
 
@@ -26,6 +28,16 @@
 
 
 ## 存储
+
+
+
+### distro位置
+
+
+
+#### 迁移
+
+参考 《docker_windows_yonka.md》 中docker镜像存储位置迁移的操作。
 
 
 
@@ -165,7 +177,15 @@ Ths WSL 2 Linux kernel is now installed using a separate MSI update package ...
 
 
 
+## 版本行为差异
 
+
+
+### login shell问题
+
+`wsl -- zsh -c "xxx"` 这样执行，老版本可能是non-login shell，新版本则可能是login-shell。
+
+对于前者，如果希望是login shell，则： `wsl -- zsh --login -c "xxx"`
 
 
 

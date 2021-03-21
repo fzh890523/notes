@@ -112,6 +112,12 @@ dockerfile中对二者的定义见 [container_docker_dockerfile_yonka.md](contai
 
 
 
+## registry
+
+同见...
+
+
+
 ## volume
 
 
@@ -219,7 +225,7 @@ builder  buildkit  containers  image  network  overlay2  plugins  runtimes  swar
     ```sh
     wget https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb
     sudo apt install ./dive_0.9.2_linux_amd64.deb
-    # 安装报错，最后用的docker方式运行
+    # 安装报错，最后用的docker方式运行 v0.10.0 安装没问题
     ```
   
     

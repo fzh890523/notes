@@ -1,5 +1,68 @@
 
 
+### registry
+
+* default registry： docker自带的官方registry
+
+  
+
+  **不可覆盖**（20210309搜索到的信息）
+
+  > `--add-registry`时redhat维护的特性，据说合入被拒，所以只有redhat发行版的docker支持
+
+* registry mirror：  对default registry的镜像，不等于第二default registry
+
+* 第三方/private registry
+
+
+
+### name/tag
+
+从`docker image`的输出来看，有`repository`和`tag`两个字段，而没有`name`字段。
+
+而，考虑`docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]`和`docker push [OPTIONS] NAME[:TAG]`这些命名，推测：
+
+* `name`, `repository`, `image` 同义
+
+  `<registry>/<username>/<image_name>` 可能是规范的格式，但似乎没有约束，可能只有一个`<image_name>`部分。 
+
+  只在push时尝试解析出其中的`registry`部分，确实的话则用 **default registry** 。
+
+  常见的：
+
+  * `busybox`
+  * `docker.io/busybox`
+  * `docker.io/yonka/busybox`
+
+* `<name>:<tag>` 完整标识一个镜像（对应到镜像id）
+
+  但一个镜像可能：
+
+  * 两部分都没有（只有一个id）
+
+    比如build时不`-t`指定
+
+  * 只有tag没有name： 似乎不存在
+
+    `-t`不允许指定只有tag部分的...
+
+  * 只有name没有tag： tag被“抢占”/“覆盖”后，之前的image id就成了这样
+
+* 缺失tag时估计有自动补全的机制
+
+  比如（未确认）：
+
+  1. 优先选择`latest` tag
+  2. 没有则取name下最新的那个（带tag的？）镜像（id）
+
+  
+
+
+
+### tag
+
+> yonka: 似乎，docker镜像没有自动”版本化保存历史
+
 
 
 ### image location
@@ -122,6 +185,8 @@ aliyun：`https://***(自己注册的私有账号).mirror.aliyuncs.com`
 
 
 #### `--registry-mirror` 和 `--image-repository` 的区别？
+
+> k8s/kubeadm的参数，放错位置了，这里做参考
 
 
 

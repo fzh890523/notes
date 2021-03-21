@@ -48,6 +48,16 @@ sed -i.bak '/pattern to match/d' ./infile
 
 
 
+### 先match line再replace
+
+```sh
+/<line-match-pattern>/s/<replace-match-pattern>/<replacement>/
+```
+
+
+
+
+
 ### 替换多个pattern
 
 

@@ -16,6 +16,98 @@ ref：
 
 
 
+## config
+
+
+
+```sh
+kubectl config --help
+Modify kubeconfig files using subcommands like "kubectl config set current-context my-context"
+
+ The loading order follows these rules:
+
+  1.  If the --kubeconfig flag is set, then only that file is loaded. The flag may only be set once
+and no merging takes place.
+  2.  If $KUBECONFIG environment variable is set, then it is used as a list of paths (normal path
+delimiting rules for your system). These paths are merged. When a value is modified, it is modified
+in the file that defines the stanza. When a value is created, it is created in the first file that
+exists. If no files in the chain exist, then it creates the last file in the list.
+  3.  Otherwise, ${HOME}/.kube/config is used and no merging takes place.
+
+Available Commands:
+  current-context Displays the current-context
+  delete-cluster  Delete the specified cluster from the kubeconfig
+  delete-context  Delete the specified context from the kubeconfig
+  delete-user     Delete the specified user from the kubeconfig
+  get-clusters    Display clusters defined in the kubeconfig
+  get-contexts    Describe one or many contexts
+  get-users       Display users defined in the kubeconfig
+  rename-context  Renames a context from the kubeconfig file.
+  set             Sets an individual value in a kubeconfig file
+  set-cluster     Sets a cluster entry in kubeconfig
+  set-context     Sets a context entry in kubeconfig
+  set-credentials Sets a user entry in kubeconfig
+  unset           Unsets an individual value in a kubeconfig file
+  use-context     Sets the current-context in a kubeconfig file
+  view            Display merged kubeconfig settings or a specified kubeconfig file
+
+Usage:
+  kubectl config SUBCOMMAND [options]
+
+Use "kubectl <command> --help" for more information about a given command.
+Use "kubectl options" for a list of global command-line options (applies to all commands).
+```
+
+
+
+
+
+### `set-context`
+
+`kubectl config set-context <ctx> <设置内容>`
+
+`kubectl config set-context [NAME | --current] [--cluster=cluster_nickname] [--user=user_nickname]
+[--namespace=namespace] [options]`
+
+* `<ctx>` 可以是具体某个context name，也可以是`--current`表示设置当前context的内容
+* `<设置内容>`可以是：
+  * `--user=<user>` 设置用户
+  * `--cluster=<cluster>` 设置context指向的cluster
+  * `--namespace=<ns>` 设置该context的当前ns 
+
+
+
+```sh
+kubectl config set-context --help
+Sets a context entry in kubeconfig
+
+ Specifying a name that already exists will merge new fields on top of existing values for those
+fields.
+
+Examples:
+  # Set the user field on the gce context entry without touching other values
+  kubectl config set-context gce --user=cluster-admin
+
+Options:
+      --current=false: Modify the current context
+
+Usage:
+  kubectl config set-context [NAME | --current] [--cluster=cluster_nickname] [--user=user_nickname]
+[--namespace=namespace] [options]
+
+Use "kubectl options" for a list of global command-line options (applies to all commands).
+```
+
+
+
+
+
+### 切换（当前）context
+
+`kubectl config set-context <ctx>`
+
+
+
 ## logs
 
 ` kubectl logs [-f] [-p] (POD | TYPE/NAME) [-c CONTAINER] [options]`
@@ -381,6 +473,42 @@ kubectl run NAME --image=image [--env="key=value"] [--port=port] [--replicas=rep
 
 
 
+#### 进入pod
+
+* `k exec -it <pod> -- bash`
+
+* 以root用户进入pod
+
+  * docker方式
+
+    ```sh
+    kubectl describe <pod>  # 查看node和container id 如 docker://<id>
+    ssh <node>
+    docker exec -it -u root <container_id> /bin/bash
+    
+    # 如：
+    docker exec -it --privileged -u root e819cc6f51cde029620
+    6e3ceb754ed1b1ba28d27c526aafe281b993ae5ca7bf6 /bin/bash
+    ```
+
+  * 其他工具
+
+    * https://github.com/jordanwilson230/kubectl-plugins： `kubectl ssh -u root -p nginx-0`
+
+      ```sh
+      # https://krew.sigs.k8s.io/docs/user-guide/setup/install/
+      # 安装krew
+      
+      krew install exec-as
+      kubectl exec-as ...
+      ```
+
+      
+
+    * 
+
+      
+
 
 
 # 资源操作 per type
@@ -443,6 +571,46 @@ kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName=<node>
 ```
 
 
+
+# config
+
+
+
+## merge config
+
+比如要同时管理多个集群的话会有多个`config`，从数据结构上可以merge为一个（多个context管理不同的cluster）。操作如下：
+
+```sh
+scp <user>@<clusterA_ip>:~/.kube/config /tmp/kube_config_<clusterA>
+
+scp <user>@<clusterB_ip>:~/.kube/config /tmp/kube_config_<clusterB>
+
+KUBECONFIG=/tmp/kube_config_<clusterA>:/tmp/kube_config_<clusterB> kubectl config view --flatten >> /tmp/kube_config_merged
+
+copy /tmp/kube_config_merged ~/.kube/config
+```
+
+
+
+
+
+# logs
+
+* 查看kubelet日志： `journalctl -u kubelet`
+
+* 设置日志级别
+
+  有多种方式，比如可以通过node的configmap
+
+  * 改node本地kubectl env文件： `/var/lib/kubelet/kubeadm-flags.env`
+
+    ```sh
+    sudo sed -i "/^KUBELET_KUBEADM_ARGS/s/\"$/ --v=4\"/" /var/lib/kubelet/kubeadm-flags.env
+    # 末尾追加 --v=4
+    sudo systemctl restart kubelet
+    ```
+
+    
 
 
 

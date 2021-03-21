@@ -46,6 +46,31 @@ netplan apply
 ```
 
 
+
+### 添加虚拟网卡
+
+> 需要root
+
+```sh
+ip link add veth1 type veth
+# 好像默认需要成对创建，需要只能是计数数。 也许这个行为可以修改（？）
+# 这种是默认broadcast，所以对端能直接拿到mac，也即不需要路由
+# lookback类型的则不是
+
+ip link
+# output:
+## veth0@veth1
+## veth1@veth0
+
+ip addr add 192.168.188.199/24 broadcast + dev veth0
+
+sysctl -w net.ipv4.conf.veth0.forwarding=1  # 实际这里不需要
+```
+
+
+
+
+
 ## dhcp
 
 ### renew dhcp addr

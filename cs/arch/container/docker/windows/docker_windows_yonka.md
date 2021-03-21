@@ -325,12 +325,12 @@ cd ${STORE}
 for name in docker-desktop docker-desktop-data; do
   wsl -t ${name}
 done
-for name in docker-desktop docker-desktop-data; do
+for name in docker-desktop-data; do  # docker-desktop docker-desktop-data
   mkdir ${name}
   wsl --export ${name} ${name}.tar
   wsl --unregister ${name}
   wsl --import ${name} ${name} ${name}.tar
-  # rm ${name}.tar  # 可以运行ok后再删除
+  rm ${name}.tar  # 可以运行ok后再删除
 done
 ```
 

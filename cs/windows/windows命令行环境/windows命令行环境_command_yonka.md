@@ -36,6 +36,16 @@
 
 
 
+**powershell**
+
+* `echo $env:PATH`
+
+  晕
+
+  （ps的echo是个alias）
+
+
+
 ## 软件
 
 
@@ -184,6 +194,79 @@
 
 
 ## network
+
+
+
+### route
+
+* `route`
+* `netsh interface ipv4`
+
+
+
+* `route print`查看
+
+#### add
+
+* route命令
+
+  `ROUTE [-f] [-p] [-4|-6] command [destination]
+                    [MASK netmask]  [gateway] [METRIC metric]  [IF interface]`
+
+  `route add /?` 查看详细信息
+
+  * `-p` 持久化（默认不）
+
+  样例：
+
+  * `route add x.x.x.x mask 255.255.255.255 y.y.y.y`
+
+    interface可以省略
+
+* `netsh`
+
+  这个默认加的是永久路由
+
+  样例：
+
+  * `netsh int ipv4 add route x.x.x.x/32 "vEthernet (WSL)" y.y.y.y`
+
+    destIp可以省略但interface name不能省略，而且必须是name不能是idx
+
+  * `netsh int ipv4 add route 0.0.0.0/0 WLAN 192.168.2.144 metric=20`
+  
+    > `metric`前面有个`siteprefixlength  - 整个站点的前缀长度(如果在链路上)。`参数，所以要这样显示指明参数名
+
+
+
+#### 覆盖（同接口）默认路由
+
+```sh
+netsh int ipv4 add route 0.0.0.0/0 WLAN 192.168.2.144 metric=20
+```
+
+
+
+> **windows有个自动metric（跃点）特性，在网卡-ipv4的设置**会导致手动加进去的默认路由的metric被修改为比DHCP分配的网关地址高，于是失效，可以如下设置：
+
+1. 关闭自动metric
+
+   这样的话，路由实际的metric == interface metric + route metric
+
+2. 手动删掉dhcp分配的网关路由
+
+   因为它的metric此时为0，手动加进去的无法做到更低，最多也设为0，那么实际都等于interface metric
+
+3. 增加需要的默认路由，metric 为 0
+
+   稍后dhcp分配的网关路由又会自动加回来，不过此时它的metric会大一些（起码我观察到的是），于是达到预期效果
+
+```sh
+netsh int ipv4 delete route 0.0.0.0/0 WLAN 192.168.2.1
+netsh int ipv4 add route 0.0.0.0/0 WLAN 192.168.2.144 metric=0
+```
+
+
 
 
 

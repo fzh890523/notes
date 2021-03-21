@@ -2,6 +2,13 @@
 
 # install
 
+参考：
+
+* `01/24_餐边柜pc安装esxi.md`
+* `01/24_已有vmware 虚拟机转换到esxi.md`
+
+* `03/19_nuc8安装esxi.md`
+
 
 
 ## guide
@@ -102,3 +109,13 @@ ref： [Allowing SSH access to ESXi/ESX hosts with public/private key authentica
 * 可以通过scp： `scp <user>@<esxi_host>:/vmfs/volumes/<datastore>/path/to/files/* ./`
 
   > vm可以以这种方式访问
+
+
+
+# user
+
+
+
+`host` - `actions` - `permissions` - `add user`/`assign role`： 好像是esxi系统user，比如ssh进去后，administrator等同于root
+
+`manage` - `security & users` - `users` - `add user`： 好像是esxi web console user
