@@ -164,6 +164,15 @@ docker run -d <image>  # run in detach(from stdout/stdin) mode
 
 * `--env <name>=<value>`/`-e` 传入环境变量，可以多次指定
 
+  ```sh
+  -e REDIS_NAMESPACE='staging' \ 
+  -e POSTGRES_ENV_POSTGRES_PASSWORD='foo' \
+  -e POSTGRES_ENV_POSTGRES_USER='bar' \
+  -e POSTGRES_ENV_DB_NAME='mysite_staging'
+  ```
+
+  
+
 * `-v`/`--volume <local_path>:<container_path>` 将目录映射到容器的目录
 
   * 可以指定读写权限，如： `-v /tmp:/tmp:ro`，默认rw
@@ -219,9 +228,30 @@ docker run -d <image>  # run in detach(from stdout/stdin) mode
 
   > The --privileged flag gives all capabilities to the container, and it also lifts all the limitations enforced by the device cgroup controller. In other words, the container can then do almost everything that the host can do. This flag exists to allow special use-cases, like running Docker within Docker.
 
+* `--user`/`-u` 指定user或uid（覆盖dockerfile里的）
+
+  可用于debug，毕竟容器本身可能非root用户，有些操作不方便
+
 * `-w` 设置working dir
 
   `-w /path/to/dir`
+
+* `-restart <policy>` 设置重启的策略
+
+  可选的有：
+
+  | Policy                       | Result                                                       |
+  | :--------------------------- | :----------------------------------------------------------- |
+  | **no**                       | Do not automatically restart the container when it exits. This is the default. |
+  | **on-failure**[:max-retries] | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts. |
+  | **always**                   | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
+  | **unless-stopped**           | Always restart the container regardless of the exit status, including on daemon startup, except if the container was put into a stopped state before the Docker daemon was stopped. |
+
+  > 意思是daemon stop之后干掉container的话，daemon感知不到，所以不算，也即下次daemon还会启动。
+  >
+  > 只有“明确告知”daemon停掉容器，才会...
+  >
+  > **看起来unless这个比always这个好用**
 
 
 
@@ -259,4 +289,12 @@ examples：
 * 
 
 
+
+# tutorial
+
+
+
+## 容器“auto-start”
+
+用`--restart`策略来控制
 

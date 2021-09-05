@@ -128,6 +128,18 @@ source /root/.keychain/$HOSTNAME-sh
 
 # 配置项
 
+
+
+## ProxyCommand
+
+
+
+* `ProxyCommand C:\\Windows\\System32\\OpenSSH\\ssh.exe -q -W %h:%p home`
+* `ProxyCommand ssh -q -W %h:%p home`
+
+
+
 ## AgentForward
 
 ## UseKeychain
+

@@ -272,6 +272,15 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 * `-o json`
 
+  **复杂的内容筛选、展示可以 -o json然后用jq来做**
+
+  ```sh
+  kubectl get pods -a --all-namespaces -o json  | jq -r '.items[] | select(.status.phase != "Running" or ([ .status.conditions[] | select(.type == "Ready" and .status == "False") ] | length ) == 1 ) | .metadata.namespace + "/" + .metadata.name'
+  # 详见 linux_command_jq.md
+  ```
+
+  
+
 * `-o jsonpath=<jsonpath_expression>`
 
   如： `kubectl get svc -o jsonpath='{.items[0].metadata.name}'`
@@ -310,6 +319,13 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
   支持 `=`/`!=`/`==`，可以逗号分隔指定多个同时满足的条件。如： `-l key1=val2,key2=val2`
 
+  > Kubernetes is using 2 types of labels selectors - Set-based and Equality-based.
+  >
+  > Because the Service object is old and was created before Set-based requirements were released, you cannot use rules like if label 'myapp' exists, you should use equals like if label 'myapp' = 'abc'.
+  >
+  > * `-l mypod`
+  > * `-l mypod=xx`
+
 * 按字段（内容）进行筛选： `--field-selector`
 
   每种类型有对应支持的几种筛选条件。 使用方式类似`-l`
@@ -320,6 +336,8 @@ Use "kubectl options" for a list of global command-line options (applies to all 
   kubectl get pods --field-selector status.phase=Running
   kubectl get pods --field-selector=status.phase!=Running,spec.restartPolicy=Always
   kubectl get statefulsets,services --all-namespaces --field-selector metadata.namespace!=default
+  
+  k get pods --all-namespace --field-selector spec.nodeName=ubuntu-20041-3
   ```
 
 * 获取所有ns数据（默认为当前ns）： `--all-namespaces`
@@ -409,6 +427,8 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 * container的指定： `-c <container>`
 
   否则会选择第一个
+
+* 本地dest path不能是dir，也即需要是 `k cp -c xxcontainer xxpod:/var/xxfile /tmp/xxfile` 而不能是 `/tmp/`
 
 
 
@@ -649,6 +669,49 @@ runScript() {
 
 runScript --command "do stuff"
 ```
+
+
+
+## 导出资源内容以作导入
+
+* 老版本里有`--export`，类似 `kubectl get MYOBJECT --export -o yaml > my.yaml`
+
+  **然而deprecated了**
+
+* 替代方式： **官方没有说法** 
+
+  > There is no consistent way to do this since there is **no overall guidelines about defaulting and other live data clean up**. That is why it was deprecated. You should **keep your source files in git or similar**.
+
+  https://stackoverflow.com/questions/61392206/kubectl-export-is-deprecated-any-alternative
+
+  网友的一些实践做法：
+
+  * yaml: `yq`
+
+    ```sh
+    kubectl get secret "my_secret" -n "my_namespace" --context "my_context" -o yaml \
+        | yq d - 'metadata.resourceVersion' \
+        | yq d - 'metadata.uid' \
+        | yq d - 'metadata.annotations' \
+        | yq d - 'metadata.creationTimestamp' \
+        | yq d - 'metadata.selfLink' \
+        | yq d - 'metadata.managedFields'
+    ```
+
+  * json: `jq`
+
+    ```sh
+    kubectl get secret <secretname> -ojson | jq 'del(.metadata.namespace,.metadata.resourceVersion,.metadata.uid) | .metadata.creationTimestamp=null'
+    ```
+
+  * 从`kubectl.kubernetes.io/last-applied-configuration`里取
+
+    ```sh
+    kubectl get <resource kind> <resource name> -o yaml | \
+    yq r - 'metadata.annotations."kubectl.kubernetes.io/last-applied-configuration"'
+    ```
+
+    
 
 
 

@@ -36,6 +36,18 @@ are:
 
 通过`--headless`开启，`-l`指定listen地址
 
+
+
+## usage
+
+### 前提
+
+binary/program 需要 `gcflags`带`-N`, `-l`以去掉优化和内联。
+
+
+
+
+
 # 命令介绍
 
 ```sh
@@ -123,7 +135,7 @@ build and attach
 
 build test binary and attach
 
-### attach <pid>
+### `attach <pid>`
 
 ```sh
 dlv help attach
@@ -227,7 +239,7 @@ debugserv 23133 xxx    4u  IPv4 0x980b6584a9fb9a03      0t0  TCP 127.0.0.1:53576
 
 * 退出后（如果不选择kill process的话），target process继续运行
 
-### connect <addr>
+### `connect <addr>`
 
 可以连接到dlv server（`--headless`启动的），拓扑大约是：
 

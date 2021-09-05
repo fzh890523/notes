@@ -63,6 +63,14 @@
 
 > yonka: 似乎，docker镜像没有自动”版本化保存历史
 
+#### sha256格式
+
+`<hub>/<img>@sha256:<sha256>`
+
+vs
+
+`<hub>/<img>:<tag>`
+
 
 
 ### image location

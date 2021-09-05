@@ -77,9 +77,17 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted unive
 
 * `apt list —installed`
 
+  输出如： `zsh/focal,now 5.8-3ubuntu1 amd64 [installed]`
+
 * `dpkg --get-selections | grep -v deinstall` for old versions
 
   Or `dpkg -l`
+
+* `aptitude search '~i!~M' -F '%p'`
+
+  不带`-F`输出入： `i   zsh                                                 - shell with lots of features`，有一个简短描述；
+
+  带`-F`后： `zsh` 这样只有名字
 
 
 
@@ -191,6 +199,8 @@ dpkg-deb -c ${package_name.deb}  # file
 ```sh
 apt list --installed | awk -F/ '{print $1}' > /tmp/xx.log
 
+ssh ubuntu-20041 $'apt list --installed | awk \'{print $1 "/" $2}\' | awk -F/ \'{print $1 " " $3}\'' | xargs -I'{}' bash -c $'grep ^`echo "{}" | awk \'{print $1}\'`\'$\' /tmp/xx.log && exit 0; sudo aptitude install -y `echo "{}" | sed \'s/ /=/\'`; exit 0'
+# 最后需要一个exit 0来避免一次安装失败abort掉xargs的流程
 ```
 
 

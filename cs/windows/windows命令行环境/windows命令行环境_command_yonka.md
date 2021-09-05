@@ -50,6 +50,29 @@
 
 
 
+### 软件管理
+
+```powershell
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*  
+
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq "SQL Server 2017 Database Engine Shared" }
+
+$software = "My software name";
+$installed = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $software }) -ne $null
+
+If(-Not $installed) {
+    Write-Host "'$software' NOT is installed.";
+} else {
+    Write-Host "'$software' is installed."
+}
+```
+
+
+
+
+
+
+
 ### shell
 
 

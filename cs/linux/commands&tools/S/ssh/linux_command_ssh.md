@@ -2,9 +2,9 @@
 
 # cases
 
+## 登录
 
-
-## slient登录
+### slient登录
 
 * 免密： 见下面免密登录部分
 
@@ -35,15 +35,15 @@
 
 
 
-## 免密登录
+### 免密登录
 
 
 
-### key登录+authorized_keys
+#### key登录+authorized_keys
 
 
 
-#### 自动“设置”authorized_keys： ssh-copy-id
+##### 自动“设置”authorized_keys： ssh-copy-id
 
 ```sh
 ssh-copy-id xxx.com
@@ -56,7 +56,7 @@ ssh xxx.com  # 自动key登录
 
 
 
-#### 设置了authorized_keys仍然要输入密码的问题
+##### 设置了authorized_keys仍然要输入密码的问题
 
 
 
@@ -128,6 +128,12 @@ Host xxx
 ```
 
 
+
+> windows还不支持
+
+
+
+### 指定密码登录
 
 
 
@@ -310,7 +316,7 @@ ssh -L 192.168.1.100:8888:192.168.1.111:1234 bob@ssh.youroffice.com
 
 
 
-#### 基于命令参数： `-D` （真tunnel）
+#### 基于命令参数： `-D` （socket proxy而不是tcp tunnel）
 
 
 

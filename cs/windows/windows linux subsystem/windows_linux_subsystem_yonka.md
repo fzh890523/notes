@@ -27,6 +27,12 @@
 
 
 
+### windows访问wsl distro的文件
+
+file-explorer的地址栏输入`\\wsl$`可以看到distros，然后点击进去就是了 ，如： `\\wsl$\Ubuntu\<path-in-ubuntu>`
+
+
+
 ## 存储
 
 

@@ -162,6 +162,15 @@ This issue has been raised in the Samba bug tracker since 2015. So it may happen
 
 
 
+## 不同版本
+
+* v1
+  * portL 139
+* v2+
+  * port: 445
+
+
+
 # 实现
 
 

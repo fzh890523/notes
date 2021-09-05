@@ -1076,7 +1076,6 @@ https://oeis.org/wiki/List_of_LaTeX_mathematical_symbols
   \end{document}
   $$
   
-
 * 希腊符号
 
   ![image-20200917123336935](_pics/markdown_math_yonka/image-20200917123336935.png)

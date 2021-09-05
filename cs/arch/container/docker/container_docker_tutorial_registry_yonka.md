@@ -17,6 +17,9 @@ ref:
 ```sh
 docker run -d -p 5000:5000 --restart=always --name registry  -v /var/data/docker_registry:/var/lib/registry registry:2
 # data目录可以按需设置
+# 我的
+# 开启mirror的话： -v /etc/docker/registry/config.yml:/etc/docker/registry/config.yml
+docker run -d -p 5000:5000 --restart=always --name registry  -v /mnt/wd-12t-1-storage/docker_registry:/var/lib/registry -v /etc/docker/registry/config.yml:/etc/docker/registry/config.yml  registry:2
 ```
 
 
@@ -60,11 +63,76 @@ docker run -d -p 5000:5000 --restart=always --name registry  -v /var/data/docker
     password: [password]
   ```
 
-  > 不配似乎也没问题，如果要访问私有镜像的话则需要配置
+  > <del>不配似乎也没问题，如果要访问私有镜像的话则需要配置</del>
+  >
+  > > **必须要配置，否则mirror/proxy/pass-through cache功能不生效**
+  > >
+  > > 默认host上没这个文件，可以从容器里copy出来，修改加上proxy部分，如：
+  > >
+  > > ```yaml
+  > > proxy:
+  > >   remoteurl: https://xxxx.mirror.aliyuncs.com  # xxxx换成对应的正确id
+  > > ```
+  > >
+  > > 然后启动命令里挂载上： 
+  > >
+  > > ```sh
+  > > docker run -d -p 5000:5000 --restart=always --name registry  -v /mnt/wd-12t-1-storage/docker_registry:/var/lib/registry -v /etc/docker/registry/config.yml:/etc/docker/registry/config.yml  registry:2
+  > > ```
+  >
+  > 镜像里自带这个文件，直接改肯定不行。 估计要外面创建、把原内容拷进去、加入需要的内容、挂载给容器、重启容器
+  >
+  > 大致如下：
+  >
+  > ```yaml
+  > version: 0.1
+  > log:
+  >   fields:
+  >     service: registry
+  > storage:
+  >   cache:
+  >     blobdescriptor: inmemory
+  >   filesystem:
+  >     rootdirectory: /var/lib/registry
+  > http:
+  >   addr: :5000
+  >   headers:
+  >     X-Content-Type-Options: [nosniff]
+  > health:
+  >   storagedriver:
+  >     enabled: true
+  >     interval: 10s
+  >     threshold: 3
+  > proxy:
+  >   remoteurl: https://xxx.mirror.aliyuncs.com  # xxx前缀换成各自的...
+  > ```
+  >
+  > 
 
 * 拉取端： mirror配置为该registry
 
   好像可以配多个，这样并发请求可能调度到不同mirror上
+
+
+
+### docker mirror的意义
+
+* 提速
+
+* **全局缓存**
+
+  比如常见的gcr镜像，对于多node来说，默认拉不到影响pod启动等，而都准备一份太麻烦了。 通过本地mirror则可以一次性准备一份即可，后续各个node都可以从mirror拉到
+
+
+
+# web-ui
+
+
+
+* https://github.com/mkuchin/docker-registry-web
+* https://github.com/parabuzzle/craneoperator
+
+
 
 
 

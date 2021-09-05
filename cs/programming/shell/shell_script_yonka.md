@@ -35,6 +35,8 @@ http://stackoverflow.com/questions/6697753/difference-between-single-and-double-
 
 ### (single) quote in quote怎么escape
 
+`$'a\'b'`
+
 
 
 #### `' -> '"'"'`
@@ -97,6 +99,75 @@ http://stackoverflow.com/questions/6697753/difference-between-single-and-double-
 
 ## 控制语句
 
+
+
+### loop循环
+
+* while/do
+* until/do
+* continue/break
+
+
+
+```sh
+while command1 ; # this is loop1, the outer loop
+do
+   Statement(s) to be executed if command1 is true
+
+   while command2 ; # this is loop2, the inner loop
+   do
+      Statement(s) to be executed if command2 is true
+   done
+
+   Statement(s) to be executed if command1 is true
+done
+```
+
+
+
+```sh
+#!/bin/sh
+
+a=10
+
+until [ $a -lt 10 ]
+do
+   echo $a
+   a=`expr $a + 1`
+done
+```
+
+
+
+
+
+
+
+### if
+
+```sh
+if [ expression 1 ]
+then
+   Statement(s) to be executed if expression 1 is true
+elif [ expression 2 ]
+then
+   Statement(s) to be executed if expression 2 is true
+elif [ expression 3 ]
+then
+   Statement(s) to be executed if expression 3 is true
+else
+   Statement(s) to be executed if no expression is true
+fi
+```
+
+
+
+
+
+
+
+
+
 ```shell
 while [ 1 ]; do sleep 1; ll; done # 无限循环
 while [ $i -lt 10 ]; do echo $i;let "i=$i+1"; done # 有限循环
@@ -126,6 +197,9 @@ case 值 in
     command1
     command2
     command3
+    ;;
+模式3|模式4)
+    command4
     ;;
 *)
     command1

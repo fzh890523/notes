@@ -175,6 +175,12 @@ Use "go help mod <command>" for more information about a command.
 
 
 
+#### go mod download
+
+`go mod download github.com/Microsoft/hcsshim@v0.8.8-0.20200421182805-c3e488f0d815`
+
+> 不带版本号的话似乎会去download 依赖分析的那个版本，具体参见 go mod help download
+
 
 
 #### go mod init
@@ -286,6 +292,84 @@ go build -mod=vendor
 ```
 
 > 似乎从某个版本开始需要这样还是？
+
+
+
+> go help mod
+>
+> 
+>
+>         -mod mode
+>                 module download mode to use: readonly, vendor, or mod.
+>                 By default, if a vendor directory is present and the go version in go.mod
+>                 is 1.14 or higher, the go command acts as if -mod=vendor were set.
+>                 Otherwise, the go command acts as if -mod=readonly were set.
+>                 See https://golang.org/ref/mod#build-commands for details.
+
+
+
+* go mod版本
+  * `>=1.14` + 有vendor目录： 等于 `-mod=vendor`
+  * else： 等于 `-mod=readonly`
+* 老版本： 需要项目在gopath下vendor目录才能生效
+
+
+
+## go.mod
+
+
+
+https://stackoverflow.com/questions/65921916/why-does-go-module-ssh-custom-private-repo-non-github-config-still-request-htt
+
+
+
+In short, the answer is to use `.git` suffix in all places. Without `.git` suffix, `go mod tidy` and `go get` will use `https` instead of `ssh` (git).
+
+**At Client:**
+
+The file `~/.gitconfig` (at linux) if you use `/repopath/foo.git` path at server:
+
+```golang
+[url "ssh://user@private.com"]
+    insteadOf = https://private.com
+```
+
+The file `~/.gitconfig` (at linux) if you use `~/repopath/foo.git` path at server:
+
+```golang
+[url "user@private.com:"]
+    insteadOf = https://private.com/
+```
+
+Execute the following to update `~/.config/go/env` at linux:
+
+```golang
+go env -w GOPRIVATE=private.com
+```
+
+In `go.mod`, it should use
+
+```golang
+require private.com/repopath/foo.git v0.1.0
+```
+
+In `file.go`, it should be
+
+```golang
+import private.com/repopath/foo.git
+```
+
+**At SSH Server**
+
+in `foo.git/go.mod` at private server should have:
+
+```golang
+module private.com/repopath/foo.git
+```
+
+And make sure the git repo at server has tag version `v0.1.0`. Don't forget to use `git push --tags` at client to update the tag version to the server. Without `--tags`, tag version will not be pushed.
+
+After adding `.git` suffix to all the required places, `go mod tidy` and `go get` will no longer send https request.
 
 
 

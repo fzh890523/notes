@@ -10,7 +10,40 @@
 
 # tutorial
 
+## proxy
 
+`curl -x sock5://127.0.0.1:8888 www.baidu.com`
+
+
+
+## retry
+
+```sh
+curl --connect-timeout 5 \
+    --max-time 10 \
+    --retry 5 \
+    --retry-delay 0 \
+    --retry-max-time 40 \
+    'http://your_url'
+
+
+--max-time 10     (how long each retry will wait)
+--retry 5         (it will retry 5 times)
+--retry-delay 0   (an exponential backoff algorithm)
+--retry-max-time  (total time before it's considered failed)
+```
+
+
+
+> --retry
+>
+> If a transient error is returned when curl tries to perform a transfer, it will retry this number of times before giving up. Setting the number to 0 makes curl do no retries (which is the default). Transient error means either: a timeout, an FTP 4xx response code or an HTTP 5xx response code.
+>
+> When curl is about to retry a transfer, it will first wait one second and then for all forthcoming retries it will double the waiting time until it reaches 10 minutes which then will be the delay between the rest of the retries. By using --retry-delay you disable this exponential backoff algorithm. See also --retry-max-time to limit the total time allowed for retries.
+>
+> If this option is used several times, the last one will be used.
+>
+> Added in 7.12.3.s
 
 
 
@@ -291,7 +324,27 @@ See also --proxy-insecure and --cacert.
 
 
 
+#### 指定ca： `--cacert`
 
+**用于对server的验证：额外信任签发server cert的ca**
+
+使用场景还比较多，因为内部通讯一般不会权威ca签发
+
+该指定file里可以有多个certs
+
+
+
+curl的cacert顺序（优先级递减）：
+
+* `--cacert`
+* env `CURL_CA_BUNDLE`
+* 默认build带的
+
+
+
+#### 指定cert/key： `--cert`/`--key`
+
+**用于client侧应对server的验证**
 
 
 

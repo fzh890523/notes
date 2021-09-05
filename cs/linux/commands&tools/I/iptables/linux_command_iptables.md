@@ -141,3 +141,33 @@
   ```
 
 
+
+## cookbook
+
+
+
+### 备份、清除、还原
+
+```sh
+# 备份
+sudo iptables-save > ./iptables.rules
+
+# 清除
+iptables -X
+iptables -t filter -F
+iptables -t filter -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+iptables-restore < ./iptables.rules
+```
+
+
+
+
+

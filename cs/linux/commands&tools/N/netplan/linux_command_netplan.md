@@ -34,6 +34,12 @@ Netplan 目前支持以下两种 **网络管理工具** ：
 
 ## 使用指引
 
+ref:
+
+* `man netplan` 里很详细
+
+
+
 ### 配置
 
 很显然，没有配置， Netplan 啥都做不了。 最简单有用的配置片段如下：
@@ -143,6 +149,43 @@ $ netplan apply
 
 ### 配置示例
 
+
+
+#### link
+
+##### status： up/down - 没有
+
+似乎没有相关配置，也即link up/down不是netplan控制/配置而是额外操作
+
+
+
+#### default route
+
+* 可以dhcp override设置，影响dhcp下发的路由
+
+  ```yaml
+  dhcp4-overrides:
+    use-routes: true  # 默认true，如果false则禁用dhcp下发的路由
+    route-metric: 30  # 顾名思义
+  ```
+
+  
+
+* 也可以额外配置
+
+  ```yaml
+      ens160:
+        routes:
+        - to: 0.0.0.0/0
+          via: 192.168.2.144
+          on-link: true
+          metric: 50
+  ```
+
+  
+
+
+
 #### DHCP
 
 ```yaml
@@ -167,6 +210,64 @@ network:
             dhcp4: no
     version: 2
 ```
+
+
+
+#### DNS
+
+```
+       nameservers (mapping)
+              Set DNS servers and search domains, for manual address configuration.  There are two supported  fields:
+              addresses: is a list of IPv4 or IPv6 addresses similar to gateway*, and search: is a list of search do‐
+              mains.
+
+              Example:
+
+                     ethernets:
+                       id0:
+                         [...]
+                         nameservers:
+                           search: [lab, home]
+                           addresses: [8.8.8.8, "FEDC::1"]
+```
+
+文档里没说这里配置`addresses`后是和dhcp下发的merge还是override？ 
+
+
+
+
+
+##### 配置”默认“dns
+
+> 还有一个思路是： 配置一个独立于link的global dns，让它去匹配`~.`
+>
+> **但似乎netplan不支持**，可以单独配置在systemd-resolve的配置里： `/etc/systemd/resolved.conf`，详见《dns_systemd-resolved了解_yonka.md》
+
+
+
+主要场景是： 多接口都能获取到dns server的话，怎么选用呢？
+
+```yaml
+    ens224:
+      dhcp4: yes
+      dhcp-identifier: mac
+      nameservers:
+        search: [~.]  # 这个指定match所有（但因为最短，所以优先级最低，也即是default branch）
+        # 最后会和dhcp里告知的server的search一起merge为最终的`DNS Domain`结果
+```
+
+
+
+最后得到的：
+
+```yaml
+          DNS Domain: lan  # 这个来自dhcp
+                      ~.  # 这个来自配置
+```
+
+
+
+
 
 
 

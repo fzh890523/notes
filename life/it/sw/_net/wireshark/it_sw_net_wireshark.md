@@ -27,6 +27,15 @@
 
 
 
+#### tcp.port != xx 问题
+
+因为像port、address都是有src和dst两个的，所以
+
+* `tcp.port != 80` == `tcp.srcport != 80 || tcp.dstport != 80` 这显然跟一般的需求（src和dst都不为80）不符
+* `!(tcp.port == 80)` 这样写才是...
+
+
+
 #### tcp data containers
 
 

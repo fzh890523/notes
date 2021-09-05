@@ -267,7 +267,23 @@ ref: https://kubernetes.io/docs/setup/production-environment/container-runtimes/
 
 
 
+## cleanup
+
+参考： https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#tear-down
 
 
 
+* （从cluster drain node，访问控制面）`kubectl drain <node name> --delete-local-data --force --ignore-daemonsets`
+
+* （在node上）`kubeadm reset`
+
+* clean iptables规则等
+
+  ```sh
+  iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+  
+  ipvsadm -C  # 如果用了ipvs
+  ```
+
+* `kubectl delete node <node name>`
 

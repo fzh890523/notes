@@ -272,6 +272,8 @@ BEGIN {
 
 ## time
 
+> gawk才有
+
 
 
 ```sh
@@ -279,11 +281,13 @@ awk 'BEGIN {
    print strftime("Time = %m/%d/%Y %H:%M:%S", systime())
 }'
 # Time = 12/14/2014 22:08:42
+# 这个的问题是只有s级别精度
 
 awk 'BEGIN {
    print "Number of seconds since the Epoch = " mktime("2014 12 14 30 20 10")
 }'
 # Number of seconds since the Epoch = 1418604610
+# 这个只是解析而不是获取当前时间
 ```
 
 
@@ -333,6 +337,20 @@ awk 'BEGIN {
 
 
 
+### 获得ms精度时间
+
+目前能想到的只有调用外部命令了
+
+```sh
+echo "" | awk '{"date +%T.%6N" | getline d; print d}'
+# output:
+12:32:39.999831
+```
+
+
+
+
+
 ## comment
 
 
@@ -361,5 +379,28 @@ awk '{
 
 
 
+## 调用外部命令
 
 
+
+```sh
+echo "" | awk '{"date +%T.%6N" | getline d; print d}'
+```
+
+这个命令要用引号括起来，直接 `date | getline d`不行，会deref var报错
+
+
+
+## 输出到管道/非终端文件
+
+
+
+终端是不带缓冲的字节设备吧，其他的会带缓冲，导致如果数量比较少、慢的话（比如一些中间计算再输出的情况），会迟迟没有输出（可能等大量一起flush或者干脆等处理完（stdin eof）再flush），影响观察。
+
+手动flush方式：
+
+* `system("")`
+
+* `fflush()`
+
+  据说gawk才有

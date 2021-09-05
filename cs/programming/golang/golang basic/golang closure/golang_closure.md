@@ -70,9 +70,32 @@ out: 99
 
 
 
-确认的情况： 
+### 确认的情况 
 
 * 对于循环内的局部变量，实际是每次循环一个scope，这样访问没有并发问题
+
+  怎么实现的估计要看生成的汇编了，怀疑都是逃逸分析决定“new”
+
+  ```go
+  func main() {
+  	var ps []*int
+          for i := 0; i<5; i++ {
+  		var v int
+  		go func() {
+  			a := &v
+  			fmt.Printf("a is %p\n", a)
+  		}()
+  		ps = append(ps, &v)
+          }
+          *ps[0] = 1
+  	fmt.Print("Hello, playground", ps)
+  	time.Sleep(1 * time.Second)
+  }
+  // 这两种都没问题，拿到的都是不同的指针
+  ```
+
+  
+
 * 对于循环“上”的局部变量，比如 `for i:=0; i<max; i++`的`i`则和其他语言一样实际是同一个scope，访问到的也是同一个。。。
 
 

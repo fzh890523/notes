@@ -14,6 +14,14 @@
 
 ref：<https://stackoverflow.com/questions/5410757/delete-lines-in-a-text-file-that-contain-a-specific-string>
 
+> sed是per-line op，对于没有换行符的内容，还是会追加换行符，这个行为比较烦。 如：
+>
+> `echo 1 | sed 's/\n$//'`
+>
+> 可以：
+>
+> echo 1 | tr -d '\n'
+
 
 
 To remove the line and print the output to standard out:

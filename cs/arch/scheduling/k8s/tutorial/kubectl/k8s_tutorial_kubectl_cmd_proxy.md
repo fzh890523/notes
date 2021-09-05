@@ -61,3 +61,6 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 
 
+* `--address=0.0.0.0` 可访问
+* `--accept-hosts=^.*` 允许访问
+

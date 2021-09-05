@@ -148,7 +148,7 @@ docker commit <dockerId>  # output a image id
 docker tag <imageId> <imageTag>
 ```
 
-
+> 注意，这个image是不带volume的
 
 
 
@@ -183,4 +183,14 @@ docker load -i ubuntu.tar
 docker save --output saved-image.tar my-image:1.0.0
 docker save my-image:1.0.0 > saved-image.tar
 ```
+
+
+
+### 查找、删除 dangling images（tag为none）
+
+
+
+* `docker images -f "dangling=true" -q`
+
+* `docker rmi $(docker images -f "dangling=true" -q)`
 

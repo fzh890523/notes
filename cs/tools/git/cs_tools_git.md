@@ -79,6 +79,22 @@ If you do that, you'll never need to use `core.fileMode`, except in very rare en
 
 
 
+## view branch
+
+#### 详细信息如upstream： `-vv`
+
+```sh
+$ git branch -vv
+* master                        b249caad03 [origin/master: behind 35] Connect external control plane to remote cluster after install (#34854)
+  release-1.3.8-patch           3c137f4381 [origin/release-1.3.8-patch] Update proxy SHA to HEAD of release-1.3
+  release-1.5                   25bea56c0e [origin/release-1.5] Update Proxy SHA (#26298)
+
+```
+
+
+
+
+
 ## 删除分支
 
 
@@ -204,7 +220,47 @@ git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF=
 
 
 
+### 两个commit/tag/branch之间的差异
 
+> 非内容
+
+
+
+* `git log --oneline --graph v3.3.6...v3.3.7`
+
+  > Assuming that you just want to see what commits are in your feature branch that don't exist in master (i.e. which commits in feature are "ahead" of master), then you can do
+
+  output:
+
+  ```sh
+  *   52f3b79d3a (tag: v3.3.7) Merge branch 'xxx' into 'yyy'
+  |\
+  | * 742b13bfde (origin/3.3.xxx) xxx
+  | * cf1c218ad8 fix xxx
+  |/
+  * 5e0cf6b936 Fix: xxxx
+  * 63d6eae300 Fix: xxx
+  ```
+
+  
+
+* `git log --oneline --graph --decorate --left-right v3.3.5...v3.3.6`
+
+  > If you want to see how both master and feature have diverged, you can use this command:
+
+  output：
+
+  ```
+  >   52f3b79d3a (tag: v3.3.7) Merge branch 'xxx' into 'yyy'
+  |\
+  | > 742b13bfde (origin/3.3.xxx) xxx
+  | > cf1c218ad8 fix xxx
+  |/
+  > 5e0cf6b936 Fix: xxx
+  > 63d6eae300 Fix: xxx
+  ```
+
+  
 
 
 
@@ -552,6 +608,63 @@ git cherry-pick -x abcd  # -x的话生成标准commit message，减少重复merg
 
 
 # submodule
+
+> * 好像没管理好 .git/modules 和 .gitmodules 的同步。 手动添加文件和内容然后 git submodule update 或者 init都不行
+> * set-branch 
+
+
+
+* `git submodule update --recursive --init`
+
+* `git submodule add <url> <path>` 
+
+  `git submodule add git@x.x.x:yyy/zzz.git dep/zzz`
+
+* `git submodule set-branch --branch <branch> -- <path>`
+
+  会修改.gitmodules，但似乎没更新？ 手动update好像也不行
+
+
+
+```sh
+# 需要在git repo里
+git submodule add git@github.com:istio/pkg.git istio-pkg
+cd istio-pkg
+git checkout d97bc429be20
+# changes
+git checkout -b release-1.7.4
+git commit -m "xxx"
+
+git submodule set-url git@github.com:YonkaFang/pkg.git istio-pkg/
+cd istio-pkg
+git remote set-url origin git@github.com:YonkaFang/pkg.git
+git push origin release-1.7.4
+
+cd ..
+git submodule status
++f1c7fffabc49e30eacad234d12387593e33da01c istio-pkg (1.7.4-1-gf1c7fff)
+```
+
+
+
+## 嵌套的情况
+
+`proj1/proj2/proj3` 这样的嵌套submodule。
+
+```sh
+# proj1当前版本里对submodule proj2的版本描述为 v2.1，其中对proj3的版本描述为 v3.1
+cd proj2
+git checkout v2.2  # 其中对proj3的版本描述为v3.2
+git submodule update  # 这时还是会认为是...
+# 正确的做法
+cd ../
+git add -A
+git commit -m "change dep proj2 to v2.2"
+cd proj2
+git submodule update
+```
+
+
 
 
 

@@ -76,10 +76,29 @@ sysctl -w net.ipv4.conf.veth0.forwarding=1  # 实际这里不需要
 ### renew dhcp addr
 
 ```sh
+# release
 dhclient -r
 # or 
 dhclient -r ${interface_name}  # dhclient -r eth0
+
+# 然后就没地址了。 也许有些系统里会自动触发重新获取
+# 经常莫名其妙的执行不成功也不报错，多试几次也许ok了
+## 成功的输出示例
+sudo dhclient -r ens224
+Killed old client process
+
+
+# retrive
+dhclient ${interface_name}
 ```
+
+详见 `man dhclient`
+
+
+
+> dhcp option里下发的路由，如果要更新（比如原来下发有误），也需要用该方式来触发更新
+
+
 
 
 
@@ -228,6 +247,52 @@ nslookup iMac.localdomain  # 即可
     ```
 
     要生效的话见netplan命令 tutorial。
+
+
+
+### 增加路由
+
+* 临时：`sudo ip route add default via 192.168.2.144 metric 30`
+
+* 永久：
+
+  * 低版本： `sudo nano /etc/network/interfaces`
+
+    加入类似如下的条目
+
+    ```sh
+    up route add -net 192.168.40.0/24 gw 192.168.30.1 dev em1
+    ```
+
+  * 高版本： netplan方式
+
+    `sudo nano /etc/netplan/01-netcfg.yaml`  （不一定是这个名字，根据实际情况确定配置文件）
+
+    ```yaml
+    # This file describes the network interfaces available on your system
+    # For more information, see netplan(5).
+    network:
+      version: 2
+      renderer: networkd
+      ethernets:
+        eno1:
+          dhcp4: yes
+    # 以上为已有内容样例，以下为加入内容样例
+          routes:
+          - to: 192.168.44.0/24
+            via: 192.168.0.1
+    ```
+
+    然后：
+
+    ```sh
+    # 有必要的话先测试一下
+    sudo netplan try
+    
+    sudo netplan apply
+    ```
+
+    
 
 
 

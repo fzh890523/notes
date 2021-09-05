@@ -119,3 +119,30 @@ ref： [Allowing SSH access to ESXi/ESX hosts with public/private key authentica
 `host` - `actions` - `permissions` - `add user`/`assign role`： 好像是esxi系统user，比如ssh进去后，administrator等同于root
 
 `manage` - `security & users` - `users` - `add user`： 好像是esxi web console user
+
+
+
+# admin
+
+
+
+## 访问/接入方式
+
+* web client： 页面
+
+* ui client： 老版本的...
+
+* ssh： 每次重启好像会关掉，需要显式打开
+
+  也可以在机器上`F2`进入配置页启用
+
+> 以上几种方式都需要： 能正常访问网络 + 对应服务正常
+>
+> 如果 **没有网络条件** 或者 **网络组件/配置被玩挂** 那就需要直接去机器上操作了，如下：
+
+* 默认（或者`ALT-F2`从其他页面切换回来）： `DUCI`
+* `F2` 进入配置页面，可以配置、开启功能、部分restore操作
+* `ALT+F1` ： 进入console页面，可以command
+* `ALT+F11`：回到banner screen 
+* `ALT+F12`： 在console显示vmkernel log
+

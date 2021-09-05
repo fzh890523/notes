@@ -28,6 +28,16 @@ grep多个文件时，默认会带上 `xxx.txt:` 这样的行前缀
 
 
 
+#### 到管道/非终端设备
+
+类似awk，对于带缓冲的设备，会有迟迟无内容显式的情况，尤其是pipe后面的命令还等着输入的时候。
+
+去掉缓冲、设置缓冲的方式：
+
+* `--line-buffered` 顾名思义，每行flush
+
+
+
 ### match
 
 
@@ -151,6 +161,16 @@ ps aux | grep envoy |  grep -o -E -e "^root +" -e "restart-epoch [^ ]+"
 * `extended RE`: `-E` 
 
   == egrep
+
+
+
+### 目录查找 `-r`
+
+
+
+#### 排除指定目录 `--exclude-dir`
+
+如： `grep -rn hahaha --exclude-dir=.git --exclude-dir=aa/bb ./`
 
 
 

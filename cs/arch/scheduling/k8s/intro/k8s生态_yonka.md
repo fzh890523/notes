@@ -66,7 +66,22 @@ ref: [在本地运行Kubernetes的3种主流方式](https://www.jianshu.com/p/b8
 
 
 
+# 运维
 
+
+
+## yaml编写
+
+
+
+### ”IDE“
+
+* vscode
+  * Kubernetes插件
+  * [intellisense](https://code.visualstudio.com/docs/editor/intellisense#_customizing-intellisense) 提示
+    * 输入后提示： 自动
+    * **主动触发提示**： 不同平台快捷键不同，见链接
+      * windows： `ctrl+space`（无效）； `ctrl+i`（有效）
 
 
 

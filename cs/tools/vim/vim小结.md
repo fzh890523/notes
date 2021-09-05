@@ -90,6 +90,12 @@ On *most* **Linux** Distros, you can substitute:
 
 
 
+### 跨行查找： `abc.*\n.*def`
+
+似乎简单的`\n`即可
+
+
+
 ### 不区分大小写 /\c${pattern}
 
 

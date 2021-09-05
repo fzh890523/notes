@@ -63,6 +63,31 @@ net use * /del
 
 
 
+#### 不可用、超时带来的文件浏览器的卡顿
+
+ref：
+
+* https://docs.microsoft.com/en-us/archive/blogs/openspecification/cifs-and-smb-timeouts-in-windows
+* https://docs.microsoft.com/en-us/archive/blogs/openspecification/smb-2-x-and-smb-3-0-timeouts-in-windows
+
+主要的是及时断掉连接避免不必要的重试和超时等待： `net use Z: /delete`
+
+因为gui一点上去就卡住，没办法正常操作（bug
+
+
+
+#### windows server等能发现network share但点开提示无效网络路径
+
+
+
+ref： https://docs.microsoft.com/en-us/troubleshoot/windows-server/networking/guest-access-in-smb2-is-disabled-by-default
+
+`[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters] "AllowInsecureGuestAuth"=dword:0`
+
+改为1
+
+
+
 #### （低版本qnap nas）无法直接ip拉出共享目录问题
 
 表现为：
@@ -246,6 +271,16 @@ https://answers.microsoft.com/en-us/windows/forum/all/disable-windows-10-automat
 
 
 
+### 让远程电脑本地播放音频
+
+默认是使用（它的）远程音频（也即在连接的client机器上播放），在远程桌面里无法修改。
+
+而是要在远程桌面的连接属性里去改。
+
+
+
+
+
 ### 不允许用保存的凭据登陆
 
 ```
@@ -322,6 +357,74 @@ This solution will use [AutoHotkey](https://www.autohotkey.com/) installed on bo
 
 - On the client, translate the above hotkeys to others that are not intercepted by RDP
 - On the server, translate these keys back to the above hotkeys.
+
+
+
+
+
+# network
+
+
+
+## dns
+
+
+
+### dns server
+
+#### dns server selection/order
+
+https://serverfault.com/questions/84291/how-does-windows-decide-which-dns-server-to-use-when-resolving-names
+
+* 老版本里是按照网卡顺序
+* 新版本（10）是按照metric排序
+
+
+
+
+
+## route
+
+
+
+### 工具
+
+http://www.nirsoft.net/utils/network_route_view.html
+
+
+
+### static route
+
+
+
+#### 静态路由优先级metric问题
+
+
+
+现象： 
+
+* 添加的静态路由的metric低于dhcp gateway
+* 手动设置静态路由metric更低，之后一小会儿就自动调整了，大概率比dhcp gateway低
+
+
+
+原因： windows默认在网络接口上设置为`自动跃点`，so...
+
+
+
+解法：
+
+* 网卡设置
+
+* 高级
+
+* 取消自动跃点，设置好接口跃点
+
+* 设置网关的跃点，如果没有dhcp gateway，则手动加进去。 保证静态路由比dhcp gw的低
+
+* 目前看是有效的
+
+  但后来再看，dhcp gw这一条目又没了。 不过 `route print`看到metric还是设置的值
 
 
 
