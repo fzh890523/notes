@@ -525,7 +525,7 @@ kubectl run NAME --image=image [--env="key=value"] [--port=port] [--replicas=rep
 
 
 
-
+* `docker run test --image=busybox -- /bin/sh`
 
 
 

@@ -267,6 +267,12 @@ https://answers.microsoft.com/en-us/windows/forum/all/disable-windows-10-automat
 
 
 
+## services
+
+见 [it_windows_services.md](it_windows_services.md)
+
+
+
 # remote desktop
 
 

@@ -1824,7 +1824,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 
 
-### 1.7.1
+### [1.7.1](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.1/)
 
 **Changes**
 
@@ -1841,7 +1841,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 
 
-### 1.7.2
+### [1.7.2](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.2/)
 
 **Changes**
 
@@ -1852,7 +1852,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 
 
-### 1.7.3
+### [1.7.3](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.3/)
 
 
 
@@ -1866,7 +1866,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 
 
-### 1.7.4
+### [1.7.4](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.4/)
 
 
 
@@ -1886,7 +1886,7 @@ This release contains bug fixes to improve robustness. This release note describ
 
 
 
-### 1.7.5
+### [1.7.5](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.5/)
 
 
 
@@ -1906,7 +1906,7 @@ When upgrading your Istio data plane from 1.7.x (where x < 5) to 1.7.5 or newer,
 
 
 
-### 1.7.6
+### [1.7.6](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.5/)
 
 
 
@@ -1915,5 +1915,28 @@ When upgrading your Istio data plane from 1.7.x (where x < 5) to 1.7.5 or newer,
 - **Fixed** an issue causing telemetry HPA settings to be overridden by the inline replicas. ([Issue #28916](https://github.com/istio/istio/issues/28916))
 - **Fixed** an issue where a delegate `VirtualService` change would not trigger an xDS push. ([Issue #29123](https://github.com/istio/istio/issues/29123))
 - **Fixed** an issue that caused a very high memory usage with a large number of `ServiceEntry`s. ([Issue #25531](https://github.com/istio/istio/issues/25531))
+
+
+
+### [1.7.7](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.7/)
+
+**Changes**
+
+- **Fixed** an issue of using explicitly empty revision flag on install. ([Issue #26940](https://github.com/istio/istio/issues/26940))
+- **Fixed** the CA’s certificate signature algorithm to be the default algorithm corresponding to the CA’s signing key type. ([Issue #27238](https://github.com/istio/istio/issues/27238))
+- **Fixed** an issue showing unnecessary warnings when downgrading to a lower version of Istio. ([Issue #29183](https://github.com/istio/istio/issues/29183))
+- **Fixed** an issue causing older control planes relying on the `rbac.istio.io` CRD group to hang on restart due to the fact that newer control plane installations remove those permissions from istiod. ([Issue #29364](https://github.com/istio/istio/issues/29364))
+- **Fixed** a memory leak in WASM `NullPlugin` `onNetworkNewConnection`. ([Issue #24720](https://github.com/istio/istio/issues/24720))
+
+
+
+### [1.7.8](https://istio.io/latest/news/releases/1.7.x/announcing-1.7.8/)
+
+**Changes**
+
+- **Fixed** an issue where dashboard `controlz` would not port forward to istiod pod. ([Issue #30208](https://github.com/istio/istio/issues/30208))
+- **Fixed** an issue where namespace isn’t resolved correctly in `VirtualService` delegation’s short destination host. ([Issue #30387](https://github.com/istio/istio/issues/30387))
+- **Fixed** an issue causing HTTP headers to be duplicated when using Istio probe rewrite. ([Issue #28466](https://github.com/istio/istio/issues/28466))
+
 
 

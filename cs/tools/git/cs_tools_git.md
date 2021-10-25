@@ -536,6 +536,9 @@ git checkout --theirs -- <paths>
   ```sh
   git push --set-upstream new old
   # 或者先set再push吧
+  
+  # 似乎这样也行
+  git push -u origin my_branch:remote_branch
   ```
 
 
