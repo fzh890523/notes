@@ -14,7 +14,21 @@ https://stackoverflow.com/questions/53315791/how-to-convert-a-json-response-into
 
 
 
+## 筛选/过滤
+
+
+
+`jq '.items[] | select(.metadata.annotations."sidecar.istio.io/inject" == "true")'`
+
+
+
 # 数据类型
+
+
+
+## 特殊key： .["key"] or ."key"
+
+
 
 ## 特殊处理
 
@@ -52,6 +66,21 @@ https://stackoverflow.com/questions/53315791/how-to-convert-a-json-response-into
   >
   > * `.items | .[]? | length`
   > * `try .items[]` 等于 `(.items[])?` 不够不等于 `.items[]?`
+
+
+
+## 字符串
+
+* ` -r               output raw strings, not JSON texts;`
+
+  比如`jq '."results"[]["name"]'`可能得到
+
+  ```
+  "v1"
+  "v2"
+  ```
+
+  带上`-r`之后双引号就没了
 
 
 

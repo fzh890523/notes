@@ -1,5 +1,14 @@
 
 
+### 特殊赋值操作 `+=`
+
+```go
+m := map[string]int{}
+m["a"] += 1  // 看起来是完整的等效于 m["a"] = m["a"] + 1， 不存在的key取出了zero value再...
+```
+
+
+
 
 
 ### delete while iterating

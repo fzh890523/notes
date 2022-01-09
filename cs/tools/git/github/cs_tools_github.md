@@ -102,13 +102,71 @@ add ~/.ssh/id_rsa_1.pub to github user2's ssh keys
 
 
 
+## merge
 
 
 
+### squash merge
+
+* commit author算谁？ 
+
+  算原来的，但执行merge的人会多一行msg `Co-authored-by: `
+
+* 如果只有一个commit，算ff吗？ 还是commit id也会变？
+
+  不算ff； 会变
 
 
 
+### fast-forward： 不支持
+
+github的rebase-merge，看描述是不增加merge commit，实际也确实不增加，但commit id变了，导致`pull`时还是会merge，导致变成了`change-commit1 - change-commit2 - merge-commit3` 吐血。。。
+
+> The rebase and merge behavior on GitHub deviates slightly from `git rebase`. Rebase and merge on GitHub will always update the committer information and create new commit SHAs, whereas `git rebase` outside of GitHub does not change the committer information when the rebase happens on top of an ancestor commit. 
+>
+> https://docs.github.com/en/github/administering-a-repository/configuring-pull-request-merges/about-merge-methods-on-github
 
 
 
+## pull request
+
+
+
+### 联动issue
+
+
+
+参考： https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue
+
+
+
+github支持的关键字
+
+- close
+- closes
+- closed
+- fix
+- fixes
+- fixed
+- resolve
+- resolves
+- resolved
+
+
+
+使用场景：
+
+* pr desc
+* pr commit msg
+
+
+
+搜索issue： 暂时没用到，用的是交互里的 链接-搜索 
+
+
+
+样例：
+
+* `close #10`
+* `resolves #10, resolves #123, resolves octo-org/octo-repo#100`
 

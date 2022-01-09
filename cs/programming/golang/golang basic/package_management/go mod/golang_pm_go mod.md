@@ -217,6 +217,8 @@ go -mod=readonly mod vendor  # 据说只collect-to-vendor而不会做update，�
 
 
 
+* `go mod vendor` 更新
+
 
 
 
@@ -310,8 +312,31 @@ go build -mod=vendor
 
 * go mod版本
   * `>=1.14` + 有vendor目录： 等于 `-mod=vendor`
+  
+    > 带来一个副作用： **goland会跳转到vendor目录而不是mod**
+    >
+    > workaround： 临时 `mv vendor vendor1` （会触发re-index）。 主要用于开发状态配合git submodule使用
+  
+    > 亲测1.14还是需要显式`-mod=vendor`，晕
+  
   * else： 等于 `-mod=readonly`
 * 老版本： 需要项目在gopath下vendor目录才能生效
+
+
+
+## 直接使用vendor（禁用go mod）
+
+
+
+**windows git bash/msys下**
+
+> in `d:/xxx/istio-root/src/istio.io/istio`
+
+`GO111MODULE=off GOPATH="$GOPATH;d:/xxx/istio-root" go build -o pilot.exe ./pilot/cmd/pilot-discovery/`
+
+> `./pilot/cmd/pilot-discovery/` -> `istio.io/istio/pilot/cmd/pilot-discovery/` 也可以
+>
+> GOPATH="d:/xxx/istio-root;$GOPATH" 也可以。 **重点是那个分号分隔符 ;**
 
 
 
@@ -373,7 +398,93 @@ After adding `.git` suffix to all the required places, `go mod tidy` and `go get
 
 
 
+### replace
 
+```properties
+replace yy.com/yy => xx.com/yy v1.0.0
+```
+
+
+
+
+
+```properties
+[url "git@xx.com:"]
+            insteadOf = https://xx.com/
+```
+
+
+
+> 如果端口非标，需要：
+>
+> > 还没搞明白怎么一次性insteadof里带上端口
+
+```properties
+# ~/.ssh/config
+
+Host xx.com
+    Port 22222
+```
+
+
+
+#### remote import paths问题
+
+> 背景： 私有域名场景，replace无效。 原因如下
+
+
+
+[go mod: git setting "instead of" not work in go mod #34513](https://github.com/golang/go/issues/34513)
+
+https://pkg.go.dev/cmd/go#hdr-Remote_import_paths
+
+go的实现里，需要先识别vcs，然后才能apply replace（如git会用`git config`）。
+
+逻辑是：
+
+* 对于知名的域名，对应的vcs为已知
+
+  ```properties
+  Bitbucket (Git, Mercurial)
+  
+  	import "bitbucket.org/user/project"
+  	import "bitbucket.org/user/project/sub/directory"
+  
+  GitHub (Git)
+  
+  	import "github.com/user/project"
+  	import "github.com/user/project/sub/directory"
+  
+  Launchpad (Bazaar)
+  
+  	import "launchpad.net/project"
+  	import "launchpad.net/project/series"
+  	import "launchpad.net/project/series/sub/directory"
+  
+  	import "launchpad.net/~user/project/branch"
+  	import "launchpad.net/~user/project/branch/sub/directory"
+  
+  IBM DevOps Services (Git)
+  
+  	import "hub.jazz.net/git/user/project"
+  	import "hub.jazz.net/git/user/project/sub/directory"
+  ```
+
+  
+
+* 其他的，需要通过某种方式告知（suffix，如`.git`）
+
+  如： `repository.vcs/path`
+
+  go.mod里：
+
+  ```
+  repositocy.com/user/repo.git
+  ```
+
+  > 详见上面的链接
+
+  
 
 
 

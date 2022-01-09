@@ -23,6 +23,12 @@ go get ./...
 
 
 
+### GONOPROXY
+
+`,`分割的列表，如： `GONOPROXY=a.com,*.cn`
+
+
+
 # 包管理工具
 
 

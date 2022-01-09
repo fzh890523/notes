@@ -137,6 +137,12 @@ Host xxx
 
 
 
+### 只用密码登录
+
+`-o PreferredAuthentications=password -o PubkeyAuthentication=no`
+
+
+
 ## 代理ssh（ProxyCommand）
 
 Ref:
@@ -208,6 +214,29 @@ W - Requests that standard input and output on the client be forwarded to HOST o
 %h - Host to connect to.
 %p - Port to connect to on the remote host.
 ```
+
+
+
+### key传递
+
+A -> proxyB -> C
+
+`ssh -o "ProxyCommand=ssh -W %h:%p root@proxyB" C`
+
+可能有几种情况：
+
+* 让b用b上key去连c
+* 让b用a的key去连c
+
+
+
+ssh-agent forward-agent方案应该是可以，但命令行的方式好像不太行
+
+外面或者里面`-i`加上`-o "ForwardAgent=yes"`都不行。
+
+里外同时`-i`可以： `ssh -i ~/.ssh/xxx -o "ProxyCommand=ssh -i ~/.ssh/xxx -W %h:%p root@proxyB" C`
+
+
 
 
 

@@ -129,3 +129,15 @@
 
 
 
+## GODEBUG env
+
+
+
+https://pkg.go.dev/runtime#hdr-Environment_Variables
+
+`env GODEBUG=schedtrace=1000 godoc -http=:8080 -index`
+
+[A whirlwind tour of Go’s runtime environment variables](https://dave.cheney.net/tag/godebug)
+
+
+

@@ -77,6 +77,20 @@ kill "$SSH_AGENT_PID"
 
 
 
+```sh
+ssh-add.exe ~/.ssh/id_rsa
+Could not open a connection to your authentication agent.
+
+ssh-agent $SHELL
+
+ssh-add ~/.ssh/id_rsa
+Identity added: ...
+
+# now we can ssh to ... and auto-pass ssh key
+```
+
+
+
 
 
 

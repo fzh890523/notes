@@ -182,6 +182,8 @@ docker run -d <image>  # run in detach(from stdout/stdin) mode
 
   > 与`mount`命令行为不同，docker会额外创建不存在的挂载目录以供挂载
 
+  > 似乎不能是relative path
+
 * `--read-only`  把root（`/`）挂载为ro，此时只有额外挂载为rw的卷才能写入
 
 * `--tmpfs` 挂载tmpfs

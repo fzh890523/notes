@@ -282,8 +282,54 @@ https://helm.sh/docs/chart_best_practices/conventions/
 
 ### if
 
+https://helm.sh/docs/chart_template_guide/control_structures/#ifelse
+
 似乎没办法判空和判nil？
 比如显式传入空字符串、空列表，没办法区分？
+
+> For templates, the operators (`eq`, `ne`, `lt`, `gt`, `and`, `or` and so on) are all implemented as functions. In pipelines, operations can be grouped with parentheses (`(`, and `)`).
+
+* `{{ if .a }}`
+* `{{ if not .a }}`
+* `{{- if or (eq .Values.isCar true) (eq .Values.isBus true) }}`
+* `{{- if or .Values.isCar .Values.isBus }}`
+
+
+
+### 特殊case处理
+
+
+
+#### nil处理
+
+* nil无法和string比较，会报错，可以的做法
+
+  * `{{- if eq (default "prod" $.Values.global.environment) "dev" }}`
+
+    注意不是 <del>`{{- if eq (default $.Values.global.environment "prod") "dev" }}`</del>>
+
+    差不多的写法
+
+    `{{- if eq ($.Values.global.environment | default "prod") "dev" }}`
+
+* <del>`{{- if (.Values.app.configMap.DEMO_MODE) and eq .Values.app.configMap.DEMO_MODE "1" }}`</del>
+
+  > Returns the boolean AND of its arguments by returning the
+  > 	first empty argument or the last argument, that is,
+  > 	"and x y" behaves as "if x then y else x". All the
+  > 	arguments are evaluated.
+
+  helm里的`AND`没有短路效益...
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -6,6 +6,21 @@
 
 
 
+### nfs datastore
+
+**esxi使用NFS datastore**
+
+1. new - mount nfs datastore `ubuntu-1910-1-mnt`
+2. nfs server `yonka-ubuntu-180413-1.localdomain`
+3. nfs share `/mnt`
+4. nfs version `nfs4`
+
+即可
+
+
+
+
+
 ### 从特定分区而不是整个硬盘创建datastore
 
 * ui操作（？待确认是否可以）

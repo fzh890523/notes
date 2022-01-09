@@ -20,7 +20,19 @@
 
 
 - A send to a closed channel panics
+
 - A receive from a closed channel returns the zero value immediately
+
+  ```go
+  close(ch)
+  v := <- ch  // get zero value
+  
+  v, ok := <- ch  // get zero value and false
+  ```
+
+  
+
+  
 
 
 

@@ -7,6 +7,41 @@ ref:
 
 
 
+### 查看： 从node spec里看
+
+
+
+## tutorial
+
+* add taint
+
+  ```sh
+  # kubectl taint nodes node-name key=value:effect
+  kubectl taint nodes node-main taint=test:PrefereNoSchedule
+  ```
+
+* add toleration
+
+  ```yaml
+  spec:
+    containers:
+    - name: nginx
+      image: nginx
+      imagePullPolicy: IfNotPresent
+    tolerations:
+    - key: "taint"
+      value: "test"
+      effect: "PrefereNoSchedule"
+  ```
+
+  
+
+
+
+### taint
+
+
+
 
 
 ```sh
@@ -60,6 +95,10 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 * effect好像没默认值，必须带
 
+  > - **NoSchedule**: if this taint is applied to a node which contains already some pod that doesn’t tolerate this taint, they are not excluded from this node. But no more pods are scheduled on this node if it doesn’t match all the taints of this node. This is a strong constraint.
+  > - **PreferNoSchedule:** Like the previous one, this taint may not allow pods to be scheduled on the node. But this time, if the pod tolerates one taint, it can be scheduled. This is a soft constraint.
+  > - **NoExecute**: This taint applies to a node excluding all actual running pods on it and doesn’t allow scheduling if new pods don’t tolerate all taint. This is a strong constraint.
+
 * taint存在于node属性，无法单独get
 
   ```sh
@@ -80,7 +119,52 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 
 
-### 查看： 从node spec里看
+### toleration
+
+```yaml
+tolerations:
+- key: "key1"
+  operator: "Equal"
+  value: "value1"
+  effect: "NoSchedule"
+```
+
+
+
+> The default value for `operator` is `Equal`.
+>
+> A toleration "matches" a taint if the keys are the same and the effects are the same, and:
+>
+> - the `operator` is `Exists` (in which case no `value` should be specified), or
+>
+>   **这个可以用于实现通配**，如`kube-proxy`自带的两个toleration：
+>
+>   * 以下表示容忍所有key为`CriticalAddonsOnly` 的taint
+>
+>     ```yaml
+>           - key: CriticalAddonsOnly
+>             operator: Exists
+>     ```
+>
+>   * 而以下则表示...
+>
+>     ```yaml
+>           - operator: Exists
+>     ```
+>
+>   * 类似的，以下表示容忍key为`yonka` effect为`NoSchedule`的taint
+>
+>     ```yaml
+>     - key: "yonka"
+>       operator: "Exists"
+>       effect: "NoSchedule"
+>     ```
+>
+>     
+>
+> - the `operator` is `Equal` and the `value`s are equal.
+
+
 
 
 

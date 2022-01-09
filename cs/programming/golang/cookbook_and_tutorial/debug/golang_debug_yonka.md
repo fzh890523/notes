@@ -37,9 +37,11 @@ ${args}
 
 
 
-* 开了debug接口另说
+* 开了debug接口另说： `curl http://localhost:<port>/debug/pprof/goroutine?debug=2`
 
 * 没开的话： `kill -SIGQUIT ${go_pid}`。 会输出在标准（错误？）输出里。
+
+  k8s环境 `logs -f` 也能看到
 
 
 

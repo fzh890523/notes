@@ -73,7 +73,7 @@ subjectAltName = DNS:*.com
   `k get secrets istio-ca-secret -o json | jq '.data."ca-cert.pem"' | base64 -d | openssl x509 -text -noout` 比如解析k8s secret
   
 * `openssl crl2pkcs7 -nocrl -certfile CHAINED.pem | openssl pkcs7 -print_certs -text -noout`
-  据说可以打印bundle文件中全部certs
+  据说可以打印bundle文件中全部certs - 是的
 
   不带`-certfile`参数好像可以read from stdin - 不太行，输出不对
   
