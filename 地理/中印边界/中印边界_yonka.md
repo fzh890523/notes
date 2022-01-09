@@ -39,3 +39,74 @@
   * 东段
     * 藏南
     * 中不 争议
+
+
+
+![img](_pics/中印边界_yonka/Aksai_Chin_Sino-Indian_border_map.png)
+
+
+
+## 实控线
+
+
+
+
+
+## **马继业-窦讷乐线**
+
+
+
+> **马继业-窦讷乐线** (英語：Macartney-MacDonald Line) 是英国于1898年提出的一种中国和英属印度的划界方案。
+>
+> [威廉·约翰逊](https://zh.wikipedia.org/wiki/威廉·約翰遜)在[印度测绘局](https://zh.wikipedia.org/w/index.php?title=印度测绘局&action=edit&redlink=1)工作期间提出了**约翰逊线**。这条线将整个阿克赛钦划归克什米尔。據西方文献，1893年，中国一驻聖彼得堡官员向英国驻喀什总领事[马继业](https://zh.wikipedia.org/wiki/马继业)递交了一份关于新疆和克什米尔划界方案。[[1\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-1)这一方案将拉宗山脉以南的林津塘盐湖洼地划给印度，以北则归中国。马继业表示同意，并将此方案报告给英印政府。[[2\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-Calvin-2) 英方通过驻华公使窦讷乐知会中方，中方没有回应，英方單方面将此视为中方的默许。[[2\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-Calvin-2)[[3\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-middlepath-3)[[註 1\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-4)
+>
+> 
+> 此线为[中巴边界协定](https://zh.wikipedia.org/wiki/中巴边界协定)中的划界提供了部分依据，故亦有人建议解决[中印边界问题](https://zh.wikipedia.org/wiki/中印边界问题)亦可将此线作为参考。[[3\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-middlepath-3)[[4\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-5)
+>
+> 此线的喀喇昆仑山口以东段具体描述如下：
+>
+> > 从喀喇昆仑山口起[边界将沿着]山脉的山峰向东行约半度（即一百华里“三十三英里”），然后向南到略低于北纬二十五度处。在我们地图上所画的喀拉喀什河河源处拐弯，再沿着山向东北行，一直到克孜勒吉勒尕（Kizil Jilga）以东的一点，然后再沿着拉宗山脉向东南，一直到该山脉与昆仑山的一条南北走向的支脉相会合为止；这条支脉在我们的地图上一直是作为拉达克的东部边界标出来的。两山汇合处是在东经八十度略为偏东处。[[2\]](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_note-Calvin-2)
+>
+> ## 注释[[编辑](https://zh.wikipedia.org/w/index.php?title=馬繼業-竇訥樂線&action=edit&section=1)]
+>
+> 1. **[^](https://zh.wikipedia.org/wiki/馬繼業-竇訥樂線#cite_ref-4)** 以中国官员向英印提供地图为此线肇始的说法未见于中文文献。即本线的来历几何存在不同见解，详[讨论页](https://zh.wikipedia.org/wiki/Talk:馬繼業-竇訥樂線)。
+
+
+
+## 约翰逊线
+
+
+
+> 约翰逊线是英属印度殖民官员约翰逊在地图上私自沿[昆仑山](https://baike.baidu.com/item/昆仑山/394387)画的一条线，而[中印边界](https://baike.baidu.com/item/中印边界/9144747)的西段传统上一直以[喀喇昆仑山](https://baike.baidu.com/item/喀喇昆仑山/2112564)的山脊为界。
+>
+> - 中文名
+>
+>   约翰逊线
+>
+> - 界  限
+>
+>   喀喇昆仑山的山脊
+>
+> - 位  置
+>
+>   中国[阿克赛钦](https://baike.baidu.com/item/阿克赛钦/6270453)以东
+>
+> - 相关国家
+>
+>   [中国](https://baike.baidu.com/item/中国/22516505)、[印度](https://baike.baidu.com/item/印度/121904)
+>
+> [![阿克塞钦地区](_pics/中印边界_yonka/64380cd7912397dd7bf33d305882b2b7d0a28778)](https://baike.baidu.com/pic/约翰逊线/9682051/0/64380cd7912397dd7bf33d305882b2b7d0a28778?fr=lemma&ct=single)阿克塞钦地区
+>
+> 但在[英国](https://baike.baidu.com/item/英国)殖民统治[印度](https://baike.baidu.com/item/印度/121904)期间，一个叫约翰逊的英国人认为沙俄当时必然会占领新疆的西部地区，为了与[沙俄](https://baike.baidu.com/item/沙俄)争夺[中亚](https://baike.baidu.com/item/中亚)的势力范围，约翰逊在地图上越过喀喇昆仑山，将中印的边界线往北画到了[昆仑山脉](https://baike.baidu.com/item/昆仑山脉)，这条线即“约翰逊线”。这样，位于昆仑山脉和喀喇昆仑山脉之间的[阿克赛钦](https://baike.baidu.com/item/阿克赛钦)地区就被画到了[英属印度](https://baike.baidu.com/item/英属印度/2651634)的[克什米尔](https://baike.baidu.com/item/克什米尔/517533)地区。但这只是画在地图上的一道线，没有起过实际作用，[印度](https://baike.baidu.com/item/印度)从未在此派驻一兵一卒。 [1] 
+
+
+
+## 麦克马洪线
+
+
+
+![img](_pics/中印边界_yonka/ac345982b2b7d0a20cf4c82995a561094b36acaf2c66)
+
+
+
+![img](_pics/中印边界_yonka/9d82d158ccbf6c81f21f211cbc3eb13533fa401d)
