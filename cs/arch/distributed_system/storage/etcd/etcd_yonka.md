@@ -22,6 +22,23 @@
 
 ```sh
 docker run --rm -v `pwd`/etcd-browser/etcd-ca.crt:/etc/ssl/certs/etcd-ca.crt -p 8080:8080 evildecay/etcdkeeper
+
+docker run --rm -v $BASE/etc/kubernetes/pki/etcd/ca.crt:/etc/ssl/certs/etcd-ca.crt -p 8080:8080 evildecay/etcdkeeper
+
+
+./etcdkeeper --cacert ../kube/etc/kubernetes/pki/etcd/ca.crt -usetls
+
+```
+
+
+
+### etcdctl
+
+
+
+```sh
+ETCDCTL_API=3 ./etcd-download-test-v3.5.1/etcdctl --cacert=$BASE_DIR/etc/kubernetes/pki/etcd/ca.crt \
+get /registry/namespaces -w=json
 ```
 
 

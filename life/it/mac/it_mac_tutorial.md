@@ -79,6 +79,8 @@ end run
 Finder 工具栏右键, 自定义, 然后把 New File.app 拖上去（要从另一个find窗口操作，当前的hang着）, 大功告成
 ```
 
+> 缺个可识别的图标。 不过可以把工具栏设置为 图标+文字 这样也能识别
+
 
 
 ### copy file path
@@ -233,16 +235,6 @@ Regular expression: \*\*B00000000000000
 
 # 文件
 
-
-
-## 查看
-
-
-
-### 查看隐藏文件： cmd+shift+.
-
-
-
 ## 修改默认打开的程序
 
 1. 类win方式
@@ -284,6 +276,26 @@ option+鼠标左键（或触摸板）
 
 
 ### 备份iphone
+
+
+
+
+
+#### 怎么备份照片库
+
+官方说法：
+
+* timemachine
+
+* 人肉备份照片库目录
+
+  在这个的基础上，可以用一些同步的软件，比如 qnap的qsync。
+
+  不过这个目录比较特殊，需要给权限才能访问，详见上面
+
+  > 给了权限能访问了，也选不中。 最后把父目录（Pictures）做了同步，囧
+
+
 
 
 
@@ -484,6 +496,38 @@ Exception in thread "main" java.lang.NullPointerException
 
 
 
+### 光标移动/删除
+
+> 在 perferences - profiles - 特定profile（也可以是default） - keys - key mappings -，点加号，可以多种方式，比如
+>
+> * `send escape sequence`
+> * `send hex code`
+> * ...
+
+
+
+* `esc-d` 删除至光标处（含，也即光标处也删除）
+
+  可以用send escape sequence方式修改为`opt+d`等
+
+* `esc-f`/`esc-b`  向前/后移动一个word
+
+  类似的可以修改为 `opt+->`/`opt+<-`
+
+* send hex code
+
+  * `0x1b 0x08`/`0x17` 向后删除一个word
+
+    具体哪个可能看环境。反正我试了是17
+
+    可以修改为 `opt+del<-` 也即`cmd+backspace`
+
+  * `0x15` 删除行
+
+    可以修改为 `cmd+del<-`
+
+
+
 ### tab
 
 #### tab name
@@ -531,6 +575,31 @@ Exception in thread "main" java.lang.NullPointerException
 
 
 
+
+
+## start
+
+
+
+### recover
+
+* 开机
+
+* 按下cmd-r
+* 出现苹果logo后放开
+
+
+
+出现的`macOS Utilities`里有几个restore/reinstall/diskutil功能选项，在上面菜单栏里的Utilities里有更多，比如打开terminal(**recovery mode**)
+
+ 
+
+
+
+
+
+
+
 ## kernel
 
 ### 类似strace
@@ -562,46 +631,19 @@ sudo dtruss -t open_nocancel -p $SERVER_PID
 
 ## process
 
-
-
-### 查看进程cwd - lsof
-
-* `lsof -d cwd`
-
-  查看所有进程的cwd
-
-* `lsof -a -d cwd -p ${pid}`
-
-  查看指定进程的cwd
-
-> 需要具有要查看进程的权限，同user或者root
+见对应文档
 
 
 
 ## network
 
+见对应doc
 
 
-### hostname
 
-* s
+## filesystem
 
-* 在`设置-共享`里
-
-* 在`scutil --set HostName`
-
-  这个不清楚什么关系，跟前者。
-
-  ```sh
-  sudo scutil --set HostName <new host name>
-  sudo scutil --set LocalHostName <new host name>
-  sudo scutil --set ComputerName <new name>
-  dscacheutil -flushcache
-  ```
-
-  ref: https://apple.stackexchange.com/questions/287760/set-the-hostname-computer-name-for-macos
-
-
+见对应doc
 
 
 
@@ -652,28 +694,21 @@ sudo dtruss -t open_nocancel -p $SERVER_PID
 
   
 
-# os
+
+
+#### windows远程桌面连接到macos
 
 
 
+用标准vnc协议，软件是vnc viewer。 默认是`509x`端口，可以在macos上先看下（`sudo lsof -nP -sTCP:LISTEN -i:5900`），有时可能没打开。
 
+暂时知道的：
 
-## start
+* `screen sharing`会开vnc server
 
+* `remote management`开启后`screen sharing`会默认灰掉，不清楚vnc server是开启还是“忘了关”
 
-
-### recover
-
-* 开机
-
-* 按下cmd-r
-* 出现苹果logo后放开
-
-
-
-出现的`macOS Utilities`里有几个restore/reinstall/diskutil功能选项，在上面菜单栏里的Utilities里有更多，比如打开terminal(**recovery mode**)
-
- 
+  遇到的case就是vnc server用不了，然后关掉这个重新打开ss就可以了，然后再打开这个。。
 
 
 

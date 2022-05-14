@@ -78,5 +78,37 @@
 
 
 
+## 系统管理
+
+
+
+### 重启
+
+
+
+#### 不打开窗口
+
+* shutdown弹窗里勾选（一次性）
+* preference - general 里设置（永久）
+* 禁用startup/login items（指定）
+
+
+
+
+
+#### force restart
+
+How to Force Restart Your Mac
+
+> Press and hold down the **Command (⌘)** and **Control (Ctrl)** keys along with the power button (or the ‌Touch ID‌ / Eject button, depending on the Mac model) until the screen goes blank and the machine restarts.
+
+
+
+
+
+
+
+
+
 
 

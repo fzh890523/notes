@@ -8,6 +8,8 @@ https://istio.io/latest/docs/ops/diagnostic-tools/component-logging/
 
 似乎没办法一次性配置所有的scopes的日志级别，类似： `*:debug`
 
+> 好像有个 `all`
+
 见： [Log levels for Istio are not easily configurable and missing documentation](https://github.com/istio/istio/issues/11847)
 
 
