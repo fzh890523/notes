@@ -296,6 +296,56 @@ https://helm.sh/docs/chart_template_guide/control_structures/#ifelse
 
 
 
+### range
+
+
+
+### 数组（list）
+
+https://helm.sh/docs/chart_template_guide/function_list/#lists-and-list-functions
+
+
+
+* new
+  * `{{ $myList := list 1 2 3 4 5 }}`
+  * `{{ $myList := list }}` 初始化一个空的
+
+* 支持的操作函数： 见链接
+
+  > Helm provides the following list functions: append (mustAppend), compact (mustCompact), concat, first (mustFirst), has (mustHas), initial (mustInitial), last (mustLast), prepend (mustPrepend), rest (mustRest), reverse (mustReverse), seq, index, slice (mustSlice), uniq (mustUniq), until, untilStep, and without (mustWithout).
+
+
+
+#### 取最后一个元素
+
+
+
+`image: {{ $image := "" }}{{ range (split ”、“ .Values.image_xx) }}{{ $image = . }}{{ end }}{{ $image }}`
+
+
+
+### dict（map）
+
+https://helm.sh/docs/chart_template_guide/function_list/#dictionaries-and-dict-functions
+
+
+
+* key需要是string
+* value可以是任意类型，包括list、dict
+* mutable
+
+
+
+* new
+  * `{{ $mydict := dict }}` new一个空的
+  * `{{ $mydict := dict "key1" "value1" "key2" "value2" }}`
+
+* 支持的操作函数： 见链接
+
+  > Helm provides the following functions to support working with dicts: deepCopy (mustDeepCopy), dict, get, hasKey, keys, merge (mustMerge), mergeOverwrite (mustMergeOverwrite), omit, pick, pluck, set, unset, and values.
+
+
+
 ### 特殊case处理
 
 

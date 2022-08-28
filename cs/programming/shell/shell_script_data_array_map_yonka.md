@@ -67,9 +67,14 @@ ${#pids[@]}
 $pids[1]  # starts from 1 ...
 
 local a=1
+keya=a
 $pids[a]  # 囧...
+# bash支持： ${pids[a]} ${pids['a']}  ${pids[$keya]}
+# zsh似乎只支持 ${pids['a']}
 
 local v=${items[$k]}  # bash支持 ${items["$k"]} 但zsh不支持
+
+local v=${items[-1]}  # 取最后一个，bash 4.2版本开始。 ${myarray[${#myarray[@]} - 1]} for earlier versions.
 ```
 
 ### 索引赋值

@@ -31,3 +31,26 @@ And [the language specification](https://golang.org/ref/spec#For_statements):
 
 
 
+## 特殊值行为： nil值
+
+
+
+* 读： return zero value
+* 写： panic
+
+
+
+```go
+var m map[string]string
+v := m["a"]  // get ""
+m["a"] = v  // panic
+```
+
+
+
+
+
+
+
+
+

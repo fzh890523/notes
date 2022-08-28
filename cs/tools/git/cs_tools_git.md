@@ -79,6 +79,20 @@ If you do that, you'll never need to use `core.fileMode`, except in very rare en
 
 
 
+## 创建分支
+
+
+
+### 从指定commit创建分支
+
+
+
+* `git branch branchname <sha1-of-commit>`
+* `git branch branchname HEAD~3`
+* `git checkout -b branchname <sha1-of-commit or HEAD~3>`
+
+
+
 ## track branch
 
 https://git-scm.com/book/en/v2/Git-Branching-Remote-Branches
@@ -296,6 +310,18 @@ git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF=
 
 
 
+### diff指定文件内容
+
+> git diff master~20:pom.xml master:pom.xml
+>
+> git diff master~20:pom.xml pom.xml
+
+但感觉这些似乎不太好用： `git diff <branch> -- ./pkg`
+
+
+
+
+
 ### 两个commit/tag/branch之间的差异
 
 > 非内容
@@ -359,6 +385,20 @@ git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF=
 
 
 ## msg
+
+
+
+### 修改之前的某commit
+
+1. `rebase -i <commit>^`，注意最后这个`^`表示前一个，这里似乎语义是左开
+
+2. 要修改的那个，`pick <commit>`改为`edit <commit>` 然后save、quit，进入修改状态
+
+   修改； add； `commit --amend`； `rebase --continue`
+
+   > 会有提示
+
+> 会影响那个commit以及之后所有commit号，所以push要带`--force`，酌情使用
 
 
 
@@ -575,484 +615,13 @@ https://git-scm.com/docs/git-fetch
 
 # tag
 
-## 类型
-
-> git for-each-ref tells you what each ref is to by default, its id and its type. To restrict it to just tags, do git for-each-ref refs/tags.
->
-> > [T]he output has three fields: The hash of an object, the type of the object, and the name in refs/tags that refers to the object. A so-called "lightweight" tag is a name in refs/tags that refers to a commit¹ object. An "annotated" tag is a name in refs/tags that refers to a tag object.
-> >
-> > - Solomon Slow (in the comments)
->
-> Here is an example:
->
-> ```sh
-> $ git for-each-ref refs/tags                                           
-> 902fa933e4a9d018574cbb7b5783a130338b47b8 commit refs/tags/v1.0-light
-> 1f486472ccac3250c19235d843d196a3a7fbd78b tag    refs/tags/v1.1-annot
-> fd3cf147ac6b0bb9da13ae2fb2b73122b919a036 commit refs/tags/v1.2-light
-> ```
->
-> To do this for just one ref, you can use git cat-file -t on the local ref, to continue the example:
->
-> ```sh
-> $ git cat-file -t v1.0-light
-> commit
-> $ git cat-file -t v1.1-annot
-> tag
-> ```
->
-> 
->
-> > ¹ tags can refer to any Git object, if you want a buddy to fetch just one file and your repo's got a git server, you can `git tag forsam :that.file` and Sam can fetch it and show it. Most of the convenience commands don't know what to do with tagged blobs or trees, but the core commands like update-index and such do
-
-
-
-> The big difference is perfectly explained here.
->
-> Basically, lightweight tags are just pointers to specific commits. No further information is saved; on the other hand, annotated tags are regular objects, which have an author and a date and can be referred because they have their own SHA key.
->
-> If knowing who tagged what and when is relevant for you, then use annotated tags. If you just want to tag a specific point in your development, no matter who and when did that, then lightweight tags are good enough.
->
-> Normally you'd go for annotated tags, but it is really up to the Git master of the project.
-
-
-
-
-
-
-
-## search
-
-
-
-### 根据commit hash查找
-
-* `git tag --points-at HEAD`/`git tag --points-at <hash>`
-
-* `git tag --contains <commit>`（也支持`HEAD`）
-
-  但真的只是contains，比如用一个老的commit，可能输出多个tag
-
-
-
-## list
-
-
-
-* `git tag`
-
-* `git tag -l`
-
-  `git tag -l "0.1.*"`
-
-* `git tag -a v1.0.0 -m "for test"`
-
-*  `git push origin v1.0.0`/`git push origin --tags`
-
-
-
-```sh
- git show-ref --tags
-89cdb55df2d556bc63317630cce23c9768eb9734 refs/tags/0.1.0
-5a25a62cf322518b196fc8fb44b7e9c104ddd07e refs/tags/0.1.1
-...
-```
-
-
-
-显示日期：
-
-```sh
- git log --tags --simplify-by-decoration  --pretty="format:%ai %d"
-2021-01-15 15:35:10 -0700  (tag: 1.9.0-beta.0, origin/release-1.9)
-2021-01-12 17:06:23 -0600  (tag: 1.8.2)
-2020-12-07 13:31:30 -0800  (tag: 1.8.1)
-...
-```
-
-> There is no date information attached to a lightweight tag. Therefore, this answer is incorrect. The dates in the output of `git log --tags --simplify-by-decoration --pretty="format:%ai %d"` are the dates of the *objects* to which the tags point, *not* the dates when the tags themselves were created.
-
-```sh
-git log --date-order --graph --tags --simplify-by-decoration --pretty=format:'%ai %h %d'
-
-* 2021-01-15 15:35:10 -0700 5dd20445f2  (tag: 1.9.0-beta.0, origin/release-1.9)
-| * 2021-01-12 17:06:23 -0600 bfa8bcbc11  (tag: 1.8.2)
-| * 2020-12-07 13:31:30 -0800 806fb24bc1  (tag: 1.8.1)
-| | * 2020-12-07 20:40:53 +0800 74a8d16a80  (tag: 1.7.6)
-| | * 2020-12-04 15:53:29 -0800 35ffee31de  (release-1.7)
-| | | * 2020-11-20 13:43:48 -0600 3ddc57b6d1  (tag: 1.6.14, origin/release-1.6)
-| * | | 2020-11-18 14:44:33 -0800 c87a4c874d  (tag: 1.8.0-rc.1, tag: 1.8.0)
-# graph样式
-```
-
-
-
-```sh
-git tag -l --format='%(refname)   %(taggerdate)'
-refs/tags/0.1.0
-refs/tags/0.1.1   Wed May 10 22:49:45 2017 -0700
-refs/tags/0.1.2   Sun May 14 22:51:04 2017 -0700
-refs/tags/0.1.3   Mon May 15 21:18:57 2017 -0700
-...
-
- git tag -l --sort=-creatordate --format='%(creatordate:short):  %(refname:short)'
-2021-01-15:  1.9.0-beta.0
-2021-01-14:  1.8.2
-2020-12-10:  1.7.6
-...
-```
-
-
-
-
-
-## show(detail)
-
-
-
-* `git show <name>`
-
-
-
-### 获取tag hash
-
-> To get git tags with the SHA1 hash of the Tag object, you can run:
->
-> ```
-> git show-ref --tags
-> ```
->
-> The output will then look something like:
->
-> ```
-> 0e76920bea4381cfc676825f3143fdd5fcf8c21f refs/tags/1.0.0
-> 5ce9639ead3a54bd1cc062963804e5bcfcfe1e83 refs/tags/1.1.0
-> 591eceaf92f99f69ea402c4ca639605e60963ee6 refs/tags/1.2.0
-> 40414f41d0fb89f7a0d2f17736a906943c05acc9 refs/tags/1.3.0
-> ```
->
-> Each line is the SHA1 hash of the tag, followed by the tag name prefixed with `refs/tags/`.
->
-> If you want the SHA1 hash of the commit, instead of the tag object, you can run:
->
-> ```
-> git show-ref --tags -d
-> ```
->
-> This will produce output like:
->
-> ```
-> 0e76920bea4381cfc676825f3143fdd5fcf8c21f refs/tags/1.0.0
-> 3e233dd8080617685992dc6346f739a6f6396aae refs/tags/1.0.0^{}
-> 5ce9639ead3a54bd1cc062963804e5bcfcfe1e83 refs/tags/1.1.0
-> 09173980152a7ed63d455829553448ece76c6fdc refs/tags/1.1.0^{}
-> 591eceaf92f99f69ea402c4ca639605e60963ee6 refs/tags/1.2.0
-> 56d803caaa8a93a040b7be0b8a36abdc4ce8c509 refs/tags/1.2.0^{}
-> 40414f41d0fb89f7a0d2f17736a906943c05acc9 refs/tags/1.3.0
-> 1bdf628a70fda7a0d840c52f3abce54b1c6b0130 refs/tags/1.3.0^{}
-> ```
->
-> The lines ending with `^{}` start with the SHA1 hash of the actual commit that the tag points to.
-
-
-
-## verify
-
-
-
-* `git -v <name>`
-
-
-
-## add
-
-
-
-* annotation
-
-  * normal `git tag -a <name> -m <comment>`
-
-    打在某个commit上`git -a <name> <commit>`
-
-    > commit号允许是前几位
-
-  * signed `git tag -s <name> -m <comment>`
-
-* lightweight
-
-  * `git tag <name>`
-
-
-
-## push
-
-
-
-* 推送某个 `git push <remote> <tagname>`
-* 推送全部`git push <remote> --tags`
-
-
-
-
-## delete
-
-
-
-local
-
-* `git tag -d <tagname>`
-
-  `git tag -d 0.1.0.2`
-
-
-
-
-remote
-
-* `git push origin :tagname` 
-
-  > push an 'empty' reference to the remote tag name
-
-* `git push --delete origin tagname`
-
-  > or `-d` for old git versions
-
-
+见 [git_tag_yonka.md](git_tag_yonka.md)
 
 
 
 # log
 
-`git log --help` for ref
-
-
-
-## 好用的的模板
-
-* `hs`
-
-  ```sh
-  git config --global alias.hs "log --pretty='%C(yellow)%h %C(cyan)%cd %Cblue%aN%C(auto)%d %Creset%s %C(bold normal)%S' --graph --date=short --date-order"
-  # --date=short: only date in format YYYY-MM-DD
-  # %cd use format from --date
-  # %S like --source
-  git hs
-  
-  # like: d45fdb06xxx 2021-09-03 author1 Add .cicd
-  ```
-
-  
-
-
-
-## 支持直接指定多个目标
-
-如： `git log master v1.0.0`
-
-
-
-## 查看所有（分支）
-
-* `--all`
-
-  > Instead of `--all` you may want to use `--branches`, since `--all` also includes `refs/tags` and `refs/remotes`.
-
-* `--branches`
-
-  > 这个参数比较特殊，因为支持的是shell glob，所以如果没有配置任何通配，比如`--branches=master`，会处理为`--branches=master/*`
-  >
-  > ```sh
-  > --branches[=<pattern>]
-  >     Pretend as if all the refs in refs/heads are listed on
-  >     the command line as <commit>. If <pattern> is given, 
-  >     limit branches to ones matching given shell glob. If 
-  >     pattern lacks ?, *, or [, /* at the end is implied.
-  > ```
-  >
-  > 所以这个case，需要处理为 `--branches=maste[r]`。 比较丑。 其实一个分支的话，直接`git log master`即可
-
-  * `=maste[r]`
-  * `={master,release-7*}`
-  * `--branches=maste[r] --branches=v7.0*` 可以这样指定多个，效果应该符合预期
-
-
-
-## `--pretty`参数
-
-详见： https://git-scm.com/docs/pretty-formats
-
-
-
-
-
-* `--pretty=oneline`
-
-  ```
-  * 9dae7ff088531b39e1076xxxxx (tag: v7.0.1, 7.0.xx-yy, 7.0.xx) Fix: interface conversion error
-  ```
-
-  一行显示一个commit，默认log的话是分行显示各个信息的（commit msg等）
-  
-  据说约等于 `--pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit`
-
-
-
-### 格式化参数
-
-#### 颜色相关
-
-
-
-*%Cred*
-
-switch color to red
-
-*%Cgreen*
-
-switch color to green
-
-*%Cblue*
-
-switch color to blue
-
-*%Creset*
-
-reset color
-
-*%C(…)*
-
-color specification, as described under Values in the "CONFIGURATION FILE" section of [git-config[1\]](https://git-scm.com/docs/git-config). By default, colors are shown only when enabled for log output (by `color.diff`, `color.ui`, or `--color`, and respecting the `auto` settings of the former if we are going to a terminal). `%C(auto,...)` is accepted as a historical synonym for the default (e.g., `%C(auto,red)`). Specifying `%C(always,...)` will show the colors even when color is not otherwise enabled (though consider just using `--color=always` to enable color for the whole output, including this format and anything else git might color). `auto` alone (i.e. `%C(auto)`) will turn on auto coloring on the next placeholders until the color is switched again.
-
-> 详细的color见git config
-
-
-
-#### 时间相关
-
-*%ad*
-
-author date (format respects --date= option)
-
-*%aD*
-
-author date, RFC2822 style
-
-*%ar*
-
-author date, relative
-
-*%at*
-
-author date, UNIX timestamp
-
-*%ai*
-
-author date, ISO 8601-like format
-
-*%aI*
-
-author date, strict ISO 8601 format
-
-*%as*
-
-author date, short format (`YYYY-MM-DD`)
-
-*%ah*
-
-author date, human style (like the `--date=human` option of [git-rev-list[1\]](https://git-scm.com/docs/git-rev-list))
-
-*%cd*
-
-committer date (format respects --date= option)
-
-*%cD*
-
-committer date, RFC2822 style
-
-*%cr*
-
-committer date, relative
-
-*%ct*
-
-committer date, UNIX timestamp
-
-*%ci*
-
-committer date, ISO 8601-like format
-
-*%cI*
-
-committer date, strict ISO 8601 format
-
-*%cs*
-
-committer date, short format (`YYYY-MM-DD`)
-
-*%ch*
-
-committer date, human style (like the `--date=human` option of [git-rev-list[1\]](https://git-scm.com/docs/git-rev-list))
-
-
-
-## 树形显示
-
-* `git log --pretty=oneline --graph`
-* `git log --all --source --pretty=oneline --graph`
-
-
-
-## 显示内容
-
-
-
-### `--date`
-
---date=<format>
-
-Only takes effect for dates shown in human-readable format, such as when using `--pretty`. `log.date` config variable sets a default value for the log command’s `--date` option. By default, dates are shown in the original time zone (either committer’s or author’s). If `-local` is appended to the format (e.g., `iso-local`), the user’s local time zone is used instead.
-
-`--date=relative` shows dates relative to the current time, e.g. “2 hours ago”. The `-local` option has no effect for `--date=relative`.
-
-`--date=local` is an alias for `--date=default-local`.
-
-`--date=iso` (or `--date=iso8601`) shows timestamps in a ISO 8601-like format. The differences to the strict ISO 8601 format are:
-
-- a space instead of the `T` date/time delimiter
-- a space between time and time zone
-- no colon between hours and minutes of the time zone
-
-`--date=iso-strict` (or `--date=iso8601-strict`) shows timestamps in strict ISO 8601 format.
-
-`--date=rfc` (or `--date=rfc2822`) shows timestamps in RFC 2822 format, often found in email messages.
-
-`--date=short` shows only the date, but not the time, in `YYYY-MM-DD` format.
-
-`--date=raw` shows the date as seconds since the epoch (1970-01-01 00:00:00 UTC), followed by a space, and then the timezone as an offset from UTC (a `+` or `-` with four digits; the first two are hours, and the second two are minutes). I.e., as if the timestamp were formatted with `strftime("%s %z")`). Note that the `-local` option does not affect the seconds-since-epoch value (which is always measured in UTC), but does switch the accompanying timezone value.
-
-`--date=human` shows the timezone if the timezone does not match the current time-zone, and doesn’t print the whole date if that matches (ie skip printing year for dates that are "this year", but also skip the whole date itself if it’s in the last few days and we can just say what weekday it was). For older dates the hour and minute is also omitted.
-
-`--date=unix` shows the date as a Unix epoch timestamp (seconds since 1970). As with `--raw`, this is always in UTC and therefore `-local` has no effect.
-
-`--date=format:...` feeds the format `...` to your system `strftime`, except for %z and %Z, which are handled internally. Use `--date=format:%c` to show the date in your system locale’s preferred format. See the `strftime` manual for a complete list of format placeholders. When using `-local`, the correct syntax is `--date=format-local:...`.
-
-`--date=default` is the default format, and is similar to `--date=rfc2822`, with a few exceptions:
-
-- there is no comma after the day-of-week
-- the time zone is omitted when the local time zone is used
-
-
-
-### `--source`： display commit source
-
-```sh
---source
-Print out the ref name given on the command line by which each commit was reached.
-```
-
-大约意思是多一个字段用于显示 **从哪reach到该commit的**，一般就是该commit所在的分支名。
-
-如： `* 27182f095943147060d7510886eexxx      7.0.xxx Remove Dockerfile`中的`7.0.xxx`就是
+见 [git_log_yonka.md](git_log_yonka.md)
 
 
 

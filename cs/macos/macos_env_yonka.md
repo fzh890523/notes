@@ -78,6 +78,7 @@
 
 
 
+<<<<<<< HEAD
 ## 系统管理
 
 
@@ -107,6 +108,15 @@ How to Force Restart Your Mac
 
 
 
+=======
+## 网络
+
+
+
+* 查看tcp listen端口： `lsof -sTCP:LISTEN -iTCP -P`
+
+  `-P`显示为数字端口，否则为name，如`ssh`
+>>>>>>> f8fa9a5d... 20220828 - home nuc
 
 
 

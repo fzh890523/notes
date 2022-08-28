@@ -76,6 +76,27 @@ nohup tcpdump -i any tcp port 15010 and 'not(host 192.168.1.3 or host 192.168.1.
 
 
 
+## `-X` 打印
+
+
+
+### ip、端口转换
+
+
+
+```sh
+-n     Don't convert host addresses to names.   This  can  be  used  to
+              avoid DNS lookups.
+
+-nn    Don't convert protocol and port numbers etc. to names either.
+```
+
+
+
+
+
+
+
 
 
 

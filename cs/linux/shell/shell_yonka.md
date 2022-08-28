@@ -104,6 +104,7 @@
     shopt -q login_shell && echo login_shell || echo non_login_shell
     login_shell
     # bash ok; zsh的话，non-login shell里都没有shopt这个name，会报错... 虽然可以推断出...
+    ```
 ```
     
   
@@ -122,7 +123,7 @@
   
   # zsh
   [[ -o interactive ]] && echo interactive || echo non-interactive
-  ```
+```
 
   
 
@@ -230,6 +231,8 @@ sudo chsh /bin/zsh xxuser
 > * shell path需要在 /etc/shells 里 （一般装好shell就在了）
 
 
+
+> 有遇到gui没logout之前，chsh一直不生效的情况（即使passwd已经变化，ssh terminal退出重登录，甚至重启sshd
 
 
 

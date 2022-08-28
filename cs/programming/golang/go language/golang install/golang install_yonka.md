@@ -2,6 +2,44 @@
 
 
 
+## 下载
+
+
+
+https://go.dev/dl/
+
+
+
+## install
+
+https://go.dev/doc/install
+
+- [Managing Go installations](https://go.dev/doc/manage-install) -- How to install multiple versions and uninstall.
+- [Installing Go from source](https://go.dev/doc/install/source) -- How to check out the sources, build them on your own machine, and run them.
+
+
+
+### 多版本
+
+https://go.dev/doc/manage-install#installing-multiple
+
+
+
+```sh
+go install golang.org/dl/go1.10.7@latest
+go1.10.7 download
+
+
+```
+
+
+
+
+
+
+
+
+
 # platforms
 
 

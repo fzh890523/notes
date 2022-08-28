@@ -71,6 +71,12 @@ https://www.jetbrains.com/help/go/using-breakpoints.html
 
 
 
+#### 条件断点
+
+支持，但不支持函数调用。
+
+比如： `s == "aaabbb"` 可以； 但 `strings.HasPrefix(a, "aaa")` 不行
+
 
 
 ## config

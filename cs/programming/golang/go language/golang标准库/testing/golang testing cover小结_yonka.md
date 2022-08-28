@@ -117,3 +117,21 @@
 > }
 > ```
 
+
+
+
+
+## examples
+
+
+
+* `gocov test ./pkg/... > pkg.cov`
+
+* `cat pkg.cov | gocov report | egrep -v "^[^ ]+\.go"`
+
+  > 去掉文件级别的，保留 package + total
+
+* `cat pkg.cov | gocov-html  > pkg.cov.html`
+
+  还有个对cov的`gocov convert pkg.cov` 不知道做什么
+

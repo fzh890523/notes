@@ -65,6 +65,43 @@
 
 
 
+### split
+
+* 用IFS
+
+  ```sh
+  IFS=';' read -ra ADDR <<< "$IN"
+  for i in "${ADDR[@]}"; do
+    # process "$i"
+  done
+  
+  while IFS=';' read -ra ADDR; do
+    for i in "${ADDR[@]}"; do
+      # process "$i"
+    done
+  done <<< "$IN"
+  ```
+
+* shell语法
+
+  ```sh
+  IN="bla@some.com;john@home.com"
+  arrIN=(${IN//;/ })
+  echo ${arrIN[1]}                  # Output: john@home.com
+  # This construction replaces all occurrences of ';' (the initial // means global replace) in the string IN with ' ' (a single space), then interprets the space-delimited string as an array (that's what the surrounding parentheses do).
+  
+  # 类似的
+  arrIN=(${IN//\// })  # 可以用 / 来分割
+  
+  echo ${arrIN[-1]}  # 取最后一个，需要
+  ```
+
+  
+
+
+
+
+
 ### 包含子串判断
 
 

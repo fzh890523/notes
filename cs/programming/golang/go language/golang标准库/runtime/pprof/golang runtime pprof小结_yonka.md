@@ -212,7 +212,7 @@ curl http://127.0.0.1:9093/debug/pprof/heap > heap
 curl http://127.0.0.1:9093/debug/pprof/profile?seconds=30 > profile.30s
 
 http://localhost:8888/debug/pprof/goroutine?debug=1
-http://localhost:8888/debug/pprof/goroutine?debug=2
+http://localhost:8888/debug/pprof/goroutine?debug=2  # print stacktrace
 ```
 
 

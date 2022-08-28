@@ -196,7 +196,17 @@ grep -v 456 a.txt  # exit 1
 
 
 
+https://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
 
 
 
+> Normally the exit status is 0 if a line is selected, 1 if no lines were selected, and 2 if an error occurred. However, if the -q or --quiet or --silent option is used and a line is selected, the exit status is 0 even if an error occurred. Other grep implementations may exit with status greater than 2 on error.
+
+
+
+但`-q`好像就没输出了，晕。
+
+
+
+比较脏的方式： ` | { grep -v xxx; exit 0; }`
 

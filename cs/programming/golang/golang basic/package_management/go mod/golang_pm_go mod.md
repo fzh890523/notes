@@ -255,6 +255,16 @@ GOPATH多个的话，取第一个。
 
 
 
+## proxy
+
+<dek>GOPRIVATE似乎不必然 GONOPROXY，也不必然GONOSUMDB</del>
+
+> 是我写错了
+
+
+
+
+
 ## GO111MODULE环境变量
 
 
@@ -344,11 +354,17 @@ go build -mod=vendor
 
 
 
+### .git
+
+
+
 https://stackoverflow.com/questions/65921916/why-does-go-module-ssh-custom-private-repo-non-github-config-still-request-htt
 
 
 
 In short, the answer is to use `.git` suffix in all places. Without `.git` suffix, `go mod tidy` and `go get` will use `https` instead of `ssh` (git).
+
+> 先让它知道用git，然后gitconfig里的insteadof才会生效
 
 **At Client:**
 
@@ -395,6 +411,29 @@ module private.com/repopath/foo.git
 And make sure the git repo at server has tag version `v0.1.0`. Don't forget to use `git push --tags` at client to update the tag version to the server. Without `--tags`, tag version will not be pushed.
 
 After adding `.git` suffix to all the required places, `go mod tidy` and `go get` will no longer send https request.
+
+
+
+### .git 遇到 语义化版本
+
+
+
+```go
+replace (
+    github.com/labstack/echo/v4 v4.3.1 => example.com/echo.git/v4 v4.3.1
+)
+// 注意这个写法。 不是 example.com/echo/v4.git，否则会报错类似 version "v2.0.0-20220111024215-d8a92e3c8785" invalid: should be v0 or v1, not v2
+```
+
+
+
+> If the example.com server serves go-import metadata, then you may be able to omit the .git suffix entirely:
+>
+> replace (
+>     github.com/labstack/echo/v4 v4.3.1 => example.com/echo/v4 v4.3.1
+> )
+
+
 
 
 

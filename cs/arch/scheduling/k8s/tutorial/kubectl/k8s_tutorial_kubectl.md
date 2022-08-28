@@ -180,11 +180,27 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
 
 
+## apply
+
+* 目录：
+  *  `-f <folder>`
+  * `-k <folder>` (parameterized manifest files )
+  * `--recursive`/`-R` 则递归生效i
+
+
+
 ## 网络
 
 
 
 ### port-forward
+
+> 注意和`kubectl proxy`区分：
+>
+> * proxy 是提供一个可以以http访问访问的 api-server 的代理
+> * pf 则是通用的暴露内部服务到集群外的方式，只做4层转发
+
+
 
 在执行机器本地起一个proxy，做端口转发： req -> localProxy -> remote(pod-port)
 
@@ -340,12 +356,19 @@ Use "kubectl options" for a list of global command-line options (applies to all 
   kubectl get pods -o=jsonpath='{.items[0].metadata.name}'
   kubectl get pods -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.startTime}{"\n"}{end}'
   kubectl get pods -o=jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.podIP}{"\n"}{end}'
+  
+  kubectl -n istio-system get secret istio-ca-secret -ojsonpath={.data.ca-cert\.pem}
+  # -ojsonpath="{.data['ca-cert.pem']}" 这样拿不到
+  # -ojsonpath='{.data["ca-cert.pem"]}' 这样还报错，晕
+  # -ojsonpath={.data['ca-cert\.pem']} 这个也可以
+  # kubectl -n istio-system get secret cacerts "-ojsonpath={.data['root-cert\.pem']}"
   ```
+```
   
   低版本好像不支持range
   
   
-
+  
   
 
 
@@ -376,7 +399,7 @@ Use "kubectl options" for a list of global command-line options (applies to all 
   kubectl get statefulsets,services --all-namespaces --field-selector metadata.namespace!=default
   
   k get pods --all-namespace --field-selector spec.nodeName=ubuntu-20041-3
-  ```
+```
 
 * 获取所有ns数据（默认为当前ns）： `--all-namespaces`
 

@@ -260,6 +260,56 @@ ProxyCommand C:\\Windows\\System32\\OpenSSH\\ssh.exe -q -W %h:%p xxx
 
 ## ssh tunnel
 
+
+
+### tunnel + controlmaster冲突问题
+
+首先： 如果不用cm，重复tunnel会因为远端port冲突而报错；
+
+但其实： 用了cm问题可能更多，如下
+
+
+
+* 先普通ssh，再tunnel，后者会复用前者的sock，从而不执行tun操作
+* 有时可能是断链重连等原因，导致已有的tun丢失，但远端port还在。。。
+
+
+
+简而言之就是“长连接”状态复杂容易出错。
+
+比较合适的做法：
+
+* 分开ssh的host和tun的host（用alias）
+
+* tun host不用controlmaster，用单独session维护
+
+* 配置上需要tun host在前，`*`host在后（对于 对`*`host开启cm的场景）
+
+  因为ssh config的特殊行为，没有最长匹配有限原则，而是先后。。。（但同一选项如果都有，后不覆盖前）
+
+  ```properties
+  Host xxx
+      HostName xxx
+      # ...
+      
+  Host xxx-for-tun
+      HostName xxx
+      # ...
+      ControlMaster no
+      ControlPath none  
+  
+  Host *
+      ControlMaster auto
+      ControlPersist 3600
+      ControlPath /tmp/ssh_connection_%h_%p_%r.sock    
+  ```
+
+  
+
+
+
+
+
 ### 后台执行
 
 * `-N` 不触发登录动作
@@ -550,6 +600,19 @@ bash/zsh都提供了ssh的复杂的补全功能支持，这里不赘述。
 如果私钥是openssh格式的话，需要转为pem格式或者重新创建pem格式的
 
 
+
+## 登录失败
+
+
+
+### Too many authentication failures
+
+server端可能配置有最大失败次数，而 **agent key是优先于手动指定的**，当agent有比较多的key（大于server失败次数设置）时会导致来不及使用正确key就gg
+
+可以：
+
+* `-o IdentitiesOnly=yes -i ~/.ssh/id_rsa_xx`
+* ssh config里对该host加上 `IdentitiesOnly yes` 和 `IdentityFile ~/.ssh/id_rsa_xx`
 
 
 

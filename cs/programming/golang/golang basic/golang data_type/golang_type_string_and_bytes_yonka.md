@@ -4,9 +4,52 @@
 
 
 
+* `nil` `[]byte`直接转string可以得到空string
+* `nil` `[]byte`可以做`[0:0]`切片
+
 
 
 # rune
+
+https://go.dev/ref/spec#Rune_literals
+
+
+
+* "char" == `rune`
+* `rune` =(alias of)= `int32`
+* 用`'*'`格式，如 `'a'`
+
+* 支持一些转义格式
+
+  * `'\n'`
+
+  * `'\x0a'`
+
+  * `\006`
+
+  * `'\u016b'` （只表示格式，没确认这个是否合法）
+
+  * `'\U016b016b'` （只表示格式，没确认这个是否合法）
+
+    4 byte是unicode最大范围，so。。够用
+
+* 原生（也即代码中的字面量）为**utf-8**编码的unicode
+
+  **所以一个`'*'`实际长度要根据字符而定，下面也举了例子，不同的字符（的utf-8）表示，可能是一个字节（如`'a'`），而`'ä'`是两个字节，而一个汉字如`'我'`则可能更长**
+
+  > 但是，默认类型其实是int32（rune）。
+  >
+  > ```go
+  > 	var a rune = 'a'  // 这里提示 类型为rune，且显式类型rune 可以去掉
+  > 	var b = 'a'  // 这里提示 类型为int32
+  > 	var c byte = 'a'
+  > 	var d = '我'  // int32
+  > 	var e rune = '\U00101234'
+  >   c = byte(b)  // 这里需要显式转换
+  > // 这些都合法
+  > ```
+
+
 
 
 
@@ -111,6 +154,10 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 
 # string
 
+https://go.dev/blog/strings
+
+
+
 * 一份`[]byte`拷贝
 
 * 只读
@@ -132,6 +179,34 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 ## convert
 
 Ref: <https://stackoverflow.com/questions/10277933/reading-a-non-utf-8-text-file-in-go>
+
+* 可以 `[]byte(s)`
+
+* 可以 `[]rune(s)`
+
+  等效的，也可以 `[]int32(s)`
+
+  可以知道，这个操作是相对费时的，大约等同于：
+
+  ```go
+  var rs []rune
+  for _, r := range s {  // 这个过程做utf-8解码
+    rs = append(rs, r)
+  }
+  ```
+
+  同时：
+
+  ```go
+  s := "我是中国人"
+  rs := []rune(s)
+  // rs[1] 为 '是'
+  // 显然无法通过 []byte(s) 然后index得到
+  ```
+
+  
+
+
 
 
 
