@@ -82,6 +82,30 @@ gc 12 @333.817s 0%: 0.009+52+0.18 ms clock, 0.036+0/52/155+0.72 ms cpu, 484->484
 
 
 
+```sh
+gc 2 @2.241s 0%: 0.019+2.4+0.077 ms clock, 0.079+0/2.4/6.4+0.30 ms cpu, 5->6->5 MB, 6 MB goal, 4 P
+    
+gc # 前缀
+2 # gc编号，次数
+@2.241s # 程序启动时间
+0%: # 启动后花在gc上的时间的比例 （wall time？）
+0.019+2.4+0.077 ms clock,  # 不同阶段的gc时间（wall lock），三个阶段： stop-the-world (STW) sweep termination, concurrent mark and scan, and STW mark termination。 1 和 3是stw的
+0.079+0/2.4/6.4+0.30 ms cpu,  # 不同阶段的gc cpu时间  # ... CMS又拆分为...
+5->6->5 MB,  # gc前后的heap size和 live heap
+6 MB goal, 
+4 P  # 用了几个核
+```
+
+
+
+> The GC cleans some amount of garbage each pass. It does not necessarily release it to the OS (if it thinks it would just have to request it again shortly); and if it does, the OS does not necessarily reclaim it (until there is memory pressure from another process, the OS may leave that memory allocated to your process in case it needs it again).
+>
+> Live heap size is how much of the heap is actively in use, less any dead objects and free heap space ready for future allocations. Goal heap size is how much memory GC thinks it needs to get from the OS to handle your process's allocations on an ongoing basis without having to constantly request more memory from the OS (i.e. how much stays alive + how much is allocated & discarded between GC runs).
+>
+> The goal of GC is to clean up dead objects in the heap, **and** to maintain enough free heap space to handle most allocations without having to request more memory from the OS (which is slow), while also not keeping excessive free memory (so that the OS can still allocate to other processes).
+
+
+
 ```
 gctrace: setting gctrace=1 causes the garbage collector to emit a single line to standard
 error at each collection, summarizing the amount of memory collected and the
