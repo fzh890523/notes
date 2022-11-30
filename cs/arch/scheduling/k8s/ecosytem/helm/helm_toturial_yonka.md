@@ -316,6 +316,16 @@ https://helm.sh/docs/chart_template_guide/function_list/#lists-and-list-function
 
 
 
+#### join
+
+
+
+`{{- join "," .Values.xxlist | quote }}`
+
+
+
+
+
 #### 取最后一个元素
 
 

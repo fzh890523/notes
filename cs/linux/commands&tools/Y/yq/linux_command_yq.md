@@ -67,3 +67,60 @@ Use "yq [command] --help" for more information about a command.
 
 
 
+# tutorial
+
+
+
+## document
+
+
+
+* https://mikefarah.gitbook.io/yq/operators/document-index
+
+
+
+* document index
+
+
+
+## file
+
+
+
+* https://mikefarah.gitbook.io/yq/operators/file-operators
+
+
+
+* merge
+
+  * `yq eval-all x.yaml y.yaml`
+  * `yq eval-all 'select(fi == 0) * select(filename == "file2.yaml")' file1.yaml file2.yaml`
+
+* file name
+
+  `yq 'filename' sample.yml`
+
+* file index
+
+  ```sh
+  yq eval-all 'file_index' sample.yml another.yml
+  
+  0
+  ---
+  1
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+

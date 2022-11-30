@@ -29,13 +29,14 @@ mergecap -w merged.dump wan0.dump wan1.dump lan0.dump
 
 
 
-`tcpdump net 130.190.0.0/17`
+* `tcpdump net 130.190.0.0/17`
+
+* `... net 192.168.1` 前缀匹配，类似的`... net 10`
+* `,,, src net 10`
 
 
 
-
-
-## ip
+## ip/host
 
 
 
@@ -48,9 +49,27 @@ tcpdump -i eth0 host 192.168.1.3 and port 5060 -n -s 0 -vvv -w /usr/src/dump
 
 
 
+* 两个host之间的流量： `tcpdump host host1 and host2`
+
+  > 似乎用简单的`∩`来理解即可，本来`host host1` 应该等价于 `src host1 or dst host1`
+
+* 指定src/dst： `dst host1`/`src host1`
+
+
+
+## port
+
+
+
+* `src port ftp`
+* `tcp port 80`
+* `port 53`
+
 
 
 ## proto
+
+* `proto \\icmp` 因为常见协议名都是保留字，所以通过proto指定时需要转义一下
 
 
 
@@ -90,12 +109,6 @@ nohup tcpdump -i any tcp port 15010 and 'not(host 192.168.1.3 or host 192.168.1.
 
 -nn    Don't convert protocol and port numbers etc. to names either.
 ```
-
-
-
-
-
-
 
 
 

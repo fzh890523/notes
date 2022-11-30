@@ -133,6 +133,17 @@ Host xxx
 
 
 
+> 注意，这里 `%h` 是真实host，这样会导致两个不同的alias用了同一个socket，而它们可能有一些其他差异如key，这就有问题了
+>
+> 此时可以改为`%h_%r`，效果如下：
+>
+> ```sh
+> ssh_connection_github.com_22_git.sock
+> ssh_connection_github.com_githubFzh_22_git.sock
+> ```
+
+
+
 ### 指定密码登录
 
 
