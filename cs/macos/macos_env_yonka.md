@@ -10,6 +10,12 @@
 
 
 
+### htop
+
+brew 安装
+
+
+
 ## 文件（系统）管理
 
 
@@ -117,6 +123,16 @@ How to Force Restart Your Mac
 
   `-P`显示为数字端口，否则为name，如`ssh`
 >>>>>>> f8fa9a5d... 20220828 - home nuc
+
+
+
+### iproute2mac
+
+linux `ip`命令的lite版本
+
+
+
+
 
 
 

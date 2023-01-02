@@ -364,6 +364,12 @@ git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF=
 
   
 
+### 不进入“interactive mode”
+
+`git --no-pager diff`
+
+> 注意参数不能在diff后，似乎意为这是git的参数而不是子命令diff的参数
+
 
 
 # commit
@@ -477,7 +483,9 @@ Beware that this will rewrite history, and break anyone else who tries to pull.
 
 
 
+`rebase -i <commit>`，可以调整`<commit>`之后的commit，也即`左开`，需要要修改第一个commit的话，`rebase -i --root`
 
+> 一开始设计为`左闭`不就ok了？
 
 
 

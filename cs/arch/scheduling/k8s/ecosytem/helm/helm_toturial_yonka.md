@@ -7,7 +7,51 @@
 
 
 
-## basic
+# basic
+
+
+
+## values
+
+
+
+* 子chart读不到父chart values，除非：
+
+  * 父chart中定义在子chart name中的内容
+
+    ```yaml
+    # 父chart values
+    subchart1:
+      k1: v0  # 会merge到子chart（subchart1） values 并覆盖其 k1 （如果有）
+    ```
+
+  * 父chart中定义在`global`中的内容
+
+    ```yaml
+    # 父chart values
+    global:
+      k1: v0  # 会merge到子chart（subchart1） values.global 并覆盖其 k1 （如果有）
+    ```
+
+* 默认使用chart下`values.yaml`，可以`--values`/`-f`指定其他文件，可以多次传入来指定多个，还能`--set`来覆盖指定值
+
+* `show values .`/`show values charts/subchart1` 可以查看父chart、指定子chart（自己）的values，**但不支持完整子chart values**
+
+  可以子chart中加入：
+
+  ```yaml
+  # templates/print_values.yaml
+  subchart1_values:
+  {{ toYaml .Values | nindent 2 }}
+  ```
+
+  然后 `helm template .`来查看
+
+
+
+
+
+## command
 
 * `helm repo add stable https://charts.helm.sh/stable`
 
