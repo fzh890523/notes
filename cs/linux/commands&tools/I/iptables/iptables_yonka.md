@@ -24,6 +24,8 @@ netfilter的cmd工具： iptables。
 
 * PREROUTING(nat)
 
+  > 不过发往（至少非lo接口的流量是）本机IP的流量好像不走`PREROUTING`
+
 
 * routing decision：目标是否本机
   * 是 -> INPUT(filter) -> userSpace(local process)

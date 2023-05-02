@@ -413,6 +413,9 @@ Use "kubectl options" for a list of global command-line options (applies to all 
 
   逗号分隔多个； 也可以重复指定。 如： `-L label1 -L label2`
 
+* `kubectl get pods --no-headers -o custom-columns=":metadata.name"`
+* `kubectl get --no-headers=true pods -o name | awk -F "/" '{print $2}'`
+
 
 
 #### 单复数差别

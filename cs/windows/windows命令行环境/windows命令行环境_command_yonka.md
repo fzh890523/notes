@@ -276,6 +276,8 @@ netsh int ipv4 add route 0.0.0.0/0 WLAN 192.168.2.144 metric=20
 
    这样的话，路由实际的metric == interface metric + route metric
 
+   > 在 网卡设置-ip设置-高级 里，那个`自动跃点`的勾选项（以及下面的手动跃点值）
+
 2. 手动删掉dhcp分配的网关路由
 
    因为它的metric此时为0，手动加进去的无法做到更低，最多也设为0，那么实际都等于interface metric

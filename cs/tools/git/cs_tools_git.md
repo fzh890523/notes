@@ -489,6 +489,30 @@ Beware that this will rewrite history, and break anyone else who tries to pull.
 
 
 
+### rebase + squash
+
+
+
+1. 找到要squash的最早一个commit，如commit1
+
+2. `git rebase -i commit1^`
+
+3. 内容改为
+
+   ```sh
+   reword commit1
+   squash commit2
+   ...
+   ```
+
+4. 按照提示把commit1 msg改为squash后期望的内容
+5. squash默认会把commit2的msg追加在第一个后面，如果有需要删除、修改，记得操作
+6. ...
+
+
+
+
+
 # merge
 
 

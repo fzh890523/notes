@@ -10,6 +10,22 @@
 
 # tutorial
 
+
+
+## encode
+
+
+
+urlencode
+
+`curl -v -s  --get --data-urlencode "cmd=ip addr" "httpbin:8000/cmd"`
+
+> 但似乎得到了 `cmd=ip+addr`，跟实际escape的`cmd=ip%20addr`不同
+
+> 不加`--get`则是post form方式
+
+
+
 ## proxy
 
 `curl -x sock5://127.0.0.1:8888 www.baidu.com`
