@@ -1,5 +1,106 @@
 
 
+# access
+
+
+
+## https
+
+
+
+主要是要设个密码（明文传输，但通过tls保证不被中间人偷取）。
+
+
+
+以aliyun为例：
+
+1. 页面repo clone处选择https，提示没设置clone密码，点击跳过去；
+
+2. 账号给出了，密码现设置一下；
+
+3. local repo里remote url设为https，同时按需修改`credential.helper`
+
+   比如windows git bash里自带了个git credential manager，默认是这个。 可以按需设为store来**明文**保存到文件（默认是`~/.git-credentials`）： `git config credential.helper store`。
+
+   > 详见： https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
+
+   如果只想放在仓库里方便拷贝走的话，可以：
+
+   1. 把`.git-credentials`加入`.gitignore`
+
+   2. `git config --global credential.helper "store --file .git-credentials"`
+
+      这样内容就保存在git repo目录下了
+
+4. 执行一下访问操作如fetch，会弹窗提示输入username/password，然后会按配置的方式进行保存
+
+
+
+### 代理
+
+
+
+> ref: [How to force Git to use socks proxy over its ssh connection? - Stack Overflow](https://stackoverflow.com/questions/58245255/how-to-force-git-to-use-socks-proxy-over-its-ssh-connection)
+
+```sh
+# Method 1. git http + proxy http
+git config --global http.proxy "http://127.0.0.1:1080"
+git config --global https.proxy "http://127.0.0.1:1080"
+
+# Method 2. git http + proxy shocks
+git config --global http.proxy "socks5://127.0.0.1:1080"
+git config --global https.proxy "socks5://127.0.0.1:1080"
+
+# to unset
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
+
+
+
+
+## ssh
+
+
+
+### 代理
+
+
+
+> ref: [How to force Git to use socks proxy over its ssh connection? - Stack Overflow](https://stackoverflow.com/questions/58245255/how-to-force-git-to-use-socks-proxy-over-its-ssh-connection)
+
+```sh
+# Method 3. git ssh + proxy http
+vim ~/.ssh/config
+Host github.com
+HostName github.com
+User git
+ProxyCommand socat - PROXY:127.0.0.1:%h:%p,proxyport=1087
+
+# Method 4. git ssh + proxy socks
+vim ~/.ssh/config
+Host github.com
+HostName github.com
+User git
+ProxyCommand nc -v -x 127.0.0.1:1080 %h %p
+
+```
+
+一些评论：
+
+> For method 3 & method 4, do NOT change the 'Host github.com' part or you will lose 10 mins to debug as I did. 
+>
+> 
+>
+> You can't do metod 4 if your proxy requires authentication, but you can use `ncat` as follow: `ProxyCommand ncat --proxy <proxy>:<port> --proxy-type socks5 --proxy-auth <user>:<pass> %h %p`
+
+
+
+> y: 4遇到ssh conn到github.com:22后hang住问题，看log，ss proxy几秒后断开连接但没反映到downstream（继续hang）。 试了下，aliyun也这样。 考虑到网上其他人都说这个ok，怀疑是这个ss-server的问题（换node无效）
+
+
+
 # config
 
 
