@@ -194,3 +194,82 @@ A 16-bit field containing the following sub-fields:
 
 native vlan的出流量是要去掉vlan tag的，所以要知晓这一点不要勿用，否则会出现预期外行为
 
+<<<<<<< HEAD
+=======
+
+
+# 实际使用
+
+
+
+## 不同vlan模式： 端口vlan、802.1q vlan
+
+
+
+理解： 
+
+802.1q vlan需要双端网卡支持（802.1q协议、对应结构以太网帧），而pc网卡挺大可能不支持。  那么就不能用了吗？
+
+> 实践中发现开了802.1q vlan，笔记本也能正常接入，不知道是网卡支持 还是 802.1q做了向下兼容
+
+可以在交换机侧单方面支持，把某端口视为...，对收发包理解为...。 这样就可以实现交换机内部的虚拟二层网络划分。
+
+
+
+而这种简化模式显然不支持tagged vlan，后者强依赖802.1q，于是...
+
+
+
+水星的模式：
+
+* 端口vlan
+
+* 802.1q vlan
+
+  > 水星的按如上思路配置后，还需要配置pvid，这点有些困惑。
+  >
+  > 如下面的case：
+  >
+  > 需求： 1口trunk、2口wan、3-5 lan
+  >
+  > 那么：
+  >
+  > * 1： tagged 11 12
+  >
+  > * 2： untagged 11
+  >
+  > * 3-5： untagged 12
+  >
+  > * 似乎还要把这些口从1（default） vlanid的untagged中去除
+  >
+  > * **还要为2-5配置pvid为对应的...**（tagged 1口不用）
+  >
+  >   > 这点就奇怪了，难道2口配置了untagged 11的话，pvid不是天然的11？
+  >   >
+  >   > > yonka： 大约这么理解
+  >   > >
+  >   > > * tagged vlanid是允许通过的”real vlan id“、untagged vlanid是允许通过的”mock vlan id“，这两个都是约束了 **哪些vlan特征的流量能通过**
+  >   > > * pvid则是给未带vlanid的流量**加上vlanid**，加上后就成了”mock vlan id“，只能去match untagged vlanid规则看能否通过
+  >   > >
+  >   > > > 这样可以解释 **untagged vlanid 与 pvid不同的情况**： 前者可以是个list，而后者是单个...
+  >   > >
+  >   > > 来了请求时：
+  >   > >
+  >   > > * 有vlanid： 
+  >   > >
+  >   > >   * 在tagged vlanid列表中 - 通过
+  >   > >   * 否则 - 丢弃
+  >   > >
+  >   > > * 没vlanid：
+  >   > >
+  >   > >   1. 有pvid则加上pvid
+  >   > >
+  >   > >   2. 在untagged vlanid列表中 - 通过；否则...
+  >   > >
+  >   > >      > 极端情况下，pvid可能不在untagged vlanid中
+  >   > >
+  >   > >   > 假设没配置pvid的端口都具有pvid 1，那么对应的，类似有条默认规则： 所有端口的untagged vlanid列表中都加了1
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)

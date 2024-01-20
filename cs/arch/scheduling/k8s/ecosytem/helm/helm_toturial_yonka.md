@@ -221,6 +221,22 @@ https://helm.sh/docs/chart_best_practices/conventions/
 
 
 
+# ref
+
+
+
+## 在线渲染
+
+
+
+### helm-playground.com
+
+实时渲染、三窗口（模板、value、结果），**挺好用**
+
+
+
+
+
 # develop
 
 
@@ -427,11 +443,142 @@ https://helm.sh/docs/chart_template_guide/function_list/#dictionaries-and-dict-f
 
 
 
+#### `-` （前后换行处理）
+
+
+
+* `{{ }}` 默认行为似乎是： 前后都不额外加空白
+
+  但：
+
+  ```yaml
+  
+  ```
+
+  
+
+* `{{- }}`  删除前面空白（包括空格、回车符）
+* `{{ -}}` 删除后面...
 
 
 
 
 
+## function
+
+
+
+### nindent/indent
+
+
+
+* nindent适合多行文本，会每行都... 
+* indent则...只...
+
+
+
+> 实测好像不是
+>
+> ```yaml
+> example: 
+>   - a
+> {{ .Values.items | toYaml  | indent 2 }}
+> 
+> ---
+> # values
+> items: ["first", "second"]
+> ```
+>
+> 
+>
+> * 无indent
+>
+>   ```yaml
+>   ---
+>   example: 
+>     - a
+>   - first
+>   - second
+>   ```
+>
+> * indent
+>
+>   ```yaml
+>   ---
+>   example: 
+>     - a
+>     - first
+>     - second
+>   ```
+>
+>   > `indent` 函数不会在文本块之前添加空行，是因为 `indent` 函数只对文本块的后续行应用缩进，而不是对整个文本块应用缩进。因此，它不会将换行符视为文本块的第一行，也就不会在文本块之前添加空行。相反，它只是对文本块的每一行应用缩进。
+>   >
+>   > > 在 Helm 模板中，文本块指的是一个或多个连续的文本行，它们由换行符分隔。在一个文本块中，第一行被称为文本块的第一行，而后续的行被称为文本块的后续行。
+>
+> * nindent
+>
+>   ```yaml
+>   ---
+>   example: 
+>     - a
+>   
+>     - first
+>     - second
+>   ```
+>
+>   > `nindent` 函数在缩进文本时，可能会在文本前面添加一个空行，这是因为 Helm 在渲染模板时，会将模板中的多行文本块转换为一个单独的字符串，并在每行文本块之间添加一个换行符。这个换行符会被视为文本块的第一行，因此，在使用 `nindent` 函数缩进文本块时，第一行之前会出现一个空行。
+>   >
+>   > ```yaml
+>   >   {{ "- xx" | nindent 3 }}
+>   >   
+>   > --- 
+>   > # 输出
+>   >   
+>   >    - xx
+>   > ```
+>   >
+>   > 
+>   >
+>   > ```yaml
+>   >   {{ "- xx" | indent 3 }}
+>   >   
+>   > ---
+>   > # 输出
+>   >      - xx
+>   > ```
+>
+> ```yaml
+>   {{ "aa\nbb\ncc" }}
+> ```
+>
+> * 无indent
+>
+>   ```yaml
+>     aa
+>   bb
+>   cc
+>   ```
+>
+> * indent
+>
+>   ```yaml
+>        aa
+>      bb
+>      cc
+>   ```
+>
+>   
+>
+> * nindent
+>
+>   ```yaml
+>     
+>      aa
+>      bb
+>      cc
+>   ```
+>
+>   
 
 
 

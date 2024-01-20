@@ -43,6 +43,8 @@
 
   * `buildSidecarOutboundHTTPListenerOptsForPortOrUDS`
 
+    > http大类的才会走到
+    
     ```go
     	// first identify the bind if its not set. Then construct the key
     	// used to lookup the listener in the conflict map.
@@ -61,6 +63,8 @@
 
   * `buildSidecarOutboundTCPListenerOptsForPortOrUDS`
 
+    > tcp大类的，如 tcp、https、tls、mysql等
+    
     ```go
     	// Determine the listener address if bind is empty
     	// we listen on the service VIP if and only
@@ -85,13 +89,13 @@
     				listenerOpts.bind = actualWildcard
     			}
     		}
-    	}
+  	}
     ```
 
   > 可以看到，tcp还是会用svc addr的
 
   > 对于k8s svc，是在`ClusterVIPs`中（每个cluster一个，所以实际还是取出一个来用），而对于serviceentry，是在`DefaultAddress string`中。 而多地址场景实际会转为多个`Service`实例（虽然此时怎么共存是另一个问题）
-
+  
   > 此外，因为k8s svc一般有vip（headless另说，等等），所以不会分配ip。 不会出现业务用的ip1而实际下发listener是精确ip2的情况
   >
   > > 差不多headless（没vip） -> resolution Passthrough -> 从代码上看也还是不分配地址，符合预期。
@@ -100,9 +104,9 @@
   > >
   > > * 如果启用了headless支持，会根据instance （addr）生成大量listener
   > > * 否则走到默认分支，最后用的会是0.0.0.0
-  >
+>
   > **但对于serviceentry中的tcp服务，似乎有点问题**： 假设定义serviceentry把ep addr指向了某个能访问的ip（但没vip也即se.addresses），那... **也即istio默认服务都是基于dns的，如果不是，那就设置vip/addresses**
 
   
-
+  
   

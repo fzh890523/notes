@@ -59,11 +59,58 @@ net use Q: \\192.168.1.2\xxx /user:username password  # password为*则会prompt
 net use \\192.168.1.2 /del  # 清除该server的已有信息，比如username
 
 net use * /del
+net use Y: /del
 ```
 
 
 
 > 注意，这个不要用管理员权限运行。 否则就挂在给了admin而当前用户还是看不到
+
+
+
+```sh
+C:\Users\yonka>net use Y: /del
+在与 Y: 的连接中，有打开的文件和/或没有结束的目录搜索。
+
+是否继续断开连接并强行关闭? (Y/N) [N]:
+
+C:\Users\yonka>net use
+会记录新的网络连接。
+
+
+状态       本地        远程                      网络
+
+-------------------------------------------------------------------------------
+OK           X:        \\192.168.31.126\yonka-home
+                                                Microsoft Windows Network
+已断开连接   Y:        \\192.168.31.86\ubuntu-1910-1-mnt
+                                                Microsoft Windows Network
+命令成功完成。
+
+
+C:\Users\yonka>net use
+
+C:\Users\yonka>net use Y: /del
+Y: 已经删除。
+
+
+C:\Users\yonka>net use
+会记录新的网络连接。
+
+
+状态       本地        远程                      网络
+
+-------------------------------------------------------------------------------
+OK           X:        \\192.168.31.126\yonka-home
+                                                Microsoft Windows Network
+命令成功完成。
+
+C:\Users\yonka>net use Y: \\192.168.31.86\ubuntu-1910-1-mnt /user:yonka *
+请键入 \\192.168.31.86\ubuntu-1910-1-mnt 的密码:
+命令成功完成。
+```
+
+
 
 
 

@@ -103,3 +103,79 @@ updateServiceShards {
 4. 最后服务会分类为 nsPrivateServices 和 publicServices
 
 5. 确定sidecarScope依赖的服务时，会根据其sidecar资源配置来从这些服务里选取
+
+
+
+# 资源与ns的关系
+
+
+
+## DR
+
+> 背景： istio在`initDestinationRules`时会把export到特定ns的同host DRs进行合并，浅合并（trafficPolicy是set-if-not-set、subset则按name做set-if-not-set
+
+
+
+> gw/sidecar一致
+
+`func (ps *PushContext) DestinationRule(proxy *Proxy, service *Service) *config.Config`
+
+按照下面的顺序选取（匹配则return）
+
+1. `proxy.ConfigNamespace`中（与svc hostname）匹配的**local** DR
+2. `service.Namespace` 中匹配的DR，并且 export到 `proxy.ConfigNamespace` 的
+3. `RootNamespace` 中匹配的DR，并且 export到...
+
+
+
+
+
+## VS
+
+
+
+### gw
+
+
+
+`func (ps *PushContext) VirtualServicesForGateway(proxy *Proxy, gateway string) []config.Config`
+
+
+
+1. `proxy.ConfigNamespace`中该gw的相关vs
+   1. ns private
+   2. export to ns
+2. public中该gw...
+
+
+
+### sidecar
+
+
+
+`egressListener.VirtualServices()`
+
+
+
+1. 筛选作用`mesh`的所有vs
+   * `proxy.ConfigNamespace` private的
+   * export to `proxy.ConfigNamespace`的
+   * public的
+2. 筛选与 `listenerHosts` 匹配的vs
+
+
+
+
+
+
+
+## service
+
+
+
+## proxy （config ns）
+
+
+
+
+

@@ -231,9 +231,77 @@ go tool pprof --alloc_space -base xx.heap yy.heap  # 看xx -> yy的差量
 
 
 
+<<<<<<< HEAD
 ```sh
 
 ```
+=======
+### 分析内存
+
+
+
+#### 分析差量
+
+
+
+使用 Go pprof 分析两份 heap 之间的内存分配差异，可以按照以下步骤进行：
+
+1. 运行程序并记录两次 heap dump，可以使用以下代码生成 heap dump：
+
+   ```go
+   import (
+       "os"
+       "runtime/pprof"
+   )
+   
+   f, err := os.Create("heapdump1")
+   if err != nil {
+       panic(err)
+   }
+   defer f.Close()
+   
+   pprof.Lookup("heap").WriteTo(f, 0)
+   
+   // 运行需要分析的代码
+   
+   f2, err2 := os.Create("heapdump2")
+   if err2 != nil {
+       panic(err2)
+   }
+   defer f2.Close()
+   
+   pprof.Lookup("heap").WriteTo(f2, 0)
+   ```
+
+   
+
+1. 使用 Go pprof 工具加载两个 heap dump，可以使用以下命令：
+
+   ```sh
+   go tool pprof -base heapdump1 -inuse_objects heapdump2
+   ```
+
+   
+
+其中，`-base` 参数指定第一个 heap dump 文件，`-inuse_objects` 参数指定第二个 heap dump 文件。
+
+1. 在 pprof 中查看内存分配差异。可以使用 `alloc_objects` 命令查看对象分配的数量，使用 `alloc_space` 命令查看对象分配的字节数。例如：
+
+   ```sh
+   (pprof) alloc_objects
+   Total: 103, HeapAlloc: 103, StackInuse: 0
+   (pprof) alloc_space
+   Total: 102400, HeapAlloc: 102400, StackInuse: 0
+   ```
+
+   
+
+这些命令可以帮助您查看两个 heap dump 之间的对象分配差异和内存使用情况。
+
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 

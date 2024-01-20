@@ -63,7 +63,17 @@ Use "yq [command] --help" for more information about a command.
 
   * `-P`表示转为yaml、`-j`表示转为json
 
+<<<<<<< HEAD
     
+=======
+  样例：
+  
+  ```yaml
+  cat b.yaml | yq e '.metadata.labels."istio.io/rev"="stable"'
+  ```
+  
+  
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 
@@ -81,6 +91,11 @@ Use "yq [command] --help" for more information about a command.
 
 * document index
 
+<<<<<<< HEAD
+=======
+  `yq '. | select(di == 1)'` 在结果中取第一个
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 ## file
@@ -116,6 +131,46 @@ Use "yq [command] --help" for more information about a command.
 
 
 
+<<<<<<< HEAD
+=======
+## 数据结构
+
+
+
+### 数组
+
+
+
+#### 数组展开为doc `.[] | `
+
+
+
+```yaml
+- age: 1
+- age: 2
+```
+
+
+
+`.[] | select(.age < 2) `
+
+
+
+> 但似乎没法把select后的内容再聚合回数组了 - 这个需求直接用filter吧
+
+
+
+#### 数组筛选元素 `filter`
+
+
+
+` | filter(.age < 2)` 输入为数组，即可得到新的数组
+
+
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 

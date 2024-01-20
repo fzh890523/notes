@@ -1121,7 +1121,11 @@ https://oeis.org/wiki/List_of_LaTeX_mathematical_symbols
 
 
 * $$
+<<<<<<< HEAD
   Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj}
+=======
+  Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj} * 2^{n+1}
+>>>>>>> 1122cdc (re-init 20240121)
   $$
 
 * $$

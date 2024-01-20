@@ -310,6 +310,21 @@ git log --numstat --pretty="%H" --author="Your Name" commit1..commit2 | awk 'NF=
 
 
 
+<<<<<<< HEAD
+=======
+### 只显示变更的文件列表
+
+
+
+```sh
+git diff --name-only <commit1> <commit2>
+```
+
+
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 ### diff指定文件内容
 
 > git diff master~20:pom.xml master:pom.xml
@@ -472,6 +487,21 @@ Beware that this will rewrite history, and break anyone else who tries to pull.
 
 
 
+<<<<<<< HEAD
+=======
+## file
+
+### 拷贝指定commit的文件
+
+
+
+```sh
+git show <commit>:<file_path> > <new_file_path>
+```
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 
@@ -489,6 +519,7 @@ Beware that this will rewrite history, and break anyone else who tries to pull.
 
 
 
+<<<<<<< HEAD
 ### rebase + squash
 
 
@@ -513,6 +544,8 @@ Beware that this will rewrite history, and break anyone else who tries to pull.
 
 
 
+=======
+>>>>>>> 1122cdc (re-init 20240121)
 # merge
 
 
@@ -564,6 +597,21 @@ git checkout --theirs -- <paths>
 
 
 
+<<<<<<< HEAD
+=======
+
+
+## merge tool
+
+
+
+* sublime merge
+
+
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 # clone
 
 * 指定branch： `-b`
@@ -741,6 +789,20 @@ git cherry-pick -x abcd  # -x的话生成标准commit message，减少重复merg
 
   会修改.gitmodules，但似乎没更新？ 手动update好像也不行
 
+<<<<<<< HEAD
+=======
+## 初始拉取
+
+> 
+> 使用 Git Submodule 进行初始化拉取的步骤如下：
+>
+> 1. 在主存储库中执行 `git submodule add <submodule_repository_url> <submodule_directory>` 命令来添加子模块。
+> 2. 执行 `git submodule init` 命令来初始化本地配置文件并拉取子模块的代码。
+> 3. 执行 `git submodule update` 命令来检出子模块代码的正确版本。
+>
+> 这些步骤将会初始化子模块并将其添加为主存储库的一部分。
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 ```sh
@@ -802,6 +864,43 @@ git rm -f path/to/submodule
 
 
 
+<<<<<<< HEAD
+=======
+## 查看
+
+
+
+> 要查看 Git Submodule 的信息，可以使用以下命令：
+>
+> 1. `git submodule status`：显示当前存储库中所有子模块的状态和提交 ID。
+> 2. `git submodule foreach <subcommand>`：对每个子模块执行指定的 Git 命令。
+> 3. `cat .gitmodules`：显示存储库中所有子模块的 URL 和路径信息。
+> 4. `git config --list`：列出所有 Git 全局配置和本地存储库配置，包括子模块信息。
+>
+> 使用这些命令可以查询和管理子模块的信息。
+
+
+
+## 修改
+
+
+
+### 修改仓库
+
+
+
+> 要将 Git Submodule 指向不同的存储库，可以按照以下步骤进行操作：
+>
+> 1. 在主存储库中执行 `git submodule sync` 命令以确保子模块 URL 已同步。
+> 2. 执行 `git submodule deinit <submodule_directory>` 命令以取消初始化子模块。
+> 3. 在主存储库中执行 `git submodule set-url <submodule_directory> <new_submodule_repository_url>` 命令以将子模块指向新的存储库。
+> 4. 执行 `git submodule update --init` 命令来重新初始化并拉取子模块代码。
+>
+> 这些步骤将会修改子模块指向的存储库，使其指向新的 URL。注意，这些更改将不会自动提交到版本控制。需要将这些更改提交到主存储库中以便其他人可以访问它们。
+
+
+
+>>>>>>> 1122cdc (re-init 20240121)
 # reset
 
 
@@ -892,6 +991,25 @@ output：
 
 
 
+<<<<<<< HEAD
+=======
+## 不能正确显示中文文件
+
+
+
+> 如果您使用Git时，`git status`命令无法正确显示中文文件名，可能是由于终端或操作系统的字符编码设置问题导致的。以下是一些可能的解决方法：
+>
+> 1. 检查终端字符编码：确保您使用的终端支持并正确设置了UTF-8字符编码。您可以在终端的设置中查找字符编码选项，并将其设置为UTF-8。
+>
+> 2. 检查Git配置：使用`git config --get core.quotepath`命令检查您的Git配置。如果返回的结果是`false`，则Git应该可以正确显示中文文件名。如果返回的结果是`true`，可以使用`git config --global core.quotepath false`命令来禁用引号路径。
+>
+>    > y: 这个是主要
+>
+> 3. 更新Git版本：确保您使用的是最新版本的Git。有时，较旧的Git版本可能存在与中文文件名显示相关的问题。您可以通过访问Git的官方网站来获取最新版本。
+>
+> 4. 使用Unicode转义：如果您仍然遇到问题，您可以尝试使用Unicode转义序列来引用文件名。例如，对于文件名为中文的文件，可以使用`git status "\u4E2D\u6587"`来查看其状态。
+
+>>>>>>> 1122cdc (re-init 20240121)
 
 
 
