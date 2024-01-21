@@ -11,15 +11,15 @@
 
 	<!-- style START -->
 	<style type="text/css" media="screen">@import url( http://hedengcheng.com/wp-content/themes/blocks2/style.css );</style>
-			<link rel="stylesheet" href="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/chinese.css" type="text/css" media="screen">
+			<link rel="stylesheet" href="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/chinese.css" type="text/css" media="screen">
 		<!--[if IE]>
 		<link rel="stylesheet" href="http://hedengcheng.com/wp-content/themes/blocks2/ie.css" type="text/css" media="screen" />
 	<![endif]-->
 	<!-- style END -->
 
 	<!-- script START -->
-	<script async="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/analytics.js"></script><script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/base.js"></script>
-	<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/menu.js"></script>
+	<script async="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/analytics.js"></script><script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/base.js"></script>
+	<script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/menu.js"></script>
 	<!-- script END -->
 
 		<link rel="dns-prefetch" href="http://s.w.org/">
@@ -157,7 +157,7 @@ img.emoji {
 </li>
 </ol>
 <p>前几天，发了一条如下的微博 (关于C/C++ Volatile关键词的使用建议)：</p>
-<p><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile1.jpg" alt=""><span style="font-family: 宋体; font-size: 12pt;"><br>
+<p><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile1.jpg" alt=""><span style="font-family: 宋体; font-size: 12pt;"><br>
 </span></p>
 <p>&nbsp;</p>
 <p>此微博，引发了朋友们的大量讨论：赞同者有之；批评者有之；当然，更多的朋友，是希望我能更详细的解读C/C++ Volatile关键词，来佐证我的微博观点。而这，正是我写这篇博文的初衷：本文，将详细分析C/C++ Volatile关键词的功能 (有多种功能)、Volatile关键词在多线程编程中存在的问题、Volatile关键词与编译器/CPU的关系、C/C++ Volatile与Java Volatile的区别，以及Volatile关键词的起源，希望对大家更好的理解、使用C/C++ Volatile，有所帮助。</p>
@@ -179,7 +179,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例一：非Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945332/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945332/&#39;, &#39;&#39;);" title="volatile1"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish.jpg" alt="volatile1" width="540" height="320" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945332/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945332/&#39;, &#39;&#39;);" title="volatile1"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish.jpg" alt="volatile1" width="540" height="320" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">b = a + 1;这条语句，对应的汇编指令是：lea ecx, [eax + 1]。由于变量a，在前一条语句a = fn(c)执行时，被缓存在了寄存器eax中，因此b = a + 1；语句，可以直接使用仍旧在寄存器eax中的a，来进行计算，对应的也就是汇编：[eax + 1]。<br>
 </span></p>
@@ -190,7 +190,7 @@ img.emoji {
 </span></div>
 </li>
 </ul>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945333/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945333/&#39;, &#39;&#39;);" title="volatile2"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(1).jpg" alt="volatile2" width="540" height="360" border="0"></a></p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945333/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945333/&#39;, &#39;&#39;);" title="volatile2"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(1).jpg" alt="volatile2" width="540" height="360" border="0"></a></p>
 <p style="margin-left: 21pt;">与测试用例一唯一的不同之处，是变量a被设置为volatile属性，一个小小的变化，带来的是汇编代码上很大的变化。a = fn(c)执行后，寄存器ecx中的a，被写回内存：mov dword ptr [esp+0Ch], ecx。然后，在执行b = a + 1；语句时，变量a有重新被从内存中读取出来：mov eax, dword ptr [esp + 0Ch]，而不再直接使用寄存器ecx中的内容。</p>
 <ol>
 <li>
@@ -218,7 +218,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例三：非Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945335/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945335/&#39;, &#39;&#39;);" title="volatile4"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(2).jpg" alt="volatile4" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945335/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945335/&#39;, &#39;&#39;);" title="volatile4"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(2).jpg" alt="volatile4" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">在这个用例中，非volatile变量a，b，c全部被编译器优化掉了 (optimize out)，因为编译器通过分析，发觉a，b，c三个变量是无用的，可以进行常量替换。最后的汇编代码相当简介，高效率。<br>
 </span></p>
@@ -227,7 +227,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例四：Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945334/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945334/&#39;, &#39;&#39;);" title="volatile3"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(3).jpg" alt="volatile3" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945334/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945334/&#39;, &#39;&#39;);" title="volatile3"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(3).jpg" alt="volatile3" width="540" height="270" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">测试用例四，与测试用例三类似，不同之处在于，a，b，c三个变量，都是volatile变量。这个区别，反映到汇编语言中，就是三个变量仍旧存在，需要将三个变量从内存读入到寄存器之中，然后再调用printf()函数。<br>
 </span></p>
@@ -255,7 +255,7 @@ img.emoji {
 <p>C/C++ Volatile关键词前面提到的两个特性，让Volatile经常被解读为一个为多线程而生的关键词：一个全局变量，会被多线程同时访问/修改，那么线程内部，就不能假设此变量的不变性，并且基于此假设，来做一些程序设计。当然，这样的假设，本身并没有什么问题，多线程编程，并发访问/修改的全局变量，通常都会建议加上Volatile关键词修饰，来防止C/C++编译器进行不必要的优化。但是，很多时候，C/C++ Volatile关键词，在多线程环境下，会被赋予更多的功能，从而导致问题的出现。</p>
 <p>&nbsp;</p>
 <p>回到本文背景部分我的那篇微博，我的这位朋友，正好犯了一个这样的问题。其对C/C++ Volatile关键词的使用，可以抽象为下面的伪代码：</p>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945325/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945325/&#39;, &#39;&#39;);" title="v5"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(4).jpg" alt="v5" width="540" height="270" border="0"></a></p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945325/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945325/&#39;, &#39;&#39;);" title="v5"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(4).jpg" alt="v5" width="540" height="270" border="0"></a></p>
 <p>这段伪代码，声明另一个Volatile的flag变量。一个线程(Thread1)在完成一些操作后，会修改这个变量。而另外一个线程(Thread2)，则不断读取这个flag变量，由于flag变量被声明了volatile属性，因此编译器在编译时，并不会每次都从寄存器中读取此变量，同时也不会通过各种激进的优化，直接将if (flag == true)改写为if (false == true)。只要flag变量在Thread1中被修改，Thread2中就会读取到这个变化，进入if条件判断，然后进入if内部进行处理。在if条件的内部，<span style="color: red;"><a name="OLE_LINK1"></a>由于flag == true，那么假设Thread1中的something操作一定已经完成了</span>，在基于这个假设的基础上，继续进行下面的other things操作。</p>
 <p>&nbsp;</p>
 <p>通过将flag变量声明为volatile属性，很好的利用了本文前面提到的C/C++ Volatile的两个特性：”易变”性；”不可优化”性。按理说，这是一个对于volatile关键词的很好应用，而且看到这里的朋友，也可以去检查检查自己的代码，我相信肯定会有这样的使用存在。</p>
@@ -268,7 +268,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例五：非Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945329/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945329/&#39;, &#39;&#39;);" title="v9"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(5).jpg" alt="v9" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945329/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945329/&#39;, &#39;&#39;);" title="v9"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(5).jpg" alt="v9" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">一个简单的示例，全局变量A，B均为非volatile变量。通过gcc O2优化进行编译，你可以惊奇的发现，A，B两个变量的赋值顺序被调换了！！！在对应的汇编代码中，B = 0语句先被执行，然后才是A = B + 1语句被执行。<br>
 </span></p>
@@ -279,7 +279,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例六：一个Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945330/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945330/&#39;, &#39;&#39;);" title="v10"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(6).jpg" alt="v10" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945330/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945330/&#39;, &#39;&#39;);" title="v10"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(6).jpg" alt="v10" width="540" height="180" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">此测试，相对于测试用例五，最大的区别在于，变量B被声明为volatile变量。通过查看对应的汇编代码，B仍旧被提前到A之前赋值，Volatile变量B，并未阻止编译器优化的发生，编译后仍旧发生了乱序现象。<br>
 </span></p>
@@ -291,7 +291,7 @@ img.emoji {
 <li>
 <div style="text-align: justify;"><span style="font-size: 10pt;"><strong>测试用例七：两个Volatile变量</strong><br>
 </span></div>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945331/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945331/&#39;, &#39;&#39;);" title="v11"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(7).jpg" alt="v11" width="540" height="170" border="0"></a><span style="font-size: 10pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945331/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945331/&#39;, &#39;&#39;);" title="v11"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(7).jpg" alt="v11" width="540" height="170" border="0"></a><span style="font-size: 10pt;"><br>
 </span></p>
 <p style="text-align: justify;"><span style="font-size: 10pt;">同时将A，B两个变量都声明为volatile变量，再来看看对应的汇编。奇迹发生了，A，B赋值乱序的现象消失。此时的汇编代码，与用户代码顺序高度一直，先赋值变量A，然后赋值变量B。<br>
 </span></p>
@@ -310,14 +310,14 @@ img.emoji {
 </ol>
 <p>&nbsp;</p>
 <p>通过测试用例六，可以总结出：C/C++ Volatile变量与非Volatile变量间的操作顺序，有可能被编译器交换。因此，上面多线程操作的伪代码，在实际运行的过程中，就有可能变成下面的顺序：</p>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945326/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945326/&#39;, &#39;&#39;);" title="v6"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(8).jpg" alt="v6" width="540" height="270" border="0"></a></p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945326/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945326/&#39;, &#39;&#39;);" title="v6"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(8).jpg" alt="v6" width="540" height="270" border="0"></a></p>
 <p>由于Thread1中的代码执行顺序发生变化，flag = true被提前到something之前进行，那么整个Thread2的假设全部失效。由于something未执行，但是Thread2进入了if代码段，整个多线程代码逻辑出现问题，导致多线程完全错误。</p>
 <p>&nbsp;</p>
 <p>细心的读者看到这里，可能要提问，根据测试用例七，C/C++ Volatile变量间，编译器是能够保证不交换顺序的，那么能不能将something中所有的变量全部设置为volatile呢？这样就阻止了编译器的乱序优化，从而也就保证了这个多线程程序的正确性。</p>
 <p>&nbsp;</p>
 <p>针对此问题，很不幸，仍旧不行。将所有的变量都设置为volatile，首先能够阻止编译器的乱序优化，这一点是可以肯定的。但是，别忘了，编译器编译出来的代码，最终是要通过CPU来执行的。目前，市场上有各种不同体系架构的CPU产品，CPU本身为了提高代码运行的效率，也会对代码的执行顺序进行调整，这就是所谓的CPU Memory Model (CPU内存模型)。关于CPU的内存模型，可以参考这些资料：<a href="http://en.wikipedia.org/wiki/Memory_ordering">Memory Ordering From Wiki</a>；<a href="http://preshing.com/20120710/memory-barriers-are-like-source-control-operations/">Memory Barriers Are Like Source Control Operations From Jeff Preshing</a>；<a href="http://hedengcheng.com/?p=648">CPU Cache and Memory Ordering From 何登成</a>。下面，是截取自Wiki上的一幅图，列举了不同CPU架构，可能存在的指令乱序。</p>
 <p>&nbsp;</p>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945425/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945425/&#39;, &#39;&#39;);" title="mo"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(9).jpg" alt="mo" width="540" height="120" border="0"></a><span style="font-family: 宋体; font-size: 12pt;"><br>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945425/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945425/&#39;, &#39;&#39;);" title="mo"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(9).jpg" alt="mo" width="540" height="120" border="0"></a><span style="font-family: 宋体; font-size: 12pt;"><br>
 </span></p>
 <p>&nbsp;</p>
 <p>从图中可以看到，X86体系(X86，AMD64)，也就是我们目前使用最广的CPU，也会存在指令乱序执行的行为：StoreLoad乱序，读操作可以提前到写操作之前进行。</p>
@@ -326,7 +326,7 @@ img.emoji {
 <p>&nbsp;</p>
 <p>其实，针对这个多线程的应用，真正正确的做法，是构建一个happens-before语义。关于happens-before语义的定义，可参考文章：<a href="http://preshing.com/20130702/the-happens-before-relation/">The Happens-Before Relation</a>。下面，用图的形式，来展示happens-before语义：</p>
 <p>&nbsp;</p>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945327/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945327/&#39;, &#39;&#39;);" title="v7"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(10).jpg" alt="v7" width="540" height="280" border="0"></a></p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89945327/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89945327/&#39;, &#39;&#39;);" title="v7"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(10).jpg" alt="v7" width="540" height="280" border="0"></a></p>
 <p>&nbsp;</p>
 <p>如图所示，所谓的happens-before语义，就是保证Thread1代码块中的所有代码，一定在Thread2代码块的第一条代码之前完成。当然，构建这样的语义有很多方法，我们常用的Mutex、Spinlock、RWLock，都能保证这个语义 (关于happens-before语义的构建，以及为什么锁能保证happens-before语义，以后专门写一篇文章进行讨论)。但是，C/C++ Volatile关键词不能保证这个语义，也就意味着C/C++ Volatile关键词，在多线程环境下，如果使用的不够细心，就会产生如同我这里提到的错误。</p>
 <p>&nbsp;</p>
@@ -366,7 +366,7 @@ img.emoji {
 <p>&nbsp;</p>
 <p>由于Java Volatile支持Acquire、Release语义，因此Java Volatile，能够用来构建happens-before语义。也就是说，前面提到的C/C++ Volatile在多线程下错误的使用场景，在Java语言下，恰好就是正确的。如下图所示：</p>
 <p>&nbsp;</p>
-<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89949162/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89949162/&#39;, &#39;&#39;);" title="v8_new"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/medish(11).jpg" alt="v8_new" width="540" height="280" border="0"></a></p>
+<p style="text-align: center;"><a href="http://www.yupoo.com/photos/hedengcheng/89949162/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.yupoo.com/photos/hedengcheng/89949162/&#39;, &#39;&#39;);" title="v8_new"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/medish(11).jpg" alt="v8_new" width="540" height="280" border="0"></a></p>
 <p>&nbsp;</p>
 <ol>
 <li>
@@ -379,7 +379,7 @@ img.emoji {
 <p>C/C++的Volatile关键词，有三个特性：易变性；不可优化性；顺序性。那么，为什么Volatile被设计成这样呢？要回答这个问题，就需要从Volatile关键词的产生说起。(注：这一小节的内容，参考自<a href="http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf">C++ and the Perils of Double-Checked Locking</a>论文的第10章节：volatile：A Brief History。这是一篇顶顶好的论文，值得多次阅读，强烈推荐！)</p>
 <p>&nbsp;</p>
 <p>Volatile关键词，最早出现于19世纪70年代，被用于处理memory-mapeed I/O (MMIO)带来的问题。在引入MMIO之后，一块内存地址，既有可能是真正的内存，也有可能被映射到一个I/O端口。相对的，读写一个内存地址，既有可能操作内存，也有可能读写的是一个I/O设备。MMIO为什么需要引入Volatile关键词？考虑如下的一个代码片段：</p>
-<p style="text-align: center;"><img src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile14.png" alt=""></p>
+<p style="text-align: center;"><img src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/120213_0840_CCVolatile14.png" alt=""></p>
 <p>在此代码片段中，指针p既有可能指向一个内存地址，也有可能指向一个I/O设备。如果指针p指向的是I/O设备，那么(1)，(2)中的a，b，就会接收到I/O设备的连续两个字节。但是，p也有可能指向内存，此时，编译器的优化策略，就可能会判断出a，b同时从同一内存地址读取数据，在做完(1)之后，直接将a赋值给b。对于I/O设备，需要防止编译器做这个优化，不能假设指针b指向的内容不变——易变性。</p>
 <p>&nbsp;</p>
 <p>同样，代码(3)，(4)也有类似的问题，编译器发现将a，b同时赋值给指针p是无意义的，因此可能会优化代码(3)中的赋值操作，仅仅保留代码(4)。对于I/O设备，需要防止编译器将写操作给彻底优化消失了——”不可优化”性。</p>
@@ -422,7 +422,7 @@ img.emoji {
 	<div class="fixed"></div>
 </div>
 
-<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/comment.js"></script>
+<script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/comment.js"></script>
 
 
 
@@ -430,7 +430,7 @@ img.emoji {
 			<li id="comment-5290" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/2efdf488b80290b5a5c1f92354da3ac9" srcset="http://2.gravatar.com/avatar/2efdf488b80290b5a5c1f92354da3ac9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/2efdf488b80290b5a5c1f92354da3ac9" srcset="http://2.gravatar.com/avatar/2efdf488b80290b5a5c1f92354da3ac9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5290">
 				
 				hailong
@@ -457,7 +457,7 @@ img.emoji {
 	<li id="comment-5291" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5291">
 				
 				hedengcheng
@@ -484,7 +484,7 @@ img.emoji {
 	<li id="comment-5294" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5294">
 				
 				eagle.dai
@@ -514,7 +514,7 @@ img.emoji {
 	<li id="comment-5295" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/0f7282f20c3ca975a106a4268bafaab4" srcset="http://0.gravatar.com/avatar/0f7282f20c3ca975a106a4268bafaab4?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5295">
 				
 				eagle.dai
@@ -541,7 +541,7 @@ img.emoji {
 	<li id="comment-5298" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5298">
 				
 				hedengcheng
@@ -574,7 +574,7 @@ img.emoji {
 	<li id="comment-5292" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/3eed90a1680e52b106982e82226c2e58" srcset="http://0.gravatar.com/avatar/3eed90a1680e52b106982e82226c2e58?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/3eed90a1680e52b106982e82226c2e58" srcset="http://0.gravatar.com/avatar/3eed90a1680e52b106982e82226c2e58?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5292">
 				
 				jiayy
@@ -602,7 +602,7 @@ img.emoji {
 	<li id="comment-5297" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5297">
 				
 				hedengcheng
@@ -629,7 +629,7 @@ img.emoji {
 	<li id="comment-5300" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/5feb1277ca8f1c6554f64f69a40a3173" srcset="http://2.gravatar.com/avatar/5feb1277ca8f1c6554f64f69a40a3173?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/5feb1277ca8f1c6554f64f69a40a3173" srcset="http://2.gravatar.com/avatar/5feb1277ca8f1c6554f64f69a40a3173?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5300">
 				
 				Yatao Li
@@ -660,7 +660,7 @@ img.emoji {
 	<li id="comment-5293" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/1afa36e68a7f8ccea98d30961e0274f1" srcset="http://1.gravatar.com/avatar/1afa36e68a7f8ccea98d30961e0274f1?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/1afa36e68a7f8ccea98d30961e0274f1" srcset="http://1.gravatar.com/avatar/1afa36e68a7f8ccea98d30961e0274f1?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5293">
 				
 				zz
@@ -687,7 +687,7 @@ img.emoji {
 	<li id="comment-5296" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5296">
 				
 				hedengcheng
@@ -716,7 +716,7 @@ img.emoji {
 	<li id="comment-5299" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d70539e666787042a2f19e2f01116a9b" srcset="http://1.gravatar.com/avatar/d70539e666787042a2f19e2f01116a9b?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d70539e666787042a2f19e2f01116a9b" srcset="http://1.gravatar.com/avatar/d70539e666787042a2f19e2f01116a9b?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5299">
 				
 				Thomson
@@ -743,7 +743,7 @@ img.emoji {
 	<li id="comment-5304" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5304">
 				
 				hedengcheng
@@ -770,7 +770,7 @@ img.emoji {
 	<li id="comment-330828" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/4e4a9119dba9ccd6f18d2c4010f35b1e" srcset="http://1.gravatar.com/avatar/4e4a9119dba9ccd6f18d2c4010f35b1e?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/4e4a9119dba9ccd6f18d2c4010f35b1e" srcset="http://1.gravatar.com/avatar/4e4a9119dba9ccd6f18d2c4010f35b1e?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-330828" href="http://ietrsyahnrc.com/" rel="external nofollow">
 				
 				Janine
@@ -799,7 +799,7 @@ img.emoji {
 	<li id="comment-5301" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/2f5e21ce3608bf370c4ce6125f8fd313" srcset="http://2.gravatar.com/avatar/2f5e21ce3608bf370c4ce6125f8fd313?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/2f5e21ce3608bf370c4ce6125f8fd313" srcset="http://2.gravatar.com/avatar/2f5e21ce3608bf370c4ce6125f8fd313?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5301">
 				
 				hiproz
@@ -826,7 +826,7 @@ img.emoji {
 	<li id="comment-5303" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/dc1186fcfb36dc491a41741aad66d00a" srcset="http://1.gravatar.com/avatar/dc1186fcfb36dc491a41741aad66d00a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/dc1186fcfb36dc491a41741aad66d00a" srcset="http://1.gravatar.com/avatar/dc1186fcfb36dc491a41741aad66d00a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5303">
 				
 				xiaoyang
@@ -853,7 +853,7 @@ img.emoji {
 	<li id="comment-5305" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d62c48a2699e6b08cd6651083465cf70" srcset="http://1.gravatar.com/avatar/d62c48a2699e6b08cd6651083465cf70?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d62c48a2699e6b08cd6651083465cf70" srcset="http://1.gravatar.com/avatar/d62c48a2699e6b08cd6651083465cf70?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5305">
 				
 				东青
@@ -880,7 +880,7 @@ img.emoji {
 	<li id="comment-5306" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/c5331e4a568e55b6d9489b941c1555a2" srcset="http://0.gravatar.com/avatar/c5331e4a568e55b6d9489b941c1555a2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/c5331e4a568e55b6d9489b941c1555a2" srcset="http://0.gravatar.com/avatar/c5331e4a568e55b6d9489b941c1555a2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5306">
 				
 				victor
@@ -907,7 +907,7 @@ img.emoji {
 	<li id="comment-5307" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5307">
 				
 				hedengcheng
@@ -934,7 +934,7 @@ img.emoji {
 	<li id="comment-5328" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/13ecd6539a19205ac5a220d19519851f" srcset="http://1.gravatar.com/avatar/13ecd6539a19205ac5a220d19519851f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/13ecd6539a19205ac5a220d19519851f" srcset="http://1.gravatar.com/avatar/13ecd6539a19205ac5a220d19519851f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5328">
 				
 				Adam
@@ -963,7 +963,7 @@ img.emoji {
 	<li id="comment-5308" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5308">
 				
 				hedengcheng
@@ -992,7 +992,7 @@ img.emoji {
 	<li id="comment-5309" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/aa6907818dcc5af31bec2cab2df6e148" srcset="http://1.gravatar.com/avatar/aa6907818dcc5af31bec2cab2df6e148?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/aa6907818dcc5af31bec2cab2df6e148" srcset="http://1.gravatar.com/avatar/aa6907818dcc5af31bec2cab2df6e148?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-5309" href="http://tengfei.info/" rel="external nofollow">
 				
 				tengfei
@@ -1019,7 +1019,7 @@ img.emoji {
 	<li id="comment-5310" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/095f70e48952367b7c561b797a479601" srcset="http://0.gravatar.com/avatar/095f70e48952367b7c561b797a479601?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/095f70e48952367b7c561b797a479601" srcset="http://0.gravatar.com/avatar/095f70e48952367b7c561b797a479601?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5310">
 				
 				catmonkeyxu
@@ -1046,7 +1046,7 @@ img.emoji {
 	<li id="comment-5312" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5312">
 				
 				hedengcheng
@@ -1075,7 +1075,7 @@ img.emoji {
 	<li id="comment-5313" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/64518311aab4ddd80dff346f5cf7a847" srcset="http://0.gravatar.com/avatar/64518311aab4ddd80dff346f5cf7a847?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/64518311aab4ddd80dff346f5cf7a847" srcset="http://0.gravatar.com/avatar/64518311aab4ddd80dff346f5cf7a847?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5313">
 				
 				shunruo
@@ -1102,7 +1102,7 @@ img.emoji {
 	<li id="comment-5319" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5319">
 				
 				colin陶
@@ -1129,7 +1129,7 @@ img.emoji {
 	<li id="comment-5320" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/f312dd8acb266a709961e17d3f64560f" srcset="http://0.gravatar.com/avatar/f312dd8acb266a709961e17d3f64560f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5320">
 				
 				colin陶
@@ -1158,7 +1158,7 @@ img.emoji {
 	<li id="comment-5338" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/251ce2ba596a57c8c8cdff8374cc0b0a" srcset="http://2.gravatar.com/avatar/251ce2ba596a57c8c8cdff8374cc0b0a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/251ce2ba596a57c8c8cdff8374cc0b0a" srcset="http://2.gravatar.com/avatar/251ce2ba596a57c8c8cdff8374cc0b0a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5338">
 				
 				zym
@@ -1190,7 +1190,7 @@ img.emoji {
 	<li id="comment-5354" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5354">
 				
 				hedengcheng
@@ -1217,7 +1217,7 @@ img.emoji {
 	<li id="comment-5790" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/36c3da5db491a299163393cecdfeed16" srcset="http://0.gravatar.com/avatar/36c3da5db491a299163393cecdfeed16?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/36c3da5db491a299163393cecdfeed16" srcset="http://0.gravatar.com/avatar/36c3da5db491a299163393cecdfeed16?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-5790" href="http://wizmann.tk/" rel="external nofollow">
 				
 				Wizmann
@@ -1244,7 +1244,7 @@ img.emoji {
 	<li id="comment-330790" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d053ed0213fa8ed195d5ecaad87046e2" srcset="http://1.gravatar.com/avatar/d053ed0213fa8ed195d5ecaad87046e2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d053ed0213fa8ed195d5ecaad87046e2" srcset="http://1.gravatar.com/avatar/d053ed0213fa8ed195d5ecaad87046e2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-330790" href="http://tceklebumvs.com/" rel="external nofollow">
 				
 				Caro
@@ -1275,7 +1275,7 @@ img.emoji {
 	<li id="comment-5368" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/dded52899e702568b912fc8efdd51efd" srcset="http://1.gravatar.com/avatar/dded52899e702568b912fc8efdd51efd?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/dded52899e702568b912fc8efdd51efd" srcset="http://1.gravatar.com/avatar/dded52899e702568b912fc8efdd51efd?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5368">
 				
 				邓波
@@ -1302,7 +1302,7 @@ img.emoji {
 	<li id="comment-5388" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/94b471ef07b1b10cdeee4890af14a901" srcset="http://0.gravatar.com/avatar/94b471ef07b1b10cdeee4890af14a901?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/94b471ef07b1b10cdeee4890af14a901" srcset="http://0.gravatar.com/avatar/94b471ef07b1b10cdeee4890af14a901?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5388">
 				
 				fusijie
@@ -1369,7 +1369,7 @@ img.emoji {
 	<li id="comment-5631" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0703305e15ddaddba834593325cd0334" srcset="http://0.gravatar.com/avatar/0703305e15ddaddba834593325cd0334?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/0703305e15ddaddba834593325cd0334" srcset="http://0.gravatar.com/avatar/0703305e15ddaddba834593325cd0334?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5631">
 				
 				leo
@@ -1397,7 +1397,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-5637" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5637">
 				
 				hedengcheng
@@ -1424,7 +1424,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-210779" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-210779">
 				
 				阳凌
@@ -1451,7 +1451,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-210846" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-210846">
 				
 				hedengcheng
@@ -1478,7 +1478,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-210872" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/8461e85e7d6dec3a4c5399060e2e7ca9" srcset="http://2.gravatar.com/avatar/8461e85e7d6dec3a4c5399060e2e7ca9?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-210872">
 				
 				阳凌
@@ -1514,7 +1514,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-5716" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/ee138cbd0c45f2eec300e2fad7b2e62f" srcset="http://2.gravatar.com/avatar/ee138cbd0c45f2eec300e2fad7b2e62f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/ee138cbd0c45f2eec300e2fad7b2e62f" srcset="http://2.gravatar.com/avatar/ee138cbd0c45f2eec300e2fad7b2e62f?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5716">
 				
 				clr
@@ -1541,7 +1541,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-5750" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/727818b6ecfc958d31c45e0c06bdad5c" srcset="http://1.gravatar.com/avatar/727818b6ecfc958d31c45e0c06bdad5c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/727818b6ecfc958d31c45e0c06bdad5c" srcset="http://1.gravatar.com/avatar/727818b6ecfc958d31c45e0c06bdad5c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-5750">
 				
 				莫铭
@@ -1568,7 +1568,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-11075" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/7cafe6eae7f098b20a998ced5cf6b97c" srcset="http://1.gravatar.com/avatar/7cafe6eae7f098b20a998ced5cf6b97c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/7cafe6eae7f098b20a998ced5cf6b97c" srcset="http://1.gravatar.com/avatar/7cafe6eae7f098b20a998ced5cf6b97c?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-11075">
 				
 				aCayF
@@ -1595,7 +1595,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-12188" class="comment admincomment">
 
 		<div class="info admininfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d778b7da56c21298f152ebab7a8509ee" srcset="http://1.gravatar.com/avatar/d778b7da56c21298f152ebab7a8509ee?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-12188">
 				
 				hedengcheng
@@ -1624,7 +1624,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-12000" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/9146fb0dcb07d6113798972147afd2f2" srcset="http://0.gravatar.com/avatar/9146fb0dcb07d6113798972147afd2f2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/9146fb0dcb07d6113798972147afd2f2" srcset="http://0.gravatar.com/avatar/9146fb0dcb07d6113798972147afd2f2?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-12000" href="http://apprentice89.com/" rel="external nofollow">
 				
 				apprentice89
@@ -1651,7 +1651,7 @@ x86下，store之间不会有乱序出现，所以不会出现 flag＝true then 
 	<li id="comment-28726" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/de2355d70b38fefa9596cf8739c302a7" srcset="http://1.gravatar.com/avatar/de2355d70b38fefa9596cf8739c302a7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/de2355d70b38fefa9596cf8739c302a7" srcset="http://1.gravatar.com/avatar/de2355d70b38fefa9596cf8739c302a7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-28726">
 				
 				OWR
@@ -1719,7 +1719,7 @@ Thank you</p>
 	<li id="comment-115472" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/a0d5896dcb946f6681f17edc486e51e7" srcset="http://1.gravatar.com/avatar/a0d5896dcb946f6681f17edc486e51e7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/a0d5896dcb946f6681f17edc486e51e7" srcset="http://1.gravatar.com/avatar/a0d5896dcb946f6681f17edc486e51e7?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-115472">
 				
 				jery
@@ -1746,7 +1746,7 @@ Thank you</p>
 	<li id="comment-159694" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/9ca4123c2a595d7a2b0fc99b6e74bb68" srcset="http://0.gravatar.com/avatar/9ca4123c2a595d7a2b0fc99b6e74bb68?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/9ca4123c2a595d7a2b0fc99b6e74bb68" srcset="http://0.gravatar.com/avatar/9ca4123c2a595d7a2b0fc99b6e74bb68?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-159694">
 				
 				周大侠
@@ -1773,7 +1773,7 @@ Thank you</p>
 	<li id="comment-275464" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/bdf5f7276731cac38776d9ca46292b41" srcset="http://2.gravatar.com/avatar/bdf5f7276731cac38776d9ca46292b41?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/bdf5f7276731cac38776d9ca46292b41" srcset="http://2.gravatar.com/avatar/bdf5f7276731cac38776d9ca46292b41?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-275464">
 				
 				yyy
@@ -1804,7 +1804,7 @@ Thank you</p>
 	<li id="comment-290859" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/1f113c79e5210f692368ed9b3aef3040" srcset="http://1.gravatar.com/avatar/1f113c79e5210f692368ed9b3aef3040?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/1f113c79e5210f692368ed9b3aef3040" srcset="http://1.gravatar.com/avatar/1f113c79e5210f692368ed9b3aef3040?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-290859" href="http://www.tapaso.com/" rel="external nofollow">
 				
 				increase app store ranking
@@ -1831,7 +1831,7 @@ Thank you</p>
 	<li id="comment-303407" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/0ca2371a13ed8c3bf9369ece351ccc2d" srcset="http://0.gravatar.com/avatar/0ca2371a13ed8c3bf9369ece351ccc2d?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/0ca2371a13ed8c3bf9369ece351ccc2d" srcset="http://0.gravatar.com/avatar/0ca2371a13ed8c3bf9369ece351ccc2d?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-303407">
 				
 				Max
@@ -1858,7 +1858,7 @@ Thank you</p>
 	<li id="comment-330782" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/d14336937cae2275485e0fc8ffdbf14a" srcset="http://1.gravatar.com/avatar/d14336937cae2275485e0fc8ffdbf14a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/d14336937cae2275485e0fc8ffdbf14a" srcset="http://1.gravatar.com/avatar/d14336937cae2275485e0fc8ffdbf14a?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<a class="authorname" id="commentauthor-330782" href="http://ceovqifyhyv.com/" rel="external nofollow">
 				
 				Joan
@@ -1925,7 +1925,7 @@ Thank you</p>
 	<li id="comment-346641" class="comment regularcomment">
 
 		<div class="info regularinfo">
-			<div class="pic"><img alt="" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/df17d042d1916ee74aa2944d82ade437" srcset="http://1.gravatar.com/avatar/df17d042d1916ee74aa2944d82ade437?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
+			<div class="pic"><img alt="" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/df17d042d1916ee74aa2944d82ade437" srcset="http://1.gravatar.com/avatar/df17d042d1916ee74aa2944d82ade437?s=48&amp;d=mm&amp;r=g 2x" class="avatar avatar-24 photo" height="24" width="24"></div>			<div class="author">
 									<span class="authorname" id="commentauthor-346641">
 				
 				咕咕叫
@@ -1942,7 +1942,7 @@ Thank you</p>
 					<div class="content">
 				
 				<div id="commentbody-346641">
-					<blockquote cite="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/saved_resource"><p>
+					<blockquote cite="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/saved_resource"><p>
 <strong><a href="http://hedengcheng.com/?p=725#comment-5790" rel="nofollow">Wizmann</a> :</strong><br>
 c++不知道有多线程这个东西，所以只保证单线程下运行的正确。（这个问题应该在C++11得到了改变
 </p></blockquote>
@@ -2211,9 +2211,9 @@ c++不知道有多线程这个东西，所以只保证单线程下运行的正�
 		</div><!-- container -->
 	</div><!-- wrap -->
 
-<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/form.js"></script>
-<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/comment-reply.min.js"></script>
-<script type="text/javascript" src="./何登成的技术博客 » C_C++ Volatile关键词深度剖析_files/wp-embed.min.js"></script>
+<script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/form.js"></script>
+<script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/comment-reply.min.js"></script>
+<script type="text/javascript" src="./何登成的技术博客C_C++ Volatile关键词深度剖析_files/wp-embed.min.js"></script>
 
 
 

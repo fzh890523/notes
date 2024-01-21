@@ -1,9 +1,9 @@
 
 <!-- saved from url=(0086)https://www.usenix.org/legacy/events/jvm01/full_papers/russell/russell_html/index.html -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript" src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/d823139095"></script><script src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/nr-1026.min.js"></script><script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(e,n,t){function r(t){if(!n[t]){var o=n[t]={exports:{}};e[t][0].call(o.exports,function(n){var o=e[t][1][n];return r(o||n)},o,o.exports)}return n[t].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<t.length;o++)r(t[o]);return r}({1:[function(e,n,t){function r(){}function o(e,n,t){return function(){return i(e,[c.now()].concat(u(arguments)),n?null:this,t),n?void 0:this}}var i=e("handle"),a=e(2),u=e(3),f=e("ee").get("tracer"),c=e("loader"),s=NREUM;"undefined"==typeof window.newrelic&&(newrelic=s);var p=["setPageViewName","setCustomAttribute","setErrorHandler","finished","addToTrace","inlineHit","addRelease"],d="api-",l=d+"ixn-";a(p,function(e,n){s[n]=o(d+n,!0,"api")}),s.addPageAction=o(d+"addPageAction",!0),s.setCurrentRouteName=o(d+"routeName",!0),n.exports=newrelic,s.interaction=function(){return(new r).get()};var m=r.prototype={createTracer:function(e,n){var t={},r=this,o="function"==typeof n;return i(l+"tracer",[c.now(),e,t],r),function(){if(f.emit((o?"":"no-")+"fn-start",[c.now(),r,o],t),o)try{return n.apply(this,arguments)}finally{f.emit("fn-end",[c.now()],t)}}}};a("setName,setAttribute,save,ignore,onEnd,getContext,end,get".split(","),function(e,n){m[n]=o(l+n)}),newrelic.noticeError=function(e){"string"==typeof e&&(e=new Error(e)),i("err",[e,c.now()])}},{}],2:[function(e,n,t){function r(e,n){var t=[],r="",i=0;for(r in e)o.call(e,r)&&(t[i]=n(r,e[r]),i+=1);return t}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],3:[function(e,n,t){function r(e,n,t){n||(n=0),"undefined"==typeof t&&(t=e?e.length:0);for(var r=-1,o=t-n||0,i=Array(o<0?0:o);++r<o;)i[r]=e[n+r];return i}n.exports=r},{}],4:[function(e,n,t){n.exports={exists:"undefined"!=typeof window.performance&&window.performance.timing&&"undefined"!=typeof window.performance.timing.navigationStart}},{}],ee:[function(e,n,t){function r(){}function o(e){function n(e){return e&&e instanceof r?e:e?f(e,u,i):i()}function t(t,r,o,i){if(!d.aborted||i){e&&e(t,r,o);for(var a=n(o),u=m(t),f=u.length,c=0;c<f;c++)u[c].apply(a,r);var p=s[y[t]];return p&&p.push([b,t,r,a]),a}}function l(e,n){v[e]=m(e).concat(n)}function m(e){return v[e]||[]}function w(e){return p[e]=p[e]||o(t)}function g(e,n){c(e,function(e,t){n=n||"feature",y[t]=n,n in s||(s[n]=[])})}var v={},y={},b={on:l,emit:t,get:w,listeners:m,context:n,buffer:g,abort:a,aborted:!1};return b}function i(){return new r}function a(){(s.api||s.feature)&&(d.aborted=!0,s=d.backlog={})}var u="nr@context",f=e("gos"),c=e(2),s={},p={},d=n.exports=o();d.backlog=s},{}],gos:[function(e,n,t){function r(e,n,t){if(o.call(e,n))return e[n];var r=t();if(Object.defineProperty&&Object.keys)try{return Object.defineProperty(e,n,{value:r,writable:!0,enumerable:!1}),r}catch(i){}return e[n]=r,r}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],handle:[function(e,n,t){function r(e,n,t,r){o.buffer([e],r),o.emit(e,n,t)}var o=e("ee").get("handle");n.exports=r,r.ee=o},{}],id:[function(e,n,t){function r(e){var n=typeof e;return!e||"object"!==n&&"function"!==n?-1:e===window?0:a(e,i,function(){return o++})}var o=1,i="nr@id",a=e("gos");n.exports=r},{}],loader:[function(e,n,t){function r(){if(!x++){var e=h.info=NREUM.info,n=d.getElementsByTagName("script")[0];if(setTimeout(s.abort,3e4),!(e&&e.licenseKey&&e.applicationID&&n))return s.abort();c(y,function(n,t){e[n]||(e[n]=t)}),f("mark",["onload",a()+h.offset],null,"api");var t=d.createElement("script");t.src="https://"+e.agent,n.parentNode.insertBefore(t,n)}}function o(){"complete"===d.readyState&&i()}function i(){f("mark",["domContent",a()+h.offset],null,"api")}function a(){return E.exists&&performance.now?Math.round(performance.now()):(u=Math.max((new Date).getTime(),u))-h.offset}var u=(new Date).getTime(),f=e("handle"),c=e(2),s=e("ee"),p=window,d=p.document,l="addEventListener",m="attachEvent",w=p.XMLHttpRequest,g=w&&w.prototype;NREUM.o={ST:setTimeout,CT:clearTimeout,XHR:w,REQ:p.Request,EV:p.Event,PR:p.Promise,MO:p.MutationObserver};var v=""+location,y={beacon:"bam.nr-data.net",errorBeacon:"bam.nr-data.net",agent:"js-agent.newrelic.com/nr-1026.min.js"},b=w&&g&&g[l]&&!/CriOS/.test(navigator.userAgent),h=n.exports={offset:u,now:a,origin:v,features:{},xhrWrappable:b};e(1),d[l]?(d[l]("DOMContentLoaded",i,!1),p[l]("load",r,!1)):(d[m]("onreadystatechange",o),p[m]("onload",r)),f("mark",["firstbyte",u],null,"api");var x=0,E=e(4)},{}]},{},["loader"]);</script><title>Java™ Virtual Machine Research and Technology Symposium 2001 Paper</title>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript" src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/d823139095"></script><script src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/nr-1026.min.js"></script><script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(e,n,t){function r(t){if(!n[t]){var o=n[t]={exports:{}};e[t][0].call(o.exports,function(n){var o=e[t][1][n];return r(o||n)},o,o.exports)}return n[t].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<t.length;o++)r(t[o]);return r}({1:[function(e,n,t){function r(){}function o(e,n,t){return function(){return i(e,[c.now()].concat(u(arguments)),n?null:this,t),n?void 0:this}}var i=e("handle"),a=e(2),u=e(3),f=e("ee").get("tracer"),c=e("loader"),s=NREUM;"undefined"==typeof window.newrelic&&(newrelic=s);var p=["setPageViewName","setCustomAttribute","setErrorHandler","finished","addToTrace","inlineHit","addRelease"],d="api-",l=d+"ixn-";a(p,function(e,n){s[n]=o(d+n,!0,"api")}),s.addPageAction=o(d+"addPageAction",!0),s.setCurrentRouteName=o(d+"routeName",!0),n.exports=newrelic,s.interaction=function(){return(new r).get()};var m=r.prototype={createTracer:function(e,n){var t={},r=this,o="function"==typeof n;return i(l+"tracer",[c.now(),e,t],r),function(){if(f.emit((o?"":"no-")+"fn-start",[c.now(),r,o],t),o)try{return n.apply(this,arguments)}finally{f.emit("fn-end",[c.now()],t)}}}};a("setName,setAttribute,save,ignore,onEnd,getContext,end,get".split(","),function(e,n){m[n]=o(l+n)}),newrelic.noticeError=function(e){"string"==typeof e&&(e=new Error(e)),i("err",[e,c.now()])}},{}],2:[function(e,n,t){function r(e,n){var t=[],r="",i=0;for(r in e)o.call(e,r)&&(t[i]=n(r,e[r]),i+=1);return t}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],3:[function(e,n,t){function r(e,n,t){n||(n=0),"undefined"==typeof t&&(t=e?e.length:0);for(var r=-1,o=t-n||0,i=Array(o<0?0:o);++r<o;)i[r]=e[n+r];return i}n.exports=r},{}],4:[function(e,n,t){n.exports={exists:"undefined"!=typeof window.performance&&window.performance.timing&&"undefined"!=typeof window.performance.timing.navigationStart}},{}],ee:[function(e,n,t){function r(){}function o(e){function n(e){return e&&e instanceof r?e:e?f(e,u,i):i()}function t(t,r,o,i){if(!d.aborted||i){e&&e(t,r,o);for(var a=n(o),u=m(t),f=u.length,c=0;c<f;c++)u[c].apply(a,r);var p=s[y[t]];return p&&p.push([b,t,r,a]),a}}function l(e,n){v[e]=m(e).concat(n)}function m(e){return v[e]||[]}function w(e){return p[e]=p[e]||o(t)}function g(e,n){c(e,function(e,t){n=n||"feature",y[t]=n,n in s||(s[n]=[])})}var v={},y={},b={on:l,emit:t,get:w,listeners:m,context:n,buffer:g,abort:a,aborted:!1};return b}function i(){return new r}function a(){(s.api||s.feature)&&(d.aborted=!0,s=d.backlog={})}var u="nr@context",f=e("gos"),c=e(2),s={},p={},d=n.exports=o();d.backlog=s},{}],gos:[function(e,n,t){function r(e,n,t){if(o.call(e,n))return e[n];var r=t();if(Object.defineProperty&&Object.keys)try{return Object.defineProperty(e,n,{value:r,writable:!0,enumerable:!1}),r}catch(i){}return e[n]=r,r}var o=Object.prototype.hasOwnProperty;n.exports=r},{}],handle:[function(e,n,t){function r(e,n,t,r){o.buffer([e],r),o.emit(e,n,t)}var o=e("ee").get("handle");n.exports=r,r.ee=o},{}],id:[function(e,n,t){function r(e){var n=typeof e;return!e||"object"!==n&&"function"!==n?-1:e===window?0:a(e,i,function(){return o++})}var o=1,i="nr@id",a=e("gos");n.exports=r},{}],loader:[function(e,n,t){function r(){if(!x++){var e=h.info=NREUM.info,n=d.getElementsByTagName("script")[0];if(setTimeout(s.abort,3e4),!(e&&e.licenseKey&&e.applicationID&&n))return s.abort();c(y,function(n,t){e[n]||(e[n]=t)}),f("mark",["onload",a()+h.offset],null,"api");var t=d.createElement("script");t.src="https://"+e.agent,n.parentNode.insertBefore(t,n)}}function o(){"complete"===d.readyState&&i()}function i(){f("mark",["domContent",a()+h.offset],null,"api")}function a(){return E.exists&&performance.now?Math.round(performance.now()):(u=Math.max((new Date).getTime(),u))-h.offset}var u=(new Date).getTime(),f=e("handle"),c=e(2),s=e("ee"),p=window,d=p.document,l="addEventListener",m="attachEvent",w=p.XMLHttpRequest,g=w&&w.prototype;NREUM.o={ST:setTimeout,CT:clearTimeout,XHR:w,REQ:p.Request,EV:p.Event,PR:p.Promise,MO:p.MutationObserver};var v=""+location,y={beacon:"bam.nr-data.net",errorBeacon:"bam.nr-data.net",agent:"js-agent.newrelic.com/nr-1026.min.js"},b=w&&g&&g[l]&&!/CriOS/.test(navigator.userAgent),h=n.exports={offset:u,now:a,origin:v,features:{},xhrWrappable:b};e(1),d[l]?(d[l]("DOMContentLoaded",i,!1),p[l]("load",r,!1)):(d[m]("onreadystatechange",o),p[m]("onload",r)),f("mark",["firstbyte",u],null,"api");var x=0,E=e(4)},{}]},{},["loader"]);</script><title>Java™ Virtual Machine Research and Technology Symposium 2001 Paper</title>
 </head>
 
-<body bgcolor="#ffffff" text="#000000" link="#990000" alink="#666666" vlink="#666666" topmargin="0" leftmargin="0" rightmargin="0" marginheight="0"><a href="http://www.usenix.org/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/new_usenix.jpg" width="288" height="232" alt="Check out the new USENIX Web site." align="right"></a>
+<body bgcolor="#ffffff" text="#000000" link="#990000" alink="#666666" vlink="#666666" topmargin="0" leftmargin="0" rightmargin="0" marginheight="0"><a href="http://www.usenix.org/"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/new_usenix.jpg" width="288" height="232" alt="Check out the new USENIX Web site." align="right"></a>
 
 <!-- IE understands topmargin, leftmargin, rightmargin, NS understands marginheight -->
 
@@ -12,29 +12,29 @@
 <tbody><tr><td align="LEFT" valign="TOP"><table border="0" cellspacing="0" cellpadding="0" width="600"><tbody><tr><td>
 <table border="0" cellpadding="0" cellspacing="0" width="600">
 <!-- space at top -->
-<tbody><tr><td colspan="13"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="1" height="5" alt=""><br></td></tr>
+<tbody><tr><td colspan="13"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="1" height="5" alt=""><br></td></tr>
  <tr><!-- row 1 -->
-   <td colspan="13"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smalltop.gif" width="600" height="6" border="0" alt=""></td>
+   <td colspan="13"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smalltop.gif" width="600" height="6" border="0" alt=""></td>
   </tr>
 
   <tr><!-- row 2 -->
-   <td rowspan="2"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallleft.gif" width="102" height="23" border="0" alt=""></td>
-   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallhome.gif" width="38" height="16" border="0" alt="Home"></a></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
-   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/about"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallabout.gif" width="90" height="16" border="0" alt="About USENIX"></a></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
-   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/events"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallevents.gif" width="42" height="16" border="0" alt="Events"></a></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
-   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/membership"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallmembership.gif" width="78" height="16" border="0" alt="Membership"></a></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallpublications.gif" width="77" height="16" border="0" alt="Publications"></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
-   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/students"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallstudents.gif" width="54" height="16" border="0" alt="Students"></a></td>
-   <td bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/smallright16.gif" width="34" height="16" border="0" alt=""></td>
+   <td rowspan="2"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallleft.gif" width="102" height="23" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallhome.gif" width="38" height="16" border="0" alt="Home"></a></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/about"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallabout.gif" width="90" height="16" border="0" alt="About USENIX"></a></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/events"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallevents.gif" width="42" height="16" border="0" alt="Events"></a></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/membership"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallmembership.gif" width="78" height="16" border="0" alt="Membership"></a></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallpublications.gif" width="77" height="16" border="0" alt="Publications"></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/divider16.gif" width="17" height="16" border="0" alt=""></td>
+   <td bgcolor="#666666"><a href="https://www.usenix.org/legacy/students"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallstudents.gif" width="54" height="16" border="0" alt="Students"></a></td>
+   <td bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/smallright16.gif" width="34" height="16" border="0" alt=""></td>
   </tr>
 
   <tr><!-- row 3 -->
-   <td colspan="12" bgcolor="#666666"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="2" height="7" border="0" alt=""></td>
+   <td colspan="12" bgcolor="#666666"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/dot_clear.gif" width="2" height="7" border="0" alt=""></td>
   </tr>
 
 </tbody></table>
@@ -50,7 +50,7 @@
 <p>
 
 <table>
-<tbody><tr><td><b>Pp. 117–126 of the <i>Proceedings</i></b></td><td align="bottom"><a href="https://www.usenix.org/legacy/publications/ordering/"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/buy_now.gif" border="0"></a></td></tr>
+<tbody><tr><td><b>Pp. 117–126 of the <i>Proceedings</i></b></td><td align="bottom"><a href="https://www.usenix.org/legacy/publications/ordering/"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/buy_now.gif" border="0"></a></td></tr>
 </tbody></table>
 <!-- START OF PAGE CONTENTS -->
 
@@ -120,7 +120,7 @@ traditional C<b>++</b> debugger, one deals with raw bits. All of the
 high-level abstract data types are gone.
 <p>
 </p><p>
-<a name="figinspector"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-jbutton-inspector.jpg" width="496" height="502"></a><br>
+<a name="figinspector"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-jbutton-inspector.jpg" width="496" height="502"></a><br>
 </p><dl><dd><strong>Figure 1:</strong>  An object inspector built with the SA's APIs. </dd></dl><br>
 <p>
 </p><p>
@@ -282,7 +282,7 @@ each Java thread is executing: JVM-internal code, "native" code
 traversing the target JVM's thread list and determining this
 information.
 </p><p>
-</p><p><a name="figthreads"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/thread-list.jpg" width="698" height="775"></a><br>
+</p><p><a name="figthreads"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/thread-list.jpg" width="698" height="775"></a><br>
 </p><dl><dd><strong>Figure 2:</strong>  Illustration of the mirroring of the JVM's data structures
   in the SA.  (A) shows a subset of the JVM's JavaThread code,
   including the state of the thread (in JVM code, in native code, or
@@ -340,7 +340,7 @@ type will identify the given field as a <tt>short int</tt>, not a <tt>
 jshort</tt>.  This information loss was deemed unacceptable in the type
 modeling process for the SA.
 </p><p>
-</p><p><a name="figtypes"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/type-database.jpg" width="721" height="852"></a><br>
+</p><p><a name="figtypes"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/type-database.jpg" width="721" height="852"></a><br>
 </p><dl><dd><strong>Figure 3:</strong>  Modeling of C<b>++</b> types in the SA. (A) shows the
 structure of one of the JVM's three type tables and the global symbols
 used to access and describe it. (B) highlights the salient aspects of
@@ -384,7 +384,7 @@ straightforwardly extended in the future.
 <p>
 <a name="secaccess">&nbsp;</a>
 </p><p>
-</p><p><a name="figconn"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/connection.jpg" width="625" height="168"></a><br>
+</p><p><a name="figconn"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/connection.jpg" width="625" height="168"></a><br>
 </p><dl><dd><strong>Figure 4:</strong>  Block diagram of connections between the SA and the target
 HotSpot JVM on Solaris. </dd></dl><br>
 <p>
@@ -475,7 +475,7 @@ public interface OopVisitor {
 <dl><dd><strong>Figure 5:</strong> The OopVisitor interface, which provides uniform iteration over all objects in the heap.</dd></dl><br>
 <p>
 </p><p>
-</p><p><a name="fighisto"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-object-histogram.jpg" width="517" height="341"></a><br>
+</p><p><a name="fighisto"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-object-histogram.jpg" width="517" height="341"></a><br>
 </p><dl><dd><strong>Figure 6:</strong>  Histogram of objects in the heap. </dd></dl><br>
 <p>
 </p><p>
@@ -500,7 +500,7 @@ somehow by the underlying remote-aware interpreter.
 <p>
 <a name="secstacks">&nbsp;</a>
 </p><p>
-</p><p><a name="figstack"><img src="./Java™ Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-stack-trace.jpg" width="1169" height="715"></a><br>
+</p><p><a name="figstack"><img src="./Java Virtual Machine Research and Technology Symposium 2001 Paper_files/java2d-stack-trace.jpg" width="1169" height="715"></a><br>
 </p><dl><dd><strong>Figure 7:</strong>  Stack memory annotated with Java frames and live objects. </dd></dl><br>
 <p>
 </p><p>

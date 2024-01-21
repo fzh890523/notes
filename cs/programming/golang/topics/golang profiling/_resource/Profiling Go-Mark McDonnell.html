@@ -20,12 +20,12 @@ Go’s implementation is a parallel mark-and-sweep garbage collector. In the tra
   <title>Profiling Go ⋆ Mark McDonnell</title>
   <link rel="canonical" href="https://www.integralist.co.uk/posts/profiling-go/">
   <link rel="icon" href="https://www.integralist.co.uk/favicon.ico">
-<link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/css">
-<link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/main.d02777fd.css">
+<link rel="stylesheet" href="./Profiling Go-Mark McDonnell_files/css">
+<link rel="stylesheet" href="./Profiling Go-Mark McDonnell_files/main.d02777fd.css">
 
-  <link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/custom.css">
+  <link rel="stylesheet" href="./Profiling Go-Mark McDonnell_files/custom.css">
 
-  <link rel="stylesheet" href="./Profiling Go ⋆ Mark McDonnell_files/highlight.github.css">
+  <link rel="stylesheet" href="./Profiling Go-Mark McDonnell_files/highlight.github.css">
 
 
 <script type="application/javascript">
@@ -37,7 +37,7 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-<script async="" src="./Profiling Go ⋆ Mark McDonnell_files/analytics.js"></script>
+<script async="" src="./Profiling Go-Mark McDonnell_files/analytics.js"></script>
 
 
 </head>
@@ -767,8 +767,8 @@ ROUTINE ======================== main.bigBytes in /.../<span class="hljs-keyword
 
 <p>This generates an image that looks like the following (notice how the bigger the box, the more resources it’s consuming - this helps you ‘at a glance’ to identify a potential problem zone):</p>
 
-<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go.png">
-    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go.png">
+<p><a href="./Profiling Go-Mark McDonnell_files/profiling_go.png">
+    <img src="./Profiling Go-Mark McDonnell_files/profiling_go.png">
 </a></p>
 
 <blockquote>
@@ -865,8 +865,8 @@ $ <span class="hljs-keyword">go</span> tool trace app.trace
 
 <p>Each of these items can give a good insight as to what your application is doing, but we’re most interested in the first one “view trace”. Click it and it’ll give you a complete overview of what your application is doing in an interactive graph.</p>
 
-<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_2.png">
-    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_2.png">
+<p><a href="./Profiling Go-Mark McDonnell_files/profiling_go_2.png">
+    <img src="./Profiling Go-Mark McDonnell_files/profiling_go_2.png">
 </a></p>
 
 <blockquote>
@@ -901,8 +901,8 @@ $ <span class="hljs-keyword">go</span> tool trace app.trace
 
 <p>If you were to “View Options” and then tick “Flow events” you’ll see an arrow from the <code>main.main</code> function going towards the <code>main.main.func1</code> function running on a separate process/thread (probably a bit difficult to see in the below image, but it’s definitely there).</p>
 
-<p><a href="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_3.png">
-    <img src="./Profiling Go ⋆ Mark McDonnell_files/profiling_go_3.png">
+<p><a href="./Profiling Go-Mark McDonnell_files/profiling_go_3.png">
+    <img src="./Profiling Go-Mark McDonnell_files/profiling_go_3.png">
 </a></p>
 
 <p>So it’s good to be able to visually see the correlation between first of all the <code>main.main.func1</code> goroutine running and the memory allocation occurring at that time, but also being able to see the cause and effect (i.e. the <em>flow</em>) of the program (i.e. knowing <em>what</em> exactly triggered the new goroutine to be spun up).</p>
@@ -1049,13 +1049,13 @@ $ <span class="hljs-keyword">go</span> tool trace app.trace
 
   </div>
 
-  <script src="./Profiling Go ⋆ Mark McDonnell_files/main.af838dd5.js"></script>
+  <script src="./Profiling Go-Mark McDonnell_files/main.af838dd5.js"></script>
   
-    <script src="./Profiling Go ⋆ Mark McDonnell_files/custom.js"></script>
+    <script src="./Profiling Go-Mark McDonnell_files/custom.js"></script>
   
-    <script src="./Profiling Go ⋆ Mark McDonnell_files/highlight.pack.js"></script>
+    <script src="./Profiling Go-Mark McDonnell_files/highlight.pack.js"></script>
   
-    <script src="./Profiling Go ⋆ Mark McDonnell_files/highlight-trigger.js"></script>
+    <script src="./Profiling Go-Mark McDonnell_files/highlight-trigger.js"></script>
   
 
 
