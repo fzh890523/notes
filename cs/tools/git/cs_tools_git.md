@@ -194,6 +194,33 @@ If you do that, you'll never need to use `core.fileMode`, except in very rare en
 
 
 
+### 创建“孤儿”分支
+
+
+
+目的： 创建一个干净的分支，与其他分支内容（commit）无关联
+
+使用场景： 比如只想要内容不想要历史commit的，则可以创建这样的分支然后clone该分支
+
+操作示例：
+
+```sh
+# on master
+git checkout -b archive-20240121
+git branch -D master
+git checkout --orphan master
+git commit -m "re-init 20240121"
+# 此时master上有原当前内容，只有这一个commit。 拉取master时内容就很“干净”
+```
+
+
+
+
+
+
+
+
+
 ## track branch
 
 https://git-scm.com/book/en/v2/Git-Branching-Remote-Branches
