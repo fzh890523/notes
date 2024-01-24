@@ -6,7 +6,29 @@
 
 
 
-见单独的
+见单独的 `obsidian插件-xx` 文件
+
+
+
+# sync
+
+
+
+几种方案：
+
+* ob-sync
+
+* wc（working-copy）
+
+  外部管理，交互麻烦一点。 性能好，适合大repo
+
+* ob-git插件
+
+  底层git库是js实现，性能差。 pc端也能用，其他端就..
+  
+  集成在ob内部，交互方便
+  
+  ios大repo有bug会crash，适合小repo
 
 
 
@@ -15,6 +37,27 @@
 
 
 ## ios
+
+
+
+结论：
+
+* 小repo可以 wc + ob-git 来省去手动打包传输
+* 大repo则禁用ob-git只用wc管理算了
+
+
+
+### wc+[ob-git]
+
+
+
+1. wc clone
+2. link to ob
+3. 视情况而定sync方案： ob-git or wc
+
+
+
+### 打包-传输-解包+ob-sync
 
 
 
@@ -81,4 +124,12 @@
    * 在ios侧reset一下
 
 8. 打开obsidian即可看到这个新vault，打开即可使用，插件等因为在文件中承载，也可以继续使用（包含git-sync等）
+
+
+
+**注意**
+
+以上流程能work，但因为一些问题（见  [obsidian插件-git_yonka.md#移动端支持](obsidian插件-git_yonka.md#移动端支持) ），导致实践中使用有点问题。
+
+
 

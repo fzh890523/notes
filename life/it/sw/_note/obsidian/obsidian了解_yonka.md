@@ -88,6 +88,8 @@
 
 * ios： 有，看着还比较全功能
 
+  详见使用文档
+
 
 
 ## 功能
@@ -96,10 +98,5 @@
 
 ### sync
 
+详见使用文档
 
-
-* 原生sync： ob账号，估计付费
-
-* 第三方sync： git插件，交互还算简洁方便
-
-  详见： [obsidian插件-git_yonka.md](obsidian插件-git_yonka.md)
