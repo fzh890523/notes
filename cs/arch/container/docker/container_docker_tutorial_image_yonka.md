@@ -46,6 +46,23 @@
 
 
 
+> **虽然官方文档和一些其他文档里都提到可以设置 ~/.docker/config.json，但实际测试无效 还是得改 daemon env**
+>
+> 版本：
+>
+> ```sh
+> Client:
+>  Version:           19.03.8
+>  API version:       1.40
+>  
+> Server:
+>  Engine:
+>   Version:          19.03.8
+>   API version:      1.40 (minimum version 1.12) 
+> ```
+
+
+
 > ubuntu下 /lib/systemd/system/docker.service
 
 ```sh
