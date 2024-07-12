@@ -140,6 +140,23 @@ pip install 路径/文件名.whl
 
 
 
+### 使用代理
+
+
+
+```sh
+ ALL_PROXY=socks5://192.168.1.1:8888 pip3 install django
+ ERROR: Could not install packages due to an OSError: Missing dependencies for SOCKS support.
+
+
+ pip3 install pysocks
+ # 安装成功
+ 
+ # 然后继续
+ ALL_PROXY=socks5://192.168.1.1:8888 pip3 install django
+ # ok
+```
+
 
 
 # 一些好用的库
