@@ -340,7 +340,7 @@ _
 \Finv                   AMSsymbols
 \flat
 \forall
-\frac                   AMSmath
+\frac                   AMSmath，\frac{分子}{分母}， 如 $\frac{x+y}{z}$
 \frak
 \frown
 ```
@@ -885,7 +885,7 @@ _
 \Tau                    mediawiki-texvc
 \tbinom                 AMSmath
 \TeX
-\text
+\text                  \text{要显示的文本内容} ， 如 \text{概率} = \frac{\text{满足条件的情况数}}{\text{总情况数}}
 \textbf
 \textit
 \textrm
@@ -1122,8 +1122,9 @@ https://oeis.org/wiki/List_of_LaTeX_mathematical_symbols
 
 * $$
 <<<<<<< HEAD
-  Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj}
-=======
+  
+Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj}
+  =======
   Z_{ij}=\sum_{k=1}^{10} X_{ik} * Y_{kj} * 2^{n+1}
 >>>>>>> 1122cdc (re-init 20240121)
   $$
@@ -1135,6 +1136,15 @@ https://oeis.org/wiki/List_of_LaTeX_mathematical_symbols
 * 
 
 
+
+
+
+# 常见语法
+
+
+
+* 分数： `\frac`，如 $\frac{x+y}{z}$
+* 文本（尤其如中文）： `\text`，如 $\text{概率} = \frac{\text{满足条件的情况数}}{\text{总情况数}}$
 
 # 设置
 

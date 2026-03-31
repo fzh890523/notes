@@ -139,6 +139,31 @@ done
 
 
 
+#### 序列生成器
+
+循环中常用到
+
+* `seq 1 10` 得到 1-10
+
+  ```sh
+  for i in $(seq 1 4); do echo $i; done
+  1
+  2
+  3
+  4
+  ```
+
+* `{A..Z}` 这样的shell语法，得到A-Z之间的字符序列
+
+  ```sh
+  for i in {A..C}; do echo $i; done
+  A
+  B
+  C
+  ```
+
+  
+
 
 
 

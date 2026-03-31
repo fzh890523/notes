@@ -46,6 +46,25 @@ I'm not quite sure as to *why* you'd ever have to use the partition label, but a
 
 
 
+## uuid
+
+主要有三个：
+
+* partition type GUID（GPT分区表） 或者 “type UUID”： 标识分区用途或内容类型，如 linux root, EFI 系统分区、windows 数据等
+* unique partition GUID 或者 PARTUUID 或者 “UUID”： 唯一分区GUID。 分区内的内容变化不应该该UUID
+
+fdisk读到的是以上两个，它们存在分区表中
+
+
+
+还有一个是 文件系统UUID：
+
+* 它存在各个文件系统中，也即属于“分区内容”，不在分区表里
+* 不同文件系统的该UUID（或等效标识符）存储位置由FS本身决定，甚至不一定是标准UUID（如FAT FS）。 这意味着要读取各分区中可能的不同FS的UUID，需要本身支持（能识别）这些FS、以嗅探的方式先尝试识别FS类型、再去读取（blkid命令的原理大致如此）
+
+* “以UUID挂载分区” 使用的是该UUID
+* 在原分区重建FS会导致该UUID发生变化； 直接dump到另一个分区则会导致UUID也一起被拷贝（从而可能重复）
+
 # manual
 
 

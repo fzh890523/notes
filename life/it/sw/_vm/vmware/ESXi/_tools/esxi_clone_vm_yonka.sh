@@ -1,4 +1,9 @@
 
+# 直接copy文件（cli or web）的方式后面无法rename，还是得用正道
+
+# cd /vmfs/volumes/datastore1/  # 这个datastore1是我取的名字，其他名字类似，实际上link到某uuid
+## datastore1 -> 600ce755-443d4c00-4217-38d547793c1e
+
 # example: 
 #   `sh {name}.sh ubuntu-20.04.1 7 8 9` to gen ubuntu-20.04.1_7, ubuntu-20.04.1_8, ubuntu-20.04.1_9
 #   `OUT_DIR=../sata-1t sh {name}.sh ubuntu-20.04.1 10 11 12` to ... to specified out dir
@@ -10,15 +15,15 @@ of_types="vmx vmxf nvram"
 function do_clone() {
   local i="$1"
 
-  local cp_dir=${base_dir}_$i
+  local cp_dir="${base_dir}_$i"
   local cp_dir_path=$cp_dir
   if [[ -n "$OUT_DIR" ]]; then
-    local out_dir_prefix=${OUT_DIR}/
+    local out_dir_prefix="${OUT_DIR}/"
     cp_dir_path="$OUT_DIR/$cp_dir"
   fi
 
   echo "clone $base_dir to $cp_dir_path"
-  mkdir ${cp_dir_path}
+  mkdir "${cp_dir_path}"
 
   # -flat.vmdk格式的由命令生成: -00001.vmdk格式的是snap，按需获取
   for dkf in `ls ${base_dir}/*.vmdk | grep -v \\\\-flat.vmdk`; do
@@ -38,4 +43,3 @@ function do_clone() {
 for name in "$@"; do
   do_clone "${name}"
 done
-
